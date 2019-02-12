@@ -1,9 +1,11 @@
-#include<bits/stdc++.h>
+#include<iostream>
+#include<algorithm>
 
 using namespace std;
 
 int main() {
-  string str = "abcdef";
-  str.erase(0,2);
-  cout<<str<<endl;
+  int a = 1;
+  int b = 3;
+  cout<<a%b;
+  return 0;
 }
