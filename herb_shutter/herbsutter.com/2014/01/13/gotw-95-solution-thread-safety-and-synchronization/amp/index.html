@@ -1,0 +1,552 @@
+<!doctype html>
+<html amp lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+	
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #95 Solution: Thread Safety and Synchronization" />
+<meta property="og:url" content="https://herbsutter.com/2014/01/13/gotw-95-solution-thread-safety-and-synchronization/" />
+<meta property="og:description" content="This GotW was written to answer a set of related frequently asked questions. So here&#8217;s a mini-FAQ on &#8220;thread safety and synchronization in a nutshell,&#8221; and the points we&#8217;ll …" />
+<meta property="article:published_time" content="2014-01-13T19:00:16+00:00" />
+<meta property="article:modified_time" content="2014-01-16T17:29:44+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965827" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #95 Solution: Thread Safety and Synchronization" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+	<title>GotW #95 Solution: Thread Safety and Synchronization &#8211; Sutter’s Mill</title>
+		<link rel="canonical" href="https://herbsutter.com/2014/01/13/gotw-95-solution-thread-safety-and-synchronization/" />
+	<script src="https://cdn.ampproject.org/v0.js" async></script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic">	<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+		<script type="application/ld+json">{"@context":"http:\/\/schema.org","@type":"BlogPosting","mainEntityOfPage":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/","publisher":{"@type":"Organization","name":"Sutter\u2019s Mill","logo":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=60&d=https%3A%2F%2Fs0.wp.com%2Fi%2Ffavicons%2Fapple-touch-icon-60x60.png","width":60,"height":60}},"headline":"GotW #95 Solution: Thread Safety and Synchronization","datePublished":"2014-01-13T11:00:16+00:00","dateModified":"2014-01-16T09:29:44+00:00","author":{"@type":"Person","name":"Herb Sutter"},"image":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=200","width":200,"height":200}}</script>
+	<meta name="generator" content="AMP Plugin v0.6.2" />	<style amp-custom>
+		/* Generic WP styling */
+
+.alignright {
+	float: right;
+}
+
+.alignleft {
+	float: left;
+}
+
+.aligncenter {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.amp-wp-enforced-sizes {
+	/** Our sizes fallback is 100vw, and we have a padding on the container; the max-width here prevents the element from overflowing. **/
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+.amp-wp-unknown-size img {
+	/** Worst case scenario when we can't figure out dimensions for an image. **/
+	/** Force the image into a box of fixed dimensions and use object-fit to scale. **/
+	object-fit: contain;
+}
+
+/* Template Styles */
+
+.amp-wp-content,
+.amp-wp-title-bar div {
+		margin: 0 auto;
+	max-width: 500px;
+	}
+
+html {
+	background: #0a89c0;
+}
+
+body {
+	background: #fff;
+	color: #353535;
+	font-family: 'Merriweather', 'Times New Roman', Times, Serif;
+	font-weight: 300;
+	line-height: 1.75em;
+}
+
+p,
+ol,
+ul,
+figure {
+	margin: 0 0 1em;
+	padding: 0;
+}
+
+a,
+a:visited {
+	color: #0a89c0;
+}
+
+a:hover,
+a:active,
+a:focus {
+	color: #353535;
+}
+
+/* Quotes */
+
+blockquote {
+	color: #353535;
+	background: rgba(127,127,127,.125);
+	border-left: 2px solid #0a89c0;
+	margin: 8px 0 24px 0;
+	padding: 16px;
+}
+
+blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+/* UI Fonts */
+
+.amp-wp-meta,
+.amp-wp-header div,
+.amp-wp-title,
+.wp-caption-text,
+.amp-wp-tax-category,
+.amp-wp-tax-tag,
+.amp-wp-comments-link,
+.amp-wp-footer p,
+.back-to-top {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen-Sans", "Ubuntu", "Cantarell", "Helvetica Neue", sans-serif;
+}
+
+/* Header */
+
+.amp-wp-header {
+	background-color: #0a89c0;
+}
+
+.amp-wp-header div {
+	color: #fff;
+	font-size: 1em;
+	font-weight: 400;
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: .875em 16px;
+	position: relative;
+}
+
+.amp-wp-header a {
+	color: #fff;
+	text-decoration: none;
+}
+
+/* Site Icon */
+
+.amp-wp-header .amp-wp-site-icon {
+	/** site icon is 32px **/
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 50%;
+	position: absolute;
+	right: 18px;
+	top: 10px;
+}
+
+/* Article */
+
+.amp-wp-article {
+	color: #353535;
+	font-weight: 400;
+	margin: 1.5em auto;
+	max-width: 840px;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+}
+
+/* Article Header */
+
+.amp-wp-article-header {
+	align-items: center;
+	align-content: stretch;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin: 1.5em 16px 0;
+}
+
+.amp-wp-title {
+	color: #353535;
+	display: block;
+	flex: 1 0 100%;
+	font-weight: 900;
+	margin: 0 0 .625em;
+	width: 100%;
+}
+
+/* Article Meta */
+
+.amp-wp-meta {
+	color: #696969;
+	display: inline-block;
+	flex: 2 1 50%;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0 0 1.5em;
+	padding: 0;
+}
+
+.amp-wp-article-header .amp-wp-meta:last-of-type {
+	text-align: right;
+}
+
+.amp-wp-article-header .amp-wp-meta:first-of-type {
+	text-align: left;
+}
+
+.amp-wp-byline amp-img,
+.amp-wp-byline .amp-wp-author {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.amp-wp-byline amp-img {
+	border: 1px solid #0a89c0;
+	border-radius: 50%;
+	position: relative;
+	margin-right: 6px;
+}
+
+.amp-wp-posted-on {
+	text-align: right;
+}
+
+/* Featured image */
+
+.amp-wp-article-featured-image {
+	margin: 0 0 1em;
+}
+.amp-wp-article-featured-image amp-img {
+	margin: 0 auto;
+}
+.amp-wp-article-featured-image.wp-caption .wp-caption-text {
+	margin: 0 18px;
+}
+
+/* Article Content */
+
+.amp-wp-article-content {
+	margin: 0 16px;
+}
+
+.amp-wp-article-content ul,
+.amp-wp-article-content ol {
+	margin-left: 1em;
+}
+
+.amp-wp-article-content amp-img {
+	margin: 0 auto;
+}
+
+.amp-wp-article-content amp-img.alignright {
+	margin: 0 0 1em 16px;
+}
+
+.amp-wp-article-content amp-img.alignleft {
+	margin: 0 16px 1em 0;
+}
+
+/* Captions */
+
+.wp-caption {
+	padding: 0;
+}
+
+.wp-caption.alignleft {
+	margin-right: 16px;
+}
+
+.wp-caption.alignright {
+	margin-left: 16px;
+}
+
+.wp-caption .wp-caption-text {
+	border-bottom: 1px solid #c2c2c2;
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0;
+	padding: .66em 10px .75em;
+}
+
+/* AMP Media */
+
+amp-carousel {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+amp-iframe,
+amp-youtube,
+amp-instagram,
+amp-vine {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+
+.amp-wp-article-content amp-carousel amp-img {
+	border: none;
+}
+
+amp-carousel > amp-img > img {
+	object-fit: contain;
+}
+
+.amp-wp-iframe-placeholder {
+	background: #c2c2c2 url( https://s2.wp.com/wp-content/plugins/amp/assets/images/placeholder-icon.png ) no-repeat center 40%;
+	background-size: 48px 48px;
+	min-height: 48px;
+}
+
+/* Article Footer Meta */
+
+.amp-wp-article-footer .amp-wp-meta {
+	display: block;
+}
+
+.amp-wp-tax-category,
+.amp-wp-tax-tag {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 1.5em 16px;
+}
+
+.amp-wp-comments-link {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	text-align: center;
+	margin: 2.25em 0 1.5em;
+}
+
+.amp-wp-comments-link a {
+	border-style: solid;
+	border-color: #c2c2c2;
+	border-width: 1px 1px 2px;
+	border-radius: 4px;
+	background-color: transparent;
+	color: #0a89c0;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 18px;
+	margin: 0 auto;
+	max-width: 200px;
+	padding: 11px 16px;
+	text-decoration: none;
+	width: 50%;
+	-webkit-transition: background-color 0.2s ease;
+			transition: background-color 0.2s ease;
+}
+
+/* AMP Footer */
+
+.amp-wp-footer {
+	border-top: 1px solid #c2c2c2;
+	margin: calc(1.5em - 1px) 0 0;
+}
+
+.amp-wp-footer div {
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: 1.25em 16px 1.25em;
+	position: relative;
+}
+
+.amp-wp-footer h2 {
+	font-size: 1em;
+	line-height: 1.375em;
+	margin: 0 0 .5em;
+}
+
+.amp-wp-footer p {
+	color: #696969;
+	font-size: .8em;
+	line-height: 1.5em;
+	margin: 0 85px 0 0;
+}
+
+.amp-wp-footer a {
+	text-decoration: none;
+}
+
+.back-to-top {
+	bottom: 1.275em;
+	font-size: .8em;
+	font-weight: 600;
+	line-height: 2em;
+	position: absolute;
+	right: 16px;
+}
+		/* Inline styles */
+.amp-wp-inline-e118b89cb574341583297a20935ac54c{color:#2e74b5;}.amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe{background:#ffffcc;margin-left:14pt;}.amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34{margin-left:36pt;}.amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b{color:#5a5a5a;}	</style>
+</head>
+
+<body class="">
+
+<header id="top" class="amp-wp-header">
+	<div>
+		<a href="https://herbsutter.com">
+									<span class="amp-site-title">
+				Sutter’s Mill			</span>
+		</a>
+	</div>
+</header>
+
+<article class="amp-wp-article">
+	<header class="amp-wp-article-header">
+		<h1 class="amp-wp-title">GotW #95 Solution: Thread Safety and Synchronization</h1>
+			<div class="amp-wp-meta amp-wp-byline">
+					<amp-img src="https://secure.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=24&#038;d=identicon&#038;r=g" width="24" height="24" layout="fixed"></amp-img>
+				<span class="amp-wp-author author vcard">Herb Sutter</span>
+	</div>
+<div class="amp-wp-meta amp-wp-posted-on">
+	<time datetime="2014-01-13T11:00:16+00:00">
+		5 years ago	</time>
+</div>
+	</header>
+
+	
+	<div class="amp-wp-article-content">
+		<p><span class="amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b"><em>This GotW was written to answer a set of related frequently asked questions. So here’s a mini-FAQ on “thread safety and synchronization in a nutshell,” and the points we’ll cover apply to thread safety and synchronization in pretty much any mainstream language.<br/></em></span></p><p>
+ </p><h1>Problem<br/></h1><h2>JG Questions<br/></h2><p>1. What is a race condition, and how serious is it?
+</p><p>2. What is a correctly synchronized program? How do you achieve it? Be specific.
+</p><p>
+ </p><h2>Guru Questions<br/></h2><p>3. Consider the following code, where <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">some_obj</span> is a shared variable visible to multiple threads.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// thread 1 (performs no additional synchronization)<br/>code_that_reads_from( some_obj );  // passes some_obj by const &amp;<br/><br/>// thread 2 (performs no additional synchronization)<br/>code_that_modifies( some_obj );    // passes some_obj by non-const &amp;
+</code></pre><p>If threads 1 and 2 can run concurrently, is this code correctly synchronized if the type of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">some_obj</span> is:
+</p><p class="amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34">(a) <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>?
+</p><p class="amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34">(b) <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">string</span>?
+</p><p class="amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34">(c) <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector&lt;map&lt;int,string&gt;&gt;</span>?
+</p><p class="amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34">(d) <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr&lt;widget&gt;</span>?
+</p><p class="amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34">(e) <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">mutex</span>?
+</p><p class="amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34">(f) <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">condition_variable</span>?
+</p><p class="amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34">(g) <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">atomic&lt;unsigned&gt;</span>?<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c"><br/></span></p><p>Hint: This is actually a two-part question, not a seven-part question. There are only two unique answers, each of which covers a subset of the cases.
+</p><p>4. <em>External synchronization</em> means that the code that uses/owns a given shared object is responsible for performing synchronization on that object. Answer the following questions related to external synchronization:
+</p><p class="amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34">(a) What is the normal external synchronization responsibility of code that owns and uses a given shared variable?
+</p><p class="amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34">(b) What is the “basic thread safety guarantee” that all types must obey to enable calling code to perform normal external synchronization?
+</p><p class="amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34">(c) What partial internal synchronization can still be required within the shared variable’s implementation?
+</p><p>5. <em>Full internal synchronization</em> (a.k.a. “synchronized types” or “thread-safe types”) means that a shared object performs all necessary synchronization internally within that object, so that calling code does not need to perform any external synchronization. What types should be fully internally synchronized, and why?
+</p><p>
+ </p><h1>Solution<br/></h1><h2>Preface<br/></h2><p>The discussion in this GotW applies not only to C++ but also to any mainstream language, except mainly that certain races have defined behavior in C# and Java. But the definition of what variables need to be synchronized, the tools we use to synchronize them, and the distinction between external and internal synchronization and when you use each one, are the same in all mainstream languages. If you’re a C# or Java programmer, everything here applies equally to you, with some minor renaming such as to rename C++ <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">atomic</span> to C#/Java <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">volatile</span>, although some concepts are harder to express in C#/Java (such as identifying the read-only methods on an otherwise mutable shared object; there are <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">readonly</span> fields and “read-only” properties that have <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">get</span> but not <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">set</span>, but they express a subset of what you can express using C++ <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> on member functions).
+</p><p>Note: C++ <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">volatile</span> variables (which have no analog in languages like C# and Java) are always beyond the scope of this and any other article about the memory model and synchronization. That’s because C++ <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">volatile</span> variables aren’t about threads or communication at all and don’t interact with those things. Rather, a C++ <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">volatile</span> variable should be viewed as portal into a different universe beyond the language — a memory location that by definition does not obey the language’s memory model because that memory location is accessed by hardware (e.g., written to by a daughter card), have more than one address, or is otherwise “strange” and beyond the language. So C++ <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">volatile</span> variables are universally an exception to every guideline about synchronization because are always inherently “racy” and unsynchronizable using the normal tools  (mutexes, atomics, etc.) and more generally exist outside all normal of the language and compiler including that they generally cannot be optimized by the compiler (because the compiler isn’t allowed to know their semantics; a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">volatile int vi;</span> may not behave anything like a normal <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>, and you can’t even assume that code like <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vi = 5; int read_back = vi;</span> is guaranteed to result in <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">read_back == 5</span>, or that code like <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int i = vi; int j = vi;</span> that reads <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vi</span> twice will result in <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">i == j</span> which will not be true if <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vi</span> is a hardware counter for example). For more discussion, see my article <a href="http://www.drdobbs.com/parallel/volatile-vs-volatile/212701484">“volatile vs. volatile.”</a>
+	</p><p>
+ </p><h2>1. What is a race condition, and how serious is it?<br/></h2><p>A <em>race condition</em> occurs when two threads access the same shared variable concurrently, and at least one is a non-<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> operation (writer). Concurrent <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> operations are valid, and do not race with each other.
+</p><p>Consecutive nonzero-length bitfields count as a single variable for the purpose of defining what a race condition is.
+</p><p>Terminology note: Some people use “race” in a different sense, where in a program with no actual race conditions (as defined above) still operations on different threads could interleave in different orders in different executions of a correctly-synchronized program depending on how fast threads happen to execute relative to each other. That’s not a race condition in the sense we mean here—a better term for that might be “timing-dependent code.”
+</p><p>If a race condition occurs, your program has <em>undefined behavior</em>. C++ does not recognize any so-called “benign races”—and in languages that have recognized some races as “benign” the community has gradually learned over time that many of them actually, well, aren’t.
+</p><blockquote>
+<p><strong>Guideline:</strong> Reads (<strong>const</strong> operations) on a shared object are safe to run concurrently with each other without synchronization.
+</p>
+</blockquote><p>
+ </p><h2>2. What is a correctly synchronized program? How do you achieve it? Be specific.<br/></h2><p>A correctly synchronized program is one that contains no race conditions. You achieve it by making sure that, for every shared variable, every thread that performs a write (non-<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> operation) on that variable is synchronized so that no other reads or writes of that variable on other threads can run concurrently with that write.
+</p><p>The shared variable usually protected by:
+</p><ul><li>(commonly) using a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">mutex</span> or equivalent;
+</li>
+<li>(very rarely) by making it <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">atomic</span> if that’s appropriate, such as in low-lock code; or
+</li>
+<li>(very rarely) for certain types by performing the synchronization internally, as we will see below.
+</li>
+</ul><p>
+ </p><h2>3. Consider the following code… If threads 1 and 2 can run concurrently, is this code correctly synchronized if the type of some_obj is: (a) int? (b) string? (c) vector&lt;map&lt;int,string&gt;&gt;? (d) shared_ptr&lt;widget&gt;?<br/></h2><p>No. The code has one thread reading (via <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> operations) from <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">some_obj</span>, and a second thread writing to the same variable. If those threads can execute at the same time, that’s a race and a direct non-stop ticket to undefined behavior land.
+</p><p>The answer is to synchronize access to the variable, for example using a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">mutex</span>:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// thread 1<br/>{<br/>    lock_guard hold(mut_some_obj);     // acquire lock<br/>    code_that_reads_from( some_obj );  // passes some_obj by const &amp;<br/>}<br/><br/>// thread 2<br/>{<br/>    lock_guard hold(mut_some_obj);     // acquire lock<br/>    code_that_modifies( some_obj );    // passes some_obj by non-const &amp;<br/>}
+</code></pre><p>Virtually all types, including <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector</span> and other types, are just as thread-safe as <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>; they’re not special for concurrency purposes. It doesn’t matter whether <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">some_obj</span> is an <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>, a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">string</span>, a container, or a smart pointer… concurrent reads (<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> operations) are safe without synchronization, but the shared object is writeable, then the code that owns the object has to synchronize access to it.
+</p><p>But when I said this is true for “virtually all types,” I meant all types except for types that are not fully internally synchronized, which brings us to the types that, by design, <em>are</em> special for concurrency purposes…
+</p><p>
+ </p><h2>… If threads 1 and 2 can run concurrently, is this code correctly synchronized if the type of g+shared is: (e) mutex? (f) condition_variable? (g) atomic&lt;unsigned&gt;?<br/></h2><p>Yes. For these types, the code is okay, because these types already perform full internal synchronization and so they are safe to access without external synchronization.
+</p><p>In fact, these types had better be safe to use without external synchronization, because they’re synchronization primitives you need to use as tools to synchronize other variables! And its turns out that that’s no accident…
+</p><blockquote>
+<p><strong>Guideline:</strong> A type should only be fully internally synchronized if and only if its purpose is to provide  inter-thread communication (e.g., a message queue) or synchronization (e.g., a mutex).
+</p>
+</blockquote><p>
+ </p><h2>4. <em>External synchronization</em> means that the code that uses/owns a given shared object is responsible for performing synchronization on that object. Answer the following questions related to external synchronization:<br/></h2><h3>(a) What is the normal external synchronization responsibility of code that owns and uses a given shared variable?<br/></h3><p>The normal synchronization duty of care is simply this: The code that knows about and owns a writeable shared variable has to synchronize access to it. It will typically do that using a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">mutex</span> or similar (~99.9% of the time), or by making it <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">atomic</span> if that’s possible and appropriate (~0.1% of the time).
+</p><blockquote>
+<p><strong>Guideline:</strong> The code that knows about and owns a writeable shared variable is responsible for synchronizing access to it.
+</p>
+</blockquote><p>
+ </p><h3>(b) What is the “basic thread safety guarantee” that all types must obey to enable calling code to perform normal external synchronization?<br/></h3><p>To make it possible for the code that uses a shared variable to do the above, two basic things must be true.
+</p><p>First, concurrent operations on different objects must be safe. For example, let’s say we have two <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">X</span> objects <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x1</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x2</span>, each of which is only used by one thread. Then consider this situation:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// Case A: Using distinct objects<br/><br/>// thread 1 (performs no additional synchronization)<br/>x1.something();                   // do something with x1<br/><br/>// thread 2 (performs no additional synchronization)<br/>x2 = something_else;              // do something else with x2
+</code></pre><p>This must always be considered correctly synchronized. Remember, we stated that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x1</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x2</span> are distinct objects, and cannot be aliases for the same object or similar hijinks.
+</p><p>Second, concurrent <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> operations that are just reading from the same variable <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x</span> must be safe:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// Case B: const access to the same object<br/><br/>// thread 1 (performs no additional synchronization)<br/>x.something_const();              // read from x (const operation)<br/><br/>// thread 2 (performs no additional synchronization)<br/>x.something_else_const();         // read from x (const operation)
+</code></pre><p>This code too must be considered correctly synchronized, and had better work without external synchronization. It’s not a race, because the two threads are both performing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> accesses and reading from the shared object.
+</p><p>This brings us to the case where there might be a combination of internal and external synchronization required…
+</p><p>
+ </p><h3>(c) What partial internal synchronization can still be required within the shared variable’s implementation?<br/></h3><p>In some classes, objects that from the outside appear to be distinct but still may share state under the covers, without the calling code being able to tell that two apparently distinct objects are connected under the covers. Note that this not an exception to the previous guideline—it’s the same guideline!
+</p><blockquote>
+<p><strong>Guideline:</strong> It is always true that the code that knows about and owns a writeable shared variable is responsible for synchronizing access to it. If the writeable shared state is hidden inside the implementation of some class, then it’s simply that class’ internals that are the ‘owning code’ that has to synchronize access to (just) the shared state that only it knows about.
+</p>
+</blockquote><p>A classic case of “under-the-covers shared state” is reference counting, and the two poster-child examples are <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">std::shared_ptr</span> and copy-on-write. Let’s use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> as our main example.
+</p><p>A reference-counted smart pointer like <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> keeps a reference count under the covers. Let’s say we have two distinct <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> objects <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">sp1</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">sp2</span>, each of which is used by only one thread. Then consider this situation:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// Case A: Using distinct objects<br/><br/>// thread 1 (performs no additional synchronization)<br/>auto x = sp1;                      // read from sp1 (writes the count!) <br/><br/>// thread 2 (performs no additional synchronization)<br/>sp2 = something_else;              // write to sp2 (writes the count!)
+</code></pre><p>This code must be considered correctly synchronized, and had better work as shown without any external synchronization. Okay, fine …
+</p><p>… but what if <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">sp1</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">sp2</span> are pointing to the same object and so share a reference count? If so, <em>that reference count is a writeable shared object</em>, and so it must be synchronized to avoid a race—but it is in general impossible for the calling code to do the right synchronization, because it is not even aware of the sharing! The code we just saw above doesn’t see the count, doesn’t know the count variable’s name, and doesn’t in general know which pointers share counts.
+</p><p>Similarly, consider two threads just reading from the same variable <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">sp</span>:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// Case B: const access to the same object<br/><br/>// thread 1 (performs no additional synchronization)<br/>auto sp3 = sp;                     // read from sp (writes the count!)<br/><br/>// thread 2 (performs no additional synchronization)<br/>auto sp4 = sp;                     // read from sp (writes the count!)
+</code></pre><p>This code too must be considered correctly synchronized, and had better work without external synchronization. It’s not a race, because the two threads are both performing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> accesses and reading from the shared object. But under the covers, reading from <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">sp</span> to copy it increments the reference count, and so again <em>that reference count is a writeable shared object</em>, and so it must be synchronized to avoid a race—and again it is in general impossible for the calling code to do the right synchronization, because it is not even aware of the sharing.
+</p><p>So to deal with these cases, the code that knows about the shared reference count, namely the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> implementation, has to synchronize access to the reference count. For reference counting, this is typically done by making the reference count a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">mutable atomic</span> variable. (See also GotW #6a and #6b.)
+</p><p>For completeness, yes, of course external synchronization is still required as usual if the calling code shared a given visible <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> object and makes that same shared<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">_ptr</span> object writable across threads:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// Case C: External synchronization still required as usual<br/>//         for non-const access to same visible shared object<br/><br/>// thread 1<br/>{<br/>    lock_guard hold(mut_sp);           // acquire lock<br/>    auto sp3 = sp;                     // read from sp<br/>}<br/><br/>// thread 2<br/>{<br/>    lock_guard hold(mut_sp);           // acquire lock<br/>    sp = something_else;               // modify sp<br/>}
+</code></pre><p>So it’s not like <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> is a fully internally synchronized type; if the caller is sharing an object of that type, the caller must synchronize access to it like it would do for other types, as noted in Question 3(d).
+</p><p>So what’s the purpose of the internal synchronization? It’s only to do necessary synchronization on the parts that the internals know are shared <em>and that the internals own</em>, but that the caller can’t synchronize because he doesn’t know about the sharing and shouldn’t need to because the caller doesn’t own them, the internals do. So in the internal implementation of the type we do just enough internal synchronization to get back to the level where the caller can assume his usual duty of care and in the usual ways correctly synchronize any objects that might actually be shared.
+</p><p>The same applies to other uses of reference counting, such as copy-on-write strategies. It also applies generally to any other internal sharing going on under the covers between objects that appear distinct and independent to the calling code.
+</p><blockquote>
+<p><strong>Guideline:</strong> If you design a class where two objects may invisibly share state under the covers, it is your class’ responsibility to internally synchronize access to that <strong>mutable</strong> shared state (only) that it owns and that only it can see, because the calling code can’t. If you opt for under-the-covers-sharing strategies like copy-on-write, be aware of the duty you’re taking on for yourself and code with care.
+</p>
+</blockquote><p>For why such internal shared state should be <strong>mutable</strong>, see GotW #6a and #6b.
+</p><p>
+ </p><h2>5. <em>… </em>What types should be fully internally synchronized, and why?<br/></h2><p>There is exactly one category of types which should be fully internally synchronized, so that any object of that type is always safe to use concurrently without external synchronization: Inter-thread synchronization and communication primitives themselves. This includes standard types like mutexes and atomics, but also inter-thread communication and synchronization types you might write yourself such as a message queue (communicating messages from one thread to another), Producer/Consumer active objects (again passing data from one concurrent entity to another), or a thread-safe counter (communicating counter increments and decrements among multiple threads).
+</p><p>If you’re wondering if there might be other kinds of types that should be internally synchronized,  consider: The only type for which it would make sense to always internally synchronize every operation is a type where you know <em>every object</em> is going to be both (a) writeable and (b) shared across threads… and that means that the type is by definition designed to be used for inter-thread communication and/or synchronization.
+</p><p>
+ </p><h2>Acknowledgments<br/></h2><p>Thanks in particular to the following for their feedback to improve this article: Daniel Hardman, Casey, Alb, Marcel Wid, ixache.</p>	</div>
+
+	<footer class="amp-wp-article-footer">
+			<div class="amp-wp-meta amp-wp-tax-category">
+		Categories: <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a>	</div>
+
+		<div class="amp-wp-meta amp-wp-comments-link">
+		<a href="https://herbsutter.com/2014/01/13/gotw-95-solution-thread-safety-and-synchronization/#comments">
+			View Comments		</a>
+	</div>
+	</footer>
+</article>
+
+<footer class="amp-wp-footer">
+	<div>
+		<h2>Sutter’s Mill</h2>
+		<p>
+			<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a>
+		</p>
+		<a href="#top" class="back-to-top">Back to top</a>
+	</div>
+</footer>
+
+
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;host=herbsutter.com&#038;ref=DOCUMENT_REFERRER&#038;amp=1&#038;blog=3379246&#038;v=wpcom&#038;tz=-8&#038;user_id=0&#038;post=2411&#038;subd=herbsutter"></amp-pixel>
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;v=wpcom-no-pv&#038;crypt=UE40eW5QN0p8M2Y%2FRE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29%2BSmw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8%2FMkNtblkvY1d1TjBELytHc0k%2FMXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sN3x5JUh1XTBjcWE3elh6QzRrREN8Z11GXWpnRXhHLVgmeE1sNDdDaC5NXWUvNlg1bk1WUUguZENGSlEuRi9bNFpoNG81NFBvNXNGK21xU1Bpc2VqJVMwUGkmJVdGcld4U3Ey"></amp-pixel>
+	
+</body>
+</html>

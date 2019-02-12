@@ -1,0 +1,864 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Type Inference vs. Static/Dynamic Typing | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542966360&amp;back=https%3A%2F%2Fherbsutter.com%2F2008%2F06%2F20%2Ftype-inference-vs-staticdynamic-typing%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Type Inference vs. Static/Dynamic&nbsp;Typing Comments Feed" href="https://herbsutter.com/2008/06/20/type-inference-vs-staticdynamic-typing/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Stroustrup &amp; Sutter on C++: The&nbsp;Interviews' href='https://herbsutter.com/2008/06/10/stroustrup-sutter-on-c-the-interviews/' />
+<link rel='next' title='Talking Lambdas with Bill Gates on&nbsp;BBC' href='https://herbsutter.com/2008/06/20/talking-lambdas-with-bill-gates-on-bbc/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2008/06/20/type-inference-vs-staticdynamic-typing/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-1v' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2008%2F06%2F20%2Ftype-inference-vs-staticdynamic-typing%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2008%2F06%2F20%2Ftype-inference-vs-staticdynamic-typing%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Type Inference vs. Static/Dynamic Typing" />
+<meta property="og:url" content="https://herbsutter.com/2008/06/20/type-inference-vs-staticdynamic-typing/" />
+<meta property="og:description" content="Jeff Atwood just wrote a nice piece on why type inference is convenient, using a C# sample: I was absolutely thrilled to be able to refactor this code: StringBuilder sb = new StringBuilder(256); UT…" />
+<meta property="article:published_time" content="2008-06-20T20:02:53+00:00" />
+<meta property="article:modified_time" content="2008-06-21T22:26:55+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542966360" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Type Inference vs. Static/Dynamic&nbsp;Typing" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Jeff Atwood just wrote a nice piece on why type inference is convenient, using a C# sample: I was absolutely thrilled to be able to refactor this code: StringBuilder sb = new StringBuilder(256); UTF8Encoding e = new UTF8Encoding(); MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider(); Into this: var sb = new StringBuilder(256); var e = new UTF8Encoding();&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2008/06/20/type-inference-vs-staticdynamic-typing/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-93 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2008/06/10/stroustrup-sutter-on-c-the-interviews/" rel="prev">Stroustrup &amp; Sutter on C++: The&nbsp;Interviews</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2008/06/20/talking-lambdas-with-bill-gates-on-bbc/" rel="next">Talking Lambdas with Bill Gates on&nbsp;BBC</a> &raquo;</div>
+			</div>
+			
+			<div class="post-93 post type-post status-publish format-standard hentry category-c category-software-development" id="post-93">
+				<div class="posttitle">
+					<h2>Type Inference vs. Static/Dynamic&nbsp;Typing</h2>
+					<p class="post-info">2008-06-20 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>Jeff Atwood just wrote <a href="http://www.codinghorror.com/blog/archives/001136.html">a nice piece on why type inference is convenient</a>, using a C# sample:</p>
+<blockquote>
+<p>I was absolutely thrilled to be able to refactor this code: </p>
+<pre>StringBuilder sb = new StringBuilder(256);
+UTF8Encoding e = new UTF8Encoding();
+MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+</pre>
+<p>Into this: </p>
+<pre>var sb = new StringBuilder(256);
+var e = new UTF8Encoding();
+var md5 = new MD5CryptoServiceProvider();
+</pre>
+<p>It&#8217;s not dynamic typing, per se; C# is still very much a statically typed language. It&#8217;s more of a compiler trick, a baby step toward a world of <a href="http://lambda-the-ultimate.org/node/834">Static Typing Where Possible, and Dynamic Typing When Needed</a>. </p>
+</blockquote>
+<p>It&#8217;s worth making a stronger demarcation among:</p>
+<ul>
+<li>type inference, which you can do in any language
+<li>static vs. dynamic typing, which is completely orthogonal but all too often confused with inference
+<li>strong vs. weak typing, which is mostly orthogonal (e.g., C is statically typed because every variable has a statically known actual type, but also weakly typed because of its casts)</li>
+</ul>
+<p>Above, Jeff explicitly separates inference and dynamic-ness. Unfortunately, later on he proceeds to imply that inference is a small step toward dynamic typing, which is stylistically true in principle but might mislead some readers into thinking inference has something to do with dynamic-ness, which it doesn&#8217;t.</p>
+<h3>Type Inference</h3>
+<p>Many languages, including C# (as shown above) and the next C++ standard (C++0x, shown below), provide type inference. C++0x does it via the repurposed <strong>auto</strong> keyword. For example, say you have an object m of type map&lt;int,list&lt;string&gt;&gt;, and you want to create an iterator to it:</p>
+<table cellspacing="5" cellpadding="5" width="746" border="0">
+<tbody>
+<tr>
+<td valign="top" width="371"><strong>map&lt;int,list&lt;string&gt;&gt;::iterator</strong> i = m.begin();</td>
+<td valign="top" width="356">// type is required in today&#8217;s C++, allowed in C++0x</td>
+</tr>
+<tr>
+<td valign="top" width="371"><font color="#0000ff"><strong>auto</strong></font> i = m.begin();</td>
+<td valign="top" width="356">// type can be inferred in C++0x</td>
+</tr>
+</tbody>
+</table>
+<p>How many times have you said to your compiler, &#8220;Compiler, you know the type already, why are you making me repeat it?!&#8221; Even the IDE can tell you what the type is when you hover over an expression.</p>
+<p>Well, in C++0x you won&#8217;t have to any more, which is often niftily convenient. This gets increasingly important as we don&#8217;t want to, or can&#8217;t, write out the type ourselves, because we have:</p>
+<ul>
+<li>types with more complicated names
+<li>types without names (or hard-to-find names)
+<li>types held most conveniently via an indirection</li>
+</ul>
+<p>In particular, consider that C++0x lambda functions generate a function object whose type you generally can&#8217;t spell, so if you want to hold that function object and don&#8217;t have auto then you generally have to use an indirection:</p>
+<table cellspacing="5" cellpadding="5" width="744" border="0">
+<tbody>
+<tr>
+<td valign="top" width="371"><strong>function&lt;void(void)&gt;</strong> f = [] { DoSomething(); };<br /><font color="#0000ff"><strong>auto</strong></font> f = [] { DoSomething(); };</td>
+<td valign="top" width="356">// hold via a wrapper &#8212; requires indirection<br />// infer the type and bind directly</td>
+</tr>
+</tbody>
+</table>
+<p>Note that the last line above is more efficient than the C equivalent using a pointer to function, because C++ lets you inline everything. For more on this, see Item 46 in Scott Meyers&#8217; <a href="http://www.amazon.com/gp/product/0201749629?ie=UTF8&amp;tag=aristeia.com-20&amp;linkCode=as2&amp;camp=1789&amp;creative=9325&amp;creativeASIN=0201749629">Effective STL</a> on why it&#8217;s preferable to use function objects rather than functions, because (counterintuitively) they&#8217;re more efficient.</p>
+<p>Now, though there&#8217;s no question <strong>auto</strong> and <strong>var</strong> are great, there are some minor limitations. In particular, you may not want the exact type, but another type that can be converted to:</p>
+<table cellspacing="5" cellpadding="5" width="749" border="0">
+<tbody>
+<tr>
+<td valign="top" width="372"><strong>map&lt;int,list&lt;string&gt;&gt;::const_iterator</strong> ci = m.begin();</td>
+<td valign="top" width="360">// ci&#8217;s type is map&lt;int,list&lt;string&gt;&gt;::const_iterator</td>
+</tr>
+<tr>
+<td valign="top" width="370"><font color="#0000ff"><strong>auto</strong></font> i = m.begin();</td>
+<td valign="top" width="360">// i&#8217;s type is map&lt;int,list&lt;string&gt;&gt;::iterator</td>
+</tr>
+</tbody>
+</table>
+<table cellspacing="5" cellpadding="5" width="749" border="0">
+<tbody>
+<tr>
+<td valign="top" width="371"><strong>Widget*</strong> w = new Widget();<br /><strong>const </strong><strong>Widget*</strong> cw = new Widget();<br /><strong>WidgetBase*</strong> wb = new Widget();<br /><strong>shared_ptr&lt;Widget&gt;</strong> spw( new Widget() );</td>
+<td valign="top" width="361">// w&#8217;s type is Widget*<br />// cw&#8217;s type is const Widget*<br />// wb&#8217;s type is WidgetBase*<br />// spw&#8217;s type is shared_ptr&lt;Widget&gt;</td>
+</tr>
+<tr>
+<td valign="top" width="371"><strong><font color="#0000ff">auto</font></strong> w = new Widget();</td>
+<td valign="top" width="361">// w&#8217;s type is Widget*</td>
+</tr>
+</tbody>
+</table>
+<p>So C++0x <strong>auto</strong> (like C# <strong>var</strong>) only gets you the most obvious type. Still and all, that does cover a lot of the cases.</p>
+<p>The important thing to note in all of the above examples is that, regardless how you spell it, every variable has a clear, unambiguous, well-known and predictable static type. C++0x <strong>auto</strong> and C# <strong>var </strong>are purely notational conveniences that save us from having to spell it out in many cases, but the variable still has one fixed and static type.</p>
+<h3>Static and Dynamic Typing</h3>
+<p>As Jeff correctly noted in the above-quoted part, this isn&#8217;t dynamic typing, which permits the same variable to actually have different types at different points in its lifetime. Unfortunately, he goes on to say the following that could be mistaken by some readers to imply otherwise:</p>
+<blockquote>
+<p>You might even say implicit variable typing is a gateway drug to more dynamically typed languages.</p>
+</blockquote>
+<p>I know Jeff knows what he&#8217;s talking about because he said it correctly earlier in the same post, but let&#8217;s be clear: Inference doesn&#8217;t have anything to do with dynamic typing. Jeff is just noting that inference just happens to let you declare variables in a style that can be similar to the way you do it all the time in a dynamically typed language. (Before I could post this, I see that Lambda the Ultimate <a href="http://lambda-the-ultimate.org/node/2862">also commented</a> on this confusion. At least one commenter noted that this could be equally viewed as a gateway drug to statically typed languages, because you can get the notational convenience without abandoning static typing.)</p>
+<p>Quoting from <a href="http://www.research.att.com/~bs/glossary.html">Bjarne&#8217;s glossary</a>:</p>
+<blockquote>
+<p><a name="Gdynamic-type"><b><font color="#000000">dynamic type</font></b></a> &#8211; the <a href="http://www.research.att.com/#Gtype">type</a> of an <a href="http://www.research.att.com/#Gobject">object</a> as determined at run-time; e.g. using <a href="http://www.research.att.com/#Gdynamic_cast">dynamic_cast</a> or typeid. Also known as <a href="http://www.research.att.com/#Gmost-derived-type">most-derived type</a>.</p>
+<p><a name="Gstatic-type"><b><font color="#000000">static type</font></b></a> &#8211; the <a href="http://www.research.att.com/#Gtype">type</a> of an <a href="http://www.research.att.com/#Gobject">object</a> as known to the <a href="http://www.research.att.com/#Gcompiler">compiler</a> based on its <a href="http://www.research.att.com/#Gdeclaration">declaration</a>. See also: <a href="http://www.research.att.com/#Gdynamic-type">dynamic type</a>.</p>
+</blockquote>
+<p>Let&#8217;s revisit an earlier C++ example again, which shows the difference between a variable&#8217;s static type and dynamic type:</p>
+<table cellspacing="5" cellpadding="5" width="749" border="0">
+<tbody>
+<tr>
+<td valign="top" width="371"><strong>WidgetBase*</strong> wb = new Widget();<br />if( <strong>dynamic_cast&lt;Widget*&gt;</strong>( wb ) ) { &#8230; }</td>
+<td valign="top" width="361">// wb&#8217;s <strong>static</strong> type is WidgetBase*<br />// cast succeeds: wb&#8217;s <strong>dynamic</strong> type is Widget*</td>
+</tr>
+</tbody>
+</table>
+<p>The static type of the variable says what interface it supports, so in this case wb allows you to access only the members of WidgetBase. The dynamic type of the variable is what the object being pointed to <em>right now</em> is.</p>
+<p>In dynamically typed languages, however, variables don&#8217;t have a static type and you generally don&#8217;t have to mention the type. In many dynamic languages, you don&#8217;t even have to declare variables. For example:</p>
+<table cellspacing="5" cellpadding="5" width="744" border="0">
+<tbody>
+<tr>
+<td valign="top" width="371">// Python<br />x = 10;<br />x = &#8220;hello, world&#8221;;</td>
+<td valign="top" width="356">// x&#8217;s type is int<br />// x&#8217;s type is str</td>
+</tr>
+</tbody>
+</table>
+<h3>Boost&#8217;s variant and any</h3>
+<p>There are two popular ways to get this effect in C++, even though the language remains statically typed. The first is Boost <a href="http://www.boost.org/doc/libs/1_35_0/doc/html/variant.html"><strong>variant</strong></a>:</p>
+<table cellspacing="5" cellpadding="5" width="744" border="0">
+<tbody>
+<tr>
+<td valign="top" width="371">// C++ using Boost<br /><strong><font color="#0000ff">variant&lt; int, string &gt;</font></strong> x;<br />x = 42;<br />x = &#8220;hello, world&#8221;;<br />x = new Widget();</td>
+<td valign="top" width="356">// say what types are allowed<br />// now x holds an int<br />// now x holds a string<br />// <strong>error</strong>, not int or string</td>
+</tr>
+</tbody>
+</table>
+<p>Unlike a union, a variant can include essentially any kind of type, but you have to say what the legal types are up front. You can even simulate getting overload resolution via boost::apply_visitor, which is checked statically (at compile time). </p>
+<p>The second is Boost <a href="http://www.boost.org/doc/libs/1_35_0/doc/html/any.html"><strong>any</strong></a>:</p>
+<table cellspacing="5" cellpadding="5" width="744" border="0">
+<tbody>
+<tr>
+<td valign="top" width="371">// C++ using Boost<br /><strong><font color="#0000ff">any</font></strong> x;<br />x = 42;<br />x = &#8220;hello, world&#8221;;<br />x = new Widget();</td>
+<td valign="top" width="356">
+<p>// now x holds an int<br />// now x holds a string<br />// now x holds a Widget*</td>
+</tr>
+</tbody>
+</table>
+<p>Again unlike a union, an any can include essentially any kind of type. Unlike variant, however, any doesn&#8217;t make (or let) you say what the legal types are up front, which can be good or bad depending how relaxed you want your typing to be. Also, any doesn&#8217;t have a way to simulate overload resolution, and it always requires heap storage for the contained object.</p>
+<p>Interestingly, this shows how C++ is well and firmly (and let&#8217;s not forget efficiently) on the path of <a href="http://pico.vub.ac.be/~wdmeuter/RDL04/papers/Meijer.pdf">Static Typing Where Possible, and Dynamic Typing When Needed</a>. </p>
+<p>Use <strong>variant</strong> when: </p>
+<ul>
+<li>You want an object that holds a value of one of a specific set of types.
+<li>You want compile-time checked visitation.
+<li>You want the efficiency of stack-based storage where possible scheme (avoiding the overhead of dynamic allocation).
+<li>You can live with horrible error messages when you don’t type it exactly right.</li>
+</ul>
+<p>Use <strong>any</strong> when: </p>
+<ul>
+<li>You want the flexibility of having an object that can hold a value of virtually “any” type.
+<li>You want the flexibility of any_cast.
+<li>You want the no-throw exception safety guarantee for swap.</li>
+</ul>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a> | 											28 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">28 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="pingback even thread-even depth-1 highlander-comment" id="comment-2761">
+		<div id="div-comment-2761">
+		<div class="cmtinfo"><em> on <a href="#comment-2761" title="">2011-01-16 at 10:06 pm</a></em> <img alt='' src='https://secure.gravatar.com/blavatar/2f62869fd50fe4feeece2c5e893e6ef3?s=48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://bulldozer00.wordpress.com/2011/01/17/scott-meyers-on-c0x/' rel='external nofollow' class='url'>Scott Meyers On C++0x &laquo; Bulldozer00&#039;s Blog</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2761"></div><p>[&#8230;] Type Inference vs. Static/Dynamic Typing (herbsutter.com) [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2732">
+		<div id="div-comment-2732">
+		<div class="cmtinfo"><em> on <a href="#comment-2732" title="">2010-12-31 at 10:50 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/fa80de77b38844201e18c30f88bc88a7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>naasking</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2732"></div><p>Strong/weak typing is not a meaningful distinction because weak and strong are not defined. The property you are trying to express is &#8220;safe&#8221; vs. &#8220;unsafe&#8221;.</p>
+<p>C is not &#8220;weakly typed&#8221; because of its casts, it&#8217;s unsafe because of its casts. The casts allow one to subvert the type system, making the type system unsafe.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-1052">
+		<div id="div-comment-1052">
+		<div class="cmtinfo"><em> on <a href="#comment-1052" title="">2009-01-23 at 3:18 pm</a></em>  <cite><a href='http://girtby.net/archives/2008/09/30/why-you-should-learn-c/' rel='external nofollow' class='url'>girtby.net &#8211; Why You Should Learn C++</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1052"></div><p>[&#8230;] outdated perception of the C++ language, at least as it is practiced today, because you certainly can use dynamic typing in C++, for one [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1044">
+		<div id="div-comment-1044">
+		<div class="cmtinfo"><em> on <a href="#comment-1044" title="">2009-01-18 at 7:33 am</a></em>  <cite><a href='http://www.hilpers.pl/219737-dynamicany-ciekawostka-przyrodnicza' rel='external nofollow' class='url'>DynamicAny -- ciekawostka przyrodnicza | hilpers</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1044"></div><p>[&#8230;] powyzej nie umiem napisac w Pythonie jak ktos potrafi to prosze o uzupelnienie.  Pozdrawiam,  [1] <a href="https://herbsutter.wordpress.com/2008" rel="nofollow">https://herbsutter.wordpress.com/2008</a>&#8230;ynamic-typing/ [2] <a href="http://pocoproject.org/poco/docs/Poco.DynamicAny.html" rel="nofollow">http://pocoproject.org/poco/docs/Poco.DynamicAny.html</a>  &#8212; |//| Seweryn Habdank-Wojewodzki [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-796">
+		<div id="div-comment-796">
+		<div class="cmtinfo"><em> on <a href="#comment-796" title="">2008-09-04 at 6:16 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f0f627e5593455d62ae1cef1196b00fb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alex Fabijanic</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_796"></div><p>Part I of the mentioned <a href="http://accu.org/index.php/journals/1502" rel="nofollow">ACCU Overload article about DynamicAny</a> has been published.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-674">
+		<div id="div-comment-674">
+		<div class="cmtinfo"><em> on <a href="#comment-674" title="">2008-07-16 at 1:22 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/264202b806a5de3bcd387ede9152463a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.jdkoftinoff.com' rel='external nofollow' class='url'>Jeff Koftinoff</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_674"></div><p>Glen, here is a recent comp.lang.c++.moderated posting asking about the exact same thing as I am:</p>
+<p><a href="http://groups.google.com/group/comp.lang.c++.moderated/msg/dca1e018039c79ff" rel="nofollow">http://groups.google.com/group/comp.lang.c++.moderated/msg/dca1e018039c79ff</a></p>
+<p>quote:<br />
+&#8212;-<br />
+Hi,<br />
+Can anyone confirm if my observation is correct?<br />
+According to N2673, I will not be able to write:<br />
+     class Parser<br />
+     {<br />
+         auto member = func();<br />
+     };<br />
+but I will be able to write (according to the current Standard Draft):<br />
+     class Parser<br />
+     {<br />
+         decltype( func() ) member = func();<br />
+     };<br />
+Which eventually will encourage me to write and use a macro:<br />
+     class Parser<br />
+     {<br />
+         DECLARE_AUTO_MEMBER( member, func() );<br />
+     };<br />
+I have one particular usage in mind, which is the Boost.Spirit, where<br />
+the grammar rules are implemented with class non-static members. </p>
+<p>&#8212;&#8211;</p>
+<p>&#8211;jeffk++</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-656">
+		<div id="div-comment-656">
+		<div class="cmtinfo"><em> on <a href="#comment-656" title="">2008-07-09 at 5:39 pm</a></em>  <cite><a href='http://blog.danielwaechter.com/programming/the-long-road-back-to-cpp/' rel='external nofollow' class='url'>DanielWaechter.com &raquo; Blog Archive &raquo; The Long Road Back to C++</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_656"></div><p>[&#8230;] has some improvements. For example, I can&#8217;t wait for type inference; if the compiler can figure out what type I want, then why should I spell it out every time (though [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-630">
+		<div id="div-comment-630">
+		<div class="cmtinfo"><em> on <a href="#comment-630" title="">2008-06-26 at 1:22 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d7aaf766b7091c5583ee189b116ecd6a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Glen</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_630"></div><p>I&#8217;m not sure I&#8217;d like your example to be legal myself, because if the type of the initializer of &#8216;i&#8217; changed, the layout of the struct s would also change, something i&#8217;d prefer not to have happen quite so subtly. I also think something as core as a class declaration should be spelled out to improve code clarity. It&#8217;s fine for where it will primarily be used for though, such as in local variable definitions in functions. I imagine decltype might suit your desire more here.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-626">
+		<div id="div-comment-626">
+		<div class="cmtinfo"><em> on <a href="#comment-626" title="">2008-06-25 at 9:32 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/264202b806a5de3bcd387ede9152463a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.jdkoftinoff.com' rel='external nofollow' class='url'>Jeff Koftinoff</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_626"></div><p>@Lee R:</p>
+<p>Your example:</p>
+<p>struct s { int i = 0; };</p>
+<p>will be legal in C++0x</p>
+<p>I would like for it to also allow:</p>
+<p>struct s { auto i = 0; };</p>
+<p>&#8211;jeffk++</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-624">
+		<div id="div-comment-624">
+		<div class="cmtinfo"><em> on <a href="#comment-624" title="">2008-06-24 at 11:50 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c94de3dcd1b68a2521fcc47ce96b780b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>wtom</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_624"></div><p>&#8220;This gets increasingly important as we don’t want to, or can’t, write out the type ourselves, because we have:</p>
+<p>&#8230;<br />
+    * types without names (or hard-to-find names) &#8221;</p>
+<p>I even know where those hard-to-find names (or more exactly &#8211; types) will be came from:</p>
+<p>auto i = &#8230;<br />
+&#8230;<br />
+auto j = i;<br />
+&#8230;<br />
+auto g = j;<br />
+&#8230;<br />
+auto v = g;<br />
+&#8230;<br />
+auto m = v;</p>
+<p>Grats! We are going to get one more Basic.<br />
+Hope, I&#8217;m wrong.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-621">
+		<div id="div-comment-621">
+		<div class="cmtinfo"><em> on <a href="#comment-621" title="">2008-06-23 at 4:41 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f72719c88e7e0481a437c130fd91e8f4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Lee R</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_621"></div><p>@Jeff Koftinoff</p>
+<p>The problem with your example is one of member initialisation and shouldn&#8217;t really be considered a limitation of &#8216;auto&#8217;. Consider the following (no use of auto, yet still illegal):</p>
+<p>struct s { int i = 0; };</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-618">
+		<div id="div-comment-618">
+		<div class="cmtinfo"><em> on <a href="#comment-618" title="">2008-06-22 at 8:34 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/de3713d9f21c7ec7788a71abb04151c9?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Greg M</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_618"></div><p>@Martin:</p>
+<p>Type inferencing doesn&#8217;t _give_ you duck typing, but it&#8217;s certainly compatible with it. Although statically-typed languages (I&#8217;m thinking ML or Haskell) tend to give you a different flavour of duck, all the more sophisticated static type systems have some way of getting the expressivity and flexibility you&#8217;d use duck typing for without sacrificing type safety.</p>
+<p>@Anocka:</p>
+<p>I don&#8217;t see how that goes beyond the &#8220;inference just happens to let you declare variables in a style that can be similar to the way you do it all the time in a dynamically typed language&#8221;, which immediately follows the quote you&#8217;re disputing.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-615">
+		<div id="div-comment-615">
+		<div class="cmtinfo"><em> on <a href="#comment-615" title="">2008-06-21 at 8:28 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/08ba8c677e9cc71ffbbd72aba561baef?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>vu64</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_615"></div><p>Great C++ Libraries include Boost, ACE and Loki. If you do scientific computing, there are Blitz++, MTL and POOMA.<br />
+Matthew Wilson has STLSoft which  complements STL. It is a good library but didn&#8217;t succeed because of poor documentation. It is described in his book Extended STL (the first volume has been published by Addison-Wesly, the Second Volume will come out in Sep).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-614">
+		<div id="div-comment-614">
+		<div class="cmtinfo"><em> on <a href="#comment-614" title="">2008-06-21 at 4:00 pm</a></em>  <cite><a href='http://botd.wordpress.com/2008/06/22/top-posts-786/' rel='external nofollow' class='url'>Top Posts &laquo; WordPress.com</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_614"></div><p>[&#8230;]  Type Inference vs. Static/Dynamic Typing Jeff Atwood just wrote a nice piece on why type inference is convenient, using a C# sample: I was absolutely thrilled [&#8230;] [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-612">
+		<div id="div-comment-612">
+		<div class="cmtinfo"><em> on <a href="#comment-612" title="">2008-06-21 at 12:54 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f0f627e5593455d62ae1cef1196b00fb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alex Fabijanic</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_612"></div><p>&#8220;Never heard of POCO, are there any other great C++ libraries besides Boost?&#8221;</p>
+<p>Yes, <a href="http://www.cse.wustl.edu/~schmidt/ACE-overview.html" rel="nofollow">ACE</a>.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-611">
+		<div id="div-comment-611">
+		<div class="cmtinfo"><em> on <a href="#comment-611" title="">2008-06-21 at 12:22 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c34c76cfdf3d64396b56094f6517d8c6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Nikola Smiljanić</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_611"></div><p>For some reason all comments in your examples are cut off at one point. Tried it in Firefox and IE but it looks the same. Is it just me or there is something wrong with this page?</p>
+<p>&#8220;Again unlike a union, a variant can include essentially any kind of type.&#8221; I think you wanted to say &#8220;any can include&#8221;, not variant.</p>
+<p>Never heard of POCO, are there any other great C++ libraries besides Boost?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-610">
+		<div id="div-comment-610">
+		<div class="cmtinfo"><em> on <a href="#comment-610" title="">2008-06-21 at 10:51 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/264202b806a5de3bcd387ede9152463a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.jdkoftinoff.com' rel='external nofollow' class='url'>Jeff Koftinoff</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_610"></div><p>Is it true that the auto keyword in C++0x can&#8217;t be used for a class member variable, even though C++0x allows initialization of member variables outside of constructors?</p>
+<p>ie:</p>
+<p>class X<br />
+{<br />
+public:<br />
+   X() {}<br />
+   auto f = [](int x){ return x+2; };<br />
+};</p>
+<p>int main()<br />
+{<br />
+  X x;<br />
+  std::cout &lt;&lt; X.f(5) &lt;&lt; &#8220;\n&#8221;;<br />
+  return 0;<br />
+}</p>
+<p>Of course this example is simplistic but there are numerous places where I&#8217;d love to be able to use this pattern with c++ expression template objects being directly within another object, and I don&#8217;t see why this pattern can&#8217;t be allowed.</p>
+<p>&#8211;jeffk++</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-609">
+		<div id="div-comment-609">
+		<div class="cmtinfo"><em> on <a href="#comment-609" title="">2008-06-21 at 8:22 am</a></em>  <cite><a href='http://pocoproject.org/poco/blog/?p=145' rel='external nofollow' class='url'>POCO C++ Libraries Community Blog &raquo; Herb Sutter on type inference vs. static/dynamic typing</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_609"></div><p>[&#8230;] a blog entry on the topic. Your humble correspondent posted some examples and links to DynamicAny, which caused [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-607">
+		<div id="div-comment-607">
+		<div class="cmtinfo"><em> on <a href="#comment-607" title="">2008-06-21 at 6:02 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f0f627e5593455d62ae1cef1196b00fb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alex Fabijanic</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_607"></div><p>@ vu64:<br />
+Let me just say that I did not claim superiority of any library. I obviously have my preferences, but that is a topic for some other thread. Here, I have only provided facts. Some time ago, I have shared the same facts with <a href="http://www.boost.org/users/people/kevlin_henney.html" rel="nofollow">Kevlin Henney</a>, the author of boost::any. He had no problem agreeing.</p>
+<p>And a couple more facts:</p>
+<p>boost::any has been <a href="http://poco.svn.sourceforge.net/viewvc/poco/poco/trunk/Foundation/include/Poco/Any.h?view=markup" rel="nofollow">ported</a> to <a href="http://pocoproject.org/" rel="nofollow">POCO</a><br />
+Poco::DynamicAny design was inspired by boost::any. It was not meant as a replacement for any, but rather as a complement, providing &#8220;softness&#8221; on the value extraction side<br />
+The downside of DynamicAny compared to boost::any is that it can not hold any value out-of-the-box (a holder specialization is needed)</p>
+<p>There&#8217;s an article that should come out soon in <a href="http://accu.org/index.php/overloadonline" rel="nofollow">Overload</a> systematically comparing boost::any and boost::lexical_cast with Poco::DynamicAny. Stay tuned.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-604">
+		<div id="div-comment-604">
+		<div class="cmtinfo"><em> on <a href="#comment-604" title="">2008-06-21 at 2:31 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/08ba8c677e9cc71ffbbd72aba561baef?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>vu64</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_604"></div><p>I don&#8217;t see why you criticize boost::any so hard. Boost is the most popular C++ library. Anyway, this is the first time I&#8217;ve heard about DynamicAny. If their library is superior, can they submit it to Boost to replace boost::any?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-neilhendo even thread-even depth-1 highlander-comment" id="comment-597">
+		<div id="div-comment-597">
+		<div class="cmtinfo"><em> on <a href="#comment-597" title="">2008-06-20 at 6:55 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/5445c20b97e215743e976a4f095fced2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>neilhendo</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_597"></div><p>Re this:</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;<br />
+WidgetBase* wb = new Widget();</p>
+<p>if( dynamic_cast( wb ) ) { … }<br />
+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;</p>
+<p>Wouldn&#8217;t wb&#8217;s dynamic type already be Widget* before the dynamic_cast?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-596">
+		<div id="div-comment-596">
+		<div class="cmtinfo"><em> on <a href="#comment-596" title="">2008-06-20 at 5:55 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/cc2a695d643b36d456e9eaf4358e0e9c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://ooyes.net' rel='external nofollow' class='url'>website design</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_596"></div><p>Type inference in the ML family showed me that it&#8217;s really easy to get lost in your types. When you see a variable with type vector::iterator, you can at least unravel that in a methodical fashion. But if you have to backtrack through half a dozen different variable declarations to figure out the type of your variable, it&#8217;s a lot easier to get confused. IMO, the solution here is better tool support. The IDEs should be able to perform the same type inferencing to show you the variable types, and the error messages should be better. ML didn&#8217;t have a decent IDE or error messages, but C++ will. Also, &#8220;niftily&#8221;? We&#8217;re adverbializing adjectives now? Nuts, I must have justily missed the memo.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-595">
+		<div id="div-comment-595">
+		<div class="cmtinfo"><em> on <a href="#comment-595" title="">2008-06-20 at 5:40 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f0f627e5593455d62ae1cef1196b00fb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alex Fabijanic</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_595"></div><p>&#8220;With boost’s “any”, you need to cast it to some concrete type before you can use it.&#8221;</p>
+<p>Actually, boost::any can only be cast  back to the exact type it holds. It works well for storing different types in an STL container. However, on the value retrieval side, it is even more rigid than the C++ language itself. </p>
+<p>I would also disagree with Herb&#8217;s qualification of any_cast as flexible &#8211; boost::any is static and very rigid on the value extraction side. That&#8217;s where DynamicAny (see my <a href="https://herbsutter.wordpress.com/2008/06/20/type-inference-vs-staticdynamic-typing/#comment-586" rel="nofollow">reply above</a>) comes handy.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-594">
+		<div id="div-comment-594">
+		<div class="cmtinfo"><em> on <a href="#comment-594" title="">2008-06-20 at 5:11 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/91cbf94fa69798898a7fec53457fbe49?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.martincmartin.com' rel='external nofollow' class='url'>Martin C. Martin</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_594"></div><p>Thanks for the great post Herb.  It&#8217;s good to see these distinctions getting explained.</p>
+<p>One of the key verbosity-reducers of dynamic languages is duck typing.  With boost&#8217;s &#8220;any&#8221;, you need to cast it to some concrete type before you can use it.  &#8220;any&#8221; seems more like Java&#8217;s Object than anything from a dynamically typed language.</p>
+<p>Type inference doesn&#8217;t give you duck typing, one of the key benefits of dynamic typing.  It seems that, even with type inference, you can&#8217;t be &#8220;dynamic when needed&#8221; if that need is to call a method of a derived class, when all the compiler knows is that the object is of the base class.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-593">
+		<div id="div-comment-593">
+		<div class="cmtinfo"><em> on <a href="#comment-593" title="">2008-06-20 at 4:31 pm</a></em>  <cite><a href='http://www.s31.org/2008/06/20/links-for-2008-06-21/' rel='external nofollow' class='url'>links for 2008-06-21</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_593"></div><p>[&#8230;] Type Inference vs. Static/Dynamic Typing « Sutter’s Mill (tags: c c++ compiler design programming language) [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-592">
+		<div id="div-comment-592">
+		<div class="cmtinfo"><em> on <a href="#comment-592" title="">2008-06-20 at 4:25 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/4c627b74fe8702bfbb320a73ec0a6c6b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>anocka</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_592"></div><p>&#8220;Inference doesn’t have anything to do with dynamic typing.&#8221;<br />
+Well, that&#8217;s not always true.</p>
+<p>In the ocaml object system, when a function calls the method m of type, say<br />
+    m : unit -&gt; int</p>
+<p>on an object x, the inferred type of x is :<br />
+   x :  int; &#8230; &gt;</p>
+<p>Basically, the function accepts any object that has the m method. That&#8217;s close to the dynamic paradigm (except that the presence of the methods is checked at compile-time).</p>
+<p>Sadly, I don&#8217;t know of any other similar typing system&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-590">
+		<div id="div-comment-590">
+		<div class="cmtinfo"><em> on <a href="#comment-590" title="">2008-06-20 at 2:51 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c28371a3b467d45b93aed57252229d89?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://brett-hall.blogspot.com/' rel='external nofollow' class='url'>Brett Hall</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_590"></div><p>I think the big win in with the auto keyword in C++ will be in some forms of meta-programming. A few years back I was working on an expression template system for doing vector and matrix operations and some of the template types involved were hairy to say the least. The auto keyword would have been a great help at the time in reducing things like</p>
+<p>VecOp op = VecOp(op1, op2);</p>
+<p>to </p>
+<p>auto op = VecOp(op1, op2);</p>
+<p>On an unrelated note, it&#8217;s interesting to see the reaction to Jeff&#8217;s use of var in C# over at refector my code.  The first 3 out of five comments are complaints about it. It&#8217;ll be interesting to see if var in C# gets the same reaction as closures are getting in Java.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-586">
+		<div id="div-comment-586">
+		<div class="cmtinfo"><em> on <a href="#comment-586" title="">2008-06-20 at 1:20 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f0f627e5593455d62ae1cef1196b00fb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alex Fabijanic</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_586"></div><p>There is also <a href="http://poco.svn.sourceforge.net/viewvc/poco/poco/trunk/Foundation/include/Poco/DynamicAny.h?view=markup" rel="nofollow">Poco::DynamicAny</a>, which conveniently combines capabilities of boost::any and boost::lexical_cast, so you can do things like this:</p>
+<p>DynamicAny any(&#8220;42&#8221;);<br />
+int i = any; // i == 42<br />
+any = 65536;<br />
+std::string s = any; // s == “65536”<br />
+char c = any; // too big, throws RangeException</p>
+<p>or this:</p>
+<p>std::cout &lt;&lt; RecordSet(session, &#8220;SELECT * FROM Table&#8221;);</p>
+<p>All happening dynamically, behind the scene and (of course) in standard C++. See <a href="http://poco.svn.sourceforge.net/viewvc/poco/poco/trunk/Data/include/Poco/Data/Row.h?revision=415&amp;view=markup" rel="nofollow">Poco::Data::Row</a> and <a href="http://poco.svn.sourceforge.net/viewvc/poco/poco/trunk/Data/samples/RowFormatter/src/RowFormatter.cpp?view=markup" rel="nofollow">Poco::Data::RowFormatter</a> sample for a more complete insight.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2008/06/20/type-inference-vs-staticdynamic-typing/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-fa80de77b38844201e18c30f88bc88a7">
+	</div>
+	<div class="grofile-hash-map-f0f627e5593455d62ae1cef1196b00fb">
+	</div>
+	<div class="grofile-hash-map-264202b806a5de3bcd387ede9152463a">
+	</div>
+	<div class="grofile-hash-map-d7aaf766b7091c5583ee189b116ecd6a">
+	</div>
+	<div class="grofile-hash-map-c94de3dcd1b68a2521fcc47ce96b780b">
+	</div>
+	<div class="grofile-hash-map-f72719c88e7e0481a437c130fd91e8f4">
+	</div>
+	<div class="grofile-hash-map-de3713d9f21c7ec7788a71abb04151c9">
+	</div>
+	<div class="grofile-hash-map-08ba8c677e9cc71ffbbd72aba561baef">
+	</div>
+	<div class="grofile-hash-map-c34c76cfdf3d64396b56094f6517d8c6">
+	</div>
+	<div class="grofile-hash-map-5445c20b97e215743e976a4f095fced2">
+	</div>
+	<div class="grofile-hash-map-cc2a695d643b36d456e9eaf4358e0e9c">
+	</div>
+	<div class="grofile-hash-map-91cbf94fa69798898a7fec53457fbe49">
+	</div>
+	<div class="grofile-hash-map-4c627b74fe8702bfbb320a73ec0a6c6b">
+	</div>
+	<div class="grofile-hash-map-c28371a3b467d45b93aed57252229d89">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_2761={"id":468178,"unique_id":"wp-comment-2761","title":"%26%23091%3B...%26%23093%3B%20Type%20Inference%20vs.%20Static%2FDynamic%20Typing%20%28herbsutter.com%29%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-2761","item_id":"_comm_2761"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2761 == 'undefined' ){PDRTJS_468178_comm_2761 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2761 );}}PDRTJS_settings_468178_comm_2732={"id":468178,"unique_id":"wp-comment-2732","title":"Strong%2Fweak%20typing%20is%20not%20a%20meaningful%20distinction%20because%20weak%20and%20strong%20are%20not%20defined.%20The%20property%20you%20are%20trying%20to%20express%20is%20%26quot%3Bsafe%26quot%3B%20vs.%20%26quot%3Bunsafe%26quot%3B.C%20is%20not%20%26quot%3Bweakly%20typed%26quot%3B%20because%20of%20its%20ca...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-2732","item_id":"_comm_2732"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2732 == 'undefined' ){PDRTJS_468178_comm_2732 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2732 );}}PDRTJS_settings_468178_comm_1052={"id":468178,"unique_id":"wp-comment-1052","title":"%26%23091%3B...%26%23093%3B%20outdated%20perception%20of%20the%20C%2B%2B%20language%2C%20at%20least%20as%20it%20is%20practiced%20today%2C%20because%20you%20certainly%20can%20use%20dynamic%20typing%20in%20C%2B%2B%2C%20for%20one%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-1052","item_id":"_comm_1052"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1052 == 'undefined' ){PDRTJS_468178_comm_1052 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1052 );}}PDRTJS_settings_468178_comm_1044={"id":468178,"unique_id":"wp-comment-1044","title":"%26%23091%3B...%26%23093%3B%20powyzej%20nie%20umiem%20napisac%20w%20Pythonie%20jak%20ktos%20potrafi%20to%20prosze%20o%20uzupelnienie.%20%20Pozdrawiam%2C%20%20%26%23091%3B1%26%23093%3B%20http%3A%2F%2Fherbsutter.wordpress.com%2F2008...ynamic-typing%2F%20%26%23091%3B2%26%23093%3B%20http%3A%2F%2Fpocoproject.org%2Fpoco%2Fdocs%2F...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-1044","item_id":"_comm_1044"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1044 == 'undefined' ){PDRTJS_468178_comm_1044 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1044 );}}PDRTJS_settings_468178_comm_796={"id":468178,"unique_id":"wp-comment-796","title":"Part%20I%20of%20the%20mentioned%20%26lt%3Ba%20href%3D%26quot%3Bhttp%3A%2F%2Faccu.org%2Findex.php%2Fjournals%2F1502%26quot%3B%20rel%3D%26quot%3Bnofollow%26quot%3B%26gt%3BACCU%20Overload%20article%20about%20DynamicAny%26lt%3B%2Fa%26gt%3B%20has%20been%20published....","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-796","item_id":"_comm_796"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_796 == 'undefined' ){PDRTJS_468178_comm_796 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_796 );}}PDRTJS_settings_468178_comm_674={"id":468178,"unique_id":"wp-comment-674","title":"Glen%2C%20here%20is%20a%20recent%20comp.lang.c%2B%2B.moderated%20posting%20asking%20about%20the%20exact%20same%20thing%20as%20I%20am%3Ahttp%3A%2F%2Fgroups.google.com%2Fgroup%2Fcomp.lang.c%2B%2B.moderated%2Fmsg%2Fdca1e018039c79ffquote%3A----Hi%2C%20Can%20anyon...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-674","item_id":"_comm_674"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_674 == 'undefined' ){PDRTJS_468178_comm_674 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_674 );}}PDRTJS_settings_468178_comm_656={"id":468178,"unique_id":"wp-comment-656","title":"%26%23091%3B...%26%23093%3B%20has%20some%20improvements.%20For%20example%2C%20I%20can%26%238217%3Bt%20wait%20for%20type%20inference%3B%20if%20the%20compiler%20can%20figure%20out%20what%20type%20I%20want%2C%20then%20why%20should%20I%20spell%20it%20out%20every%20time%20%28though%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-656","item_id":"_comm_656"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_656 == 'undefined' ){PDRTJS_468178_comm_656 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_656 );}}PDRTJS_settings_468178_comm_630={"id":468178,"unique_id":"wp-comment-630","title":"I%26%23039%3Bm%20not%20sure%20I%26%23039%3Bd%20like%20your%20example%20to%20be%20legal%20myself%2C%20because%20if%20the%20type%20of%20the%20initializer%20of%20%26%23039%3Bi%26%23039%3B%20changed%2C%20the%20layout%20of%20the%20struct%20s%20would%20also%20change%2C%20something%20i%26%23039%3Bd%20prefer%20not%20to%20have%20happen...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-630","item_id":"_comm_630"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_630 == 'undefined' ){PDRTJS_468178_comm_630 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_630 );}}PDRTJS_settings_468178_comm_626={"id":468178,"unique_id":"wp-comment-626","title":"%40Lee%20R%3AYour%20example%3Astruct%20s%20%7B%20int%20i%20%3D%200%3B%20%7D%3Bwill%20be%20legal%20in%20C%2B%2B0xI%20would%20like%20for%20it%20to%20also%20allow%3Astruct%20s%20%7B%20auto%20i%20%3D%200%3B%20%7D%3B--jeffk%2B%2B...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-626","item_id":"_comm_626"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_626 == 'undefined' ){PDRTJS_468178_comm_626 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_626 );}}PDRTJS_settings_468178_comm_624={"id":468178,"unique_id":"wp-comment-624","title":"%26quot%3BThis%20gets%20increasingly%20important%20as%20we%20dont%20want%20to%2C%20or%20cant%2C%20write%20out%20the%20type%20ourselves%2C%20because%20we%20have%3A...%20%20%20%20%2A%20types%20without%20names%20%28or%20hard-to-find%20names%29%20%26quot%3BI%20even%20know%20where%20those%20hard-to-...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-624","item_id":"_comm_624"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_624 == 'undefined' ){PDRTJS_468178_comm_624 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_624 );}}PDRTJS_settings_468178_comm_621={"id":468178,"unique_id":"wp-comment-621","title":"%40Jeff%20KoftinoffThe%20problem%20with%20your%20example%20is%20one%20of%20member%20initialisation%20and%20shouldn%26%23039%3Bt%20really%20be%20considered%20a%20limitation%20of%20%26%23039%3Bauto%26%23039%3B.%20Consider%20the%20following%20%28no%20use%20of%20auto%2C%20yet%20still%20illegal%29%3A...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-621","item_id":"_comm_621"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_621 == 'undefined' ){PDRTJS_468178_comm_621 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_621 );}}PDRTJS_settings_468178_comm_618={"id":468178,"unique_id":"wp-comment-618","title":"%40Martin%3AType%20inferencing%20doesn%26%23039%3Bt%20_give_%20you%20duck%20typing%2C%20but%20it%26%23039%3Bs%20certainly%20compatible%20with%20it.%20Although%20statically-typed%20languages%20%28I%26%23039%3Bm%20thinking%20ML%20or%20Haskell%29%20tend%20to%20give%20you%20a%20different%20flavo...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-618","item_id":"_comm_618"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_618 == 'undefined' ){PDRTJS_468178_comm_618 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_618 );}}PDRTJS_settings_468178_comm_615={"id":468178,"unique_id":"wp-comment-615","title":"Great%20C%2B%2B%20Libraries%20include%20Boost%2C%20ACE%20and%20Loki.%20If%20you%20do%20scientific%20computing%2C%20there%20are%20Blitz%2B%2B%2C%20MTL%20and%20POOMA.Matthew%20Wilson%20has%20STLSoft%20which%20%20complements%20STL.%20It%20is%20a%20good%20library%20but%20didn%26%23039%3B...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-615","item_id":"_comm_615"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_615 == 'undefined' ){PDRTJS_468178_comm_615 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_615 );}}PDRTJS_settings_468178_comm_614={"id":468178,"unique_id":"wp-comment-614","title":"%26%23091%3B...%26%23093%3B%20%20Type%20Inference%20vs.%20Static%2FDynamic%20Typing%20Jeff%20Atwood%20just%20wrote%20a%20nice%20piece%20on%20why%20type%20inference%20is%20convenient%2C%20using%20a%20C%23%20sample%3A%20I%20was%20absolutely%20thrilled%20%26%23091%3B...%26%23093%3B%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-614","item_id":"_comm_614"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_614 == 'undefined' ){PDRTJS_468178_comm_614 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_614 );}}PDRTJS_settings_468178_comm_612={"id":468178,"unique_id":"wp-comment-612","title":"%26quot%3BNever%20heard%20of%20POCO%2C%20are%20there%20any%20other%20great%20C%2B%2B%20libraries%20besides%20Boost%3F%26quot%3BYes%2C%20%26lt%3Ba%20href%3D%26quot%3Bhttp%3A%2F%2Fwww.cse.wustl.edu%2F~schmidt%2FACE-overview.html%26quot%3B%20rel%3D%26quot%3Bnofollow%26quot%3B%26gt%3BACE%26lt%3B%2Fa%26gt%3B....","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-612","item_id":"_comm_612"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_612 == 'undefined' ){PDRTJS_468178_comm_612 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_612 );}}PDRTJS_settings_468178_comm_611={"id":468178,"unique_id":"wp-comment-611","title":"For%20some%20reason%20all%20comments%20in%20your%20examples%20are%20cut%20off%20at%20one%20point.%20Tried%20it%20in%20Firefox%20and%20IE%20but%20it%20looks%20the%20same.%20Is%20it%20just%20me%20or%20there%20is%20something%20wrong%20with%20this%20page%3F%26quot%3BAgain%20unlike%20a%20...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-611","item_id":"_comm_611"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_611 == 'undefined' ){PDRTJS_468178_comm_611 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_611 );}}PDRTJS_settings_468178_comm_610={"id":468178,"unique_id":"wp-comment-610","title":"Is%20it%20true%20that%20the%20auto%20keyword%20in%20C%2B%2B0x%20can%26%23039%3Bt%20be%20used%20for%20a%20class%20member%20variable%2C%20even%20though%20C%2B%2B0x%20allows%20initialization%20of%20member%20variables%20outside%20of%20constructors%3Fie%3Aclass%20X%7Bpublic%3A%20%20%20X%28%29%20%7B...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-610","item_id":"_comm_610"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_610 == 'undefined' ){PDRTJS_468178_comm_610 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_610 );}}PDRTJS_settings_468178_comm_609={"id":468178,"unique_id":"wp-comment-609","title":"%26%23091%3B...%26%23093%3B%20a%20blog%20entry%20on%20the%20topic.%20Your%20humble%20correspondent%20posted%20some%20examples%20and%20links%20to%20DynamicAny%2C%20which%20caused%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-609","item_id":"_comm_609"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_609 == 'undefined' ){PDRTJS_468178_comm_609 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_609 );}}PDRTJS_settings_468178_comm_607={"id":468178,"unique_id":"wp-comment-607","title":"%40%20vu64%3ALet%20me%20just%20say%20that%20I%20did%20not%20claim%20superiority%20of%20any%20library.%20I%20obviously%20have%20my%20preferences%2C%20but%20that%20is%20a%20topic%20for%20some%20other%20thread.%20Here%2C%20I%20have%20only%20provided%20facts.%20Some%20time%20ago...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-607","item_id":"_comm_607"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_607 == 'undefined' ){PDRTJS_468178_comm_607 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_607 );}}PDRTJS_settings_468178_comm_604={"id":468178,"unique_id":"wp-comment-604","title":"I%20don%26%23039%3Bt%20see%20why%20you%20criticize%20boost%3A%3Aany%20so%20hard.%20Boost%20is%20the%20most%20popular%20C%2B%2B%20library.%20Anyway%2C%20this%20is%20the%20first%20time%20I%26%23039%3Bve%20heard%20about%20DynamicAny.%20If%20their%20library%20is%20superior%2C%20can%20they%20submit%20...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-604","item_id":"_comm_604"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_604 == 'undefined' ){PDRTJS_468178_comm_604 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_604 );}}PDRTJS_settings_468178_comm_597={"id":468178,"unique_id":"wp-comment-597","title":"Re%20this%3A------------------WidgetBase%2A%20wb%20%3D%20new%20Widget%28%29%3Bif%28%20dynamic_cast%28%20wb%20%29%20%29%20%7B%20%20%7D%20------------------Wouldn%26%23039%3Bt%20wb%26%23039%3Bs%20dynamic%20type%20already%20be%20Widget%2A%20before%20the%20dynamic_cast%3F...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-597","item_id":"_comm_597"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_597 == 'undefined' ){PDRTJS_468178_comm_597 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_597 );}}PDRTJS_settings_468178_comm_596={"id":468178,"unique_id":"wp-comment-596","title":"Type%20inference%20in%20the%20ML%20family%20showed%20me%20that%20it%26%23039%3Bs%20really%20easy%20to%20get%20lost%20in%20your%20types.%20When%20you%20see%20a%20variable%20with%20type%20vector%3A%3Aiterator%2C%20you%20can%20at%20least%20unravel%20that%20in%20a%20methodical%20fashio...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-596","item_id":"_comm_596"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_596 == 'undefined' ){PDRTJS_468178_comm_596 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_596 );}}PDRTJS_settings_468178_comm_595={"id":468178,"unique_id":"wp-comment-595","title":"%26quot%3BWith%20boosts%20any%2C%20you%20need%20to%20cast%20it%20to%20some%20concrete%20type%20before%20you%20can%20use%20it.%26quot%3BActually%2C%20boost%3A%3Aany%20can%20only%20be%20cast%20%20back%20to%20the%20exact%20type%20it%20holds.%20It%20works%20well%20for%20storing%20different%20type...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-595","item_id":"_comm_595"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_595 == 'undefined' ){PDRTJS_468178_comm_595 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_595 );}}PDRTJS_settings_468178_comm_594={"id":468178,"unique_id":"wp-comment-594","title":"Thanks%20for%20the%20great%20post%20Herb.%20%20It%26%23039%3Bs%20good%20to%20see%20these%20distinctions%20getting%20explained.One%20of%20the%20key%20verbosity-reducers%20of%20dynamic%20languages%20is%20duck%20typing.%20%20With%20boost%26%23039%3Bs%20%26quot%3Bany%26quot%3B%2C%20you%20need%20to%20cast...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-594","item_id":"_comm_594"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_594 == 'undefined' ){PDRTJS_468178_comm_594 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_594 );}}PDRTJS_settings_468178_comm_593={"id":468178,"unique_id":"wp-comment-593","title":"%26%23091%3B...%26%23093%3B%20Type%20Inference%20vs.%20Static%2FDynamic%20Typing%20%20Sutters%20Mill%20%28tags%3A%20c%20c%2B%2B%20compiler%20design%20programming%20language%29%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-593","item_id":"_comm_593"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_593 == 'undefined' ){PDRTJS_468178_comm_593 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_593 );}}PDRTJS_settings_468178_comm_592={"id":468178,"unique_id":"wp-comment-592","title":"%26quot%3BInference%20doesnt%20have%20anything%20to%20do%20with%20dynamic%20typing.%26quot%3BWell%2C%20that%26%23039%3Bs%20not%20always%20true.In%20the%20ocaml%20object%20system%2C%20when%20a%20function%20calls%20the%20method%20m%20of%20type%2C%20say%20%20%20%20m%20%3A%20unit%20-%26gt%3B%20inton%20an%20obje...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-592","item_id":"_comm_592"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_592 == 'undefined' ){PDRTJS_468178_comm_592 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_592 );}}PDRTJS_settings_468178_comm_590={"id":468178,"unique_id":"wp-comment-590","title":"I%20think%20the%20big%20win%20in%20with%20the%20auto%20keyword%20in%20C%2B%2B%20will%20be%20in%20some%20forms%20of%20meta-programming.%20A%20few%20years%20back%20I%20was%20working%20on%20an%20expression%20template%20system%20for%20doing%20vector%20and%20matrix%20operatio...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-590","item_id":"_comm_590"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_590 == 'undefined' ){PDRTJS_468178_comm_590 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_590 );}}PDRTJS_settings_468178_comm_586={"id":468178,"unique_id":"wp-comment-586","title":"There%20is%20also%20%26lt%3Ba%20href%3D%26quot%3Bhttp%3A%2F%2Fpoco.svn.sourceforge.net%2Fviewvc%2Fpoco%2Fpoco%2Ftrunk%2FFoundation%2Finclude%2FPoco%2FDynamicAny.h%3Fview%3Dmarkup%26quot%3B%20rel%3D%26quot%3Bnofollow%26quot%3B%26gt%3BPoco%3A%3ADynamicAny%26lt%3B%2Fa%26gt%3B%2C%20which%20conveniently%20combines%20ca...","permalink":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/#comment-586","item_id":"_comm_586"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_586 == 'undefined' ){PDRTJS_468178_comm_586 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_586 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2008%2F06%2F20%2Ftype-inference-vs-staticdynamic-typing%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2008\/06\/20\/type-inference-vs-staticdynamic-typing\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2008%2F06%2F20%2Ftype-inference-vs-staticdynamic-typing%2F","postID":"93","shortlink":"https:\/\/wp.me\/peb5Y-1v","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/93","statsLink":"https:\/\/wordpress.com\/stats\/post\/93\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2008%2F06%2F20%2Ftype-inference-vs-staticdynamic-typing%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'93','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sQjl0QzAvbCs9fmlzanc4eVIzLk5RNC9Tdm1PLjBkPVU0bTE2ekZZcy1ERWE/SFhPQm5Ydl8tMzhBOE0zLC9wPWlxen5xLk9zNHN0Wms0eEdncUNmdSZrQzM3RSZxZEVMSElTYTVSbTZvY2Y/YWM3WSZCaGpmSStzWmdxc2xJflJ2UWRPfjhUU2dDZW5naFlGNS4/RDIxR3RKMHB+QnBKYk5zcHNEaEw9bkhodlhhLWdCeXhnOUgtQlhSS20uW3pXRjFqQitJRw=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '93' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

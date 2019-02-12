@@ -1,0 +1,1100 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #102: Exception-Safe Function Calls (Difficulty: 7/10)	</title>
+	<atom:link href="https://herbsutter.com/gotw/_102/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: ISO C++ committee draft &#124; The other branch				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-9579</link>
+		<dc:creator><![CDATA[ISO C++ committee draft &#124; The other branch]]></dc:creator>
+		<pubDate>Wed, 24 Apr 2013 15:28:01 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-9579</guid>
+					<description><![CDATA[[...] Proposes the missing unique_ptr analogue for make_shared. There are 3 overloads: 1 for a single object with argument pack that is forwarded to the object constructor, and 2 for arrays, one of which is deleted to ensure it is used correctly (it takes a single argument: the array size, so cannot be used for a fixed-size array). The implementation of the single object overload matches that suggested by Herb in GotW 102. [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Proposes the missing unique_ptr analogue for make_shared. There are 3 overloads: 1 for a single object with argument pack that is forwarded to the object constructor, and 2 for arrays, one of which is deleted to ensure it is used correctly (it takes a single argument: the array size, so cannot be used for a fixed-size array). The implementation of the single object overload matches that suggested by Herb in GotW 102. [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Generalised type-deduction for class template instance construction &#171; The other branch				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-6939</link>
+		<dc:creator><![CDATA[Generalised type-deduction for class template instance construction &#171; The other branch]]></dc:creator>
+		<pubDate>Mon, 19 Nov 2012 13:23:26 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-6939</guid>
+					<description><![CDATA[[...] If you are unfamiliar with these techniques I recommend reading Sutter&#8217;s description of a make_unique function (see the section entitled Enter make_unique) and Meyers&#8217; post on what he calls [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] If you are unfamiliar with these techniques I recommend reading Sutter&#8217;s description of a make_unique function (see the section entitled Enter make_unique) and Meyers&#8217; post on what he calls [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: David Oliver				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-6520</link>
+		<dc:creator><![CDATA[David Oliver]]></dc:creator>
+		<pubDate>Fri, 26 Oct 2012 20:53:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-6520</guid>
+					<description><![CDATA[@Alf,
+
+Thanks for your comments.
+
+Some of the slips were typos as I fiddled with the markup: I should have said to use &lt;code&gt;std::unique_ptr&#060;std::array&#060;T, N&#062;&#062;&lt;/code&gt; for fixed size arrays. Unlike &lt;code&gt;vector&lt;/code&gt;, this results in a true pointer-to-array type requiring an extra level of indirection:
+[sourcecode]
+    typedef std::array&#060;char, 42&#062; Array;
+    std::unique_ptr&#060;Array&#062; v = make_unique&#060;Array&#062;();
+    (*v)[2] = &#039;x&#039;;
+    Assert::AreEqual(&#039;x&#039;, (*v)[2]);
+    Assert::AreEqual(size_t(42), v-&#062;size());
+[/sourcecode]
+
+Thanks for the correction about deleters being - possibly elided - objects, rather than just types: when all else fails, read the standard.
+
+In this case, it would seem that providing a function modelled on &lt;code&gt;allocate_shared()&lt;/code&gt; is appropriate, something like:
+[sourcecode]
+template &#060;typename T, template &#060;typename &#062; typename Alloc, typename... Args&#062;
+unique_ptr&#060;T, Deleter&#060;Alloc&#060;T&#062;&#062;&#062; allocate_unique(const Alloc&#038; alloc, Args&#038;&#038;... args)
+{
+    Alloc&#060;T&#062; allocator(alloc);      // allocator is copied, c.f. allocate_shared&#060;&#062;()
+    typedef Deleter&#060;Alloc&#060;T&#062;&#062;	Del;
+    T* tp = allocator.allocate(1);
+    try {
+        allocator.construct(tp, args...);
+        return unique_ptr&#060;T, Del&#062;(tp, Del());
+    }
+    catch (...) {   // allocation succeeded, but construction failed.
+        allocator.deallocate(tp, 1);
+        throw;
+    }
+}
+// For example 
+auto uptr = allocate_unique&#060;MyClass&#062;(my_alloc, &#034;hello&#034;, &#034;world&#034;));
+[/sourcecode]
+
+The &lt;code&gt;Deleter&lt;/code&gt; wraps the allocator looks like:
+[sourcecode]
+template &#060;class Alloc&#062;
+class Deleter
+    : private Alloc     // use EBCO to avoid growing unique_ptr.
+{
+private:
+    using Alloc::destroy;       // needed for VC++12
+    using Alloc::deallocate;
+
+public:
+	typedef typename Alloc::value_type value_type;
+
+	Deleter() : Alloc() {}
+	Deleter(const Alloc&#038; alloc) : Alloc(alloc) {}
+	void operator()(value_type* p) {
+		destroy(p);
+		deallocate(p, 1);
+	}
+};
+[/sourcecode]
+
+Caveat: I have tested this with VC++12, using &quot;manually expanded variable arguments&quot; and without confirming correct exception handling.
+
+If only local, scoped heap objects were needed, using &lt;code&gt;auto&lt;/code&gt; in declarations would be fine, and &lt;code&gt;Deleter&lt;/code&gt; could be buried out of the user&#039;s sight. Where a full type is needed, it becomes ugly:
+[sourcecode]
+unique_ptr&#060;MyClass, Deleter&#060;MyAllocator&#060;MyClass&#062;&#062;&#062; uptr =
+    allocate_unique&#060;MyClass&#062;(my_alloc, &#034;hello&#034;, &#034;world&#034;));
+[/sourcecode]
+
+Ideally, a alias declaration would simplify this. In the meantime, a poor-man&#039;s implementation &quot;works&quot; well enough for testing:
+[sourcecode]
+template &#060;class T, template &#060;class S&#062; class Alloc&#062;
+class UniqueAllocPtr
+    : public unique_ptr&#060;T, Deleter&#060;Alloc&#060;T&#062;&#062;&#062;
+{
+public:
+    typedef unique_ptr&#060;T, Deleter&#060;Alloc&#060;T&#062;&#062;&#062; Ptr;
+    class UniqueAllocPtr(Ptr&#038;&#038; ptr)
+        : Ptr(std::move(ptr))
+    {}
+};
+
+// For example:
+UniqueAllocPtr&#060;MyClass, MyAllocator&#062; uptr =
+    allocate_unique&#060;MyClass&#062;(my_alloc, &#034;hello&#034;, &#034;world&#034;));
+[/sourcecode]
+
+I&#039;ll leave C-style arrays for another time: they seem to require the &lt;code&gt;Deleter&lt;/code&gt; hanging onto the array size for the &lt;code&gt;Allocator&lt;/code&gt;&#039;s &lt;code&gt;deallocate()&lt;/code&gt; and repeated calls to &lt;code&gt;destroy()&lt;/code&gt;. Some thought will also be needed to perform initialization cleanup correctly in the presence of exceptions, which I&#039;ll leave for another day.
+
+Hoping my markup is better this time,
+
+Cheers!
+
+David.]]></description>
+		<content:encoded><![CDATA[<p>@Alf,</p>
+<p>Thanks for your comments.</p>
+<p>Some of the slips were typos as I fiddled with the markup: I should have said to use <code>std::unique_ptr&lt;std::array&lt;T, N&gt;&gt;</code> for fixed size arrays. Unlike <code>vector</code>, this results in a true pointer-to-array type requiring an extra level of indirection:</p>
+<pre class="brush: plain; title: ; notranslate">
+    typedef std::array&lt;char, 42&gt; Array;
+    std::unique_ptr&lt;Array&gt; v = make_unique&lt;Array&gt;();
+    (*v)[2] = 'x';
+    Assert::AreEqual('x', (*v)[2]);
+    Assert::AreEqual(size_t(42), v-&gt;size());
+</pre>
+<p>Thanks for the correction about deleters being &#8211; possibly elided &#8211; objects, rather than just types: when all else fails, read the standard.</p>
+<p>In this case, it would seem that providing a function modelled on <code>allocate_shared()</code> is appropriate, something like:</p>
+<pre class="brush: plain; title: ; notranslate">
+template &lt;typename T, template &lt;typename &gt; typename Alloc, typename... Args&gt;
+unique_ptr&lt;T, Deleter&lt;Alloc&lt;T&gt;&gt;&gt; allocate_unique(const Alloc&amp; alloc, Args&amp;&amp;... args)
+{
+    Alloc&lt;T&gt; allocator(alloc);      // allocator is copied, c.f. allocate_shared&lt;&gt;()
+    typedef Deleter&lt;Alloc&lt;T&gt;&gt;	Del;
+    T* tp = allocator.allocate(1);
+    try {
+        allocator.construct(tp, args...);
+        return unique_ptr&lt;T, Del&gt;(tp, Del());
+    }
+    catch (...) {   // allocation succeeded, but construction failed.
+        allocator.deallocate(tp, 1);
+        throw;
+    }
+}
+// For example 
+auto uptr = allocate_unique&lt;MyClass&gt;(my_alloc, &quot;hello&quot;, &quot;world&quot;));
+</pre>
+<p>The <code>Deleter</code> wraps the allocator looks like:</p>
+<pre class="brush: plain; title: ; notranslate">
+template &lt;class Alloc&gt;
+class Deleter
+    : private Alloc     // use EBCO to avoid growing unique_ptr.
+{
+private:
+    using Alloc::destroy;       // needed for VC++12
+    using Alloc::deallocate;
+
+public:
+	typedef typename Alloc::value_type value_type;
+
+	Deleter() : Alloc() {}
+	Deleter(const Alloc&amp; alloc) : Alloc(alloc) {}
+	void operator()(value_type* p) {
+		destroy(p);
+		deallocate(p, 1);
+	}
+};
+</pre>
+<p>Caveat: I have tested this with VC++12, using &#8220;manually expanded variable arguments&#8221; and without confirming correct exception handling.</p>
+<p>If only local, scoped heap objects were needed, using <code>auto</code> in declarations would be fine, and <code>Deleter</code> could be buried out of the user&#8217;s sight. Where a full type is needed, it becomes ugly:</p>
+<pre class="brush: plain; title: ; notranslate">
+unique_ptr&lt;MyClass, Deleter&lt;MyAllocator&lt;MyClass&gt;&gt;&gt; uptr =
+    allocate_unique&lt;MyClass&gt;(my_alloc, &quot;hello&quot;, &quot;world&quot;));
+</pre>
+<p>Ideally, a alias declaration would simplify this. In the meantime, a poor-man&#8217;s implementation &#8220;works&#8221; well enough for testing:</p>
+<pre class="brush: plain; title: ; notranslate">
+template &lt;class T, template &lt;class S&gt; class Alloc&gt;
+class UniqueAllocPtr
+    : public unique_ptr&lt;T, Deleter&lt;Alloc&lt;T&gt;&gt;&gt;
+{
+public:
+    typedef unique_ptr&lt;T, Deleter&lt;Alloc&lt;T&gt;&gt;&gt; Ptr;
+    class UniqueAllocPtr(Ptr&amp;&amp; ptr)
+        : Ptr(std::move(ptr))
+    {}
+};
+
+// For example:
+UniqueAllocPtr&lt;MyClass, MyAllocator&gt; uptr =
+    allocate_unique&lt;MyClass&gt;(my_alloc, &quot;hello&quot;, &quot;world&quot;));
+</pre>
+<p>I&#8217;ll leave C-style arrays for another time: they seem to require the <code>Deleter</code> hanging onto the array size for the <code>Allocator</code>&#8216;s <code>deallocate()</code> and repeated calls to <code>destroy()</code>. Some thought will also be needed to perform initialization cleanup correctly in the presence of exceptions, which I&#8217;ll leave for another day.</p>
+<p>Hoping my markup is better this time,</p>
+<p>Cheers!</p>
+<p>David.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-6496</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Wed, 24 Oct 2012 06:16:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-6496</guid>
+					<description><![CDATA[@David: well I hope Herb can fix up the postings (by deleting first tries).
+
+Anyway, just a few factoids:
+
+
+    &lt;code&gt;std::unique_ptr&lt;/code&gt; does have an associated (stored) deleter object. But it&#039;s designed to allow Empty Base Class optimization, which you in practice can rely on for the default deleter. In other direction, ungoodness, for performance reasons it does not support general conversion up a class inheritance chain wrt. getting the deleter argument correct, i.e. it&#039;s &lt;em&gt;not quite&lt;/em&gt; type safe, whereas `std::shared_ptr` is.
+    &lt;code&gt;std::unique_ptr&lt;/code&gt; is &lt;em&gt;specialized&lt;em&gt; for arrays, and there is no such thing as &lt;code&gt;std::unique_array&lt;/code&gt;
+
+
+Therefore, in order for &lt;code&gt;make_unique&lt;/code&gt; to be able to create all kinds of &lt;code&gt;std::unique_ptr&lt;/code&gt;, it needs to be (effectively) specialized for array pointee so that in that case, it allocates an array pointee.
+
+The deleter problem is that a deleter argument comes in addition to the pointee constructor arguments.
+
+True, it&#039;s not particularly difficult, or doesn&#039;t seem to be, but in light of the two bullet points above (hopefully the markup worked) the implementations we&#039;ve all put forward, are merely proofs of concept, nothing more.
+
+Cheers &#038; hth.,
+
+- Alf]]></description>
+		<content:encoded><![CDATA[<p>@David: well I hope Herb can fix up the postings (by deleting first tries).</p>
+<p>Anyway, just a few factoids:</p>
+<p>    <code>std::unique_ptr</code> does have an associated (stored) deleter object. But it&#8217;s designed to allow Empty Base Class optimization, which you in practice can rely on for the default deleter. In other direction, ungoodness, for performance reasons it does not support general conversion up a class inheritance chain wrt. getting the deleter argument correct, i.e. it&#8217;s <em>not quite</em> type safe, whereas `std::shared_ptr` is.<br />
+    <code>std::unique_ptr</code> is <em>specialized</em><em> for arrays, and there is no such thing as <code>std::unique_array</code></p>
+<p>Therefore, in order for <code>make_unique</code> to be able to create all kinds of <code>std::unique_ptr</code>, it needs to be (effectively) specialized for array pointee so that in that case, it allocates an array pointee.</p>
+<p>The deleter problem is that a deleter argument comes in addition to the pointee constructor arguments.</p>
+<p>True, it&#8217;s not particularly difficult, or doesn&#8217;t seem to be, but in light of the two bullet points above (hopefully the markup worked) the implementations we&#8217;ve all put forward, are merely proofs of concept, nothing more.</p>
+<p>Cheers &amp; hth.,</p>
+<p>&#8211; Alf</em></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: David Oliver				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-6491</link>
+		<dc:creator><![CDATA[David Oliver]]></dc:creator>
+		<pubDate>Tue, 23 Oct 2012 19:48:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-6491</guid>
+					<description><![CDATA[(resent with markup fixed)
+@Alf,
+
+My version of &lt;code&gt;make_unique&lt;/code&gt; is VC++ specific (recent versions - works with 2012), and makes use of Microsoft&#039;s macros for faking variadic templates by creating one template for each number of template parameters from 0 through 4 (VC++2010 supported up to ten!).
+
+Other than this kludge, it is a blatant copy of Herb&#039;s original version, including the signature which matches &lt;a href=&quot;http://en.cppreference.com/w/cpp/memory/shared_ptr/make_shared&quot; rel=&quot;nofollow&quot;&gt;std::make_shared&lt;/a&gt;. This may be clearer if I manage to post it with markup:
+
+[sourcecode language=&quot;cpp&quot;] 
+// TEMPLATE FUNCTION make_unique
+#define _MAKE_UNIQUE(TEMPLATE_LIST, PADDING_LIST, LIST, COMMA, X1, X2, X3, X4)	\
+																				\
+template&#060;class T COMMA LIST(_CLASS_TYPE)&#062;&#062;									\
+std::unique_ptr&#060;T&#062; make_unique(LIST(_TYPE_REFREF_ARG))							\
+{																				\
+    return std::unique_ptr&#060;T&#062;(new T(LIST(_FORWARD_ARG)));						\
+}
+
+_VARIADIC_EXPAND_0X(_MAKE_UNIQUE, , , , )
+[/sourcecode]
+
+Barring the kludge, I believe that this, like Herb&#039;s original, is complete:
+
+&lt;code&gt;std::unique_ptr&lt;/code&gt;s do not have associated deleter objects, though they may templatized with a &lt;code&gt;Deleter&lt;/code&gt; type, so the &quot;obvious&quot; solution of &lt;code&gt;allocate_unique()&lt;/code&gt; (c.f. &lt;code&gt;std::allocate_shared()&lt;/code&gt;) would require the provision of an extended unique pointer type.
+
+As for arrays, it may be significant that the standards committee didn&#039;t decide to adopt/adapt Boost&#039;s &lt;code&gt;shared/scoped_array&lt;/code&gt;. The reason for this may be because there are very few situations where there is a significant benefit: for fixed size arrays, &lt;code&gt;std::unique_array&#060;std::array&#060;T, N&#062;&#062;&lt;/code&gt; works fine (and fits in with &lt;code&gt;make_unique()&lt;/code&gt;).
+
+For variable-sized arrays, &lt;code&gt;std::vector&#060;T&#062;&lt;/code&gt; is almost always a better bet: it&#039;s familiar and easy to use: &lt;code&gt;std::vector&#060;T&#062; v(n)&lt;/code&gt; versus:
+[sourcecode]std::unique_ptr&#060;char[], std::default_delete&#060;char[]&#062;&#062; v(new char[42], std::default_delete&#060;char[]&#062;());[/sourcecode]
+even if that was simplified by a &lt;code&gt;make_unique&lt;/code&gt; overload into:
+[sourcecode]std::unique_ptr&#060;T[], std::default_delete&#060;T[]&#062;&#062; v = make_unique&#060;T[], std::default_delete&#062;(42));[/sourcecode]
+
+Cheers!
+
+David.]]></description>
+		<content:encoded><![CDATA[<p>(resent with markup fixed)<br />
+@Alf,</p>
+<p>My version of <code>make_unique</code> is VC++ specific (recent versions &#8211; works with 2012), and makes use of Microsoft&#8217;s macros for faking variadic templates by creating one template for each number of template parameters from 0 through 4 (VC++2010 supported up to ten!).</p>
+<p>Other than this kludge, it is a blatant copy of Herb&#8217;s original version, including the signature which matches <a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/make_shared" rel="nofollow">std::make_shared</a>. This may be clearer if I manage to post it with markup:</p>
+<pre class="brush: cpp; title: ; notranslate"> 
+// TEMPLATE FUNCTION make_unique
+#define _MAKE_UNIQUE(TEMPLATE_LIST, PADDING_LIST, LIST, COMMA, X1, X2, X3, X4)	\
+																				\
+template&lt;class T COMMA LIST(_CLASS_TYPE)&gt;&gt;									\
+std::unique_ptr&lt;T&gt; make_unique(LIST(_TYPE_REFREF_ARG))							\
+{																				\
+    return std::unique_ptr&lt;T&gt;(new T(LIST(_FORWARD_ARG)));						\
+}
+
+_VARIADIC_EXPAND_0X(_MAKE_UNIQUE, , , , )
+</pre>
+<p>Barring the kludge, I believe that this, like Herb&#8217;s original, is complete:</p>
+<p><code>std::unique_ptr</code>s do not have associated deleter objects, though they may templatized with a <code>Deleter</code> type, so the &#8220;obvious&#8221; solution of <code>allocate_unique()</code> (c.f. <code>std::allocate_shared()</code>) would require the provision of an extended unique pointer type.</p>
+<p>As for arrays, it may be significant that the standards committee didn&#8217;t decide to adopt/adapt Boost&#8217;s <code>shared/scoped_array</code>. The reason for this may be because there are very few situations where there is a significant benefit: for fixed size arrays, <code>std::unique_array&lt;std::array&lt;T, N&gt;&gt;</code> works fine (and fits in with <code>make_unique()</code>).</p>
+<p>For variable-sized arrays, <code>std::vector&lt;T&gt;</code> is almost always a better bet: it&#8217;s familiar and easy to use: <code>std::vector&lt;T&gt; v(n)</code> versus:</p>
+<pre class="brush: plain; title: ; notranslate">std::unique_ptr&lt;char[], std::default_delete&lt;char[]&gt;&gt; v(new char[42], std::default_delete&lt;char[]&gt;());</pre>
+<p>even if that was simplified by a <code>make_unique</code> overload into:</p>
+<pre class="brush: plain; title: ; notranslate">std::unique_ptr&lt;T[], std::default_delete&lt;T[]&gt;&gt; v = make_unique&lt;T[], std::default_delete&gt;(42));</pre>
+<p>Cheers!</p>
+<p>David.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: David Oliver				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-6490</link>
+		<dc:creator><![CDATA[David Oliver]]></dc:creator>
+		<pubDate>Tue, 23 Oct 2012 19:42:55 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-6490</guid>
+					<description><![CDATA[@Alf,
+
+Your &lt;code&gt;UniquePtr_&#060;&#062;&lt;/code&gt; is an interesting and clever example of using the type system to enforce a programming style - in this case, &quot;never use &lt;code&gt;new&lt;/code&gt; or &lt;code&gt;delete&lt;/code&gt; in application level code&quot;.
+
+My version of &lt;code&gt;make_unique&lt;/code&gt; is VC++ specific (recent versions - works with 2012), and makes use of Microsoft&#039;s macros for faking variadic templates by creating one template for each number of template parameters from 0 through 4 (VC++2010 supported up to ten!).
+
+Other than this kludge, it is a blatant copy of Herb&#039;s original version, including the signature which matches &lt;a href=&quot;http://en.cppreference.com/w/cpp/memory/shared_ptr/make_shared&quot; rel=&quot;nofollow&quot;&gt;std::make_shared&lt;/a&gt;. This may be clearer if I manage to post it with markup:
+
+[sourcecode language=&quot;cpp&quot;] 
+// TEMPLATE FUNCTION make_unique
+#define _MAKE_UNIQUE(TEMPLATE_LIST, PADDING_LIST, LIST, COMMA, X1, X2, X3, X4)	\
+																				\
+template&#038;lt;class T COMMA LIST(_CLASS_TYPE)&#062;&#038;gt;									\
+std::unique_ptr&#038;lt;T&#038;gt; make_unique(LIST(_TYPE_REFREF_ARG))							\
+{																				\
+    return std::unique_ptr&#038;lt;T&#038;gt;(new T(LIST(_FORWARD_ARG)));						\
+}
+
+_VARIADIC_EXPAND_0X(_MAKE_UNIQUE, , , , )
+[/sourcecode]
+
+Barring the kludge, I believe that this, like Herb&#039;s original, is complete:
+
+&lt;code&gt;std::unique_ptr&lt;/code&gt;s do not have associated deleter objects, though they may templatized with a &lt;code&gt;Deleter&lt;/code&gt; type, so the &quot;obvious&quot; solution of &lt;code&gt;allocate_unique()&lt;/code&gt; (c.f. &lt;code&gt;std::allocate_shared()&lt;/code&gt;) would require the provision of an extended unique pointer type.
+
+As for arrays, it may be significant that the standards committee didn&#039;t decide to adopt/adapt Boost&#039;s &lt;code&gt;shared/scoped_array&lt;/code&gt;. The reason for this may be because there are very few situations where there is a significant benefit: for fixed size arrays, &lt;code&gt;std::unique_array&#060;std::array&#060;T, N&#062;&#062;&lt;/code&gt; works fine (and fits in with &lt;code&gt;make_unique()&lt;/code&gt;).
+
+For variable-sized arrays, &lt;code&gt;std::vector&#060;T&#062;&lt;/code&gt; is almost always a better bet: it&#039;s familiar and easy to use: &lt;code&gt;std::vector&#060;T&#062; v(n)&lt;/code&gt; versus:
+[sourcecode]std::unique_ptr&#038;lt;T[], std::default_delete&#038;lt;T[]&#038;gt;&#038;gt; v(new T[n], std::default_delete&#038;lt;T[]&#038;gt;());[/sourcecode]
+even if that was simplified by a &lt;code&gt;make_unique&lt;/code&gt; overload into:
+[sourcecode]std::unique_ptr&#038;lt;T[], std::default_delete&#038;lt;T[]&#038;gt;&#038;gt; v = make_unique&#038;lt;T[]&#038;gt;(42));[/sourcecode]
+
+Cheers!
+
+David.]]></description>
+		<content:encoded><![CDATA[<p>@Alf,</p>
+<p>Your <code>UniquePtr_&lt;&gt;</code> is an interesting and clever example of using the type system to enforce a programming style &#8211; in this case, &#8220;never use <code>new</code> or <code>delete</code> in application level code&#8221;.</p>
+<p>My version of <code>make_unique</code> is VC++ specific (recent versions &#8211; works with 2012), and makes use of Microsoft&#8217;s macros for faking variadic templates by creating one template for each number of template parameters from 0 through 4 (VC++2010 supported up to ten!).</p>
+<p>Other than this kludge, it is a blatant copy of Herb&#8217;s original version, including the signature which matches <a href="http://en.cppreference.com/w/cpp/memory/shared_ptr/make_shared" rel="nofollow">std::make_shared</a>. This may be clearer if I manage to post it with markup:</p>
+<pre class="brush: cpp; title: ; notranslate"> 
+// TEMPLATE FUNCTION make_unique
+#define _MAKE_UNIQUE(TEMPLATE_LIST, PADDING_LIST, LIST, COMMA, X1, X2, X3, X4)	\
+																				\
+template&amp;lt;class T COMMA LIST(_CLASS_TYPE)&gt;&amp;gt;									\
+std::unique_ptr&amp;lt;T&amp;gt; make_unique(LIST(_TYPE_REFREF_ARG))							\
+{																				\
+    return std::unique_ptr&amp;lt;T&amp;gt;(new T(LIST(_FORWARD_ARG)));						\
+}
+
+_VARIADIC_EXPAND_0X(_MAKE_UNIQUE, , , , )
+</pre>
+<p>Barring the kludge, I believe that this, like Herb&#8217;s original, is complete:</p>
+<p><code>std::unique_ptr</code>s do not have associated deleter objects, though they may templatized with a <code>Deleter</code> type, so the &#8220;obvious&#8221; solution of <code>allocate_unique()</code> (c.f. <code>std::allocate_shared()</code>) would require the provision of an extended unique pointer type.</p>
+<p>As for arrays, it may be significant that the standards committee didn&#8217;t decide to adopt/adapt Boost&#8217;s <code>shared/scoped_array</code>. The reason for this may be because there are very few situations where there is a significant benefit: for fixed size arrays, <code>std::unique_array&lt;std::array&lt;T, N&gt;&gt;</code> works fine (and fits in with <code>make_unique()</code>).</p>
+<p>For variable-sized arrays, <code>std::vector&lt;T&gt;</code> is almost always a better bet: it&#8217;s familiar and easy to use: <code>std::vector&lt;T&gt; v(n)</code> versus:</p>
+<pre class="brush: plain; title: ; notranslate">std::unique_ptr&amp;lt;T[], std::default_delete&amp;lt;T[]&amp;gt;&amp;gt; v(new T[n], std::default_delete&amp;lt;T[]&amp;gt;());</pre>
+<p>even if that was simplified by a <code>make_unique</code> overload into:</p>
+<pre class="brush: plain; title: ; notranslate">std::unique_ptr&amp;lt;T[], std::default_delete&amp;lt;T[]&amp;gt;&amp;gt; v = make_unique&amp;lt;T[]&amp;gt;(42));</pre>
+<p>Cheers!</p>
+<p>David.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-6439</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Sat, 20 Oct 2012 01:15:54 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-6439</guid>
+					<description><![CDATA[@David: Well, it&#039;s not that difficult to support a &lt;code&gt;makeUnique&lt;/code&gt; function with Visual C++ 11.0 (Visual Studio 2012), with standard-conforming C++03 code. I have already linked to my long-ago &lt;a href=&quot;http://alfps.wordpress.com/2010/05/15/cppx-c98-constructor-arguments-forwarding-v2-posting/&quot; rel=&quot;nofollow&quot;&gt;blog article&lt;/a&gt; about it. But just to be concrete, I now sat down and created the following &lt;em&gt;proof of concept&lt;/em&gt; code, in Visual Studio 2012. It&#8217;s proof-of-concept because it doesn&#8217;t handle a deleter, and it doesn&#8217;t handle arrays. But in that sense also the implementation given by Herb is proof-of-concept.
+
+Important detail: here &lt;code&gt;makeUnique&lt;/code&gt; produces an instance of a *derived class*, so that functions like this GOTW&#8217;s &lt;code&gt;foo&lt;/code&gt; can be made type safe.
+
+[sourcecode language=&quot;cpp&quot;]
+#include &#060;memory&#062;           // std::unique_ptr
+#include &#060;utility&#062;          // std::move
+#include &#034;progrock/cppx/ConstructorArgForwarder_.h&#034;
+
+namespace progrock { namespace cppx {
+    using std::unique_ptr;
+
+    template&#060; class Pointee &#062;
+    class UniquePtr_
+        : public unique_ptr&#060; Pointee &#062;
+    {
+    public:
+        typedef unique_ptr&#060; Pointee &#062; Base;
+
+    protected:
+        UniquePtr_( Pointee* p ): Base( p ) {}
+
+        UniquePtr_( unique_ptr&#060; Pointee &#062;&#038;&#038; other )
+            : Base( move( other ) )
+        {}
+
+    public:
+        template&#060; class ArgPack &#062;
+        static UniquePtr_ from( ArgPack const&#038; args )
+        {
+            return UniquePtr_( new ConstructorArgForwarder_&#060; Pointee &#062;( args ) );
+        }
+
+        static UniquePtr_ fromExisting( unique_ptr&#060; Pointee &#062; existingPtr )
+        {
+            return UniquePtr_( move( existingPtr ) );
+        }
+
+        UniquePtr_( UniquePtr_&#038;&#038; other )
+            : Base( move( other ) )
+        {}
+    };
+
+    template&#060; class Pointee, class ArgPack &#062;
+    UniquePtr_&#060; Pointee &#062; makeUnique_( ArgPack const&#038; args )
+    {
+        return UniquePtr_&#060; Pointee &#062;::from( args );
+    }
+
+} }  // namespace progrock::cppx
+
+#include &#060;iostream&#062;
+#include &#060;string&#062;
+using namespace std;
+using namespace progrock;
+using cppx::UniquePtr_;
+using cppx::makeUnique_;
+using cppx::args;
+
+void foo( UniquePtr_&#060; wstring &#062; a, UniquePtr_&#060; wstring &#062; b )
+{
+    wcout &#060;&#060; *a &#060;&#060; endl;
+    wcout &#060;&#060; *b &#060;&#060; endl;
+}
+
+void bar( unique_ptr&#060; wstring &#062; a, unique_ptr&#060; wstring &#062; b )
+{
+    wcout &#060;&#060; *a &#060;&#060; endl;
+    wcout &#060;&#060; *b &#060;&#060; endl;
+}
+
+int main()
+{
+    // OK
+    foo(
+        makeUnique_&#060; wstring &#062;(
+            args( L&#034;The Visual Studio 2012 text editor can&#039;t handle this string:&#034; )
+            ),
+        makeUnique_ &#060;wstring &#062;( args( 72, L&#039;-&#039; ) )
+        );
+
+    // OK
+    bar(
+        makeUnique_&#060; wstring &#062;(
+            args( L&#034;The edit position just goes completely haywire...&#034; )
+            ),
+        makeUnique_&#060; wstring &#062;( args( 72, L&#039;-&#039; ) )
+        );
+
+    // Uh oh -- the `bar` programmer didn&#039;t do his job properly, and the using code
+    // programmer hasn&#039;t understood the importance of using `makeUnique_`, which 
+    // after all isn&#039;t enforced by bar (if it was important it would be enforced?).
+    bar(
+        unique_ptr&#060; wstring &#062;(
+            new wstring( L&#034;Simply put, it gets the width of a hyphen, wrong. Oh my!&#034; )
+            ),
+        unique_ptr&#060; wstring &#062;( new wstring( 72, L&#039;-&#039; ) )
+        );
+    // Well, nothing bad happened here, because no exception was thrown. Phew! :-)
+}
+[/sourcecode]]]></description>
+		<content:encoded><![CDATA[<p>@David: Well, it&#8217;s not that difficult to support a <code>makeUnique</code> function with Visual C++ 11.0 (Visual Studio 2012), with standard-conforming C++03 code. I have already linked to my long-ago <a href="http://alfps.wordpress.com/2010/05/15/cppx-c98-constructor-arguments-forwarding-v2-posting/" rel="nofollow">blog article</a> about it. But just to be concrete, I now sat down and created the following <em>proof of concept</em> code, in Visual Studio 2012. It&rsquo;s proof-of-concept because it doesn&rsquo;t handle a deleter, and it doesn&rsquo;t handle arrays. But in that sense also the implementation given by Herb is proof-of-concept.</p>
+<p>Important detail: here <code>makeUnique</code> produces an instance of a *derived class*, so that functions like this GOTW&rsquo;s <code>foo</code> can be made type safe.</p>
+<pre class="brush: cpp; title: ; notranslate">
+#include &lt;memory&gt;           // std::unique_ptr
+#include &lt;utility&gt;          // std::move
+#include &quot;progrock/cppx/ConstructorArgForwarder_.h&quot;
+
+namespace progrock { namespace cppx {
+    using std::unique_ptr;
+
+    template&lt; class Pointee &gt;
+    class UniquePtr_
+        : public unique_ptr&lt; Pointee &gt;
+    {
+    public:
+        typedef unique_ptr&lt; Pointee &gt; Base;
+
+    protected:
+        UniquePtr_( Pointee* p ): Base( p ) {}
+
+        UniquePtr_( unique_ptr&lt; Pointee &gt;&amp;&amp; other )
+            : Base( move( other ) )
+        {}
+
+    public:
+        template&lt; class ArgPack &gt;
+        static UniquePtr_ from( ArgPack const&amp; args )
+        {
+            return UniquePtr_( new ConstructorArgForwarder_&lt; Pointee &gt;( args ) );
+        }
+
+        static UniquePtr_ fromExisting( unique_ptr&lt; Pointee &gt; existingPtr )
+        {
+            return UniquePtr_( move( existingPtr ) );
+        }
+
+        UniquePtr_( UniquePtr_&amp;&amp; other )
+            : Base( move( other ) )
+        {}
+    };
+
+    template&lt; class Pointee, class ArgPack &gt;
+    UniquePtr_&lt; Pointee &gt; makeUnique_( ArgPack const&amp; args )
+    {
+        return UniquePtr_&lt; Pointee &gt;::from( args );
+    }
+
+} }  // namespace progrock::cppx
+
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+using namespace std;
+using namespace progrock;
+using cppx::UniquePtr_;
+using cppx::makeUnique_;
+using cppx::args;
+
+void foo( UniquePtr_&lt; wstring &gt; a, UniquePtr_&lt; wstring &gt; b )
+{
+    wcout &lt;&lt; *a &lt;&lt; endl;
+    wcout &lt;&lt; *b &lt;&lt; endl;
+}
+
+void bar( unique_ptr&lt; wstring &gt; a, unique_ptr&lt; wstring &gt; b )
+{
+    wcout &lt;&lt; *a &lt;&lt; endl;
+    wcout &lt;&lt; *b &lt;&lt; endl;
+}
+
+int main()
+{
+    // OK
+    foo(
+        makeUnique_&lt; wstring &gt;(
+            args( L&quot;The Visual Studio 2012 text editor can't handle this string:&quot; )
+            ),
+        makeUnique_ &lt;wstring &gt;( args( 72, L'-' ) )
+        );
+
+    // OK
+    bar(
+        makeUnique_&lt; wstring &gt;(
+            args( L&quot;The edit position just goes completely haywire...&quot; )
+            ),
+        makeUnique_&lt; wstring &gt;( args( 72, L'-' ) )
+        );
+
+    // Uh oh -- the `bar` programmer didn't do his job properly, and the using code
+    // programmer hasn't understood the importance of using `makeUnique_`, which 
+    // after all isn't enforced by bar (if it was important it would be enforced?).
+    bar(
+        unique_ptr&lt; wstring &gt;(
+            new wstring( L&quot;Simply put, it gets the width of a hyphen, wrong. Oh my!&quot; )
+            ),
+        unique_ptr&lt; wstring &gt;( new wstring( 72, L'-' ) )
+        );
+    // Well, nothing bad happened here, because no exception was thrown. Phew! :-)
+}
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: David Oliver				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-6428</link>
+		<dc:creator><![CDATA[David Oliver]]></dc:creator>
+		<pubDate>Fri, 19 Oct 2012 16:34:59 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-6428</guid>
+					<description><![CDATA[Is there a way to write make_unique() in VS2012?
+
+Yes, but it&#039;s not pretty, as you have to fake variadic templates. Fortunately, the library provides these (for relatively small numbers of parameters - Boost metaprogramming provides larger numbers, but is correspondingly harder to use).
+
+The following code works for zero to four parameters; it will probably get mangled during the post.
+
+#include &#060;memory&#062;    // brings in TEMPLATE macros.
+
+#define _MAKE_UNIQUE(TEMPLATE_LIST, PADDING_LIST, LIST, COMMA, X1, X2, X3, X4)	\
+																		\
+template&#060;class T COMMA LIST(_CLASS_TYPE)&#062;									\
+inline std::unique_ptr&#060;T&#062; make_unique(LIST(_TYPE_REFREF_ARG))					\
+{																		\
+    return std::unique_ptr&#060;T&#062;(new T(LIST(_FORWARD_ARG)));						\
+}
+
+_VARIADIC_EXPAND_0X(_MAKE_UNIQUE, , , , )
+#undef _MAKE_UNIQUE]]></description>
+		<content:encoded><![CDATA[<p>Is there a way to write make_unique() in VS2012?</p>
+<p>Yes, but it&#8217;s not pretty, as you have to fake variadic templates. Fortunately, the library provides these (for relatively small numbers of parameters &#8211; Boost metaprogramming provides larger numbers, but is correspondingly harder to use).</p>
+<p>The following code works for zero to four parameters; it will probably get mangled during the post.</p>
+<p>#include &lt;memory&gt;    // brings in TEMPLATE macros.</p>
+<p>#define _MAKE_UNIQUE(TEMPLATE_LIST, PADDING_LIST, LIST, COMMA, X1, X2, X3, X4)	\<br />
+																		\<br />
+template&lt;class T COMMA LIST(_CLASS_TYPE)&gt;									\<br />
+inline std::unique_ptr&lt;T&gt; make_unique(LIST(_TYPE_REFREF_ARG))					\<br />
+{																		\<br />
+    return std::unique_ptr&lt;T&gt;(new T(LIST(_FORWARD_ARG)));						\<br />
+}</p>
+<p>_VARIADIC_EXPAND_0X(_MAKE_UNIQUE, , , , )<br />
+#undef _MAKE_UNIQUE</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Is there a way to write make_unique() in VS2012? &#124; Jisku.com - Developers Network				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-6115</link>
+		<dc:creator><![CDATA[Is there a way to write make_unique() in VS2012? &#124; Jisku.com - Developers Network]]></dc:creator>
+		<pubDate>Sat, 22 Sep 2012 22:25:47 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-6115</guid>
+					<description><![CDATA[[...] Is there a way to write make_unique() in VS2012?   Herb Sutter propose a simple implementation of make_unique() there: https://herbsutter.com/gotw/_102/ [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Is there a way to write make_unique() in VS2012?   Herb Sutter propose a simple implementation of make_unique() there: <a href="https://herbsutter.com/gotw/_102/" rel="nofollow">https://herbsutter.com/gotw/_102/</a> [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Geoff Romer				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-6072</link>
+		<dc:creator><![CDATA[Geoff Romer]]></dc:creator>
+		<pubDate>Fri, 14 Sep 2012 15:29:32 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-6072</guid>
+					<description><![CDATA[One drawback I see with make_unique is that you can&#039;t use it to construct a unique_ptr with a deleter other than std::default_deleter. Is there any way around that?]]></description>
+		<content:encoded><![CDATA[<p>One drawback I see with make_unique is that you can&#8217;t use it to construct a unique_ptr with a deleter other than std::default_deleter. Is there any way around that?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Christophe Bourez				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-5725</link>
+		<dc:creator><![CDATA[Christophe Bourez]]></dc:creator>
+		<pubDate>Tue, 26 Jun 2012 12:57:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-5725</guid>
+					<description><![CDATA[I thought that inlining make_unique in f( make_unique(), make_unique() ); could lead to a code equivalent to f( std::unique_ptr{ new T1 }, std::unique_ptr{ new T2 } );. Does it mean that the latitude of code optimization differ when we refactor a part of code inside a function we could expect to be inline by the compiler (The compiler is not forced to inline, but let&#039;s suppose it does ...) ?]]></description>
+		<content:encoded><![CDATA[<p>I thought that inlining make_unique in f( make_unique(), make_unique() ); could lead to a code equivalent to f( std::unique_ptr{ new T1 }, std::unique_ptr{ new T2 } );. Does it mean that the latitude of code optimization differ when we refactor a part of code inside a function we could expect to be inline by the compiler (The compiler is not forced to inline, but let&#8217;s suppose it does &#8230;) ?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Reader Q&#38;A: Why don&#8217;t modern smart pointers implicitly convert to *? &#171; Sutter’s Mill				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-5698</link>
+		<dc:creator><![CDATA[Reader Q&#38;A: Why don&#8217;t modern smart pointers implicitly convert to *? &#171; Sutter’s Mill]]></dc:creator>
+		<pubDate>Thu, 21 Jun 2012 21:00:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-5698</guid>
+					<description><![CDATA[[...] is your friend – and “rarely” becomes “never” if you use make_unique which is described here and should become standard in the [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] is your friend – and “rarely” becomes “never” if you use make_unique which is described here and should become standard in the [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: C/C++ &#8211; evaluation of the arguments in a function call [closed] &#124; PHP Developer Resource				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-5568</link>
+		<dc:creator><![CDATA[C/C++ &#8211; evaluation of the arguments in a function call [closed] &#124; PHP Developer Resource]]></dc:creator>
+		<pubDate>Mon, 28 May 2012 22:08:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-5568</guid>
+					<description><![CDATA[[...] Edit: C++11 version https://herbsutter.com/gotw/_102/ [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Edit: C++11 version <a href="https://herbsutter.com/gotw/_102/" rel="nofollow">https://herbsutter.com/gotw/_102/</a> [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: johnathon				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-5504</link>
+		<dc:creator><![CDATA[johnathon]]></dc:creator>
+		<pubDate>Thu, 10 May 2012 13:59:06 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-5504</guid>
+					<description><![CDATA[template
+std::unique_ptr make_unique( Args&#038;&#038; ...args )
+{
+    return std::unique_ptr( new T( std::forward(args)... ) );
+}
+
+Herb, I have this etched into my future template trinkets, but sadly VC as of yet does not support variadiac templates. I would like to express gratitude for all the hard work you and the standards committee have done preparing this wonderful new language to use. Thank You! I&#039;m sure Mr Caves is working diligently on the variadiac template issue, but if you get the chance give him and STL a pat on the back for the ranged for loop added to the beta.]]></description>
+		<content:encoded><![CDATA[<p>template<br />
+std::unique_ptr make_unique( Args&amp;&amp; &#8230;args )<br />
+{<br />
+    return std::unique_ptr( new T( std::forward(args)&#8230; ) );<br />
+}</p>
+<p>Herb, I have this etched into my future template trinkets, but sadly VC as of yet does not support variadiac templates. I would like to express gratitude for all the hard work you and the standards committee have done preparing this wonderful new language to use. Thank You! I&#8217;m sure Mr Caves is working diligently on the variadiac template issue, but if you get the chance give him and STL a pat on the back for the ranged for loop added to the beta.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Frantisek Silvasi				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-5384</link>
+		<dc:creator><![CDATA[Frantisek Silvasi]]></dc:creator>
+		<pubDate>Sun, 29 Apr 2012 10:36:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-5384</guid>
+					<description><![CDATA[This is a great solution to this subtle problem ... Thanks.]]></description>
+		<content:encoded><![CDATA[<p>This is a great solution to this subtle problem &#8230; Thanks.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-5247</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Thu, 19 Apr 2012 12:43:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-5247</guid>
+					<description><![CDATA[@Mateusz: see my blog posting of May 2010 &#8220;C++98 constructor arguments forwarding&#8221; (&lt;a href=&quot;http://alfps.wordpress.com/2010/05/15/cppx-c98-constructor-arguments-forwarding-v2-posting/#0x_standard_forwarding_example&quot; rel=&quot;nofollow&quot;&gt;link&lt;/a&gt;).]]></description>
+		<content:encoded><![CDATA[<p>@Mateusz: see my blog posting of May 2010 &ldquo;C++98 constructor arguments forwarding&rdquo; (<a href="http://alfps.wordpress.com/2010/05/15/cppx-c98-constructor-arguments-forwarding-v2-posting/#0x_standard_forwarding_example" rel="nofollow">link</a>).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-5243</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Thu, 19 Apr 2012 07:47:31 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-5243</guid>
+					<description><![CDATA[@Mateusz: for C++03 techniques, see my &lt;a href=&quot;http://alfps.wordpress.com/2010/05/15/cppx-c98-constructor-arguments-forwarding-v2-posting/#0x_standard_forwarding_example&quot; rel=&quot;nofollow&quot;&gt;blog posting from May 2010&lt;/a&gt;.
+
+Cheers,]]></description>
+		<content:encoded><![CDATA[<p>@Mateusz: for C++03 techniques, see my <a href="http://alfps.wordpress.com/2010/05/15/cppx-c98-constructor-arguments-forwarding-v2-posting/#0x_standard_forwarding_example" rel="nofollow">blog posting from May 2010</a>.</p>
+<p>Cheers,</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mateusz Pusz				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-5241</link>
+		<dc:creator><![CDATA[Mateusz Pusz]]></dc:creator>
+		<pubDate>Thu, 19 Apr 2012 06:19:26 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-5241</guid>
+					<description><![CDATA[@herb: Could you please provide information how to implement make_unique in a correct way in VS2010 and VS2011?
+
+Thanks
+
+Mat]]></description>
+		<content:encoded><![CDATA[<p>@herb: Could you please provide information how to implement make_unique in a correct way in VS2010 and VS2011?</p>
+<p>Thanks</p>
+<p>Mat</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4730</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Wed, 25 Jan 2012 13:51:52 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4730</guid>
+					<description><![CDATA[@herb: by &quot;free function&quot; to be replaced with a constructor, I meant &lt;code&gt;make_unique&lt;/code&gt;. Sorry but Wordpress is not perfect wrt. offering editing of user comments.
+
+Cheers,
+
+- Alf]]></description>
+		<content:encoded><![CDATA[<p>@herb: by &#8220;free function&#8221; to be replaced with a constructor, I meant <code>make_unique</code>. Sorry but WordPress is not perfect wrt. offering editing of user comments.</p>
+<p>Cheers,</p>
+<p>&#8211; Alf</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4729</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Wed, 25 Jan 2012 13:45:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4729</guid>
+					<description><![CDATA[@Herb: For &lt;code&gt;f&lt;/code&gt; to be unsafe it is enough that &lt;code&gt;f&lt;/code&gt; &lt;em&gt;can&lt;/em&gt; be called without using &lt;code&gt;make_unique&lt;/code&gt;.
+
+Relying on the user realzing and remembering that &lt;code&gt;make_unique&lt;/code&gt; should be used, is to rely on convention.
+
+That&#039;s always risky, and to be avoided when the convention can very easily be expressed and enforced within the language (in this case, by replacing the free function with a constructor, andly changing the function signature accordingly).
+
+Cheers &#038; hth.,
+
+- Alf
+
+PS: Again, thanks for keeping up this eris,]]></description>
+		<content:encoded><![CDATA[<p>@Herb: For <code>f</code> to be unsafe it is enough that <code>f</code> <em>can</em> be called without using <code>make_unique</code>.</p>
+<p>Relying on the user realzing and remembering that <code>make_unique</code> should be used, is to rely on convention.</p>
+<p>That&#8217;s always risky, and to be avoided when the convention can very easily be expressed and enforced within the language (in this case, by replacing the free function with a constructor, andly changing the function signature accordingly).</p>
+<p>Cheers &amp; hth.,</p>
+<p>&#8211; Alf</p>
+<p>PS: Again, thanks for keeping up this eris,</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michael				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4727</link>
+		<dc:creator><![CDATA[Michael]]></dc:creator>
+		<pubDate>Tue, 24 Jan 2012 21:13:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4727</guid>
+					<description><![CDATA[@Chris - The point that confuses me about 1(b) is this: &quot;For example, no part of the evaluation of expr2 or any of the execution of h may occur from the time g begins until it ends&quot;.
+
+Consider an expression
+
+f( !expr1, -expr2 );
+
+If I read Herb correctly, the execution of operator!() and operator-() is unsequenced and allowed to overlap if the operators are built-in (e.g. if expr1 and exp2 are int), but is indeterminately sequenced and not allowed to overlap if the operators are user-defined. This looks counter-intuitive so I want to make sure my understanding is correct.]]></description>
+		<content:encoded><![CDATA[<p>@Chris &#8211; The point that confuses me about 1(b) is this: &#8220;For example, no part of the evaluation of expr2 or any of the execution of h may occur from the time g begins until it ends&#8221;.</p>
+<p>Consider an expression</p>
+<p>f( !expr1, -expr2 );</p>
+<p>If I read Herb correctly, the execution of operator!() and operator-() is unsequenced and allowed to overlap if the operators are built-in (e.g. if expr1 and exp2 are int), but is indeterminately sequenced and not allowed to overlap if the operators are user-defined. This looks counter-intuitive so I want to make sure my understanding is correct.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Chris Blume				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4726</link>
+		<dc:creator><![CDATA[Chris Blume]]></dc:creator>
+		<pubDate>Tue, 24 Jan 2012 14:41:54 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4726</guid>
+					<description><![CDATA[@Michael - Yes, g( expr1 ) is still an expression in its own right. However, the key here is that before each function call all parameters must be fully evaluated.
+f( g( expr1 ), h( expr2 ) );
+g and h must be evaluated before f is called
+expr1 must be evaluated before g is called
+expr2 must be evaluated before h is called
+
+That means expr1 and expr2 can still be executed in whatever order.
+Case 1: expr1, expr2, g, h, f
+Case 2: expr2, expr1, g, h, f
+Either way still meets the guarantee that the expressions will have been fully evaluated before the functions are called. (This is opposed to, say, assuming arguments will be evaluated left-to-right.)
+
+In case 1 for example, you could have: new T2, new T1 (throws)(cleans up this T1 instance), T2 was not cleaned. Plus what Herb mentioned about the new actually breaking into allocate and constructor pieces.
+
+
+Thanks for the great insight, Herb!]]></description>
+		<content:encoded><![CDATA[<p>@Michael &#8211; Yes, g( expr1 ) is still an expression in its own right. However, the key here is that before each function call all parameters must be fully evaluated.<br />
+f( g( expr1 ), h( expr2 ) );<br />
+g and h must be evaluated before f is called<br />
+expr1 must be evaluated before g is called<br />
+expr2 must be evaluated before h is called</p>
+<p>That means expr1 and expr2 can still be executed in whatever order.<br />
+Case 1: expr1, expr2, g, h, f<br />
+Case 2: expr2, expr1, g, h, f<br />
+Either way still meets the guarantee that the expressions will have been fully evaluated before the functions are called. (This is opposed to, say, assuming arguments will be evaluated left-to-right.)</p>
+<p>In case 1 for example, you could have: new T2, new T1 (throws)(cleans up this T1 instance), T2 was not cleaned. Plus what Herb mentioned about the new actually breaking into allocate and constructor pieces.</p>
+<p>Thanks for the great insight, Herb!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: robdesbois				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4719</link>
+		<dc:creator><![CDATA[robdesbois]]></dc:creator>
+		<pubDate>Mon, 23 Jan 2012 14:27:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4719</guid>
+					<description><![CDATA[@Alf - I can&#039;t see your original solution you refer to; could you repost or clarify here please? I cannot see why f() would be unsafe if it is accepting 2 unique_ptr arguments...unless you mean that the most natural way to call it is without using make_unique?
+
+Thanks Herb :-)]]></description>
+		<content:encoded><![CDATA[<p>@Alf &#8211; I can&#8217;t see your original solution you refer to; could you repost or clarify here please? I cannot see why f() would be unsafe if it is accepting 2 unique_ptr arguments&#8230;unless you mean that the most natural way to call it is without using make_unique?</p>
+<p>Thanks Herb :-)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: CM				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4713</link>
+		<dc:creator><![CDATA[CM]]></dc:creator>
+		<pubDate>Mon, 23 Jan 2012 02:51:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4713</guid>
+					<description><![CDATA[Blog software ate all angle brackets. Here is pastebin version: http://pastebin.com/ufRE5Snj .]]></description>
+		<content:encoded><![CDATA[<p>Blog software ate all angle brackets. Here is pastebin version: <a href="http://pastebin.com/ufRE5Snj" rel="nofollow">http://pastebin.com/ufRE5Snj</a> .</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: CM				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4712</link>
+		<dc:creator><![CDATA[CM]]></dc:creator>
+		<pubDate>Mon, 23 Jan 2012 02:48:47 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4712</guid>
+					<description><![CDATA[Just checked both GCC and MSVC2010 -- in both cases adding make_unique causes magic of RVO to disappear. I suspect this has something to do with the fact that to allocate an object we use &#039;statement new&#039; (as opposed to &#039;operator new&#039;) and certain rules about sequence points do not apply to it (thus allowing RVO to work).
+I.e. perfect forwarding actually is not perfect :-) -- in order for it to become perfect we need a way to declare that make_unique is not a function, but a statement.
+I hope that make_shared/make_unique in future C++ will get special status similar to statement new.
+
+Here is test code, if anyone wants to trcheck:
+
+#include 
+#include 
+#include 
+#include 
+
+using namespace std;
+
+struct A
+{
+    int m;
+    A(int i) : m(i) { printf(&quot;ctor(%d)\n&quot;, i); }
+    A(A const&#038; o) : m(o.m) { printf(&quot;cctor(%d)\n&quot;, o.m); }
+    A const&#038; operator=(A const&#038; o){ m = o.m; printf(&quot;op=(%d)\n&quot;, o.m); }
+    ~A() { printf(&quot;dtor\n&quot;); }
+};
+
+A foo() { return A( rand() ); }
+auto_ptr&lt;A&gt; make_unique(A&#038;&#038; a) { return auto_ptr&lt;A&gt;(new A(forward&lt;A&gt;(a))); }
+//unique_ptr&lt;A&gt; make_unique(A&#038;&#038; a) { return unique_ptr&lt;A&gt;(new A(forward&lt;A&gt;(a))); }
+
+int main()
+{
+	srand(time(NULL));
+    auto_ptr&lt;A&gt; p( new A(foo()) );
+//    auto_ptr&lt;A&gt; p( make_unique(foo()) );
+//    unique_ptr&lt;A&gt; p( make_unique(foo()) );
+    return 1;
+}]]></description>
+		<content:encoded><![CDATA[<p>Just checked both GCC and MSVC2010 &#8212; in both cases adding make_unique causes magic of RVO to disappear. I suspect this has something to do with the fact that to allocate an object we use &#8216;statement new&#8217; (as opposed to &#8216;operator new&#8217;) and certain rules about sequence points do not apply to it (thus allowing RVO to work).<br />
+I.e. perfect forwarding actually is not perfect :-) &#8212; in order for it to become perfect we need a way to declare that make_unique is not a function, but a statement.<br />
+I hope that make_shared/make_unique in future C++ will get special status similar to statement new.</p>
+<p>Here is test code, if anyone wants to trcheck:</p>
+<p>#include<br />
+#include<br />
+#include<br />
+#include </p>
+<p>using namespace std;</p>
+<p>struct A<br />
+{<br />
+    int m;<br />
+    A(int i) : m(i) { printf(&#8220;ctor(%d)\n&#8221;, i); }<br />
+    A(A const&amp; o) : m(o.m) { printf(&#8220;cctor(%d)\n&#8221;, o.m); }<br />
+    A const&amp; operator=(A const&amp; o){ m = o.m; printf(&#8220;op=(%d)\n&#8221;, o.m); }<br />
+    ~A() { printf(&#8220;dtor\n&#8221;); }<br />
+};</p>
+<p>A foo() { return A( rand() ); }<br />
+auto_ptr<a> make_unique(A&amp;&amp; a) { return auto_ptr</a><a>(new A(forward</a><a>(a))); }<br />
+//unique_ptr</a><a> make_unique(A&amp;&amp; a) { return unique_ptr</a><a>(new A(forward</a><a>(a))); }</p>
+<p>int main()<br />
+{<br />
+	srand(time(NULL));<br />
+    auto_ptr</a><a> p( new A(foo()) );<br />
+//    auto_ptr</a><a> p( make_unique(foo()) );<br />
+//    unique_ptr</a><a> p( make_unique(foo()) );<br />
+    return 1;<br />
+}</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4709</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Sun, 22 Jan 2012 23:52:56 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4709</guid>
+					<description><![CDATA[As I discussed in my proposed solution, while the &lt;em&gt;call&lt;/em&gt; to &lt;code&gt;f&lt;/code&gt; is now safe enough, &lt;code&gt;f&lt;/code&gt; is still as unsafe as ever.
+
+It is still not just possible, but &lt;em&gt;most natural&lt;/em&gt;, to call &lt;code&gt;f&lt;/code&gt; in an unsafe way.
+
+And one solution is to replace the &lt;code&gt;make_unique&lt;/code&gt; function with a &lt;code&gt;Unique&lt;/code&gt; class whose constructor does the same as &lt;code&gt;make_unique&lt;/code&gt; (namely forwarding arguments and doing the &lt;code&gt;new&lt;/code&gt;&#039;ing), and use this class for the formal arguments of &lt;code&gt;f&lt;/code&gt;.
+
+Cheers &#038; hth., &#038; thanks for keeping up the GOTW series!, :-)
+
+- Alf]]></description>
+		<content:encoded><![CDATA[<p>As I discussed in my proposed solution, while the <em>call</em> to <code>f</code> is now safe enough, <code>f</code> is still as unsafe as ever.</p>
+<p>It is still not just possible, but <em>most natural</em>, to call <code>f</code> in an unsafe way.</p>
+<p>And one solution is to replace the <code>make_unique</code> function with a <code>Unique</code> class whose constructor does the same as <code>make_unique</code> (namely forwarding arguments and doing the <code>new</code>&#8216;ing), and use this class for the formal arguments of <code>f</code>.</p>
+<p>Cheers &amp; hth., &amp; thanks for keeping up the GOTW series!, :-)</p>
+<p>&#8211; Alf</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4708</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Sun, 22 Jan 2012 23:51:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4708</guid>
+					<description><![CDATA[As I discussed in my proposed solution, while the &lt;em&gt;call&lt;/em&gt; to &lt;code&gt;f&lt;/code&gt; is now safe enough, &lt;code&gt;f&lt;/code&gt; is still as unsafe as ever.
+
+It is still not just possible, but &lt;em&gt;most natural&lt;em&gt;, to call &lt;code&gt;f&lt;/code&gt; in an unsafe way.
+
+And one solution is to replace the &lt;code&gt;make_unique&lt;/code&gt; function with a &lt;code&gt;Unique&lt;/code&gt; class whose constructor does the same as &lt;code&gt;make_unique&lt;/code&gt; (namely forwarding arguments and doing the &lt;code&gt;new&lt;/code&gt;&#039;ing), and use this class for the formal arguments of &lt;code&gt;f&lt;/code&gt;.
+
+Cheers &#038; hth., &#038; thanks for keeping up the GOTW series!, :-)
+
+- Alf]]></description>
+		<content:encoded><![CDATA[<p>As I discussed in my proposed solution, while the <em>call</em> to <code>f</code> is now safe enough, <code>f</code> is still as unsafe as ever.</p>
+<p>It is still not just possible, but <em>most natural</em><em>, to call <code>f</code> in an unsafe way.</p>
+<p>And one solution is to replace the <code>make_unique</code> function with a <code>Unique</code> class whose constructor does the same as <code>make_unique</code> (namely forwarding arguments and doing the <code>new</code>&#8216;ing), and use this class for the formal arguments of <code>f</code>.</p>
+<p>Cheers &amp; hth., &amp; thanks for keeping up the GOTW series!, :-)</p>
+<p>&#8211; Alf</em></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: CM				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4706</link>
+		<dc:creator><![CDATA[CM]]></dc:creator>
+		<pubDate>Sun, 22 Jan 2012 20:39:54 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4706</guid>
+					<description><![CDATA[Correction: you should end up with unnecessary move constructor call (assuming your class has it). It is better, but still an unnecessary overhead.]]></description>
+		<content:encoded><![CDATA[<p>Correction: you should end up with unnecessary move constructor call (assuming your class has it). It is better, but still an unnecessary overhead.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: CM				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4705</link>
+		<dc:creator><![CDATA[CM]]></dc:creator>
+		<pubDate>Sun, 22 Jan 2012 20:06:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4705</guid>
+					<description><![CDATA[I might be wrong, but there is an unfortunate side effect of &#039;make_unique&#039; trick:
+- normally this construct utilizes RVO and avoids calling copy constructor:
+    MyType foo() { return MyType(...); }
+    MyType* p = new MyType( foo() );
+
+logic suggest that it should not work (foo() call should complete before we allocate any memory and therefore we are doomed to have a copy), but it seems that major compilers (GCC/MSVC) recognize this situation and (unless you overload operator new) go extra mile and allow RVO to work here (or may be there is an obscure clause in C++ standard that allows that).
+
+- unfortunately &#039;make_unique&#039; facility will break it and this will leave you with unnecessary copy constructor call:
+
+    auto p = make_unique(foo());
+
+Disclaimer: I reserve my right to be wrong. :-)]]></description>
+		<content:encoded><![CDATA[<p>I might be wrong, but there is an unfortunate side effect of &#8216;make_unique&#8217; trick:<br />
+&#8211; normally this construct utilizes RVO and avoids calling copy constructor:<br />
+    MyType foo() { return MyType(&#8230;); }<br />
+    MyType* p = new MyType( foo() );</p>
+<p>logic suggest that it should not work (foo() call should complete before we allocate any memory and therefore we are doomed to have a copy), but it seems that major compilers (GCC/MSVC) recognize this situation and (unless you overload operator new) go extra mile and allow RVO to work here (or may be there is an obscure clause in C++ standard that allows that).</p>
+<p>&#8211; unfortunately &#8216;make_unique&#8217; facility will break it and this will leave you with unnecessary copy constructor call:</p>
+<p>    auto p = make_unique(foo());</p>
+<p>Disclaimer: I reserve my right to be wrong. :-)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michael				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4703</link>
+		<dc:creator><![CDATA[Michael]]></dc:creator>
+		<pubDate>Sun, 22 Jan 2012 10:51:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4703</guid>
+					<description><![CDATA[Why is there any difference between 1(a) and 1(b)? Is wrapping an expression into a function call makes it a non-expression? I.e. is g( expr1 ) not an expression in its own right?]]></description>
+		<content:encoded><![CDATA[<p>Why is there any difference between 1(a) and 1(b)? Is wrapping an expression into a function call makes it a non-expression? I.e. is g( expr1 ) not an expression in its own right?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Victor				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4700</link>
+		<dc:creator><![CDATA[Victor]]></dc:creator>
+		<pubDate>Sat, 21 Jan 2012 15:05:55 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4700</guid>
+					<description><![CDATA[Wow. Thanks a lot!]]></description>
+		<content:encoded><![CDATA[<p>Wow. Thanks a lot!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Nick Form				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4696</link>
+		<dc:creator><![CDATA[Nick Form]]></dc:creator>
+		<pubDate>Sat, 21 Jan 2012 06:26:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4696</guid>
+					<description><![CDATA[Thanks, learned a lot.]]></description>
+		<content:encoded><![CDATA[<p>Thanks, learned a lot.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: GotW #102: Solution &#171; Sutter’s Mill				</title>
+				<link>https://herbsutter.com/gotw/_102/#comment-4690</link>
+		<dc:creator><![CDATA[GotW #102: Solution &#171; Sutter’s Mill]]></dc:creator>
+		<pubDate>Fri, 20 Jan 2012 20:42:39 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?page_id=1327#comment-4690</guid>
+					<description><![CDATA[[...] The solution to GotW #102 is now live. Share this:EmailRedditTwitter [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] The solution to GotW #102 is now live. Share this:EmailRedditTwitter [&#8230;]</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

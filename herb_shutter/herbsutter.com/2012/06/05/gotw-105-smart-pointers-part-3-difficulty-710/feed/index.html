@@ -1,0 +1,1087 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #105: Smart Pointers, Part 3 (Difficulty: 7/10)	</title>
+	<atom:link href="https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: alleey				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5718</link>
+		<dc:creator><![CDATA[alleey]]></dc:creator>
+		<pubDate>Mon, 25 Jun 2012 11:47:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5718</guid>
+					<description><![CDATA[Q1: void f( shared_ptr );
+
+Heavy duty stuff going on here. 
+
+Copy from widget*:
+- A new internal instance of SharedRef is allocated on heap. It is therefore better to use make_shared to pass in a shared_ptr instead because that avoids the separate allocation of SharedRef.
+
+Copy from shared_ptr:
+- Atomic increment of shared reference count. Probably the least costly operation.
+
+Copy from weak_ptr:
+- Atomic check for null and increment (CmpExchnge) of reference count in a loop. Much heavier.
+
+
+Q2: 
+
+void f( widget&#038; );
+
+- Non-polymorphic behavior is desired on widget inside f.
+- widgets lifetime is not affected inside f (like storing etc)
+- Works in all cases, a reference, raw pointer or smart pointers - all can be passed to it. like
+  f( _widget );
+  f( *pwidget );
+  f( *uptr.get() );
+- Efficient because it does not have to deal with nullptr - good choice for private non-member interface of widget.
+
+void f( unique_ptr );
+
+- Restricts the use of shared_ptr/weak_ptr. Dangerous to pass a shared widget reference to it.
+- Must not be used except when it is desired to ** assert ** exclusive ownership of widget.
+
+void f( unique_ptr&#038; );
+
+- Appropriate when you have unique_ptr members/globals. It is therefore an efficient choice as private interface.
+- If you add const then it can also take in a raw pointer, which adds flexibility at the cost of safety.
+
+void f( shared_ptr );
+
+- Better than unique_ptr variants because it allows for greater flexibility, but more expensive in terms of cpu.
+- Makes the widget shared forever. The general problem with shared_ptr is that they make objects shared forever and there is no simple and safe way to make then unique again.
+
+void f( shared_ptr&#038; );
+
+- Appropriate when you have shared/weak_ptr members/globals. 
+- Makes the widget shared forever. 
+- If you add const then it can also take in a raw pointer, which adds flexibility at the cost of safety.]]></description>
+		<content:encoded><![CDATA[<p>Q1: void f( shared_ptr );</p>
+<p>Heavy duty stuff going on here. </p>
+<p>Copy from widget*:<br />
+&#8211; A new internal instance of SharedRef is allocated on heap. It is therefore better to use make_shared to pass in a shared_ptr instead because that avoids the separate allocation of SharedRef.</p>
+<p>Copy from shared_ptr:<br />
+&#8211; Atomic increment of shared reference count. Probably the least costly operation.</p>
+<p>Copy from weak_ptr:<br />
+&#8211; Atomic check for null and increment (CmpExchnge) of reference count in a loop. Much heavier.</p>
+<p>Q2: </p>
+<p>void f( widget&amp; );</p>
+<p>&#8211; Non-polymorphic behavior is desired on widget inside f.<br />
+&#8211; widgets lifetime is not affected inside f (like storing etc)<br />
+&#8211; Works in all cases, a reference, raw pointer or smart pointers &#8211; all can be passed to it. like<br />
+  f( _widget );<br />
+  f( *pwidget );<br />
+  f( *uptr.get() );<br />
+&#8211; Efficient because it does not have to deal with nullptr &#8211; good choice for private non-member interface of widget.</p>
+<p>void f( unique_ptr );</p>
+<p>&#8211; Restricts the use of shared_ptr/weak_ptr. Dangerous to pass a shared widget reference to it.<br />
+&#8211; Must not be used except when it is desired to ** assert ** exclusive ownership of widget.</p>
+<p>void f( unique_ptr&amp; );</p>
+<p>&#8211; Appropriate when you have unique_ptr members/globals. It is therefore an efficient choice as private interface.<br />
+&#8211; If you add const then it can also take in a raw pointer, which adds flexibility at the cost of safety.</p>
+<p>void f( shared_ptr );</p>
+<p>&#8211; Better than unique_ptr variants because it allows for greater flexibility, but more expensive in terms of cpu.<br />
+&#8211; Makes the widget shared forever. The general problem with shared_ptr is that they make objects shared forever and there is no simple and safe way to make then unique again.</p>
+<p>void f( shared_ptr&amp; );</p>
+<p>&#8211; Appropriate when you have shared/weak_ptr members/globals.<br />
+&#8211; Makes the widget shared forever.<br />
+&#8211; If you add const then it can also take in a raw pointer, which adds flexibility at the cost of safety.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mrts1				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5715</link>
+		<dc:creator><![CDATA[mrts1]]></dc:creator>
+		<pubDate>Sun, 24 Jun 2012 17:36:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5715</guid>
+					<description><![CDATA[Another relevant discussion on Stack Overflow: http://stackoverflow.com/questions/327573/c-passing-references-to-boostshared-ptr]]></description>
+		<content:encoded><![CDATA[<p>Another relevant discussion on Stack Overflow: <a href="http://stackoverflow.com/questions/327573/c-passing-references-to-boostshared-ptr" rel="nofollow">http://stackoverflow.com/questions/327573/c-passing-references-to-boostshared-ptr</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Reader Q&#38;A: Why don&#8217;t modern smart pointers implicitly convert to *? &#171; Sutter’s Mill				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5699</link>
+		<dc:creator><![CDATA[Reader Q&#38;A: Why don&#8217;t modern smart pointers implicitly convert to *? &#171; Sutter’s Mill]]></dc:creator>
+		<pubDate>Thu, 21 Jun 2012 21:00:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5699</guid>
+					<description><![CDATA[[...] you do write .get() – but only once at the top of each call tree. More on this in the current GotW #105 – solution coming soon, watch this [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] you do write .get() – but only once at the top of each call tree. More on this in the current GotW #105 – solution coming soon, watch this [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Eric Duhon (@duhonedd)				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5686</link>
+		<dc:creator><![CDATA[Eric Duhon (@duhonedd)]]></dc:creator>
+		<pubDate>Thu, 14 Jun 2012 20:34:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5686</guid>
+					<description><![CDATA[JG:
+Correctness seems fine. The function is saying that it is taking (and could retain) shared ownership of the object, and that it may modify said object. As long as this is the intent it seems fine to me.
+
+Performance is probably fairly cheap. Assuming the caller is passing in a shared_ptr as well, the pain of allocating the bookkeeping struct shared_prt uses should have already been done (maybe with make_shared even), and the new one will just point to that. I suppose its possible for the caller to pass a raw pointer, and then you would take the pain since the parameter would be the first shared_ptr in that case. Probably bad style to do that though (is is possible to prevent at compile time?) 
+
+Guru:
+
+void f( widget&#038; ); -&#062; void f( const widget&#038; );
+Use if not taking any ownership. i.e. your not going to be passing it off to a task or something. Your just going to use it and be done with it by the time the function returns.
+
+void f( unique_ptr ); -&#062; void f( unique_ptr );
+The function is taking ownership and will not return it back to the caller. Kind of strange to take full ownership to an object you can&#039;t modify (or was when I first looked at it). One example use I can think of, maybe the widget is being released, but you wanted to async save it out to disk or something. f could take the widget pass it to a task to save it, and it get freed after that automatically. i.e. the caller is done with it, but you want to fire and forget one last thing to do with it before it goes away.
+
+void f( unique_ptr&#038; ); -&#062;void f( const unique_ptr&#038; );
+seems like the same use case as void f( const widget&#038; ); I would prefer the simple reference. function is not taking any ownership, will not retain any ownership, and will not use the object after it returns in any way.
+
+void f( shared_ptr ); -&#062; void f( shared_ptr );
+f is taking shared ownership, and may retain it, but is promising to not modify the object. the save example works here too, but in this case the caller is keeping shared ownership as well. Maybe the parent window is still up, and its just wanting to save the state. in case the window closes later, but before the save task finishes, no problem f has partial ownership.
+
+void f( shared_ptr&#038; ); -&#062; void f( const shared_ptr&#038; );
+seems the same as void f( const unique_ptr&#038; ); and void f( const widget&#038; ); I still prefer the regular reference. no need for f to know how lifetime is being managed on the object.]]></description>
+		<content:encoded><![CDATA[<p>JG:<br />
+Correctness seems fine. The function is saying that it is taking (and could retain) shared ownership of the object, and that it may modify said object. As long as this is the intent it seems fine to me.</p>
+<p>Performance is probably fairly cheap. Assuming the caller is passing in a shared_ptr as well, the pain of allocating the bookkeeping struct shared_prt uses should have already been done (maybe with make_shared even), and the new one will just point to that. I suppose its possible for the caller to pass a raw pointer, and then you would take the pain since the parameter would be the first shared_ptr in that case. Probably bad style to do that though (is is possible to prevent at compile time?) </p>
+<p>Guru:</p>
+<p>void f( widget&amp; ); -&gt; void f( const widget&amp; );<br />
+Use if not taking any ownership. i.e. your not going to be passing it off to a task or something. Your just going to use it and be done with it by the time the function returns.</p>
+<p>void f( unique_ptr ); -&gt; void f( unique_ptr );<br />
+The function is taking ownership and will not return it back to the caller. Kind of strange to take full ownership to an object you can&#8217;t modify (or was when I first looked at it). One example use I can think of, maybe the widget is being released, but you wanted to async save it out to disk or something. f could take the widget pass it to a task to save it, and it get freed after that automatically. i.e. the caller is done with it, but you want to fire and forget one last thing to do with it before it goes away.</p>
+<p>void f( unique_ptr&amp; ); -&gt;void f( const unique_ptr&amp; );<br />
+seems like the same use case as void f( const widget&amp; ); I would prefer the simple reference. function is not taking any ownership, will not retain any ownership, and will not use the object after it returns in any way.</p>
+<p>void f( shared_ptr ); -&gt; void f( shared_ptr );<br />
+f is taking shared ownership, and may retain it, but is promising to not modify the object. the save example works here too, but in this case the caller is keeping shared ownership as well. Maybe the parent window is still up, and its just wanting to save the state. in case the window closes later, but before the save task finishes, no problem f has partial ownership.</p>
+<p>void f( shared_ptr&amp; ); -&gt; void f( const shared_ptr&amp; );<br />
+seems the same as void f( const unique_ptr&amp; ); and void f( const widget&amp; ); I still prefer the regular reference. no need for f to know how lifetime is being managed on the object.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Roee Shlomo				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5672</link>
+		<dc:creator><![CDATA[Roee Shlomo]]></dc:creator>
+		<pubDate>Wed, 13 Jun 2012 00:26:55 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5672</guid>
+					<description><![CDATA[JG Question:
+
+void f( shared_ptr );
+There are performance issues due to ref counting but there are no correctness issues.
+Unlike what others have said, thread safety is not an issue here. At least not more than it is using any other parameter type. If you share a resource using multiple threads you must synchronize it regardless of whether you use shared_ptr, shared_ptr&#038; or raw pointers/references.
+Performance wise using shared_ptr&#038; is always better than passing it by values and it should be preferred over it by default.
+
+Guru Question:
+
+I will only address declarations I find useful. 
+
+void f( const widget&#038; );
+- Nothing new about that but it is still the preferred way for most use cases. 
+- For an input parameter omitting const should of course be done if widget needs to be changed (e.g. item 23 @Effective C++).
+
+void f( const shared_ptr&#038; );
+- Pass by reference for performance. 
+- Mark shared_ptr as const to disallow reset which may break caller code.
+- Don&#039;t mark widget as const because a shared_ptr of widget and shared_ptr of const widget are not the same and even though it may actually be the same widget it has a different ref count.
+- This is preferred over raw references when widgets are already managed by shared_ptr and f may optionally want to share ownership of the widget (e.g. widgets are part of a cache).
+
+void f( unique_ptr );
+- Do not mark unique_ptr as const as it will force the widget to be destroyed when f returns (right?). If this is the desired behavior it seems cleaner to do it inside f&#039;s implementation as the caller doesn&#039;t need to know about that.
+- I rarely see a reason to manage a const object using unique_ptr so I&#039;m not marking widget as const.
+- Typical usage would be passing ownership to another object. In example when f takes a factory generated object. For methods a good example is Strategy pattern&#039;s set strategy method.]]></description>
+		<content:encoded><![CDATA[<p>JG Question:</p>
+<p>void f( shared_ptr );<br />
+There are performance issues due to ref counting but there are no correctness issues.<br />
+Unlike what others have said, thread safety is not an issue here. At least not more than it is using any other parameter type. If you share a resource using multiple threads you must synchronize it regardless of whether you use shared_ptr, shared_ptr&amp; or raw pointers/references.<br />
+Performance wise using shared_ptr&amp; is always better than passing it by values and it should be preferred over it by default.</p>
+<p>Guru Question:</p>
+<p>I will only address declarations I find useful. </p>
+<p>void f( const widget&amp; );<br />
+&#8211; Nothing new about that but it is still the preferred way for most use cases.<br />
+&#8211; For an input parameter omitting const should of course be done if widget needs to be changed (e.g. item 23 @Effective C++).</p>
+<p>void f( const shared_ptr&amp; );<br />
+&#8211; Pass by reference for performance.<br />
+&#8211; Mark shared_ptr as const to disallow reset which may break caller code.<br />
+&#8211; Don&#8217;t mark widget as const because a shared_ptr of widget and shared_ptr of const widget are not the same and even though it may actually be the same widget it has a different ref count.<br />
+&#8211; This is preferred over raw references when widgets are already managed by shared_ptr and f may optionally want to share ownership of the widget (e.g. widgets are part of a cache).</p>
+<p>void f( unique_ptr );<br />
+&#8211; Do not mark unique_ptr as const as it will force the widget to be destroyed when f returns (right?). If this is the desired behavior it seems cleaner to do it inside f&#8217;s implementation as the caller doesn&#8217;t need to know about that.<br />
+&#8211; I rarely see a reason to manage a const object using unique_ptr so I&#8217;m not marking widget as const.<br />
+&#8211; Typical usage would be passing ownership to another object. In example when f takes a factory generated object. For methods a good example is Strategy pattern&#8217;s set strategy method.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Toby Speight				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5661</link>
+		<dc:creator><![CDATA[Toby Speight]]></dc:creator>
+		<pubDate>Fri, 08 Jun 2012 16:00:07 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5661</guid>
+					<description><![CDATA[Is this a sneaky way to ask 14 Guru Questions in one?  :-)  I&#039;ll note my assumptions: I&#039;m taking your term &quot;function declaration&quot; quite strictly, not considering methods or templates.  Private methods in particular can have internal conventions that don&#039;t need to be expressed in the signatures.  I&#039;m also assuming that the calling code is not keeping any raw pointers or references to the widget or any of its members (i.e. it only uses managed pointers).  Also, I&#039;ll deal with the signatures in pairs, noting that passing any kind of pointer to a non-const widget is not really &quot;input-only&quot; except when f takes sole ownership of the widget.
+
+
+&lt;blockquote&gt;&lt;pre&gt;
+&lt;code&gt;void f(widget const&#038;);&lt;/code&gt;
+&lt;code&gt;void f(widget&#038;);&lt;/code&gt;
+&lt;/pre&gt;&lt;/blockquote&gt;
+
+&lt;code&gt;f&lt;/code&gt; wishes to read from its argument; it may or may not retain any references, but without further documentation we don&#039;t know.  The &lt;code&gt;widget&lt;/code&gt; will endure until at least the end of the function call.
+
+
+
+&lt;blockquote&gt;&lt;pre&gt;
+&lt;code&gt;void f(unique_ptr&#060;widget const&#062;);&lt;/code&gt;
+&lt;code&gt;void f(unique_ptr&#060;widget&#062;);&lt;/code&gt;
+&lt;/pre&gt;&lt;/blockquote&gt;
+
+&lt;code&gt;f&lt;/code&gt; recieves ownership of the &lt;code&gt;widget&lt;/code&gt;, and the calling function will likely pass in a temporary or use &lt;code&gt;std::move&lt;/code&gt; to indicate that it&#039;s relinquishing ownership.  Unlike the other pairs, these two are equivalent from the caller&#039;s point of view, as the caller will never see the &lt;code&gt;widget&lt;/code&gt; again, and so doesn&#039;t know whether it has been modified.
+
+&lt;blockquote&gt;&lt;pre&gt;
+&lt;code&gt;void f(unique_ptr&#060;widget const&#062; const&#038;);&lt;/code&gt;
+&lt;code&gt;void f(unique_ptr&#060;widget&#062; const&#038;);&lt;/code&gt;
+&lt;/pre&gt;&lt;/blockquote&gt;
+
+&lt;code&gt;f&lt;/code&gt; is &quot;borrowing&quot; the &lt;code&gt;widget&lt;/code&gt; without taking ownership.  Similar to void &lt;code&gt;f(widget&#038;)&lt;/code&gt;, but it is clearer that &lt;code&gt;f&lt;/code&gt; must not retain any references, and it may be more convenient for the caller, who has a &lt;code&gt;unique_ptr&lt;/code&gt; (it&#039;s certainly more reassuring to the caller).  Unless you know the caller will already have a &lt;code&gt;unique_ptr&lt;/code&gt; (perhaps because that&#039;s the only return type from a factory, for example), I&#039;d recommend this only as an overload for the plain reference versions &lt;code&gt;f(widget const&#038;)&lt;/code&gt; and &lt;code&gt;f(widget&#038;)&lt;/code&gt;.
+
+
+&lt;blockquote&gt;&lt;pre&gt;
+&lt;code&gt;void f(unique_ptr&#060;widget const&#062;&#038;);&lt;/code&gt;
+&lt;code&gt;void f(unique_ptr&#060;widget&#062;&#038;);&lt;/code&gt;
+&lt;/pre&gt;&lt;/blockquote&gt;
+
+&lt;code&gt;f&lt;/code&gt; has access to the &lt;code&gt;widget&lt;/code&gt;, and may or may not take ownership.  Possibly a performance hack when the &lt;code&gt;unique_ptr&lt;/code&gt; is to be handed to another function, but probably only useful if it&#039;s a run-time decision whether or not ownership is transferred (I&#039;m hoping that compilers are smart enough to optimise out copying when it can be determined at compile-time; correct me if they are not allowed to).  If &lt;code&gt;f&lt;/code&gt; does not pass ownership on, and does not assign to the &lt;code&gt;unique_ptr&lt;/code&gt;, it has access for the duration of the call.
+
+
+&lt;blockquote&gt;&lt;pre&gt;
+&lt;code&gt;void f(shared_ptr&#060;widget const&#062;);&lt;/code&gt;
+&lt;code&gt;void f(shared_ptr&#060;widget&#062;);&lt;/code&gt;
+&lt;/pre&gt;&lt;/blockquote&gt;
+
+&lt;code&gt;f&lt;/code&gt; has access to the widget, and receives shared ownership.  It may hold (copies of) the &lt;code&gt;shared_ptr&lt;/code&gt; as long as it likes - longer than the calling code, if it wishes - and pass it to other code at will.
+
+
+&lt;blockquote&gt;&lt;pre&gt;
+&lt;code&gt;void f(shared_ptr&#060;widget const&#062; const&#038;);&lt;/code&gt;
+&lt;code&gt;void f(shared_ptr&#060;widget&#062; const&#038;);&lt;/code&gt;
+&lt;/pre&gt;&lt;/blockquote&gt;
+
+&lt;code&gt;f&lt;/code&gt; may borrow the widget or take shared ownership (because &lt;code&gt;shared_ptr&lt;/code&gt;&#039;s internal reference count is not public state, its copy constructor will accept a reference to const).  The widget remains available to the calling code after &lt;code&gt;f&lt;/code&gt; returns.
+
+
+&lt;blockquote&gt;&lt;pre&gt;
+&lt;code&gt;void f(shared_ptr&#060;widget const&#062;&#038;);&lt;/code&gt;
+&lt;code&gt;void f(shared_ptr&#060;widget&#062;&#038;);&lt;/code&gt;
+&lt;/pre&gt;&lt;/blockquote&gt;
+
+&lt;code&gt;f&lt;/code&gt; may simply borrow the widget, take shared ownership, or deprive the caller of the widget (via this pointer).  It&#039;s hard to see a use case for this signature that&#039;s not served by the previous one (remembering that other shared pointers may exist).
+
+
+
+When I say above that f &quot;must not retain any references&quot;, I include pointers and references to the widget or any of its constituents - anything that may be removed when the widget is destroyed.]]></description>
+		<content:encoded><![CDATA[<p>Is this a sneaky way to ask 14 Guru Questions in one?  :-)  I&#8217;ll note my assumptions: I&#8217;m taking your term &#8220;function declaration&#8221; quite strictly, not considering methods or templates.  Private methods in particular can have internal conventions that don&#8217;t need to be expressed in the signatures.  I&#8217;m also assuming that the calling code is not keeping any raw pointers or references to the widget or any of its members (i.e. it only uses managed pointers).  Also, I&#8217;ll deal with the signatures in pairs, noting that passing any kind of pointer to a non-const widget is not really &#8220;input-only&#8221; except when f takes sole ownership of the widget.</p>
+<blockquote>
+<pre>
+<code>void f(widget const&amp;);</code>
+<code>void f(widget&amp;);</code>
+</pre>
+</blockquote>
+<p><code>f</code> wishes to read from its argument; it may or may not retain any references, but without further documentation we don&#8217;t know.  The <code>widget</code> will endure until at least the end of the function call.</p>
+<blockquote>
+<pre>
+<code>void f(unique_ptr&lt;widget const&gt;);</code>
+<code>void f(unique_ptr&lt;widget&gt;);</code>
+</pre>
+</blockquote>
+<p><code>f</code> recieves ownership of the <code>widget</code>, and the calling function will likely pass in a temporary or use <code>std::move</code> to indicate that it&#8217;s relinquishing ownership.  Unlike the other pairs, these two are equivalent from the caller&#8217;s point of view, as the caller will never see the <code>widget</code> again, and so doesn&#8217;t know whether it has been modified.</p>
+<blockquote>
+<pre>
+<code>void f(unique_ptr&lt;widget const&gt; const&amp;);</code>
+<code>void f(unique_ptr&lt;widget&gt; const&amp;);</code>
+</pre>
+</blockquote>
+<p><code>f</code> is &#8220;borrowing&#8221; the <code>widget</code> without taking ownership.  Similar to void <code>f(widget&amp;)</code>, but it is clearer that <code>f</code> must not retain any references, and it may be more convenient for the caller, who has a <code>unique_ptr</code> (it&#8217;s certainly more reassuring to the caller).  Unless you know the caller will already have a <code>unique_ptr</code> (perhaps because that&#8217;s the only return type from a factory, for example), I&#8217;d recommend this only as an overload for the plain reference versions <code>f(widget const&amp;)</code> and <code>f(widget&amp;)</code>.</p>
+<blockquote>
+<pre>
+<code>void f(unique_ptr&lt;widget const&gt;&amp;);</code>
+<code>void f(unique_ptr&lt;widget&gt;&amp;);</code>
+</pre>
+</blockquote>
+<p><code>f</code> has access to the <code>widget</code>, and may or may not take ownership.  Possibly a performance hack when the <code>unique_ptr</code> is to be handed to another function, but probably only useful if it&#8217;s a run-time decision whether or not ownership is transferred (I&#8217;m hoping that compilers are smart enough to optimise out copying when it can be determined at compile-time; correct me if they are not allowed to).  If <code>f</code> does not pass ownership on, and does not assign to the <code>unique_ptr</code>, it has access for the duration of the call.</p>
+<blockquote>
+<pre>
+<code>void f(shared_ptr&lt;widget const&gt;);</code>
+<code>void f(shared_ptr&lt;widget&gt;);</code>
+</pre>
+</blockquote>
+<p><code>f</code> has access to the widget, and receives shared ownership.  It may hold (copies of) the <code>shared_ptr</code> as long as it likes &#8211; longer than the calling code, if it wishes &#8211; and pass it to other code at will.</p>
+<blockquote>
+<pre>
+<code>void f(shared_ptr&lt;widget const&gt; const&amp;);</code>
+<code>void f(shared_ptr&lt;widget&gt; const&amp;);</code>
+</pre>
+</blockquote>
+<p><code>f</code> may borrow the widget or take shared ownership (because <code>shared_ptr</code>&#8216;s internal reference count is not public state, its copy constructor will accept a reference to const).  The widget remains available to the calling code after <code>f</code> returns.</p>
+<blockquote>
+<pre>
+<code>void f(shared_ptr&lt;widget const&gt;&amp;);</code>
+<code>void f(shared_ptr&lt;widget&gt;&amp;);</code>
+</pre>
+</blockquote>
+<p><code>f</code> may simply borrow the widget, take shared ownership, or deprive the caller of the widget (via this pointer).  It&#8217;s hard to see a use case for this signature that&#8217;s not served by the previous one (remembering that other shared pointers may exist).</p>
+<p>When I say above that f &#8220;must not retain any references&#8221;, I include pointers and references to the widget or any of its constituents &#8211; anything that may be removed when the widget is destroyed.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: rbmj				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5660</link>
+		<dc:creator><![CDATA[rbmj]]></dc:creator>
+		<pubDate>Fri, 08 Jun 2012 01:46:52 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5660</guid>
+					<description><![CDATA[The JG question seems to be pretty well addressed, but I think people saying that certain signatures are bad is wrong.   I&#039;m by no means a guru, but maybe I can promote 
+
+void f( widget&#038; );
+
+Simple- take a reference to the object.  If it&#039;s const, it means that we are just optimizing away a copy that is unneeded because we do not touch it.  If it&#039;s non-const, it means that we are performing some sort of operation on the widget and need these changes propagated back to the caller.
+
+void f( unique_ptr );
+
+Used if we want to take ownership of the object.  For example, if f creates a new thread and it needs to be passed a widget which it takes ownership sole ownership of, one could use this signature along with std::move.  Or if f isn&#039;t just a void function but constructs a wrapper object for widget, then it could be used to say that it needs an object constructed for it.
+
+void f( unique_ptr&#038; );
+
+This one is interesting.  It is functionally equivalent to just passing a regular old pointer.  However, if one uses const in this case it is actually *safer* than void f(widget&#038;), because if one passes a unique_ptr by const reference they are allowed to access the object, but may not store that object anywhere.  With the first prototype, f could store the address of the widget somewhere, and if the widget is stack allocated or somebody deletes it, game over.  However, a const reference guarantees that the unique_ptr will ONLY be accessed during the actual execution of f (barring const casts).
+
+void f( shared_ptr );
+
+This is useful if we need to have shared ownership of the object.  Const doesn&#039;t really make sense if we part &#039;own&#039; the object though.  I don&#039;t think it needs much explanation.
+
+void f( shared_ptr&#038; );
+
+Taking the shared_ptr by reference allows us to avoid the somewhat costly reference count increment.  This is useful if we want to pass it somewhere else, and we&#039;re just a mediator that doesn&#039;t need to have ownership.  Const could also make sense if we know that the caller will have a shared_ptr object and don&#039;t want to require them to do anything with the object to pass it in, but is otherwise equivalent to the bare reference AFAIK.  It is dangerous, though, in that we can create copies of the reference and undermine the whole point of the shared ptr.  But as long as it&#039;s internal to the application and not part of a callback signature, as long as you&#039;re careful, you should worry more about Murphy and less about Machiavelli.
+
+In short, they all have their uses.]]></description>
+		<content:encoded><![CDATA[<p>The JG question seems to be pretty well addressed, but I think people saying that certain signatures are bad is wrong.   I&#8217;m by no means a guru, but maybe I can promote </p>
+<p>void f( widget&amp; );</p>
+<p>Simple- take a reference to the object.  If it&#8217;s const, it means that we are just optimizing away a copy that is unneeded because we do not touch it.  If it&#8217;s non-const, it means that we are performing some sort of operation on the widget and need these changes propagated back to the caller.</p>
+<p>void f( unique_ptr );</p>
+<p>Used if we want to take ownership of the object.  For example, if f creates a new thread and it needs to be passed a widget which it takes ownership sole ownership of, one could use this signature along with std::move.  Or if f isn&#8217;t just a void function but constructs a wrapper object for widget, then it could be used to say that it needs an object constructed for it.</p>
+<p>void f( unique_ptr&amp; );</p>
+<p>This one is interesting.  It is functionally equivalent to just passing a regular old pointer.  However, if one uses const in this case it is actually *safer* than void f(widget&amp;), because if one passes a unique_ptr by const reference they are allowed to access the object, but may not store that object anywhere.  With the first prototype, f could store the address of the widget somewhere, and if the widget is stack allocated or somebody deletes it, game over.  However, a const reference guarantees that the unique_ptr will ONLY be accessed during the actual execution of f (barring const casts).</p>
+<p>void f( shared_ptr );</p>
+<p>This is useful if we need to have shared ownership of the object.  Const doesn&#8217;t really make sense if we part &#8216;own&#8217; the object though.  I don&#8217;t think it needs much explanation.</p>
+<p>void f( shared_ptr&amp; );</p>
+<p>Taking the shared_ptr by reference allows us to avoid the somewhat costly reference count increment.  This is useful if we want to pass it somewhere else, and we&#8217;re just a mediator that doesn&#8217;t need to have ownership.  Const could also make sense if we know that the caller will have a shared_ptr object and don&#8217;t want to require them to do anything with the object to pass it in, but is otherwise equivalent to the bare reference AFAIK.  It is dangerous, though, in that we can create copies of the reference and undermine the whole point of the shared ptr.  But as long as it&#8217;s internal to the application and not part of a callback signature, as long as you&#8217;re careful, you should worry more about Murphy and less about Machiavelli.</p>
+<p>In short, they all have their uses.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adrian				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5652</link>
+		<dc:creator><![CDATA[Adrian]]></dc:creator>
+		<pubDate>Wed, 06 Jun 2012 17:29:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5652</guid>
+					<description><![CDATA[1.  Implications of:  `void f( shared_ptr&#060;widget&#038;rt; );`
+
+Performance:
+
+The reference count for the shared widget will be incremented upon calling f and decremented upon returning from f.  This probably cannot be optimized away because, in a multithreaded application, it may be necessary to ensure the widget is alive for the duration of the call.  The increment and decrement may be lock-free, but they are likely done with atomic operations that are more costly than a plain increment and decrement.  So there is a small performance cost that may not be absolutely necessary.  Nevertheless, it seems a very small tradeoff for the correctness guarantees, except, perhaps, in the most performance-critical sections of the code.
+
+Correctness:
+
+* The widget will be guaranteed to live throughout the duration of the call to f.
+
+* The widget may be modified (or even replaced) by f, which would be visible to all other owners.  If other owners may be running in other threads, you&#039;re going to need a locking mechanism.
+
+* If f is a method of object foo, then foo may retain a reference to the widget by storing another shared_ptr to it as a member.
+
+* The function f cannot be called with a raw pointer, which means it can work only with dynamically-allocated widgets.  You cannot call `f(&#038;w1)` where `w1` is a member, stack, or static variable.
+
+
+2.  Options for passing a required, input-only widget:
+
+`void f( widget&#038; );`
+
+This seems the most appropriate if we add `const` to make the input-onlyness explicit, as in `void f( const widget &#038; );`  (This is equivalent to `void f( widget const &#038; );`.)  This makes it possible to pass any widget, whether or not the widget is dynamically allocated.
+
+`void f( unique_ptr&#060;widget&#038;rt; );`
+
+Since unique_ptrs cannot be copied, this seems rather useless.
+
+`void f( unique_ptr&#060;widget&#038;rt;&#038; )`
+
+This seems less useful than passing the widget by reference.  Here you have double indirection (one level of which may be optimized away), and the function can only be passed widgets that are already managed by only a unique_ptr.  There is no useful way to add const to indicate the read-only aspect of the parameter.  If you try `unique_ptr&#060;const widget&#038;rt;&#038;`, then you won&#039;t be able to pass in a `unique_ptr&#060;widget&#038;rt;&#038;`.  And if you try `const unique_ptr&#060;widget&#038;rt;&#038;`, f would still be able to modify the widget.
+
+`void f( shared_ptr&#060;widget&#038;rt; )`
+
+This increments and drops the reference count, so there&#039;s a performance impact as in question 1.  It&#039;s useful only with dynamically-created objects.  There&#039;s no good place to put `const`.
+
+`void f( shared_ptr&#060;widget&#038;rt;&#038; )`
+
+This is bad because you&#039;ve effectively created another reference without actually changing the reference count.  In a multithreaded app, you&#039;ve lost the certainty that the widget will be alive for the duration of the call.]]></description>
+		<content:encoded><![CDATA[<p>1.  Implications of:  `void f( shared_ptr&lt;widget&amp;rt; );`</p>
+<p>Performance:</p>
+<p>The reference count for the shared widget will be incremented upon calling f and decremented upon returning from f.  This probably cannot be optimized away because, in a multithreaded application, it may be necessary to ensure the widget is alive for the duration of the call.  The increment and decrement may be lock-free, but they are likely done with atomic operations that are more costly than a plain increment and decrement.  So there is a small performance cost that may not be absolutely necessary.  Nevertheless, it seems a very small tradeoff for the correctness guarantees, except, perhaps, in the most performance-critical sections of the code.</p>
+<p>Correctness:</p>
+<p>* The widget will be guaranteed to live throughout the duration of the call to f.</p>
+<p>* The widget may be modified (or even replaced) by f, which would be visible to all other owners.  If other owners may be running in other threads, you&#8217;re going to need a locking mechanism.</p>
+<p>* If f is a method of object foo, then foo may retain a reference to the widget by storing another shared_ptr to it as a member.</p>
+<p>* The function f cannot be called with a raw pointer, which means it can work only with dynamically-allocated widgets.  You cannot call `f(&amp;w1)` where `w1` is a member, stack, or static variable.</p>
+<p>2.  Options for passing a required, input-only widget:</p>
+<p>`void f( widget&amp; );`</p>
+<p>This seems the most appropriate if we add `const` to make the input-onlyness explicit, as in `void f( const widget &amp; );`  (This is equivalent to `void f( widget const &amp; );`.)  This makes it possible to pass any widget, whether or not the widget is dynamically allocated.</p>
+<p>`void f( unique_ptr&lt;widget&amp;rt; );`</p>
+<p>Since unique_ptrs cannot be copied, this seems rather useless.</p>
+<p>`void f( unique_ptr&lt;widget&amp;rt;&amp; )`</p>
+<p>This seems less useful than passing the widget by reference.  Here you have double indirection (one level of which may be optimized away), and the function can only be passed widgets that are already managed by only a unique_ptr.  There is no useful way to add const to indicate the read-only aspect of the parameter.  If you try `unique_ptr&lt;const widget&amp;rt;&amp;`, then you won&#8217;t be able to pass in a `unique_ptr&lt;widget&amp;rt;&amp;`.  And if you try `const unique_ptr&lt;widget&amp;rt;&amp;`, f would still be able to modify the widget.</p>
+<p>`void f( shared_ptr&lt;widget&amp;rt; )`</p>
+<p>This increments and drops the reference count, so there&#8217;s a performance impact as in question 1.  It&#8217;s useful only with dynamically-created objects.  There&#8217;s no good place to put `const`.</p>
+<p>`void f( shared_ptr&lt;widget&amp;rt;&amp; )`</p>
+<p>This is bad because you&#8217;ve effectively created another reference without actually changing the reference count.  In a multithreaded app, you&#8217;ve lost the certainty that the widget will be alive for the duration of the call.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Arne Mertz				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5650</link>
+		<dc:creator><![CDATA[Arne Mertz]]></dc:creator>
+		<pubDate>Wed, 06 Jun 2012 16:11:09 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5650</guid>
+					<description><![CDATA[addition to unique_ptr: of course the pointer could be stored somewhere, thus not destroying the widget at all. Nevertheless unique_ptr means &quot;don&#039;t bother, its mine now&quot; and the callee need not guarantee that the widget remains unchanged -&#062; no const here.]]></description>
+		<content:encoded><![CDATA[<p>addition to unique_ptr: of course the pointer could be stored somewhere, thus not destroying the widget at all. Nevertheless unique_ptr means &#8220;don&#8217;t bother, its mine now&#8221; and the callee need not guarantee that the widget remains unchanged -&gt; no const here.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Arne Mertz				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5649</link>
+		<dc:creator><![CDATA[Arne Mertz]]></dc:creator>
+		<pubDate>Wed, 06 Jun 2012 16:07:08 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5649</guid>
+					<description><![CDATA[I had a long response typed in yesterday - an because of a missing password were not able/allowed to post it. So here&#039;s the short answer to Q2:
+
+- f( widget&#038; ) should be f( const widget&#038; ), because as the widget is an input-only parameter the callee should not change it. Ownership (and the choice of how to manage it) remains at the caller.
+- f( shared_ptr ) means the shared_ptr or a weak_ptr is to be stored somwhere as Alf pointed out.. As it is shared ownership the caller might keep a reference to the widget as well and won&#039;t expect changes  (input only again), so it should be shared_ptr
+- f( unique_ptr ) means taking over complete ownership, saying &quot;give me that widget, what I am doing with it is none of your business&quot;. Taking over ownership means you want to do more than just read out some values (e.g. dismantle it and use some of the widget&#039;s resources or whatever), so don&#039;t pass it as unique_ptr
+- passing smartpointers (with ownership semantics) by reference makes no sense. Either f needs the ownership (shared or unique), then pass the smart pointer by value, so it gets the ownership. Or f does not need ownership, then leave it to the caller how the ownership is to be managed and let him pass a plain reference instead.
+
+in short:
+f( widget const&#038; ): &quot;Just let me see&quot;
+f( shared_ptr ): &quot;I&#039;ll be watching you&quot;
+f( unique_ptr ): &quot;Give. I&#039;ll consume it.&quot;]]></description>
+		<content:encoded><![CDATA[<p>I had a long response typed in yesterday &#8211; an because of a missing password were not able/allowed to post it. So here&#8217;s the short answer to Q2:</p>
+<p>&#8211; f( widget&amp; ) should be f( const widget&amp; ), because as the widget is an input-only parameter the callee should not change it. Ownership (and the choice of how to manage it) remains at the caller.<br />
+&#8211; f( shared_ptr ) means the shared_ptr or a weak_ptr is to be stored somwhere as Alf pointed out.. As it is shared ownership the caller might keep a reference to the widget as well and won&#8217;t expect changes  (input only again), so it should be shared_ptr<br />
+&#8211; f( unique_ptr ) means taking over complete ownership, saying &#8220;give me that widget, what I am doing with it is none of your business&#8221;. Taking over ownership means you want to do more than just read out some values (e.g. dismantle it and use some of the widget&#8217;s resources or whatever), so don&#8217;t pass it as unique_ptr<br />
+&#8211; passing smartpointers (with ownership semantics) by reference makes no sense. Either f needs the ownership (shared or unique), then pass the smart pointer by value, so it gets the ownership. Or f does not need ownership, then leave it to the caller how the ownership is to be managed and let him pass a plain reference instead.</p>
+<p>in short:<br />
+f( widget const&amp; ): &#8220;Just let me see&#8221;<br />
+f( shared_ptr ): &#8220;I&#8217;ll be watching you&#8221;<br />
+f( unique_ptr ): &#8220;Give. I&#8217;ll consume it.&#8221;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Ben Voigt				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5647</link>
+		<dc:creator><![CDATA[Ben Voigt]]></dc:creator>
+		<pubDate>Wed, 06 Jun 2012 15:15:53 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5647</guid>
+					<description><![CDATA[Most people seem to have overlooked the proper time to use 2c... when the function may swap the object with a different one, therefore needing to use unique_ptr::operator=
+
+Of course, we are told in this circumstance that the parameter is input-only, which rules out that usage.]]></description>
+		<content:encoded><![CDATA[<p>Most people seem to have overlooked the proper time to use 2c&#8230; when the function may swap the object with a different one, therefore needing to use unique_ptr::operator=</p>
+<p>Of course, we are told in this circumstance that the parameter is input-only, which rules out that usage.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: dmoreno				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5645</link>
+		<dc:creator><![CDATA[dmoreno]]></dc:creator>
+		<pubDate>Wed, 06 Jun 2012 14:24:56 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5645</guid>
+					<description><![CDATA[For those who want to see every little detail, I would like to point out the GCC Explorer (http://gcc.godbolt.org/), that interactively shows the C++ compilation output.
+
+This example: http://bit.ly/NhmibE]]></description>
+		<content:encoded><![CDATA[<p>For those who want to see every little detail, I would like to point out the GCC Explorer (<a href="http://gcc.godbolt.org/" rel="nofollow">http://gcc.godbolt.org/</a>), that interactively shows the C++ compilation output.</p>
+<p>This example: <a href="http://bit.ly/NhmibE" rel="nofollow">http://bit.ly/NhmibE</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Fernando Moreira				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5642</link>
+		<dc:creator><![CDATA[Fernando Moreira]]></dc:creator>
+		<pubDate>Wed, 06 Jun 2012 09:02:12 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5642</guid>
+					<description><![CDATA[JG Question
+1. What are the performance and correctness implications of the following function declaration? Explain.
+
+-void f( shared_ptr );
+ 
+Performance impact on instantiating shared_ptr, it&#039;s copy dtor and, of course ref. counting (entering function and on stack unwinding, ref-count decrease on destructor. 
+
+
+Guru Question
+2. A colleague is writing a function f that takes an existing object of type widget as a required input-only parameter, and trying to decide among the following basic ways to take the parameter (omitting const):
+
+Under what circumstances is each appropriate? Explain your answer, including where const should or should not be added anywhere in the parameter type.
+
+-void f( widget&#038; );
+This is correct when function intends to full access to the widget widget (content may change). 
+
+-void f( unique_ptr );
+Didn&#039;t try this, but since unique_ptr is not copiable (copy ctor = delete), function call shall be done using std::move   (not sure how vc++ handles it). This is correct when the pointed ownership is intended to be handled to the function - i.e. FinalizeAndArchiveData(std::move(msg)); widget will be destroyed when leaving function.
+
+-void f( unique_ptr&#038; );
+It&#039;s correct when accessing a pointed object owned exclusively by other (but not taking ownership). 
+
+-void f( shared_ptr );
+I don&#039;t see any correct case of using this one in a transparent way. Refer to Q1 for details.
+
+-void f( shared_ptr&#038; );
+Correct when new ptr owners (references) that will persist after the function exists, are created inside the function.]]></description>
+		<content:encoded><![CDATA[<p>JG Question<br />
+1. What are the performance and correctness implications of the following function declaration? Explain.</p>
+<p>-void f( shared_ptr );</p>
+<p>Performance impact on instantiating shared_ptr, it&#8217;s copy dtor and, of course ref. counting (entering function and on stack unwinding, ref-count decrease on destructor. </p>
+<p>Guru Question<br />
+2. A colleague is writing a function f that takes an existing object of type widget as a required input-only parameter, and trying to decide among the following basic ways to take the parameter (omitting const):</p>
+<p>Under what circumstances is each appropriate? Explain your answer, including where const should or should not be added anywhere in the parameter type.</p>
+<p>-void f( widget&amp; );<br />
+This is correct when function intends to full access to the widget widget (content may change). </p>
+<p>-void f( unique_ptr );<br />
+Didn&#8217;t try this, but since unique_ptr is not copiable (copy ctor = delete), function call shall be done using std::move   (not sure how vc++ handles it). This is correct when the pointed ownership is intended to be handled to the function &#8211; i.e. FinalizeAndArchiveData(std::move(msg)); widget will be destroyed when leaving function.</p>
+<p>-void f( unique_ptr&amp; );<br />
+It&#8217;s correct when accessing a pointed object owned exclusively by other (but not taking ownership). </p>
+<p>-void f( shared_ptr );<br />
+I don&#8217;t see any correct case of using this one in a transparent way. Refer to Q1 for details.</p>
+<p>-void f( shared_ptr&amp; );<br />
+Correct when new ptr owners (references) that will persist after the function exists, are created inside the function.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bekenn				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5634</link>
+		<dc:creator><![CDATA[Bekenn]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 23:03:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5634</guid>
+					<description><![CDATA[1. The function signature implies that something will be taking shared ownership of the object owned by the shared_ptr.  Calling the function will increment the reference count of the shared_ptr &lt;i&gt;unless it is called with an r-value reference (i.e., temporary)&lt;/i&gt;, in which case no reference count increment occurs.  For this reason, shared_ptr parameters should always be declared as presented here, not as a reference to const.  In the case where the function is called with an r-value reference, no increment occurs; otherwise, exactly one increment occurs, just as if the parameter had been declared with a reference to const.  The difference lies in when that increment occurs: In this case, it happens when the parameter is constructed; the destination shared_ptr is then move-initialized from the parameter instead of copy-initialized.  With a ref-to-const parameter, the increment occurs when the destination shared_ptr is always copy-initialized, which may result in a useless increment/decrement pair.
+
+2. Given that the widget is an input-only parameter (which I take to mean unmodified and used only for the duration of this function), the only correct signature is
+&lt;pre&gt;void f(const widget&#038;);&lt;/pre&gt;]]></description>
+		<content:encoded><![CDATA[<p>1. The function signature implies that something will be taking shared ownership of the object owned by the shared_ptr.  Calling the function will increment the reference count of the shared_ptr <i>unless it is called with an r-value reference (i.e., temporary)</i>, in which case no reference count increment occurs.  For this reason, shared_ptr parameters should always be declared as presented here, not as a reference to const.  In the case where the function is called with an r-value reference, no increment occurs; otherwise, exactly one increment occurs, just as if the parameter had been declared with a reference to const.  The difference lies in when that increment occurs: In this case, it happens when the parameter is constructed; the destination shared_ptr is then move-initialized from the parameter instead of copy-initialized.  With a ref-to-const parameter, the increment occurs when the destination shared_ptr is always copy-initialized, which may result in a useless increment/decrement pair.</p>
+<p>2. Given that the widget is an input-only parameter (which I take to mean unmodified and used only for the duration of this function), the only correct signature is</p>
+<pre>void f(const widget&amp;);</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: maddog.q3a@gmx.de				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5633</link>
+		<dc:creator><![CDATA[maddog.q3a@gmx.de]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 21:59:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5633</guid>
+					<description><![CDATA[A little error:
+void f( shared_ptr );
+ I would only use this if the the lifetime w/o shared ref may be shorter than the time to execute f, to ensure that the ptr to that object is valid all the time (i problably changed the parameter to shared_ptr).
+
+Should be:
+void f( shared_ptr );
+ I would only use this if the the lifetime w/o shared ref may be shorter than the time to execute f, to ensure that the ptr to that object is valid all the time (i problably changed the parameter to const widged).]]></description>
+		<content:encoded><![CDATA[<p>A little error:<br />
+void f( shared_ptr );<br />
+ I would only use this if the the lifetime w/o shared ref may be shorter than the time to execute f, to ensure that the ptr to that object is valid all the time (i problably changed the parameter to shared_ptr).</p>
+<p>Should be:<br />
+void f( shared_ptr );<br />
+ I would only use this if the the lifetime w/o shared ref may be shorter than the time to execute f, to ensure that the ptr to that object is valid all the time (i problably changed the parameter to const widged).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: maddog.q3a@gmx.de				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5632</link>
+		<dc:creator><![CDATA[maddog.q3a@gmx.de]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 21:52:43 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5632</guid>
+					<description><![CDATA[1) void f( shared_ptr );
+- Creates a copy of shared_ptr if the function is called.
+  -&#062; Increment of the (strong-)refcounter in a thread safe way, witch trigger some sync mechanics, they will decrease performance, in comparison of a simple ptr copy.
+- This ensures that the function has (shared-)ownership of the object and ensures that the lifetime of that object is at least as long as the function is executed (asuming that the pointer is not null).
+- f may modify the state of the referenced object, because the wraped pointer is nonconst.
+
+2)
+void f( widget&#038; );
+I would change the parameter to const, and use it every time the object outlives the execution of f.
+
+void f( unique_ptr );
+Is this even posible? unique_ptr is noncopyable so it should refuse to compile.
+
+void f( unique_ptr&#038; );
+I would instead unwrap the object and pass it as reference (first f).
+
+void f( shared_ptr );
+I would only use this if the the lifetime w/o shared ref may be shorter than the time to execute f, to ensure that the ptr to that object is valid all the time (i problably changed the parameter to shared_ptr).
+
+void f( shared_ptr&#038; );
+I would instead unwrap the object and pass it as reference (first f).]]></description>
+		<content:encoded><![CDATA[<p>1) void f( shared_ptr );<br />
+&#8211; Creates a copy of shared_ptr if the function is called.<br />
+  -&gt; Increment of the (strong-)refcounter in a thread safe way, witch trigger some sync mechanics, they will decrease performance, in comparison of a simple ptr copy.<br />
+&#8211; This ensures that the function has (shared-)ownership of the object and ensures that the lifetime of that object is at least as long as the function is executed (asuming that the pointer is not null).<br />
+&#8211; f may modify the state of the referenced object, because the wraped pointer is nonconst.</p>
+<p>2)<br />
+void f( widget&amp; );<br />
+I would change the parameter to const, and use it every time the object outlives the execution of f.</p>
+<p>void f( unique_ptr );<br />
+Is this even posible? unique_ptr is noncopyable so it should refuse to compile.</p>
+<p>void f( unique_ptr&amp; );<br />
+I would instead unwrap the object and pass it as reference (first f).</p>
+<p>void f( shared_ptr );<br />
+I would only use this if the the lifetime w/o shared ref may be shorter than the time to execute f, to ensure that the ptr to that object is valid all the time (i problably changed the parameter to shared_ptr).</p>
+<p>void f( shared_ptr&amp; );<br />
+I would instead unwrap the object and pass it as reference (first f).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5631</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 21:27:54 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5631</guid>
+					<description><![CDATA[Hm, you ask, &#8220;what are the performance and correctness implications of the following function declaration&#8221;,
+
+[sourcecode language=&quot;cpp&quot;]
+void f( shared_ptr&#060;widget&#062; );
+[/sourcecode]
+
+Well, there is only one good reason for passing a &lt;code&gt;shared_ptr&lt;/code&gt; as in-argument, and that&#8217;s when &lt;em&gt;the function may store the pointer somewhere&lt;/em&gt;.
+
+So this is the main performance implication, that the referred to object may be kept alive via the stored pointer.
+
+At a more microscopic level, passing the &lt;code&gt;shared_ptr&lt;/code&gt; by value incurs some reference counting. It&#8217;s fast but still it&#8217;s needless overhead. Better pass that smart pointer by reference to &lt;code&gt;const&lt;/code&gt;.
+
+Regarding correctness, a possible problem is indicated by the &lt;strong&gt;unqualified&lt;/strong&gt; &lt;code&gt;shared_ptr&lt;/code&gt;. If this function declaration is in the global namespace in a header, then uh oh.
+
+Another problem is that &lt;code&gt;shared_ptr&lt;/code&gt; allows &lt;strong&gt;nullpointers&lt;/strong&gt;. So the function declaration is not by itself enough to decide in general whether a call is correct. It needs to be augmented with documentation or implementation code or proper typing that enforces requirements, e.g. like this:
+
+[sourcecode language=&quot;cpp&quot;]
+#if defined( _MSC_VER )
+#   pragma warning( disable: 4345 ) // Warning: T() will default-initialize!
+#endif
+
+#include &#060;assert.h&#062;     // assert
+#include &#060;memory&#062;       // std::shared_ptr, std::make_shared
+#include &#060;utility&#062;      // std::forward
+
+template&#060; class TpPointee &#062;
+class SharedObject
+    : public std::shared_ptr&#060; TpPointee &#062;
+{
+public:
+    typedef TpPointee                   Pointee;
+    typedef std::shared_ptr&#060; Pointee &#062;  Base;
+    
+    using Base::get;
+
+    SharedObject( Base const&#038; nonNullPtr )
+        : Base( nonNullPtr )
+    {
+        assert( get() != 0 );
+    }
+
+#if !defined( _MSC_VER )    
+    template&#060; class... Args &#062;
+    explicit SharedObject( Args&#038;&#038;... args )
+        : Base( std::forward&#060;Args&#062;( args )... )
+    {
+        assert( get() != 0 );
+    }
+#endif
+};
+
+class Widget {};
+
+void foo( SharedObject&#060;Widget&#062; const&#038; ) {}
+
+int main()
+{
+    SharedObject&#060;Widget&#062; const o = std::make_shared&#060;Widget&#062;();
+
+    foo( o );                                   // Efficient
+    foo( std::make_shared&#060;Widget&#062;() );          // Correct
+#if !defined( _MSC_VER )
+    foo( SharedObject&#060;Widget&#062;( new Widget() ) );// General
+#endif
+}
+[/sourcecode]
+
+
+
+
+You also ask about choosing between a number of different function signatures:
+
+[sourcecode language=&quot;cpp&quot;]
+void f( widget&#038; );
+void f( unique_ptr&#060;widget&#062; );
+void f( unique_ptr&#060;widget&#062;&#038; );
+void f( shared_ptr&#060;widget&#062; );
+void f( shared_ptr&#060;widget&#062;&#038; );
+[/sourcecode]
+
+Supposedly this is a &quot;guru question&quot;, but if it is, then I have failed already.
+
+I don&#8217;t grok the purpose here.
+
+The three signatures of the form &lt;code&gt;f( &lt;i&gt;T&lt;/i&gt;&#038; )&lt;/code&gt; lets the function modify the actual argument. The actual argument cannot be an rvalue. This is a novice question.
+
+The &lt;code&gt;f( unique_ptr&#060;widget&#062; )&lt;/code&gt; signature passes ownership into the function. Again, this is a novice question.
+
+The &lt;code&gt;f( shared_ptr&#060;widget&#062; )&lt;/code&gt; signature shares ownership with wherever the function decides to copy the pointer. This may possibly be a question for more experienced programmers? It involves a subtle convention, that of indicating what the code does by &lt;em&gt;not&lt;/em&gt; requiring arbitrary things.]]></description>
+		<content:encoded><![CDATA[<p>Hm, you ask, &ldquo;what are the performance and correctness implications of the following function declaration&rdquo;,</p>
+<pre class="brush: cpp; title: ; notranslate">
+void f( shared_ptr&lt;widget&gt; );
+</pre>
+<p>Well, there is only one good reason for passing a <code>shared_ptr</code> as in-argument, and that&rsquo;s when <em>the function may store the pointer somewhere</em>.</p>
+<p>So this is the main performance implication, that the referred to object may be kept alive via the stored pointer.</p>
+<p>At a more microscopic level, passing the <code>shared_ptr</code> by value incurs some reference counting. It&rsquo;s fast but still it&rsquo;s needless overhead. Better pass that smart pointer by reference to <code>const</code>.</p>
+<p>Regarding correctness, a possible problem is indicated by the <strong>unqualified</strong> <code>shared_ptr</code>. If this function declaration is in the global namespace in a header, then uh oh.</p>
+<p>Another problem is that <code>shared_ptr</code> allows <strong>nullpointers</strong>. So the function declaration is not by itself enough to decide in general whether a call is correct. It needs to be augmented with documentation or implementation code or proper typing that enforces requirements, e.g. like this:</p>
+<pre class="brush: cpp; title: ; notranslate">
+#if defined( _MSC_VER )
+#   pragma warning( disable: 4345 ) // Warning: T() will default-initialize!
+#endif
+
+#include &lt;assert.h&gt;     // assert
+#include &lt;memory&gt;       // std::shared_ptr, std::make_shared
+#include &lt;utility&gt;      // std::forward
+
+template&lt; class TpPointee &gt;
+class SharedObject
+    : public std::shared_ptr&lt; TpPointee &gt;
+{
+public:
+    typedef TpPointee                   Pointee;
+    typedef std::shared_ptr&lt; Pointee &gt;  Base;
+    
+    using Base::get;
+
+    SharedObject( Base const&amp; nonNullPtr )
+        : Base( nonNullPtr )
+    {
+        assert( get() != 0 );
+    }
+
+#if !defined( _MSC_VER )    
+    template&lt; class... Args &gt;
+    explicit SharedObject( Args&amp;&amp;... args )
+        : Base( std::forward&lt;Args&gt;( args )... )
+    {
+        assert( get() != 0 );
+    }
+#endif
+};
+
+class Widget {};
+
+void foo( SharedObject&lt;Widget&gt; const&amp; ) {}
+
+int main()
+{
+    SharedObject&lt;Widget&gt; const o = std::make_shared&lt;Widget&gt;();
+
+    foo( o );                                   // Efficient
+    foo( std::make_shared&lt;Widget&gt;() );          // Correct
+#if !defined( _MSC_VER )
+    foo( SharedObject&lt;Widget&gt;( new Widget() ) );// General
+#endif
+}
+</pre>
+<p>You also ask about choosing between a number of different function signatures:</p>
+<pre class="brush: cpp; title: ; notranslate">
+void f( widget&amp; );
+void f( unique_ptr&lt;widget&gt; );
+void f( unique_ptr&lt;widget&gt;&amp; );
+void f( shared_ptr&lt;widget&gt; );
+void f( shared_ptr&lt;widget&gt;&amp; );
+</pre>
+<p>Supposedly this is a &#8220;guru question&#8221;, but if it is, then I have failed already.</p>
+<p>I don&rsquo;t grok the purpose here.</p>
+<p>The three signatures of the form <code>f( <i>T</i>&amp; )</code> lets the function modify the actual argument. The actual argument cannot be an rvalue. This is a novice question.</p>
+<p>The <code>f( unique_ptr&lt;widget&gt; )</code> signature passes ownership into the function. Again, this is a novice question.</p>
+<p>The <code>f( shared_ptr&lt;widget&gt; )</code> signature shares ownership with wherever the function decides to copy the pointer. This may possibly be a question for more experienced programmers? It involves a subtle convention, that of indicating what the code does by <em>not</em> requiring arbitrary things.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Martinho Fernandes				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5630</link>
+		<dc:creator><![CDATA[Martinho Fernandes]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 20:46:03 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5630</guid>
+					<description><![CDATA[Now my last reply seems silly. Let&#039;s try with SGML entities: last parts read: it would have some type like unique_ptr&#060;HANDLE, void(*)(HANDLE)&#062;, which is not compatible with unique_ptr&#060;T&#062;, aka, unique_ptr&#060;T, default_delete&#062;. Another example would be a unique_ptr&#060;FILE, void(*)(FILE*)&#062; that handles a C library FILE pointer.]]></description>
+		<content:encoded><![CDATA[<p>Now my last reply seems silly. Let&#8217;s try with SGML entities: last parts read: it would have some type like unique_ptr&lt;HANDLE, void(*)(HANDLE)&gt;, which is not compatible with unique_ptr&lt;T&gt;, aka, unique_ptr&lt;T, default_delete&gt;. Another example would be a unique_ptr&lt;FILE, void(*)(FILE*)&gt; that handles a C library FILE pointer.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Martinho Fernandes				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5629</link>
+		<dc:creator><![CDATA[Martinho Fernandes]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 20:37:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5629</guid>
+					<description><![CDATA[I forgot one thing: unique_ptr doesn&#039;t type-erase the deleter. This means that any function taking a unique_ptr is effectively limiting how the caller allocates the object. The examples will accept unique_ptr that allocate with new, but not, for example, a unique_ptr that is holding some other resource, like for example, a Windows handle: it would have type `unique_ptr`, which is not compatible with `unique_ptr`, aka, `unique_ptr&#060;T, default_delete&#062;`.]]></description>
+		<content:encoded><![CDATA[<p>I forgot one thing: unique_ptr doesn&#8217;t type-erase the deleter. This means that any function taking a unique_ptr is effectively limiting how the caller allocates the object. The examples will accept unique_ptr that allocate with new, but not, for example, a unique_ptr that is holding some other resource, like for example, a Windows handle: it would have type `unique_ptr`, which is not compatible with `unique_ptr`, aka, `unique_ptr&lt;T, default_delete&gt;`.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: hauke76				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5627</link>
+		<dc:creator><![CDATA[hauke76]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 20:22:04 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5627</guid>
+					<description><![CDATA[Ok, my signatures got messed up. I will try again (hoping that it works) ...
+
+[code]
+f( widget const&#038; )
+// f( unique_ptr&#060;widget&#062; )
+f( const unique_ptr&#060;const widget&#062;&#038; )
+f( shared_ptr&#060;const widget&#062; )
+f( const shared_ptr&#060;const widget&#062;&#038; )
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>Ok, my signatures got messed up. I will try again (hoping that it works) &#8230;</p>
+<pre class="brush: plain; title: ; notranslate">
+f( widget const&amp; )
+// f( unique_ptr&lt;widget&gt; )
+f( const unique_ptr&lt;const widget&gt;&amp; )
+f( shared_ptr&lt;const widget&gt; )
+f( const shared_ptr&lt;const widget&gt;&amp; )
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Thiago Adams (@thradams)				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5626</link>
+		<dc:creator><![CDATA[Thiago Adams (@thradams)]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 20:20:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5626</guid>
+					<description><![CDATA[#1 Passing shared_ptr arguments by value or by reference when conversions are required implies in reference counting overhead.
+
+Here some tests:
+http://www.thradams.com/codeblog/smartptrperf.htm]]></description>
+		<content:encoded><![CDATA[<p>#1 Passing shared_ptr arguments by value or by reference when conversions are required implies in reference counting overhead.</p>
+<p>Here some tests:<br />
+<a href="http://www.thradams.com/codeblog/smartptrperf.htm" rel="nofollow">http://www.thradams.com/codeblog/smartptrperf.htm</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Hauke Heibel				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5625</link>
+		<dc:creator><![CDATA[Hauke Heibel]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 20:12:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5625</guid>
+					<description><![CDATA[I am taking a shortcut and extend stackedcrookedCrooked&#039;s comments.
+
+1a. As Martinho already mentioned, it is not only reference counting but also the thread-safety guarantees which will result in a performance penalty. Regarding the correctness, the function is allowed to modify the widget which may be unintended.
+
+2.1. For read only cases, I would change the signature to &quot;widget const&#038;&quot;.
+
+2.2. Right now, I cannot think of a good use case for this signature but probably I need to try harder. I don&#039;t see when I would want to give away ownership to a free function.
+
+2.3. For read only cases, I would change the signature to &quot;const unqiue_ptr&#038;&quot; where the &quot;const widget&quot; is most important.
+
+2.4. For read only cases, I would change the signature to &quot;shared_ptr&quot;. Due to the performance penalties of 1. this signature should be scarcely used. The advantage is it allows to implicitly convert a non const shared_ptr to a const one without using const_pointer_cast.
+
+2.5. For read only cases, I would change the signature to &quot;const shared_ptr&#038;&quot;. Objects of type shared_ptr can only be passed through const_pointer_cast. The signature is preferred over 2.4 since for objects of type shared_ptr, no performance penalty occurs.
+
+Pointer versions (besides 2.2) make sense when the actual object is allowed to be a nullptr. Version 2.1 is not possible in that case. In case it is guaranteed that the object is never a nullptr, version 2.1 might be preferred.]]></description>
+		<content:encoded><![CDATA[<p>I am taking a shortcut and extend stackedcrookedCrooked&#8217;s comments.</p>
+<p>1a. As Martinho already mentioned, it is not only reference counting but also the thread-safety guarantees which will result in a performance penalty. Regarding the correctness, the function is allowed to modify the widget which may be unintended.</p>
+<p>2.1. For read only cases, I would change the signature to &#8220;widget const&amp;&#8221;.</p>
+<p>2.2. Right now, I cannot think of a good use case for this signature but probably I need to try harder. I don&#8217;t see when I would want to give away ownership to a free function.</p>
+<p>2.3. For read only cases, I would change the signature to &#8220;const unqiue_ptr&amp;&#8221; where the &#8220;const widget&#8221; is most important.</p>
+<p>2.4. For read only cases, I would change the signature to &#8220;shared_ptr&#8221;. Due to the performance penalties of 1. this signature should be scarcely used. The advantage is it allows to implicitly convert a non const shared_ptr to a const one without using const_pointer_cast.</p>
+<p>2.5. For read only cases, I would change the signature to &#8220;const shared_ptr&amp;&#8221;. Objects of type shared_ptr can only be passed through const_pointer_cast. The signature is preferred over 2.4 since for objects of type shared_ptr, no performance penalty occurs.</p>
+<p>Pointer versions (besides 2.2) make sense when the actual object is allowed to be a nullptr. Version 2.1 is not possible in that case. In case it is guaranteed that the object is never a nullptr, version 2.1 might be preferred.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mike Grady				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5624</link>
+		<dc:creator><![CDATA[Mike Grady]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 20:07:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5624</guid>
+					<description><![CDATA[Note - not to be one of those guys who changes their answer... ok, I&#039;d like to change my answer - taking a const reference to widget is clearly a great way to implement f given the implementor only wants read only access.]]></description>
+		<content:encoded><![CDATA[<p>Note &#8211; not to be one of those guys who changes their answer&#8230; ok, I&#8217;d like to change my answer &#8211; taking a const reference to widget is clearly a great way to implement f given the implementor only wants read only access.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Nicol Bolas				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5623</link>
+		<dc:creator><![CDATA[Nicol Bolas]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 20:06:47 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5623</guid>
+					<description><![CDATA[1:
+
+In terms of performance, passing a shared_ptr by value means potentially performing a copy of that shared_ptr. That means, at the very least, an atomic increment. Depending on how it is implemented, this could be a full-on mutex lock.
+
+In terms of correctness, by taking the shared_ptr by value, it makes a strong statement that this function (and any function that it calls) now *owns* the pointer. Shared ownership of course. This is correct only if `f` or something it calls *needs* to own the pointer. Otherwise it&#039;s not a good idea.
+
+2:
+
+a) Using a `const&#038;`, what this says is that this function needs the parameter (hence it isn&#039;t a pointer which could be NULL), that it will not modify the parameter (hence the `const`), and that the function will not claim any form of ownership over that parameter. Taking it by non-`const` is a terrible idea for an input-only parameter. It is tantamount to lying to the user; a non-`const` reference parameter is a sign to any C++ programmer that the state of the object can, and will, be modified. If this is indeed an input-*only* parameter, it is a very bad idea to take it by non-`const` reference.
+
+b) This is appropriate if the function is claiming total ownership of the object. And if the user can reasonably be expected to have unique ownership of that resource. There is no reason to make the value object itself `const`, as this would inhibit claiming ownership. However, the value being pointed to could itself be `const`, if that is warranted.
+
+c) This is stupid. Basically, what it says is that the function *may* claim ownership of the pointer. Don&#039;t be so wishy-washy; either you&#039;re claiming ownership or you&#039;re not. Don&#039;t make the caller have to check the pointer afterwards to see if you actually own it.
+
+Taking the unique_ptr by `const&#038;` makes even less sense. If the function isn&#039;t allowed to claim ownership (which is what `const&#038;` will do, since you can&#039;t move from it), just pass the *object itself* by `const&#038;`. There&#039;s no point in putting a smart pointer in the signature if ownership isn&#039;t being dealt with.
+
+d) This is appropriate if the function is claiming shared ownership of the object. And if the user can reasonably be expected to have shared ownership of that resource. As with the `unique_ptr` case, there is no sense in making the `shared_ptr` itself `const`. Making what it points to `const` may or may not be appropriate, depending on what one needs to do.
+
+e) This makes even less sense than the `unique_ptr` version. Since ownership is shared, if the function *might* take ownership, it may as well just copy the object. Plus it&#039;s more dangerous, since the function could actually *move* from it, thus leaving the caller with an empty `shared_ptr`. This is... alarming.
+
+The `const&#038;` case here actually has a purpose. It&#039;s for cases where there is a pass-through of ownership, perhaps among many objects. This function may itself not claim ownership, but someone 3 functions down the call-stack will. You don&#039;t want to have 3 copies of the same object all on the stack, thus performing 6 pointless atomic increments/decrement-exchanges. So you can go by `const&#038;`.]]></description>
+		<content:encoded><![CDATA[<p>1:</p>
+<p>In terms of performance, passing a shared_ptr by value means potentially performing a copy of that shared_ptr. That means, at the very least, an atomic increment. Depending on how it is implemented, this could be a full-on mutex lock.</p>
+<p>In terms of correctness, by taking the shared_ptr by value, it makes a strong statement that this function (and any function that it calls) now *owns* the pointer. Shared ownership of course. This is correct only if `f` or something it calls *needs* to own the pointer. Otherwise it&#8217;s not a good idea.</p>
+<p>2:</p>
+<p>a) Using a `const&amp;`, what this says is that this function needs the parameter (hence it isn&#8217;t a pointer which could be NULL), that it will not modify the parameter (hence the `const`), and that the function will not claim any form of ownership over that parameter. Taking it by non-`const` is a terrible idea for an input-only parameter. It is tantamount to lying to the user; a non-`const` reference parameter is a sign to any C++ programmer that the state of the object can, and will, be modified. If this is indeed an input-*only* parameter, it is a very bad idea to take it by non-`const` reference.</p>
+<p>b) This is appropriate if the function is claiming total ownership of the object. And if the user can reasonably be expected to have unique ownership of that resource. There is no reason to make the value object itself `const`, as this would inhibit claiming ownership. However, the value being pointed to could itself be `const`, if that is warranted.</p>
+<p>c) This is stupid. Basically, what it says is that the function *may* claim ownership of the pointer. Don&#8217;t be so wishy-washy; either you&#8217;re claiming ownership or you&#8217;re not. Don&#8217;t make the caller have to check the pointer afterwards to see if you actually own it.</p>
+<p>Taking the unique_ptr by `const&amp;` makes even less sense. If the function isn&#8217;t allowed to claim ownership (which is what `const&amp;` will do, since you can&#8217;t move from it), just pass the *object itself* by `const&amp;`. There&#8217;s no point in putting a smart pointer in the signature if ownership isn&#8217;t being dealt with.</p>
+<p>d) This is appropriate if the function is claiming shared ownership of the object. And if the user can reasonably be expected to have shared ownership of that resource. As with the `unique_ptr` case, there is no sense in making the `shared_ptr` itself `const`. Making what it points to `const` may or may not be appropriate, depending on what one needs to do.</p>
+<p>e) This makes even less sense than the `unique_ptr` version. Since ownership is shared, if the function *might* take ownership, it may as well just copy the object. Plus it&#8217;s more dangerous, since the function could actually *move* from it, thus leaving the caller with an empty `shared_ptr`. This is&#8230; alarming.</p>
+<p>The `const&amp;` case here actually has a purpose. It&#8217;s for cases where there is a pass-through of ownership, perhaps among many objects. This function may itself not claim ownership, but someone 3 functions down the call-stack will. You don&#8217;t want to have 3 copies of the same object all on the stack, thus performing 6 pointless atomic increments/decrement-exchanges. So you can go by `const&amp;`.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mike Grady				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5622</link>
+		<dc:creator><![CDATA[Mike Grady]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 19:59:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5622</guid>
+					<description><![CDATA[I&#039;m by no means a guru - and am probably flat out wrong about some of the stuff below - but here&#039;s my answer.
+
+1) Calling f will create a new shared_ptr object, the copy constructor of which will increment the internal reference counter of the passed in shared_ptr.  With regards to performance, In many/most cases this will be cheaper than constructing a new widget value by copy constructor, but is certainly less performant than passing widget by reference or address.  Also, unlike passing widget by value, f ( shared_ptr ) still allows modification of the widget object itself.  Because it is non const, it would be possible to reassign the shared_ptr to another shared_ptr object, which would simply decrement the original argument&#039;s internal reference counter during assignment.
+
+2)
+void f( widget &#038;) - 
+This provides better performance than passing widget by value.  Widget argument may be modified. Lack of const not only violates semantic implications of &#039;const&#039;-ness that implementor of &quot;f&quot; suggests, but also makes this function not able to bind to rvalues.  This implementation would therefor be inferior to void f (const widget &#038;).
+
+void f( unique_ptr ) -
+ Interesting because unique_ptr is non copyable.  Would potentially be able to pass in a raw pointer (??) or use std::move to use the move constructure via C++ 11 rvalue references.  In the case of move, this would mean the passed in unique_ptr is invalidated by calling the function f which would certainly have consequences, unless f typically takes in rvalue parameters (returned unique_ptr objects of other functions, perhaps).  I think any implementation like this is probably a design a mistake.  
+
+void f(unique_ptr &#038;) - 
+This bypasses the issue with the copy constructor by using a reference.  This will allow access to the widget object for both read/write.  &#039;const&#039; has no effect on the ability of the argument to modify the underlying widget, but would allow the compiler to bind this to rvalues of unique ptrs.  To avoid changes to widget, the type would need to be f(unique_ptr &#038;).  Doing this will only bind to other  unique_ptr objects, however, not to unique_ptr.
+
+void f(shared_ptr) -
+See #1 above.  This is widely appropriate for passing shared_ptr arguments to functions.  Additionally, you can declare both the shared_ptr and the widget type as const for additional type safety without impacting the caller.  That is, calling f ( const shared_ptr ) will work with a shared_ptr  and provide the semantic const-ness that f guarantees.  It will increment/decrement the internal reference count upon construction when function is called and destruction when function returns.
+
+void f( shared_ptr &#038;) -
+A reference to the shared_ptr bypasses object construction and does not increment the internal reference counter when called.  Without const shared_ptr cannot bind to rvalues passed to f.  Because it is a reference, we cannot add const to the shared_ptr type and bind to non-const callers, limiting it&#039;s use in that scenario.
+
+My winner for the implementor of f would be &quot;void f(const shared_ptr)&quot;.
+
+Looking forward to all the corrections coming my way :)]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;m by no means a guru &#8211; and am probably flat out wrong about some of the stuff below &#8211; but here&#8217;s my answer.</p>
+<p>1) Calling f will create a new shared_ptr object, the copy constructor of which will increment the internal reference counter of the passed in shared_ptr.  With regards to performance, In many/most cases this will be cheaper than constructing a new widget value by copy constructor, but is certainly less performant than passing widget by reference or address.  Also, unlike passing widget by value, f ( shared_ptr ) still allows modification of the widget object itself.  Because it is non const, it would be possible to reassign the shared_ptr to another shared_ptr object, which would simply decrement the original argument&#8217;s internal reference counter during assignment.</p>
+<p>2)<br />
+void f( widget &amp;) &#8211;<br />
+This provides better performance than passing widget by value.  Widget argument may be modified. Lack of const not only violates semantic implications of &#8216;const&#8217;-ness that implementor of &#8220;f&#8221; suggests, but also makes this function not able to bind to rvalues.  This implementation would therefor be inferior to void f (const widget &amp;).</p>
+<p>void f( unique_ptr ) &#8211;<br />
+ Interesting because unique_ptr is non copyable.  Would potentially be able to pass in a raw pointer (??) or use std::move to use the move constructure via C++ 11 rvalue references.  In the case of move, this would mean the passed in unique_ptr is invalidated by calling the function f which would certainly have consequences, unless f typically takes in rvalue parameters (returned unique_ptr objects of other functions, perhaps).  I think any implementation like this is probably a design a mistake.  </p>
+<p>void f(unique_ptr &amp;) &#8211;<br />
+This bypasses the issue with the copy constructor by using a reference.  This will allow access to the widget object for both read/write.  &#8216;const&#8217; has no effect on the ability of the argument to modify the underlying widget, but would allow the compiler to bind this to rvalues of unique ptrs.  To avoid changes to widget, the type would need to be f(unique_ptr &amp;).  Doing this will only bind to other  unique_ptr objects, however, not to unique_ptr.</p>
+<p>void f(shared_ptr) &#8211;<br />
+See #1 above.  This is widely appropriate for passing shared_ptr arguments to functions.  Additionally, you can declare both the shared_ptr and the widget type as const for additional type safety without impacting the caller.  That is, calling f ( const shared_ptr ) will work with a shared_ptr  and provide the semantic const-ness that f guarantees.  It will increment/decrement the internal reference count upon construction when function is called and destruction when function returns.</p>
+<p>void f( shared_ptr &amp;) &#8211;<br />
+A reference to the shared_ptr bypasses object construction and does not increment the internal reference counter when called.  Without const shared_ptr cannot bind to rvalues passed to f.  Because it is a reference, we cannot add const to the shared_ptr type and bind to non-const callers, limiting it&#8217;s use in that scenario.</p>
+<p>My winner for the implementor of f would be &#8220;void f(const shared_ptr)&#8221;.</p>
+<p>Looking forward to all the corrections coming my way :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: stackedcrooked				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5621</link>
+		<dc:creator><![CDATA[stackedcrooked]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 19:34:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5621</guid>
+					<description><![CDATA[Note: Concerning the second queston: Passing the shared_ptr (const ref) can be useful if the function will create a new thread that shares ownership of the passed variable. The thread however must get a *copy* of the shared_ptr.]]></description>
+		<content:encoded><![CDATA[<p>Note: Concerning the second queston: Passing the shared_ptr (const ref) can be useful if the function will create a new thread that shares ownership of the passed variable. The thread however must get a *copy* of the shared_ptr.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: stackedcrookedCrooked				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5620</link>
+		<dc:creator><![CDATA[stackedcrookedCrooked]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 19:30:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5620</guid>
+					<description><![CDATA[1a. Passing shared_ptr by value increments the refcount when entering the function and decrements it when exiting the function. This may produce unwanted overhead. Passing by const reference avoids this.
+
+1b. The function signature basically says: &quot;Please share the ownership of this object with me.&quot; For functions it seems unlikely to be intented.
+
+2.1. The const reference version is *the* correct signature in most situations. (Non-const reference can be used for output parameters.)
+2.2. This one can be used if you want to give away ownership. To call it you must use the std::move function. E.g: foo(std::move(ptr));
+2.3. Should probably never be used IMO. (Const or nonconst.)
+2.4. Should probably never be used IMO. (Const or nonconst.)
+2.5. Unlikely IMO. But const version can be used if the function wants to check if the pointer is initialized. The non-const overload can also reset the pointer if desired.]]></description>
+		<content:encoded><![CDATA[<p>1a. Passing shared_ptr by value increments the refcount when entering the function and decrements it when exiting the function. This may produce unwanted overhead. Passing by const reference avoids this.</p>
+<p>1b. The function signature basically says: &#8220;Please share the ownership of this object with me.&#8221; For functions it seems unlikely to be intented.</p>
+<p>2.1. The const reference version is *the* correct signature in most situations. (Non-const reference can be used for output parameters.)<br />
+2.2. This one can be used if you want to give away ownership. To call it you must use the std::move function. E.g: foo(std::move(ptr));<br />
+2.3. Should probably never be used IMO. (Const or nonconst.)<br />
+2.4. Should probably never be used IMO. (Const or nonconst.)<br />
+2.5. Unlikely IMO. But const version can be used if the function wants to check if the pointer is initialized. The non-const overload can also reset the pointer if desired.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Martinho Fernandes				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-105-smart-pointers-part-3-difficulty-710/#comment-5619</link>
+		<dc:creator><![CDATA[Martinho Fernandes]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 19:22:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1567#comment-5619</guid>
+					<description><![CDATA[I recently posted an answer on Stack Overflow that covers most of the shared_ptr related parts: http://stackoverflow.com/questions/10826541/passing-smart-pointers-as-arguments/10826907#10826907
+
+What it doesn&#039;t address is question #1 and the unique_ptr parts of question #2.
+
+#1 Passing a shared_ptr by value can result in a copy (when the argument is an lvalue). That probably means some synchronization will happen to maintain the shared_ptr thread-safety guarantees while updating a reference count. Ideally this will only involve lockfree operations.
+
+#2 If you want to operate on a widget without messing with its ownership semantics, take a reference. Make it to const if it&#039;s a non-mutating operation.
+
+I think the rules for taking unique_ptr parameters are similar to the ones I outlined for shared_ptr on my Stack Overflow answer: if you want to take exclusive ownership of an object, take a unique_ptr by value. If you want to operate on a smart pointer (instead of the object it points to), take it by reference. Make it const if the operation is not mutating, like checking if the pointer is empty.]]></description>
+		<content:encoded><![CDATA[<p>I recently posted an answer on Stack Overflow that covers most of the shared_ptr related parts: <a href="http://stackoverflow.com/questions/10826541/passing-smart-pointers-as-arguments/10826907#10826907" rel="nofollow">http://stackoverflow.com/questions/10826541/passing-smart-pointers-as-arguments/10826907#10826907</a></p>
+<p>What it doesn&#8217;t address is question #1 and the unique_ptr parts of question #2.</p>
+<p>#1 Passing a shared_ptr by value can result in a copy (when the argument is an lvalue). That probably means some synchronization will happen to maintain the shared_ptr thread-safety guarantees while updating a reference count. Ideally this will only involve lockfree operations.</p>
+<p>#2 If you want to operate on a widget without messing with its ownership semantics, take a reference. Make it to const if it&#8217;s a non-mutating operation.</p>
+<p>I think the rules for taking unique_ptr parameters are similar to the ones I outlined for shared_ptr on my Stack Overflow answer: if you want to take exclusive ownership of an object, take a unique_ptr by value. If you want to operate on a smart pointer (instead of the object it points to), take it by reference. Make it const if the operation is not mutating, like checking if the pointer is empty.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

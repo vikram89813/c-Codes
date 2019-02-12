@@ -1,0 +1,652 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Distinguishing between maybe-null vs never-null is the important thing | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965709&amp;back=https%3A%2F%2Fherbsutter.com%2F2017%2F02%2F15%2Fdistinguishing-between-maybe-null-vs-never-null-is-the-important-thing%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Distinguishing between maybe-null vs never-null is the important&nbsp;thing Comments Feed" href="https://herbsutter.com/2017/02/15/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='This spring: High-Performance and Low-Latency C++ (Stockholm) and ACCU&nbsp;(Bristol)' href='https://herbsutter.com/2017/02/13/this-spring-high-performance-and-low-latency-c-stockholm-and-accu-bristol/' />
+<link rel='next' title='Trip report: Winter ISO C++ standards meeting (Kona), C++17 is&nbsp;complete' href='https://herbsutter.com/2017/03/24/trip-report-winter-iso-c-standards-meeting-kona-c17-is-complete/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2017/02/15/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-LV' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2017%2F02%2F15%2Fdistinguishing-between-maybe-null-vs-never-null-is-the-important-thing%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2017%2F02%2F15%2Fdistinguishing-between-maybe-null-vs-never-null-is-the-important-thing%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Distinguishing between maybe-null vs never-null is the important thing" />
+<meta property="og:url" content="https://herbsutter.com/2017/02/15/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing/" />
+<meta property="og:description" content="This discussion today on the Core Guidelines repo issues is probably of broad interest. It&#8217;s regarding why we chose to annotate not_null&lt;T*&gt; rather than the reverse in the Guidelines an…" />
+<meta property="article:published_time" content="2017-02-15T17:36:40+00:00" />
+<meta property="article:modified_time" content="2017-02-15T17:36:40+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965709" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Distinguishing between maybe-null vs never-null is the important&nbsp;thing" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="This discussion today on the Core Guidelines repo issues is probably of broad interest. It&#039;s regarding why we chose to annotate not_null&lt;T*&gt; rather than the reverse in the Guidelines and the Guideline Support Library (GSL). Pasting here: I would take this interface reduction one step further and make an un-annotated T* implicitly &quot;not null&quot;. I&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2017/02/15/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2971 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2017/02/13/this-spring-high-performance-and-low-latency-c-stockholm-and-accu-bristol/" rel="prev">This spring: High-Performance and Low-Latency C++ (Stockholm) and ACCU&nbsp;(Bristol)</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2017/03/24/trip-report-winter-iso-c-standards-meeting-kona-c17-is-complete/" rel="next">Trip report: Winter ISO C++ standards meeting (Kona), C++17 is&nbsp;complete</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2971 post type-post status-publish format-standard hentry category-uncategorized" id="post-2971">
+				<div class="posttitle">
+					<h2>Distinguishing between maybe-null vs never-null is the important&nbsp;thing</h2>
+					<p class="post-info">2017-02-15 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><a href="https://github.com/isocpp/CppCoreGuidelines/issues/847#issuecomment-280078564">This discussion today</a> on the Core Guidelines repo issues is probably of broad interest. It&#8217;s regarding why we chose to annotate <em>not_null&lt;T*&gt;</em> rather than the reverse in the Guidelines and the Guideline Support Library (GSL).</p>
+<p>Pasting here:</p>
+<hr />
+<blockquote><p>I would take this interface reduction one step further and make an un-annotated T* implicitly &#8220;not null&#8221;.</p></blockquote>
+<p>I understand, and we considered that.</p>
+<p>We decided against that for several reasons:</p>
+<ul>
+<li><code>T*</code>, <code>smart_ptr&lt;T&gt;</code>, <code>span&lt;T&gt;</code>, <code>container&lt;T&gt;::iterator</code>, <code>range&lt;T&gt;</code>, etc. are all non-owning indirections and should be consistent with each other &#8212; it would be strange for some to be nullable but not others. Iterators can be &#8220;null&#8221;, for example a default-constructed iterator is not referring to anything.</li>
+<li>More generally, all of those can be default-constructed, and the only reasonable semantics for that are &#8220;doesn&#8217;t point to anything.&#8221; (This can be a springboard for a broader discussion about the situations where default-constructible types are important, Regular types, etc.)</li>
+<li>A large fraction of existing of <code>T*</code> are deliberately intended to be null, because people by convention use references for not-null parameters in particular and so in modern C++ code the presence of a <code>T*</code>parameter often (not always) implies nullability by that convention. So trying to annotate the &#8220;nullable&#8221; case is a huge code churn, and not only unadoptable but actually against the intent of much existing code.</li>
+<li>Even if we ignored that and changed the default for <code>T*</code>, then we&#8217;d need to invent yet another annotation wrapper such as <code>nullable&lt;T&gt;</code>, and have to teach and explain both <code>not_null&lt;T&gt;</code> and <code>nullable&lt;T&gt;</code> (inconsistently).</li>
+</ul>
+<p>For these and other reasons, we think that pointers should be nullable by default unless annotated otherwise.</p>
+<blockquote><p>valid concerns that are being dismissed because of a failure to distinguish between best practices for new code, and pragmatic recommendations for updating old code</p></blockquote>
+<p>I hope that helps reassure you that the concerns were considered deeply and aren&#8217;t being dismissed, and apply both to new code and old code. Defaults are important, and should reflect the common case especially for new code, but also for old code much of which is &#8220;correct&#8221; but just expressed without enough information about the intent because the programmer didn&#8217;t have the option or tool to express the intent.</p>
+<p><strong>The key issue is to distinguish maybe-null and never-null in the type system, and both of our approaches agree on doing that.</strong> Tony Hoare called null pointers his &#8220;billion-dollar mistake,&#8221; but in my opinion, and I think yours, the mistake was not maybe-null pointers (which are necessary, unavoidable, and pervasively present in every language with pointer/reference indirections, including Java, C#, C, C++, etc.), but rather in <em>not distinguishing maybe-null and never-null pointers in the type system</em>. You and we are both trying to do that, and so in the above I think we&#8217;re largely agreeing and our discussion is narrowly just about which one should be the default.</p>
+<p>&nbsp;</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/uncategorized/" rel="category tag">Uncategorized</a> | 											18 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">18 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment byuser comment-author-paveld500 even thread-even depth-1 highlander-comment" id="comment-39789">
+		<div id="div-comment-39789">
+		<div class="cmtinfo"><em> on <a href="#comment-39789" title="">2017-08-08 at 8:18 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0890c9d7e9417c8559c9cbad282d9c10?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://paveld500.wordpress.com' rel='external nofollow' class='url'>paveld500</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39789"></div><p>I mean, how they work, where I should use them and how?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39788">
+		<div id="div-comment-39788">
+		<div class="cmtinfo"><em> on <a href="#comment-39788" title="">2017-08-08 at 8:17 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0890c9d7e9417c8559c9cbad282d9c10?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Pavel</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39788"></div><p>I&#8217;m sorry, but can somebody offer a deeper explanation on what not_null and maybe_null templates are?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mordachaiwolf even thread-even depth-1 highlander-comment" id="comment-39572">
+		<div id="div-comment-39572">
+		<div class="cmtinfo"><em> on <a href="#comment-39572" title="">2017-03-21 at 9:34 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/653e9876709910096ccdde524a306bf8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mordachaiwolf</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39572"></div><p>Love this response!  YES &#8211; T* is implicitly, by default, NULLABLE!!!!<br />
+Breaking that is INSANE.<br />
+Having a better type-system where you can say not_null is a step forward, without the foolish baggage of changing everything and sundry.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39569">
+		<div id="div-comment-39569">
+		<div class="cmtinfo"><em> on <a href="#comment-39569" title="">2017-03-17 at 12:05 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7857b58e523dedb6d154f9d11b4d7387?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Daniele</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39569"></div><p>Let&#8217;s hope to see it in C++20 then!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-39568">
+		<div id="div-comment-39568">
+		<div class="cmtinfo"><em> on <a href="#comment-39568" title="">2017-03-16 at 5:33 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/db892012bc52cc6cbfd27db9d98acf8b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>GregM</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39568"></div><p>Lots of people want it, but it has taken time to get it right, just like concepts, ranges, modules.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39565">
+		<div id="div-comment-39565">
+		<div class="cmtinfo"><em> on <a href="#comment-39565" title="">2017-03-16 at 2:31 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7857b58e523dedb6d154f9d11b4d7387?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Daniele</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39565"></div><p>Thank you for your quick replies guys. I am really curious to read the trip report. </p>
+<p>C++17 new features seem really awesome. I would have liked to see enum iteration included as well, but it seems I&#8217;ll have to wait. Apparently it looks as not so many people require this feature, but I think that, when available, it will enable many new powerful idioms.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-39564">
+		<div id="div-comment-39564">
+		<div class="cmtinfo"><em> on <a href="#comment-39564" title="">2017-03-15 at 8:29 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39564"></div><p>@Daniele: Yes, compile-time reflection will enable that, and I&#8217;ll have a paper related to that this June as well for the next meeting.</p>
+<p>@GregM: Right you are. As soon as I get caught up I&#8217;ll write that trip report (I may wait until the mailing is posted so I can link to papers, or maybe I&#8217;ll get it done sooner&#8230;).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39563">
+		<div id="div-comment-39563">
+		<div class="cmtinfo"><em> on <a href="#comment-39563" title="">2017-03-15 at 7:29 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/db892012bc52cc6cbfd27db9d98acf8b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>GregM</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39563"></div><p>Daniele, compile time reflection allows that.</p>
+<p>Nov 2016 status from this blog:<br />
+the Reflection study group reviewed the latest merged static reflection proposal and found it ready to enter the main Evolution groups at our next meeting to start considering the unified static reflection proposal for a TS or for the next standard.</p>
+<p>There was another meeting two weeks ago, but I haven&#8217;t seen any trip reports yet.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-39562">
+		<div id="div-comment-39562">
+		<div class="cmtinfo"><em> on <a href="#comment-39562" title="">2017-03-15 at 9:48 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7857b58e523dedb6d154f9d11b4d7387?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Daniele</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39562"></div><p>Ps I forgot to say that I am speaking about compile time iteration</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39561">
+		<div id="div-comment-39561">
+		<div class="cmtinfo"><em> on <a href="#comment-39561" title="">2017-03-15 at 9:19 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7857b58e523dedb6d154f9d11b4d7387?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Daniele</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39561"></div><p>Hi there,</p>
+<p>this is totally offtopic, so apologies but I didn&#8217;t know how to ask you this question.<br />
+Do you know why even in C++14 you guys have not foreseen a way to iterate over enum classes? is there any hope to see it in C++17?</p>
+<p>It is certainly possible to iterate over them if the enum are contiguous, but if they are not and you do not want to manually write (error prone because of repetition) code or use macros, it is (as far as I know) practically impossible to do it. This is because of the standard: converting from an int to an out of range enum value results in undefined behavior.</p>
+<p>By the way, what you&#8217;re guys doing with the core guidelines rocks!</p>
+<p>Thank you,<br />
+Daniele</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-39548">
+		<div id="div-comment-39548">
+		<div class="cmtinfo"><em> on <a href="#comment-39548" title="">2017-02-16 at 2:04 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/42ad77b6b45ab25f4009bf9878c31bed?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ivan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39548"></div><p>valid_ptr is better name because dereferencable_ptr is too long. Same for assigned_ptr. value_ptr, is unclear IMAO. If you have better name I am all ears. Note that Code Complete advises against using negation in variable names, I think same holds for types.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39547">
+		<div id="div-comment-39547">
+		<div class="cmtinfo"><em> on <a href="#comment-39547" title="">2017-02-16 at 1:37 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ecba9d9a00dd0fff899bf31ba544ea65?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>David Collier</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39547"></div><p>Non-null types would be great, but the problem is that in the current language, they can only be partly supported. You can implement a non-null raw pointer, but not a non-null unique_ptr. A non-null unique_ptr is the type you want to return from make_unique, but it&#8217;s useless if you can&#8217;t move from it. To make this work properly we need proper (&#8220;destructive&#8221;) move semantics which don&#8217;t require a moved-from object to be left in a valid state.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-39546">
+		<div id="div-comment-39546">
+		<div class="cmtinfo"><em> on <a href="#comment-39546" title="">2017-02-15 at 9:26 pm</a></em>  <cite><a href='http://zerozone.com/mmp/aceinfoway/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing-/' rel='external nofollow' class='url'>Distinguishing between maybe-null vs never-null is the important thing | Ace Infoway</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39546"></div><p>[&#8230;] vs never-null is the important thing&#013; {$excerpt:n}&#013; submitted by  /u/grauenwolf  [link] [comments]&#013; Source: [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39544">
+		<div id="div-comment-39544">
+		<div class="cmtinfo"><em> on <a href="#comment-39544" title="">2017-02-15 at 3:16 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/ed08144111781725e96db62951c1f408?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Vishal Oza</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39544"></div><p>I agree with this post I think nullptr is a necessary evil and the default should be nullable for all pointers. not_null should only when you know that be that the object the pointer points to has been created. This is one of the reasons I hate the </p>
+<pre class="brush: plain; title: ; notranslate" title="">this</pre>
+<p> keyword I think that </p>
+<pre class="brush: plain; title: ; notranslate" title="">this</pre>
+<p> should return a reference and not a pointer. I also think checking against nullptr is way to get optional augments rather std::optional</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-paercebal even thread-even depth-1 highlander-comment" id="comment-39543">
+		<div id="div-comment-39543">
+		<div class="cmtinfo"><em> on <a href="#comment-39543" title="">2017-02-15 at 1:51 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6e5508b29d6d964efbd50701ceb23a5a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/paercebal' rel='external nofollow' class='url'>paercebal</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39543"></div><p>@Ivan: &#8220;not_null&#8221; is so clear it shines (despite the negation), whereas valid_ptr is confusing. For example:</p>
+<p>void foo()<br />
+{<br />
+   T * p0 = nullptr ;<br />
+   T * p1 ;<br />
+}</p>
+<p>In the code above, p0 is a valid pointer, that points to null. You can&#8217;t dereference it, but you know it (because it&#8217;s null).</p>
+<p>Whereas p1&#8217;s value is&#8230; undetermined. This means you have garbage, that could point or not to something. If you&#8217;re lucky. That pointer is invalid.</p>
+<p>This works the same way for iterators. Consider a vector of integers:</p>
+<p>void foo(std::vector v)<br />
+{<br />
+   assert(! v.empty()) ;<br />
+   auto itBegin = v.begin() ;<br />
+   auto itEnd = v.end() ;</p>
+<p>   v.resize(v.capacity() + 10) ;<br />
+   //<br />
+}</p>
+<p>Before the resize, itBegin and itEnd are both valid iterators. The first is dereferencable (you can retrieved the &#8220;pointed&#8221; value), while the second is not.</p>
+<p>After the resize, we KNOW both itBegin and itEnd are now invalid (because the vector reallocated the underlying memory). If you try to dereference any of them, you&#8217;ll get an undefined behavior&#8230; exactly like the non-null non-initialized pointer p1 above.</p>
+<p>Truth is, you have two notions:<br />
+&#8211; the pointer is valid (null or valid pointed object) or invalid (undeterminate)<br />
+&#8211; the pointed object is valid (i.e. the pointer is non-null and points to a valid pointed object).</p>
+<p>Now, we could used valid_pointed (which is quite ugly)&#8230; but what does that mean in the following case?</p>
+<p>void foo(valid_pointed p)<br />
+{<br />
+   // I can&#8217;t dereference p, so the valid_pointed is a bit strange&#8230;<br />
+   // and what about pointers that have been reinterpret_cast-ed?<br />
+}</p>
+<p>The fact your address points to something valid doesn&#8217;t mean that the current type of the pointer is the right one to use that memory.</p>
+<p>This is why valid_ptr (or even valid_pointed) is unclear, IMHO.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-heblack odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39540">
+		<div id="div-comment-39540">
+		<div class="cmtinfo"><em> on <a href="#comment-39540" title="">2017-02-15 at 10:32 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e0a62d21d81eadf06467ac61421a549e?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/heblack' rel='external nofollow' class='url'>Iama Hummingbird</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39540"></div><p>WOW!!! SO I DON&#8217;T HAVE TO BUY ANOTHER BOOK MADE FOR A HIGH SCHOOL KID!!!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-39539">
+		<div id="div-comment-39539">
+		<div class="cmtinfo"><em> on <a href="#comment-39539" title="">2017-02-15 at 10:06 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e727ee2fd157ac943730cf76ec240534?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Yuriy Grishin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39539"></div><p>valid_ptr is worse, valid how exactly? Why nullptr is invalid? It is valid from some perspective. not_null is good enough I think.</p>
+<p>If you&#8217;re asking for a special thing to do, it very well might be ugly. Same story with casts here I guess.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39538">
+		<div id="div-comment-39538">
+		<div class="cmtinfo"><em> on <a href="#comment-39538" title="">2017-02-15 at 9:45 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/42ad77b6b45ab25f4009bf9878c31bed?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ivan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39538"></div><p>wrt naming&#8230; not_null is ugly as hell,<br />
+I would prefer valid_ptr or something like that&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2017/02/15/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-0890c9d7e9417c8559c9cbad282d9c10">
+	</div>
+	<div class="grofile-hash-map-0890c9d7e9417c8559c9cbad282d9c10">
+	</div>
+	<div class="grofile-hash-map-653e9876709910096ccdde524a306bf8">
+	</div>
+	<div class="grofile-hash-map-7857b58e523dedb6d154f9d11b4d7387">
+	</div>
+	<div class="grofile-hash-map-db892012bc52cc6cbfd27db9d98acf8b">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-42ad77b6b45ab25f4009bf9878c31bed">
+	</div>
+	<div class="grofile-hash-map-ecba9d9a00dd0fff899bf31ba544ea65">
+	</div>
+	<div class="grofile-hash-map-ed08144111781725e96db62951c1f408">
+	</div>
+	<div class="grofile-hash-map-6e5508b29d6d964efbd50701ceb23a5a">
+	</div>
+	<div class="grofile-hash-map-e0a62d21d81eadf06467ac61421a549e">
+	</div>
+	<div class="grofile-hash-map-e727ee2fd157ac943730cf76ec240534">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_39789={"id":468178,"unique_id":"wp-comment-39789","title":"I%20mean%2C%20how%20they%20work%2C%20where%20I%20should%20use%20them%20and%20how%3F...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39789","item_id":"_comm_39789"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39789 == 'undefined' ){PDRTJS_468178_comm_39789 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39789 );}}PDRTJS_settings_468178_comm_39788={"id":468178,"unique_id":"wp-comment-39788","title":"I%26%23039%3Bm%20sorry%2C%20but%20can%20somebody%20offer%20a%20deeper%20explanation%20on%20what%20not_null%20and%20maybe_null%20templates%20are%3F...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39788","item_id":"_comm_39788"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39788 == 'undefined' ){PDRTJS_468178_comm_39788 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39788 );}}PDRTJS_settings_468178_comm_39572={"id":468178,"unique_id":"wp-comment-39572","title":"Love%20this%20response%21%20%20YES%20-%20T%2A%20is%20implicitly%2C%20by%20default%2C%20NULLABLE%21%21%21%21Breaking%20that%20is%20INSANE.Having%20a%20better%20type-system%20where%20you%20can%20say%20not_null%20is%20a%20step%20forward%2C%20without%20the%20foolish%20baggage%20...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39572","item_id":"_comm_39572"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39572 == 'undefined' ){PDRTJS_468178_comm_39572 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39572 );}}PDRTJS_settings_468178_comm_39569={"id":468178,"unique_id":"wp-comment-39569","title":"Let%26%23039%3Bs%20hope%20to%20see%20it%20in%20C%2B%2B20%20then%21...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39569","item_id":"_comm_39569"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39569 == 'undefined' ){PDRTJS_468178_comm_39569 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39569 );}}PDRTJS_settings_468178_comm_39568={"id":468178,"unique_id":"wp-comment-39568","title":"Lots%20of%20people%20want%20it%2C%20but%20it%20has%20taken%20time%20to%20get%20it%20right%2C%20just%20like%20concepts%2C%20ranges%2C%20modules....","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39568","item_id":"_comm_39568"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39568 == 'undefined' ){PDRTJS_468178_comm_39568 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39568 );}}PDRTJS_settings_468178_comm_39565={"id":468178,"unique_id":"wp-comment-39565","title":"Thank%20you%20for%20your%20quick%20replies%20guys.%20I%20am%20really%20curious%20to%20read%20the%20trip%20report.%20C%2B%2B17%20new%20features%20seem%20really%20awesome.%20I%20would%20have%20liked%20to%20see%20enum%20iteration%20included%20as%20well%2C%20but%20it%20seems...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39565","item_id":"_comm_39565"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39565 == 'undefined' ){PDRTJS_468178_comm_39565 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39565 );}}PDRTJS_settings_468178_comm_39564={"id":468178,"unique_id":"wp-comment-39564","title":"%40Daniele%3A%20Yes%2C%20compile-time%20reflection%20will%20enable%20that%2C%20and%20I%26%23039%3Bll%20have%20a%20paper%20related%20to%20that%20this%20June%20as%20well%20for%20the%20next%20meeting.%40GregM%3A%20Right%20you%20are.%20As%20soon%20as%20I%20get%20caught%20up%20I%26%23039%3Bll%20write%20...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39564","item_id":"_comm_39564"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39564 == 'undefined' ){PDRTJS_468178_comm_39564 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39564 );}}PDRTJS_settings_468178_comm_39563={"id":468178,"unique_id":"wp-comment-39563","title":"Daniele%2C%20compile%20time%20reflection%20allows%20that.Nov%202016%20status%20from%20this%20blog%3Athe%20Reflection%20study%20group%20reviewed%20the%20latest%20merged%20static%20reflection%20proposal%20and%20found%20it%20ready%20to%20enter%20the%20main%20E...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39563","item_id":"_comm_39563"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39563 == 'undefined' ){PDRTJS_468178_comm_39563 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39563 );}}PDRTJS_settings_468178_comm_39562={"id":468178,"unique_id":"wp-comment-39562","title":"Ps%20I%20forgot%20to%20say%20that%20I%20am%20speaking%20about%20compile%20time%20iteration...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39562","item_id":"_comm_39562"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39562 == 'undefined' ){PDRTJS_468178_comm_39562 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39562 );}}PDRTJS_settings_468178_comm_39561={"id":468178,"unique_id":"wp-comment-39561","title":"Hi%20there%2Cthis%20is%20totally%20offtopic%2C%20so%20apologies%20but%20I%20didn%26%23039%3Bt%20know%20how%20to%20ask%20you%20this%20question.Do%20you%20know%20why%20even%20in%20C%2B%2B14%20you%20guys%20have%20not%20foreseen%20a%20way%20to%20iterate%20over%20enum%20classes%3F%20is%20ther...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39561","item_id":"_comm_39561"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39561 == 'undefined' ){PDRTJS_468178_comm_39561 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39561 );}}PDRTJS_settings_468178_comm_39548={"id":468178,"unique_id":"wp-comment-39548","title":"valid_ptr%20is%20better%20name%20because%20dereferencable_ptr%20is%20too%20long.%20Same%20for%20assigned_ptr.%20value_ptr%2C%20is%20unclear%20IMAO.%20If%20you%20have%20better%20name%20I%20am%20all%20ears.%20Note%20that%20Code%20Complete%20advises%20against%20...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39548","item_id":"_comm_39548"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39548 == 'undefined' ){PDRTJS_468178_comm_39548 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39548 );}}PDRTJS_settings_468178_comm_39547={"id":468178,"unique_id":"wp-comment-39547","title":"Non-null%20types%20would%20be%20great%2C%20but%20the%20problem%20is%20that%20in%20the%20current%20language%2C%20they%20can%20only%20be%20partly%20supported.%20You%20can%20implement%20a%20non-null%20raw%20pointer%2C%20but%20not%20a%20non-null%20unique_ptr.%20A%20non-n...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39547","item_id":"_comm_39547"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39547 == 'undefined' ){PDRTJS_468178_comm_39547 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39547 );}}PDRTJS_settings_468178_comm_39546={"id":468178,"unique_id":"wp-comment-39546","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20vs%20never-null%20is%20the%20important%20thing%26%23013%3B%20%7B%24excerpt%3An%7D%26%23013%3B%20submitted%20by%20%20%2Fu%2Fgrauenwolf%20%20%26%23091%3Blink%26%23093%3B%20%26%23091%3Bcomments%26%23093%3B%26%23013%3B%20Source%3A%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39546","item_id":"_comm_39546"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39546 == 'undefined' ){PDRTJS_468178_comm_39546 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39546 );}}PDRTJS_settings_468178_comm_39544={"id":468178,"unique_id":"wp-comment-39544","title":"I%20agree%20with%20this%20post%20I%20think%20nullptr%20is%20a%20necessary%20evil%20and%20the%20default%20should%20be%20nullable%20for%20all%20pointers.%20not_null%20should%20only%20when%20you%20know%20that%20be%20that%20the%20object%20the%20pointer%20points%20to%20ha...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39544","item_id":"_comm_39544"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39544 == 'undefined' ){PDRTJS_468178_comm_39544 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39544 );}}PDRTJS_settings_468178_comm_39543={"id":468178,"unique_id":"wp-comment-39543","title":"%40Ivan%3A%20%26quot%3Bnot_null%26quot%3B%20is%20so%20clear%20it%20shines%20%28despite%20the%20negation%29%2C%20whereas%20valid_ptr%20is%20confusing.%20For%20example%3Avoid%20foo%28%29%7B%20%20%20T%20%2A%20p0%20%3D%20nullptr%20%3B%20%20%20T%20%2A%20p1%20%3B%7DIn%20the%20code%20above%2C%20p0%20is%20a%20valid%20pointer%2C%20t...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39543","item_id":"_comm_39543"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39543 == 'undefined' ){PDRTJS_468178_comm_39543 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39543 );}}PDRTJS_settings_468178_comm_39540={"id":468178,"unique_id":"wp-comment-39540","title":"WOW%21%21%21%20SO%20I%20DON%26%23039%3BT%20HAVE%20TO%20BUY%20ANOTHER%20BOOK%20MADE%20FOR%20A%20HIGH%20SCHOOL%20KID%21%21%21...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39540","item_id":"_comm_39540"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39540 == 'undefined' ){PDRTJS_468178_comm_39540 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39540 );}}PDRTJS_settings_468178_comm_39539={"id":468178,"unique_id":"wp-comment-39539","title":"valid_ptr%20is%20worse%2C%20valid%20how%20exactly%3F%20Why%20nullptr%20is%20invalid%3F%20It%20is%20valid%20from%20some%20perspective.%20not_null%20is%20good%20enough%20I%20think.If%20you%26%23039%3Bre%20asking%20for%20a%20special%20thing%20to%20do%2C%20it%20very%20well%20might%20be...","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39539","item_id":"_comm_39539"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39539 == 'undefined' ){PDRTJS_468178_comm_39539 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39539 );}}PDRTJS_settings_468178_comm_39538={"id":468178,"unique_id":"wp-comment-39538","title":"wrt%20naming...%20not_null%20is%20ugly%20as%20hell%2C%20I%20would%20prefer%20valid_ptr%20or%20something%20like%20that......","permalink":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/#comment-39538","item_id":"_comm_39538"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39538 == 'undefined' ){PDRTJS_468178_comm_39538 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39538 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2017%2F02%2F15%2Fdistinguishing-between-maybe-null-vs-never-null-is-the-important-thing%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2017\/02\/15\/distinguishing-between-maybe-null-vs-never-null-is-the-important-thing\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2017%2F02%2F15%2Fdistinguishing-between-maybe-null-vs-never-null-is-the-important-thing%2F","postID":"2971","shortlink":"https:\/\/wp.me\/peb5Y-LV","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2971","statsLink":"https:\/\/wordpress.com\/stats\/post\/2971\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2017%2F02%2F15%2Fdistinguishing-between-maybe-null-vs-never-null-is-the-important-thing%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2971','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNHxYTEREQ014NG03dTMsWD9bV2RNLEItXVR0Z3hHME42VlUwJmFXOU1zblAmaiZGLWpfaUd2NEwlZlZrd1NnTG0xP0xkT3Vafm1qXVtyOF9GP1g2cEszbExEWVhOfE8yNU5UcE9JUVt2WXdiLWpDM3Ytb0Y3TT84Y3VdT3Q2RDhqcHZZVGR3eDl5Nm89U1ssaGEsSjQ9cyVLTlRDWT1VaE1PREdiTnFSelY9WVI4THdIREFZLlddJltnayZjPWNGZ0tuLzIrP3A='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2971' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

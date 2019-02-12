@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #90 Solution: Factories	</title>
+	<atom:link href="https://herbsutter.com/2013/05/30/gotw-90-solution-factories/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Fahiem Bacchus				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-13875</link>
+		<dc:creator><![CDATA[Fahiem Bacchus]]></dc:creator>
+		<pubDate>Wed, 18 Dec 2013 16:31:07 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-13875</guid>
+					<description><![CDATA[self documentation vs auto.
+In example 2. 
+[code]
+unique_ptr&#060;widget&#062; load_widget( widget::id desired );
+[/code]
+You get self documentation---you can see in the code that you get control over widget.
+
+Once you use auto 
+[code]
+// Accept as a unique_ptr (by default)
+auto up = load_widget(1);
+[/code]
+we have to look up the signature of load_widget...it is no longer documented in the call. 
+
+This seems to be a subtle trade off here. Any thoughts?]]></description>
+		<content:encoded><![CDATA[<p>self documentation vs auto.<br />
+In example 2. </p>
+<pre class="brush: plain; title: ; notranslate">
+unique_ptr&lt;widget&gt; load_widget( widget::id desired );
+</pre>
+<p>You get self documentation&#8212;you can see in the code that you get control over widget.</p>
+<p>Once you use auto </p>
+<pre class="brush: plain; title: ; notranslate">
+// Accept as a unique_ptr (by default)
+auto up = load_widget(1);
+</pre>
+<p>we have to look up the signature of load_widget&#8230;it is no longer documented in the call. </p>
+<p>This seems to be a subtle trade off here. Any thoughts?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Richard				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-12284</link>
+		<dc:creator><![CDATA[Richard]]></dc:creator>
+		<pubDate>Thu, 22 Aug 2013 11:46:30 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-12284</guid>
+					<description><![CDATA[You missed Motti&#039;s follow-up saying that the advantage of having a wrapper unonwned_ptr would be for self documentation(like why it&#039;s better to use reinterpret_cast than a C style cast) and I was interested to know you opinion.
+I agree with him and dread to think of the fraction of my life that I have spent determining whether the author has passed ownership.]]></description>
+		<content:encoded><![CDATA[<p>You missed Motti&#8217;s follow-up saying that the advantage of having a wrapper unonwned_ptr would be for self documentation(like why it&#8217;s better to use reinterpret_cast than a C style cast) and I was interested to know you opinion.<br />
+I agree with him and dread to think of the fraction of my life that I have spent determining whether the author has passed ownership.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-11332</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Fri, 14 Jun 2013 15:00:45 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-11332</guid>
+					<description><![CDATA[@Christophe: I have great news for you! That&#039;s actually not a problem at all, because unique_ptr doesn&#039;t need to know about the destructor -- only the deleter does, which can be separately compiled. In fact, unique_ptr was explicitly designed to be usable with incomplete (forward-declared types), and the standard normatively requires: &quot;The template parameter T of unique_ptr may be an incomplete type.&quot; (N3690, 20.9.1 [unique_ptr] /5)]]></description>
+		<content:encoded><![CDATA[<p>@Christophe: I have great news for you! That&#8217;s actually not a problem at all, because unique_ptr doesn&#8217;t need to know about the destructor &#8212; only the deleter does, which can be separately compiled. In fact, unique_ptr was explicitly designed to be usable with incomplete (forward-declared types), and the standard normatively requires: &#8220;The template parameter T of unique_ptr may be an incomplete type.&#8221; (N3690, 20.9.1 [unique_ptr] /5)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Christophe				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-11310</link>
+		<dc:creator><![CDATA[Christophe]]></dc:creator>
+		<pubDate>Fri, 14 Jun 2013 09:57:59 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-11310</guid>
+					<description><![CDATA[The fact that unique_ptr forces to know the destructor of the object forces to expose the class definition at each level (which is not the case with raw pointer, neither with shared_ptr), even when passing the unique_ptr through different layers. As a consequence that each time the class definition changes, it will imply the recompilation of those intermediate layers even if they do not really use the object. This tends to brake the usage of unique_ptr with factory.
+Any comment about this ?]]></description>
+		<content:encoded><![CDATA[<p>The fact that unique_ptr forces to know the destructor of the object forces to expose the class definition at each level (which is not the case with raw pointer, neither with shared_ptr), even when passing the unique_ptr through different layers. As a consequence that each time the class definition changes, it will imply the recompilation of those intermediate layers even if they do not really use the object. This tends to brake the usage of unique_ptr with factory.<br />
+Any comment about this ?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-11062</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Fri, 07 Jun 2013 12:56:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-11062</guid>
+					<description><![CDATA[@Kai: Definitely not recommending smart pointers for everything, in particular not for most parameters; see GotW #91.
+
+But overall tool support is an interesting question. I view it like other features such as template mangling or generating lambda function objects. The features are good for clarity and correctness, should be recommended, and will be used. Many C++ code bases have long routinely used custom nonstandard smart pointers already anyway. If sometimes a tool&#039;s implementations has scalability trouble with a popular feature, if it causes a real problem then the tool needs to be improved. (However, for balance, there have been one or two complexity-inducing C++ features that caused tool trouble where it wasn&#039;t fair to blame the tools, but we don&#039;t have export any more and that was the main one.)]]></description>
+		<content:encoded><![CDATA[<p>@Kai: Definitely not recommending smart pointers for everything, in particular not for most parameters; see GotW #91.</p>
+<p>But overall tool support is an interesting question. I view it like other features such as template mangling or generating lambda function objects. The features are good for clarity and correctness, should be recommended, and will be used. Many C++ code bases have long routinely used custom nonstandard smart pointers already anyway. If sometimes a tool&#8217;s implementations has scalability trouble with a popular feature, if it causes a real problem then the tool needs to be improved. (However, for balance, there have been one or two complexity-inducing C++ features that caused tool trouble where it wasn&#8217;t fair to blame the tools, but we don&#8217;t have export any more and that was the main one.)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Kai Koehne				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-11043</link>
+		<dc:creator><![CDATA[Kai Koehne]]></dc:creator>
+		<pubDate>Fri, 07 Jun 2013 08:15:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-11043</guid>
+					<description><![CDATA[I&#039;m not sure recommending unique_ptr et al for every pointer out there is a good idea, because it will blow up debug symbol sizes. I did a quick test and replaced the pimpl pointer of an otherwise empty class with unique_ptr - for clang 3.2 that adds 30 additional debugging symbols to the .o file, for gcc 4.8 it&#039;s even 60 (!). I can easily imagine this kills debugging performance in larger projects ...
+
+Any thoughts on this?]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;m not sure recommending unique_ptr et al for every pointer out there is a good idea, because it will blow up debug symbol sizes. I did a quick test and replaced the pimpl pointer of an otherwise empty class with unique_ptr &#8211; for clang 3.2 that adds 30 additional debugging symbols to the .o file, for gcc 4.8 it&#8217;s even 60 (!). I can easily imagine this kills debugging performance in larger projects &#8230;</p>
+<p>Any thoughts on this?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10888</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Tue, 04 Jun 2013 17:32:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10888</guid>
+					<description><![CDATA[@Vincent: That&#039;s reasonable, I&#039;ve added a path to the example to demonstrate returning &quot;nothing&quot; too so people can see what that looks like. Thanks for the suggestion.]]></description>
+		<content:encoded><![CDATA[<p>@Vincent: That&#8217;s reasonable, I&#8217;ve added a path to the example to demonstrate returning &#8220;nothing&#8221; too so people can see what that looks like. Thanks for the suggestion.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10884</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Tue, 04 Jun 2013 17:18:14 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10884</guid>
+					<description><![CDATA[@Sebastian: make_shared should be used by default when you know you&#039;re constructing an object that will be owned by shared_ptrs. The factory doesn&#039;t know that and so returns a unique_ptr (presumably using make_unique), which the caller can then move into a shared_ptr if that&#039;s how he wants to manage the memory.]]></description>
+		<content:encoded><![CDATA[<p>@Sebastian: make_shared should be used by default when you know you&#8217;re constructing an object that will be owned by shared_ptrs. The factory doesn&#8217;t know that and so returns a unique_ptr (presumably using make_unique), which the caller can then move into a shared_ptr if that&#8217;s how he wants to manage the memory.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Sebastian				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10874</link>
+		<dc:creator><![CDATA[Sebastian]]></dc:creator>
+		<pubDate>Tue, 04 Jun 2013 12:54:02 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10874</guid>
+					<description><![CDATA[Doesn&#039;t the answer to #2 forego the recommended smart pointer construction through std::make_shared?]]></description>
+		<content:encoded><![CDATA[<p>Doesn&#8217;t the answer to #2 forego the recommended smart pointer construction through std::make_shared?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Motti Lanzkron				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10867</link>
+		<dc:creator><![CDATA[Motti Lanzkron]]></dc:creator>
+		<pubDate>Tue, 04 Jun 2013 07:42:07 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10867</guid>
+					<description><![CDATA[The advantage of having a wrapper unonwned_ptr template type is purely for self documentation. When I see T* I have to ask myself whether the person who wrote this thought about ownership and decided that a raw pointer is the correct way to go or whether (for some code bases the more probable reason) the original author was just lazy/incompetent (often the original author is myself but that doesn&#039;t rule out incompetence...).
+
+After looking though the code I came to the conclusion that a raw pointer is the correct choice but tomorrow someone else will see the same code and wonder the same thing and have to duplicate the work of understanding  the correct semantics for this pointer. It&#039;s akin to why it&#039;s better to use reinterpret_cast than a C style cast.]]></description>
+		<content:encoded><![CDATA[<p>The advantage of having a wrapper unonwned_ptr template type is purely for self documentation. When I see T* I have to ask myself whether the person who wrote this thought about ownership and decided that a raw pointer is the correct way to go or whether (for some code bases the more probable reason) the original author was just lazy/incompetent (often the original author is myself but that doesn&#8217;t rule out incompetence&#8230;).</p>
+<p>After looking though the code I came to the conclusion that a raw pointer is the correct choice but tomorrow someone else will see the same code and wonder the same thing and have to duplicate the work of understanding  the correct semantics for this pointer. It&#8217;s akin to why it&#8217;s better to use reinterpret_cast than a C style cast.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Vincent Jacquet				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10865</link>
+		<dc:creator><![CDATA[Vincent Jacquet]]></dc:creator>
+		<pubDate>Tue, 04 Jun 2013 05:43:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10865</guid>
+					<description><![CDATA[I understand the difference between empty and null. I am just wondering, in the context of factories, when returning a verctor of things, what is the benefit of returning a null value. How is it a better solution that returning an empty vector? Also, as currently implemented, it looks like your example 4(c) always returns a valid vector, that can be empty but not null.
+
+I have mitigated feelings about optional. I find that sometimes it is an easy solution but not a good solution. I would be very interrested in a post discussing when to use it and when to not use it.]]></description>
+		<content:encoded><![CDATA[<p>I understand the difference between empty and null. I am just wondering, in the context of factories, when returning a verctor of things, what is the benefit of returning a null value. How is it a better solution that returning an empty vector? Also, as currently implemented, it looks like your example 4(c) always returns a valid vector, that can be empty but not null.</p>
+<p>I have mitigated feelings about optional. I find that sometimes it is an easy solution but not a good solution. I would be very interrested in a post discussing when to use it and when to not use it.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10862</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Mon, 03 Jun 2013 22:35:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10862</guid>
+					<description><![CDATA[@Marcel: Yes.
+
+@Vincent: Null can be different from empty because empty may be a valid value. A classic example is a nullable string, where an empty string &quot;&quot; is different from no string... for C-style strings, it&#039;s the difference between [code]strlen(s) == 0   // a.k.a. !strlen(s)[/code] and [code]s == nullptr     // a.k.a. !s[/code]]]></description>
+		<content:encoded><![CDATA[<p>@Marcel: Yes.</p>
+<p>@Vincent: Null can be different from empty because empty may be a valid value. A classic example is a nullable string, where an empty string &#8220;&#8221; is different from no string&#8230; for C-style strings, it&#8217;s the difference between </p>
+<pre class="brush: plain; title: ; notranslate">strlen(s) == 0   // a.k.a. !strlen(s)</pre>
+<p> and </p>
+<pre class="brush: plain; title: ; notranslate">s == nullptr     // a.k.a. !s</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Vincent Jacquet				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10858</link>
+		<dc:creator><![CDATA[Vincent Jacquet]]></dc:creator>
+		<pubDate>Mon, 03 Jun 2013 18:16:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10858</guid>
+					<description><![CDATA[I wonder why we should returning optional&#060;vector&#062;. If no widgets can be loading what&#039;s the benefit compared to returning an empty vector. This way I do not introduce a special case.
+Also, when loading a single gadget, returning optional is only an option (pun intended). I could also return a default gadget or an error gadget.]]></description>
+		<content:encoded><![CDATA[<p>I wonder why we should returning optional&lt;vector&gt;. If no widgets can be loading what&#8217;s the benefit compared to returning an empty vector. This way I do not introduce a special case.<br />
+Also, when loading a single gadget, returning optional is only an option (pun intended). I could also return a default gadget or an error gadget.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marcel Wid				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10848</link>
+		<dc:creator><![CDATA[Marcel Wid]]></dc:creator>
+		<pubDate>Mon, 03 Jun 2013 12:22:27 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10848</guid>
+					<description><![CDATA[@Johannes and @Herb: This is the first time that I think I understand when to write &#039;return move&#039;. But I think that this has nothing to do with copy elision in contrast to what Johannes is saying. In the following code
+[code]
+optional&#060;vector&#060;gadget&#062;&#062; load_gadgets() noexcept {
+    vector&#060;gadget&#062; ret;
+    // ... populate ret ...
+    return move(ret);   // important: move() here to avoid a silent copy
+}
+[/code]
+ret is implicitely converted to optional&#060;vector&#062; by one of the following converting constructors of optional: constexpr optional(const T&#038;) or constexpr optional(T&#038;&#038;) depending whether you write return ret; (for the former) or return move(ret); (for the latter). The result of this coversion is a temporary object, which is copied/moved into the function&#039;s return value. An implementation is allowed to elide this last copy/move. Please correct me if I got it wrong.]]></description>
+		<content:encoded><![CDATA[<p>@Johannes and @Herb: This is the first time that I think I understand when to write &#8216;return move&#8217;. But I think that this has nothing to do with copy elision in contrast to what Johannes is saying. In the following code</p>
+<pre class="brush: plain; title: ; notranslate">
+optional&lt;vector&lt;gadget&gt;&gt; load_gadgets() noexcept {
+    vector&lt;gadget&gt; ret;
+    // ... populate ret ...
+    return move(ret);   // important: move() here to avoid a silent copy
+}
+</pre>
+<p>ret is implicitely converted to optional&lt;vector&gt; by one of the following converting constructors of optional: constexpr optional(const T&amp;) or constexpr optional(T&amp;&amp;) depending whether you write return ret; (for the former) or return move(ret); (for the latter). The result of this coversion is a temporary object, which is copied/moved into the function&#8217;s return value. An implementation is allowed to elide this last copy/move. Please correct me if I got it wrong.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10835</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sun, 02 Jun 2013 18:31:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10835</guid>
+					<description><![CDATA[@Motti: 1. Yes. 2. What benefit is there to providing another name for * pointers? FWIW we do now teach not to use owning * pointers, but non-owning * pointers are fine -- see the GotW #91 solution that will be posted tomorrow for an example.]]></description>
+		<content:encoded><![CDATA[<p>@Motti: 1. Yes. 2. What benefit is there to providing another name for * pointers? FWIW we do now teach not to use owning * pointers, but non-owning * pointers are fine &#8212; see the GotW #91 solution that will be posted tomorrow for an example.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Motti Lanzkron				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10821</link>
+		<dc:creator><![CDATA[Motti Lanzkron]]></dc:creator>
+		<pubDate>Sun, 02 Jun 2013 08:59:29 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10821</guid>
+					<description><![CDATA[This article raises two questions in my mind.
+1. Does the fact that we now have explicit cast operators mean that we no longer need the &quot;safe bool idiom&quot;?  
+2. Perhaps the standard should include a self documenting unowned_ptr template for cases where you semantically *want* to return a raw pointer.]]></description>
+		<content:encoded><![CDATA[<p>This article raises two questions in my mind.<br />
+1. Does the fact that we now have explicit cast operators mean that we no longer need the &#8220;safe bool idiom&#8221;?<br />
+2. Perhaps the standard should include a self documenting unowned_ptr template for cases where you semantically *want* to return a raw pointer.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10807</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sat, 01 Jun 2013 21:48:23 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10807</guid>
+					<description><![CDATA[@Leo: Thanks, fixed.]]></description>
+		<content:encoded><![CDATA[<p>@Leo: Thanks, fixed.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Leo				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10805</link>
+		<dc:creator><![CDATA[Leo]]></dc:creator>
+		<pubDate>Sat, 01 Jun 2013 19:07:12 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10805</guid>
+					<description><![CDATA[Tiny typo: &quot;by calling members functions on it&quot;]]></description>
+		<content:encoded><![CDATA[<p>Tiny typo: &#8220;by calling members functions on it&#8221;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10785</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Fri, 31 May 2013 20:07:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10785</guid>
+					<description><![CDATA[@Johannes: You are correct -- here&#039;s a case where &quot;you never have to write &#039;return move&#039;&quot; is not correct, when they&#039;re different types. Fixed, thanks!
+
+@esgames.org: Yes, if(option) can and does use explicit operator bool. That&#039;s considered an &quot;explicit&quot; request for a boolean test.]]></description>
+		<content:encoded><![CDATA[<p>@Johannes: You are correct &#8212; here&#8217;s a case where &#8220;you never have to write &#8216;return move'&#8221; is not correct, when they&#8217;re different types. Fixed, thanks!</p>
+<p>@esgames.org: Yes, if(option) can and does use explicit operator bool. That&#8217;s considered an &#8220;explicit&#8221; request for a boolean test.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: esgames.org (@esgamesorg)				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10780</link>
+		<dc:creator><![CDATA[esgames.org (@esgamesorg)]]></dc:creator>
+		<pubDate>Fri, 31 May 2013 19:22:04 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10780</guid>
+					<description><![CDATA[@germinolegrand Does this mean
+
+if (option) {
+    // ...
+}
+
+is an explicit conversion?]]></description>
+		<content:encoded><![CDATA[<p>@germinolegrand Does this mean</p>
+<p>if (option) {<br />
+    // &#8230;<br />
+}</p>
+<p>is an explicit conversion?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: monamimani				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10775</link>
+		<dc:creator><![CDATA[monamimani]]></dc:creator>
+		<pubDate>Fri, 31 May 2013 17:28:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10775</guid>
+					<description><![CDATA[In question 4 I think you should be talking about vector. It makes it irrelevant to compare it with the polymorphic type widget. By that I mean of course you can return by value a vector because it is heap based. 
+
+But the question remains to be answer, would you return a widget by value if it is not a polymorphic type. The function should probably be changed to create instead of load because there is no failure possible when you return by value. But still let take a common class, a mammoth class, not something small like a Matrix4x4, but something with bad design that does too much things and has plenty of states, bools, floats,..... I would still think twice to return that by value. It might not be call often in that case well you need to decide if you pay the price. I am just saying that this is probably more what should have been the answer to number 4 and have an other question or a note for cheap moveable type like vector.]]></description>
+		<content:encoded><![CDATA[<p>In question 4 I think you should be talking about vector. It makes it irrelevant to compare it with the polymorphic type widget. By that I mean of course you can return by value a vector because it is heap based. </p>
+<p>But the question remains to be answer, would you return a widget by value if it is not a polymorphic type. The function should probably be changed to create instead of load because there is no failure possible when you return by value. But still let take a common class, a mammoth class, not something small like a Matrix4x4, but something with bad design that does too much things and has plenty of states, bools, floats,&#8230;.. I would still think twice to return that by value. It might not be call often in that case well you need to decide if you pay the price. I am just saying that this is probably more what should have been the answer to number 4 and have an other question or a note for cheap moveable type like vector.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: tangzhnju				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10767</link>
+		<dc:creator><![CDATA[tangzhnju]]></dc:creator>
+		<pubDate>Fri, 31 May 2013 11:12:48 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10767</guid>
+					<description><![CDATA[@Sebastian Redl: Thanks for explaining constexpr to me which I did&#039;nt quite understand before.]]></description>
+		<content:encoded><![CDATA[<p>@Sebastian Redl: Thanks for explaining constexpr to me which I did&#8217;nt quite understand before.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Johannes Schaub (litb)				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10766</link>
+		<dc:creator><![CDATA[Johannes Schaub (litb)]]></dc:creator>
+		<pubDate>Fri, 31 May 2013 11:00:01 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10766</guid>
+					<description><![CDATA[When the return type of the function is &quot;optional&quot; and you are returning a local variable of type &quot;T&quot;, NRVO doesn&#039;t apply. I think that means you should explicitly move &quot;vector&quot; it in that case, because the implicit move-treatment is based on the possibility of being able to do NRVO, or has that rule changed for C++14?]]></description>
+		<content:encoded><![CDATA[<p>When the return type of the function is &#8220;optional&#8221; and you are returning a local variable of type &#8220;T&#8221;, NRVO doesn&#8217;t apply. I think that means you should explicitly move &#8220;vector&#8221; it in that case, because the implicit move-treatment is based on the possibility of being able to do NRVO, or has that rule changed for C++14?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Sebastian Redl				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10765</link>
+		<dc:creator><![CDATA[Sebastian Redl]]></dc:creator>
+		<pubDate>Fri, 31 May 2013 10:35:36 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10765</guid>
+					<description><![CDATA[@tangzhnju: If you write optional(), you know statically that the object you created is empty. So operator bool on it is a compile time constant.
+constexpr functions don&#039;t mean &quot;I always return a constant expression&quot;, they mean &quot;if my arguments are constants, so is my result&quot;. If the value of an optional is known at compile time, so is its empty/non-empty status.]]></description>
+		<content:encoded><![CDATA[<p>@tangzhnju: If you write optional(), you know statically that the object you created is empty. So operator bool on it is a compile time constant.<br />
+constexpr functions don&#8217;t mean &#8220;I always return a constant expression&#8221;, they mean &#8220;if my arguments are constants, so is my result&#8221;. If the value of an optional is known at compile time, so is its empty/non-empty status.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jon				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10753</link>
+		<dc:creator><![CDATA[Jon]]></dc:creator>
+		<pubDate>Fri, 31 May 2013 01:53:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10753</guid>
+					<description><![CDATA[&quot;In C++98, programmers would often resort to returning a large object by pointer just to avoid the penalty of copying its state:&quot;
+Programmers would also often resort to creating an object and then passing it by reference to copy its state. I think the solution should also be compared with that technique.]]></description>
+		<content:encoded><![CDATA[<p>&#8220;In C++98, programmers would often resort to returning a large object by pointer just to avoid the penalty of copying its state:&#8221;<br />
+Programmers would also often resort to creating an object and then passing it by reference to copy its state. I think the solution should also be compared with that technique.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: tangzhnju				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10752</link>
+		<dc:creator><![CDATA[tangzhnju]]></dc:creator>
+		<pubDate>Fri, 31 May 2013 01:44:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10752</guid>
+					<description><![CDATA[Why can optional::operator bool() be constexpr? Whether optional is valid or not is known at run time.]]></description>
+		<content:encoded><![CDATA[<p>Why can optional::operator bool() be constexpr? Whether optional is valid or not is known at run time.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: germinolegrand				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10750</link>
+		<dc:creator><![CDATA[germinolegrand]]></dc:creator>
+		<pubDate>Fri, 31 May 2013 00:47:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10750</guid>
+					<description><![CDATA[@esgames.org: to prevent things like return option + 1; which returns an int if i&#039;m not mistaken.]]></description>
+		<content:encoded><![CDATA[<p>@esgames.org: to prevent things like return option + 1; which returns an int if i&#8217;m not mistaken.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: esgames.org (@esgamesorg)				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10746</link>
+		<dc:creator><![CDATA[esgames.org (@esgamesorg)]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 23:15:00 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10746</guid>
+					<description><![CDATA[Why is optional::operator bool() declared explicit?]]></description>
+		<content:encoded><![CDATA[<p>Why is optional::operator bool() declared explicit?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/30/gotw-90-solution-factories/#comment-10744</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 23:07:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2068#comment-10744</guid>
+					<description><![CDATA[Repeating my comment I also made on the #89 solution: BTW, the reason I’m posting #89 to #91 in faster succession is because we already saw versions of these exactly one year ago, as then-numbered #103 to #105, so some of the comment discussion about them would be duplicated and I also wanted to get more quickly to the solution for the third which I didn’t post last year. I think you’ll see that all three have been considerably updated since the initial three questions and two solutions I posted a year ago — and not just because of make_unique, and its corollary don’t-write-new, but also some other C++14-isms including the brand-new optional which, like make_unique, has only been in the draft standard since last month.]]></description>
+		<content:encoded><![CDATA[<p>Repeating my comment I also made on the #89 solution: BTW, the reason I’m posting #89 to #91 in faster succession is because we already saw versions of these exactly one year ago, as then-numbered #103 to #105, so some of the comment discussion about them would be duplicated and I also wanted to get more quickly to the solution for the third which I didn’t post last year. I think you’ll see that all three have been considerably updated since the initial three questions and two solutions I posted a year ago — and not just because of make_unique, and its corollary don’t-write-new, but also some other C++14-isms including the brand-new optional which, like make_unique, has only been in the draft standard since last month.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

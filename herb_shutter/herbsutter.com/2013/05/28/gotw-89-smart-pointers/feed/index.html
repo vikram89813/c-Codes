@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #89: Smart Pointers	</title>
+	<atom:link href="https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Hawlin				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/#comment-11241</link>
+		<dc:creator><![CDATA[Hawlin]]></dc:creator>
+		<pubDate>Wed, 12 Jun 2013 13:28:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2025#comment-11241</guid>
+					<description><![CDATA[I often use the unique_ptr, because it allows the responsibility of the single object (and its security), I also use it because it can destroy the object when it is pointed more accessible. and the management of life of the equipment.]]></description>
+		<content:encoded><![CDATA[<p>I often use the unique_ptr, because it allows the responsibility of the single object (and its security), I also use it because it can destroy the object when it is pointed more accessible. and the management of life of the equipment.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adrian				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/#comment-10642</link>
+		<dc:creator><![CDATA[Adrian]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 16:32:09 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2025#comment-10642</guid>
+					<description><![CDATA[I&#039;ve a question that I hope is covered in the solution.  make_shared enables an optimization in that it can allocate the control block along with the actual object.  Presumably this improves locality, and could even eliminate one memory allocation.  But what happens if the class being instantiated has class-specific new and delete operators.  Will make_shared use that one (and thus still make a separate allocation for the control block)?]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;ve a question that I hope is covered in the solution.  make_shared enables an optimization in that it can allocate the control block along with the actual object.  Presumably this improves locality, and could even eliminate one memory allocation.  But what happens if the class being instantiated has class-specific new and delete operators.  Will make_shared use that one (and thus still make a separate allocation for the control block)?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: j				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/#comment-10623</link>
+		<dc:creator><![CDATA[j]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 12:12:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2025#comment-10623</guid>
+					<description><![CDATA[1. when shared owner ship is desired the shared_ptr can be used, otherwise default to unique_ptr
+2. make_shared allows for some allocation optimisation (allocating the Control block next the the data). Also encapsulating the `new` makes it safer when creating a shared_ptrs at the call site of a function. 
+3. make_unique solves the same problem as make_shared when used at all call site and thus is a good habit to get into where ever a unique_ptr is desired.
+
+[code]
+    //if either fails, then a leak could occure
+    f(new int(3), new double(5.6)); 
+
+    //if either fails all resources will be cleaned up
+    f(make_unique(3), make_unique(5.6)); 
+[/code]
+
+4. auto_ptr is depricated]]></description>
+		<content:encoded><![CDATA[<p>1. when shared owner ship is desired the shared_ptr can be used, otherwise default to unique_ptr<br />
+2. make_shared allows for some allocation optimisation (allocating the Control block next the the data). Also encapsulating the `new` makes it safer when creating a shared_ptrs at the call site of a function.<br />
+3. make_unique solves the same problem as make_shared when used at all call site and thus is a good habit to get into where ever a unique_ptr is desired.</p>
+<pre class="brush: plain; title: ; notranslate">
+    //if either fails, then a leak could occure
+    f(new int(3), new double(5.6)); 
+
+    //if either fails all resources will be cleaned up
+    f(make_unique(3), make_unique(5.6)); 
+</pre>
+<p>4. auto_ptr is depricated</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pip010 (@ppetrovdotnet)				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/#comment-10617</link>
+		<dc:creator><![CDATA[pip010 (@ppetrovdotnet)]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 10:08:59 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2025#comment-10617</guid>
+					<description><![CDATA[1: depends on whether you have a clear owner or not of a resource
+2&#038;3: not much of compelling reasons really. saving an extra copy maybe. it might be safer, but for limited cases IMO.
+4: main drawback AFAIK it does not behave well with STL containers.]]></description>
+		<content:encoded><![CDATA[<p>1: depends on whether you have a clear owner or not of a resource<br />
+2&amp;3: not much of compelling reasons really. saving an extra copy maybe. it might be safer, but for limited cases IMO.<br />
+4: main drawback AFAIK it does not behave well with STL containers.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Olivier				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/#comment-10612</link>
+		<dc:creator><![CDATA[Olivier]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 08:04:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2025#comment-10612</guid>
+					<description><![CDATA[I&#039;ll give it a small try.
+
+1) One should use shared_ptr when the ownership of a resource is shared between several objects and the order of destruction of these objects is not known at design-time.
+
+2&#038;3) The make_x() functions are preferable over manual new + creation of a smart pointer because
+ - it is exception-safe if one of the constuctor arguments throws
+ - it enables some allocation optimization (although not required by the standard)
+ - it saves typing.
+
+4) auto_ptr never existed. These aren&#039;t the droids you are looking for. *waves his hand*.  :)]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;ll give it a small try.</p>
+<p>1) One should use shared_ptr when the ownership of a resource is shared between several objects and the order of destruction of these objects is not known at design-time.</p>
+<p>2&amp;3) The make_x() functions are preferable over manual new + creation of a smart pointer because<br />
+ &#8211; it is exception-safe if one of the constuctor arguments throws<br />
+ &#8211; it enables some allocation optimization (although not required by the standard)<br />
+ &#8211; it saves typing.</p>
+<p>4) auto_ptr never existed. These aren&#8217;t the droids you are looking for. *waves his hand*.  :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Rick Yorgason				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/#comment-10610</link>
+		<dc:creator><![CDATA[Rick Yorgason]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 07:18:30 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2025#comment-10610</guid>
+					<description><![CDATA[Blah, brain fart. That second code block should read:
+[code]smart = std::make_unique&#060;SomeType&#062;(val1, val2);[/code]]]></description>
+		<content:encoded><![CDATA[<p>Blah, brain fart. That second code block should read:</p>
+<pre class="brush: plain; title: ; notranslate">smart = std::make_unique&lt;SomeType&gt;(val1, val2);</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Rick Yorgason				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/#comment-10609</link>
+		<dc:creator><![CDATA[Rick Yorgason]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 07:16:43 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2025#comment-10609</guid>
+					<description><![CDATA[I like make_shared and make_unique. They make my code safer and shorter.
+
+Usually.
+
+The exception is when you reset a smart pointer.
+[code]smart.reset(new SomeType(val1, val2));[/code]
+is shorter than
+[code]smart = std::unique_ptr&#060;SomeType&#062;(val1, val2);[/code]
+And I know that&#039;s safe, so it undercuts the &quot;Never use new&quot; mantra a bit.
+
+It would be great if the library supported this:
+[code]smart.emplace_reset(val1, val2);[/code]]]></description>
+		<content:encoded><![CDATA[<p>I like make_shared and make_unique. They make my code safer and shorter.</p>
+<p>Usually.</p>
+<p>The exception is when you reset a smart pointer.</p>
+<pre class="brush: plain; title: ; notranslate">smart.reset(new SomeType(val1, val2));</pre>
+<p>is shorter than</p>
+<pre class="brush: plain; title: ; notranslate">smart = std::unique_ptr&lt;SomeType&gt;(val1, val2);</pre>
+<p>And I know that&#8217;s safe, so it undercuts the &#8220;Never use new&#8221; mantra a bit.</p>
+<p>It would be great if the library supported this:</p>
+<pre class="brush: plain; title: ; notranslate">smart.emplace_reset(val1, val2);</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Anonymous				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/#comment-10603</link>
+		<dc:creator><![CDATA[Anonymous]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 06:36:14 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2025#comment-10603</guid>
+					<description><![CDATA[Regarding #4, I assume the eventual advice will include things like being able to banish &quot;naked new&quot; as a pedagogical point, and maintaining exception safety when there&#039;s multiple arguments, e.g.
+
+[code]
+void f(unique_ptr&#060;Foo&#062;, unique_ptr&#060;Bar&#062;);
+f(new Foo, new Bar);  // leaks if the first ctor called -- whichever that is -- throws
+[/code]
+
+But, IMHO, these result in a much less persuasive argument for *always* using make_unique compared to the situation for make_shared which is much more cut and dry, especially since make_unique was left out of C++11.  Yeah, I know it&#039;s only a few lines and it&#039;s in C++14, but as long as you aren&#039;t passing multiple arguments and you aren&#039;t writing example code for a book, I&#039;m not seeing the real burning need for make_unique.]]></description>
+		<content:encoded><![CDATA[<p>Regarding #4, I assume the eventual advice will include things like being able to banish &#8220;naked new&#8221; as a pedagogical point, and maintaining exception safety when there&#8217;s multiple arguments, e.g.</p>
+<pre class="brush: plain; title: ; notranslate">
+void f(unique_ptr&lt;Foo&gt;, unique_ptr&lt;Bar&gt;);
+f(new Foo, new Bar);  // leaks if the first ctor called -- whichever that is -- throws
+</pre>
+<p>But, IMHO, these result in a much less persuasive argument for *always* using make_unique compared to the situation for make_shared which is much more cut and dry, especially since make_unique was left out of C++11.  Yeah, I know it&#8217;s only a few lines and it&#8217;s in C++14, but as long as you aren&#8217;t passing multiple arguments and you aren&#8217;t writing example code for a book, I&#8217;m not seeing the real burning need for make_unique.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adam Burry				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/#comment-10590</link>
+		<dc:creator><![CDATA[Adam Burry]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 01:41:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2025#comment-10590</guid>
+					<description><![CDATA[And, should you pass shared_ptr by value or by reference?]]></description>
+		<content:encoded><![CDATA[<p>And, should you pass shared_ptr by value or by reference?</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

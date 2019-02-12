@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: Video: You Don&#8217;t Know const and mutable	</title>
+	<atom:link href="https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Mike Marcin				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-8359</link>
+		<dc:creator><![CDATA[Mike Marcin]]></dc:creator>
+		<pubDate>Fri, 25 Jan 2013 16:53:08 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-8359</guid>
+					<description><![CDATA[Does 17.6.5.9/3 mean that calling const methods needs to be race free?
+You can have a normal not internally synchronized class that meets the definition (does not modify the object during const method) but that doesn&#039;t mean it&#039;s thread safe. Simply that const methods can only contain the 2nd type of expression &quot;the other one
+accesses [...] the same memory location&quot;. If anyone else modifies the memory location in a non-const method or externally to the class altogether that doesn&#039;t seem to violate 17.6.5.9/3 but you create a race and aren&#039;t thread safe.
+
+As sandforddene said above unless the object is unchanging in all threads the &quot;const does not modify&quot; guarantee is not enough to say thread safe or race free.]]></description>
+		<content:encoded><![CDATA[<p>Does 17.6.5.9/3 mean that calling const methods needs to be race free?<br />
+You can have a normal not internally synchronized class that meets the definition (does not modify the object during const method) but that doesn&#8217;t mean it&#8217;s thread safe. Simply that const methods can only contain the 2nd type of expression &#8220;the other one<br />
+accesses [&#8230;] the same memory location&#8221;. If anyone else modifies the memory location in a non-const method or externally to the class altogether that doesn&#8217;t seem to violate 17.6.5.9/3 but you create a race and aren&#8217;t thread safe.</p>
+<p>As sandforddene said above unless the object is unchanging in all threads the &#8220;const does not modify&#8221; guarantee is not enough to say thread safe or race free.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Chris Vine				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7942</link>
+		<dc:creator><![CDATA[Chris Vine]]></dc:creator>
+		<pubDate>Sat, 12 Jan 2013 00:44:36 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7942</guid>
+					<description><![CDATA[What the part of the standard in question says is:
+
+&quot;A C ++ standard library function shall not directly or indirectly modify objects (1.10) accessible by threads other than the current thread unless the objects are accessed directly or indirectly via the function’s non-const arguments, including this.&quot;
+
+This is not, in terms, concerned with the thread safety of an object in the traditional sense (namely, &quot;correctly synchronized in accordance with §1.10&quot;).  It covers a very small subset of thread safety.  It requires amongst other matters a standard library function not to modify an object which it is required to view as const (say, because it was passed by reference to const) unless the object is not visible to any other thread. Since the library function will not know whether the object is visible to other threads, it in effect prevents const objects being modified by a standard library function in a multi-threaded program.  Since, equally, the standard library function will not generally know whether the object was allocated in mutable storage, there are other equally compelling reasons why the standard library function should not modify the object.
+
+The threading requirement is a demand applied whether or not the object concerned is of itself intrinsically thread safe (say by having mutable mutexes), which I think is a defect.  Having a thread-safe object does not help you once it is const.]]></description>
+		<content:encoded><![CDATA[<p>What the part of the standard in question says is:</p>
+<p>&#8220;A C ++ standard library function shall not directly or indirectly modify objects (1.10) accessible by threads other than the current thread unless the objects are accessed directly or indirectly via the function’s non-const arguments, including this.&#8221;</p>
+<p>This is not, in terms, concerned with the thread safety of an object in the traditional sense (namely, &#8220;correctly synchronized in accordance with §1.10&#8221;).  It covers a very small subset of thread safety.  It requires amongst other matters a standard library function not to modify an object which it is required to view as const (say, because it was passed by reference to const) unless the object is not visible to any other thread. Since the library function will not know whether the object is visible to other threads, it in effect prevents const objects being modified by a standard library function in a multi-threaded program.  Since, equally, the standard library function will not generally know whether the object was allocated in mutable storage, there are other equally compelling reasons why the standard library function should not modify the object.</p>
+<p>The threading requirement is a demand applied whether or not the object concerned is of itself intrinsically thread safe (say by having mutable mutexes), which I think is a defect.  Having a thread-safe object does not help you once it is const.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: GregM				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7931</link>
+		<dc:creator><![CDATA[GregM]]></dc:creator>
+		<pubDate>Fri, 11 Jan 2013 17:23:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7931</guid>
+					<description><![CDATA[sandforddene, Andrei WAS in the room, along with Scott Meyers, as this talk was at C++ and Beyond.]]></description>
+		<content:encoded><![CDATA[<p>sandforddene, Andrei WAS in the room, along with Scott Meyers, as this talk was at C++ and Beyond.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: sandforddene				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7877</link>
+		<dc:creator><![CDATA[sandforddene]]></dc:creator>
+		<pubDate>Wed, 09 Jan 2013 22:12:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7877</guid>
+					<description><![CDATA[In short: const != thread-safe. In long:
+
+@Gregory - &quot;The new additional meanings of const and mutable mean that most of the types have to be thread-safe. And I still do not get what thread-safe means here. And why const implies immutable in C++11. The immutability is not enforced in any way in the language. How can we be sure that object passed by const reference will not be mutated?&quot;
+@Martinho Fernandes - &quot;@Gregory: no. Only the const operations need to be allowed to called concurrently with other const operations. If all they do is read data and really modify nothing at all, then nothing else is required of the programmer. Old types that do this need no change. And this kind of const does not imply immutability (where did that idea come from?). As can be seen in the talk, it implies two things: 1) such operations do not change observable state and 2) they can be called concurrently with other const operations.&quot;
+@Codecraft: How Sutter’s Wrong About const in C++ 11 - &quot;So: const means unchanging in one or many threads, which is why it also implies thread-safe; &quot;
+
+What @Gregory pointed out is that bitwise const does not imply thread safety, but transitive bitwise immutability does. And since Herb Sutter and the C++11 standard library state that const implies thread-safe, it therefore also states that const objects must either be synchronized or transitively bitwise immutable. The difference between const and immutable is that &#039;const means unchanging in one or many threads&#039; while immutable means unchanging in all threads. I.e. being able to &#039;be called concurrently with other const operations&#039; is valid if and only if no other thread holds a mutable reference to that object. And there is no guarantee of that.
+
+Worse, bitwise const doesn&#039;t even imply logical const. Nor does bitwise immutability imply logical immutability. Consider the private implementation (&#039;pimple&#039;) pattern, in which an object contains a single reference to a hidden object which contains the actual implementation. That reference (should) never change, and thus the object is bitwise const/immutable, however the referenced implementation object can be mutated freely, even inside const methods. And while pimple methods should be simple wrappers, the concept applies to all child references. For example, in a linked list, it is the reference to the nodes, not the nodes themselves, which are const inside a const member function. The ability to access mutable data through a const reference, renders bitwise const neither logically const nor thread-safe.
+
+I am sadden that so many leaders of the C++ programming community, including the standard committee itself and the writers of our compilers, fundamentally do not understand const and it&#039;s limitations. It&#039;s a shame Andrei wasn&#039;t in the room (http://dlang.org/const3.html)
+
+P.S. I&#039;ve seen &#039;bugs&#039; due to the fact the compilers will cache the contents of const objects.]]></description>
+		<content:encoded><![CDATA[<p>In short: const != thread-safe. In long:</p>
+<p>@Gregory &#8211; &#8220;The new additional meanings of const and mutable mean that most of the types have to be thread-safe. And I still do not get what thread-safe means here. And why const implies immutable in C++11. The immutability is not enforced in any way in the language. How can we be sure that object passed by const reference will not be mutated?&#8221;<br />
+@Martinho Fernandes &#8211; &#8220;@Gregory: no. Only the const operations need to be allowed to called concurrently with other const operations. If all they do is read data and really modify nothing at all, then nothing else is required of the programmer. Old types that do this need no change. And this kind of const does not imply immutability (where did that idea come from?). As can be seen in the talk, it implies two things: 1) such operations do not change observable state and 2) they can be called concurrently with other const operations.&#8221;<br />
+@Codecraft: How Sutter’s Wrong About const in C++ 11 &#8211; &#8220;So: const means unchanging in one or many threads, which is why it also implies thread-safe; &#8221;</p>
+<p>What @Gregory pointed out is that bitwise const does not imply thread safety, but transitive bitwise immutability does. And since Herb Sutter and the C++11 standard library state that const implies thread-safe, it therefore also states that const objects must either be synchronized or transitively bitwise immutable. The difference between const and immutable is that &#8216;const means unchanging in one or many threads&#8217; while immutable means unchanging in all threads. I.e. being able to &#8216;be called concurrently with other const operations&#8217; is valid if and only if no other thread holds a mutable reference to that object. And there is no guarantee of that.</p>
+<p>Worse, bitwise const doesn&#8217;t even imply logical const. Nor does bitwise immutability imply logical immutability. Consider the private implementation (&#8216;pimple&#8217;) pattern, in which an object contains a single reference to a hidden object which contains the actual implementation. That reference (should) never change, and thus the object is bitwise const/immutable, however the referenced implementation object can be mutated freely, even inside const methods. And while pimple methods should be simple wrappers, the concept applies to all child references. For example, in a linked list, it is the reference to the nodes, not the nodes themselves, which are const inside a const member function. The ability to access mutable data through a const reference, renders bitwise const neither logically const nor thread-safe.</p>
+<p>I am sadden that so many leaders of the C++ programming community, including the standard committee itself and the writers of our compilers, fundamentally do not understand const and it&#8217;s limitations. It&#8217;s a shame Andrei wasn&#8217;t in the room (<a href="http://dlang.org/const3.html" rel="nofollow">http://dlang.org/const3.html</a>)</p>
+<p>P.S. I&#8217;ve seen &#8216;bugs&#8217; due to the fact the compilers will cache the contents of const objects.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Andreas Bergmeier				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7829</link>
+		<dc:creator><![CDATA[Andreas Bergmeier]]></dc:creator>
+		<pubDate>Tue, 08 Jan 2013 11:18:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7829</guid>
+					<description><![CDATA[So explicit `mutability` now enforces thread handling by default!? What about this example: http://stackoverflow.com/questions/14213779/is-mutable-functor-still-valid-to-be-used]]></description>
+		<content:encoded><![CDATA[<p>So explicit `mutability` now enforces thread handling by default!? What about this example: <a href="http://stackoverflow.com/questions/14213779/is-mutable-functor-still-valid-to-be-used" rel="nofollow">http://stackoverflow.com/questions/14213779/is-mutable-functor-still-valid-to-be-used</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mark Thomas				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7797</link>
+		<dc:creator><![CDATA[Mark Thomas]]></dc:creator>
+		<pubDate>Sat, 05 Jan 2013 20:38:42 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7797</guid>
+					<description><![CDATA[Just as Herb says that you would prefer &#039;mutable mutex m;&#039; rather than use &#039;const_cast(m)&#039; everywhere you use &#039;m&#039; to save typing and just as Herb says &#039;mutable mutex m;&#039; is saying that &#039;m&#039; is thread safe such that it can be used in &#039;const&#039; situations (i.e. const member functions), it occurred to me while watching that it&#039;s not really &#039;m&#039; per se that is thread safe, but &#039;class mutex&#039; that is thread safe. So why do we need to specify &#039;mutable&#039; on the declaration of the variables of type &#039;mutex&#039;? Why not change the language to allow you to indicate thread-safe on the class definition: &#039;class mutable mutex { ... };&#039;?
+
+I think this is similar to @akondratskiy and I don&#039;t completely buy Herb&#039;s response to him as putting &#039;const&#039; on &#039;lock/unlock&#039; would essentially say they are thread safe. Just as Herb said in the video that a mutex is inherently thread safe. In this sense, my proposal to specify &#039;mutable&#039; on the class definition essentially means all member functions are &#039;const&#039;.
+
+I feel like there is something still not quite right about the idea that const and mutable mean the same thing and imply thread safe. Herb mentions the idea that a class might have an internal counter declared as &#039;mutable&#039; because the counter changing doesn&#039;t really represent a state change of the object. However, this &#039;mutable&#039; tag does not make it thread safe. You might still need to use an interlocked increment to make it thread safe. However, if the C++11 atomic class were tagged with my proposed &#039;class mutable&#039; (e.g. &#039;template class mutable atomic&#039;), then you could just specify your counter as type &#039;atomic&#039; and just be happy using &#039;operator++&#039; on it, even in const member functions.
+
+It seems like it could be useful to be able to tag a class that is inherently thread safe. There seems to be a C++ feature trying to get out.]]></description>
+		<content:encoded><![CDATA[<p>Just as Herb says that you would prefer &#8216;mutable mutex m;&#8217; rather than use &#8216;const_cast(m)&#8217; everywhere you use &#8216;m&#8217; to save typing and just as Herb says &#8216;mutable mutex m;&#8217; is saying that &#8216;m&#8217; is thread safe such that it can be used in &#8216;const&#8217; situations (i.e. const member functions), it occurred to me while watching that it&#8217;s not really &#8216;m&#8217; per se that is thread safe, but &#8216;class mutex&#8217; that is thread safe. So why do we need to specify &#8216;mutable&#8217; on the declaration of the variables of type &#8216;mutex&#8217;? Why not change the language to allow you to indicate thread-safe on the class definition: &#8216;class mutable mutex { &#8230; };&#8217;?</p>
+<p>I think this is similar to @akondratskiy and I don&#8217;t completely buy Herb&#8217;s response to him as putting &#8216;const&#8217; on &#8216;lock/unlock&#8217; would essentially say they are thread safe. Just as Herb said in the video that a mutex is inherently thread safe. In this sense, my proposal to specify &#8216;mutable&#8217; on the class definition essentially means all member functions are &#8216;const&#8217;.</p>
+<p>I feel like there is something still not quite right about the idea that const and mutable mean the same thing and imply thread safe. Herb mentions the idea that a class might have an internal counter declared as &#8216;mutable&#8217; because the counter changing doesn&#8217;t really represent a state change of the object. However, this &#8216;mutable&#8217; tag does not make it thread safe. You might still need to use an interlocked increment to make it thread safe. However, if the C++11 atomic class were tagged with my proposed &#8216;class mutable&#8217; (e.g. &#8216;template class mutable atomic&#8217;), then you could just specify your counter as type &#8216;atomic&#8217; and just be happy using &#8216;operator++&#8217; on it, even in const member functions.</p>
+<p>It seems like it could be useful to be able to tag a class that is inherently thread safe. There seems to be a C++ feature trying to get out.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Endre Szalai				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7792</link>
+		<dc:creator><![CDATA[Endre Szalai]]></dc:creator>
+		<pubDate>Sat, 05 Jan 2013 10:38:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7792</guid>
+					<description><![CDATA[After 10+ years of programming, I started to realize that shared data and mutability are the two major source of pain nowadays in programming world. Erlang addressed these 15 years ago and solved it very well. I&#039;m wondering about your opinion Herb, what do you think about the actor model and immutability? Do you see it as a viable way in the future (business/performance/technology point of view)? It would be really nice to read a summary post about this, please do it :-)]]></description>
+		<content:encoded><![CDATA[<p>After 10+ years of programming, I started to realize that shared data and mutability are the two major source of pain nowadays in programming world. Erlang addressed these 15 years ago and solved it very well. I&#8217;m wondering about your opinion Herb, what do you think about the actor model and immutability? Do you see it as a viable way in the future (business/performance/technology point of view)? It would be really nice to read a summary post about this, please do it :-)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Martinho Fernandes				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7781</link>
+		<dc:creator><![CDATA[Martinho Fernandes]]></dc:creator>
+		<pubDate>Fri, 04 Jan 2013 10:37:14 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7781</guid>
+					<description><![CDATA[@Gregory: no. Only the const operations need to be allowed to called concurrently with other const operations. If all they do is read data and really modify nothing at all, then nothing else is required of the programmer. Old types that do this need no change.
+
+And this kind ofconst does not imply immutability (where did that idea come from?). As can be seen in the talk, it implies two things: 1) such operations do not change observable state and 2) they can be called concurrently with other const operations. #1 is not enforced by the language because the language gives leeway to the programmer to implement whatever semantics they want. However, the language does guide you towards that by making you work a bit more in order to implement a const operation that changes observable state: the compiler will reject code that would invoke non-const operations on this or modify member objects. C++ gives you a way out of this cage with mutable, but there is only one person to blame if you decide to use it in some inane way.]]></description>
+		<content:encoded><![CDATA[<p>@Gregory: no. Only the const operations need to be allowed to called concurrently with other const operations. If all they do is read data and really modify nothing at all, then nothing else is required of the programmer. Old types that do this need no change.</p>
+<p>And this kind ofconst does not imply immutability (where did that idea come from?). As can be seen in the talk, it implies two things: 1) such operations do not change observable state and 2) they can be called concurrently with other const operations. #1 is not enforced by the language because the language gives leeway to the programmer to implement whatever semantics they want. However, the language does guide you towards that by making you work a bit more in order to implement a const operation that changes observable state: the compiler will reject code that would invoke non-const operations on this or modify member objects. C++ gives you a way out of this cage with mutable, but there is only one person to blame if you decide to use it in some inane way.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Ashkan				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7780</link>
+		<dc:creator><![CDATA[Ashkan]]></dc:creator>
+		<pubDate>Fri, 04 Jan 2013 08:08:31 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7780</guid>
+					<description><![CDATA[Hi there,
+
+First of all.... Happy new year ! (with delay, but still counts...)
+
+I just came across some &quot;professional&quot; software engineers short discussion about the absence of modules in C++. Honestly I don&#039;t know much about &quot;modules&quot;, I had to google it but the thing that really puzzled me was that they constantly called C++ &quot;broken&quot;...
+
+so... I was wondering do you have any ideas what is exactly &quot;broken&quot; in C++ for some people? I don&#039;t want to ask them as they seem not very fond of the language and if it gets technical I don&#039;t have much to say (newbie here) !]]></description>
+		<content:encoded><![CDATA[<p>Hi there,</p>
+<p>First of all&#8230;. Happy new year ! (with delay, but still counts&#8230;)</p>
+<p>I just came across some &#8220;professional&#8221; software engineers short discussion about the absence of modules in C++. Honestly I don&#8217;t know much about &#8220;modules&#8221;, I had to google it but the thing that really puzzled me was that they constantly called C++ &#8220;broken&#8221;&#8230;</p>
+<p>so&#8230; I was wondering do you have any ideas what is exactly &#8220;broken&#8221; in C++ for some people? I don&#8217;t want to ask them as they seem not very fond of the language and if it gets technical I don&#8217;t have much to say (newbie here) !</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7776</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 03 Jan 2013 20:09:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7776</guid>
+					<description><![CDATA[PS - I’ve updated my slides to use the “implies” sign (=&#062;) rather than “==” to be more precise that this is in additional to the &quot;no observable side effects&quot; meaning of const. Thanks for the comment.]]></description>
+		<content:encoded><![CDATA[<p>PS &#8211; I’ve updated my slides to use the “implies” sign (=&gt;) rather than “==” to be more precise that this is in additional to the &#8220;no observable side effects&#8221; meaning of const. Thanks for the comment.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Gregory				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7775</link>
+		<dc:creator><![CDATA[Gregory]]></dc:creator>
+		<pubDate>Thu, 03 Jan 2013 20:01:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7775</guid>
+					<description><![CDATA[The new additional meanings of const and mutable mean that most of the types have to be thread-safe. And I still do not get what thread-safe means here. And why const implies immutable in C++11. The immutability is not enforced in any way in the language. How can we be sure that object passed by const reference will not be mutated?]]></description>
+		<content:encoded><![CDATA[<p>The new additional meanings of const and mutable mean that most of the types have to be thread-safe. And I still do not get what thread-safe means here. And why const implies immutable in C++11. The immutability is not enforced in any way in the language. How can we be sure that object passed by const reference will not be mutated?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7774</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 03 Jan 2013 19:58:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7774</guid>
+					<description><![CDATA[@DeadMG: Not exactly. It is technically legal for an implementation to run std::sort in parallel if it (the compiler and library in collaboration) can prove the effect is the same, including that a pure functor is being passed and that operations on the range&#039;s elements are independent and order-insensitive, but this is generally very difficult to prove. I don&#039;t think that this const makes that analysis significantly easier; what is needed is the idea of a pure function in the language, or a named parallel_sort algorithm that lets the programmer express his intent and promise that he&#039;s doing it right (e.g., not passing a functor with side effects that would create a race condition).
+
+All: Yes, this is in addition to the existing meaning of const -- it&#039;s basically saying that const doesn&#039;t mean just that there are no observable side effects on the object, but that there are no race-injecting side effects either, on the object directly or on other shared state.
+
+@akondratskiy: Taking a lock conceptually (and actually) modifies the mutex, so mutex::lock should be non-const. However, the next higher level of code that uses the mutex as an internal implementation detail may need to take a lock on that mutex as part of its own higher-level conceptually non-modifying operation, as in the talk&#039;s examples.
+
+@Balog: Thinko, you got me -- I was thinking of the other Schneier book with a similar title. Maybe Schneier uses &quot;lies&quot; and &quot;liars&quot; too much. :)
+
+@tala: The analysis is the same whether the X copy constructor takes a const X&#038; or a const volatile X&#038;. (C/C++ volatile has nothing to do with concurrency by the way -- see my article &quot;volatile vs volatile&quot; at https://herbsutter.com/2009/01/12/effective-concurrency-volatile-vs-volatile/ .)]]></description>
+		<content:encoded><![CDATA[<p>@DeadMG: Not exactly. It is technically legal for an implementation to run std::sort in parallel if it (the compiler and library in collaboration) can prove the effect is the same, including that a pure functor is being passed and that operations on the range&#8217;s elements are independent and order-insensitive, but this is generally very difficult to prove. I don&#8217;t think that this const makes that analysis significantly easier; what is needed is the idea of a pure function in the language, or a named parallel_sort algorithm that lets the programmer express his intent and promise that he&#8217;s doing it right (e.g., not passing a functor with side effects that would create a race condition).</p>
+<p>All: Yes, this is in addition to the existing meaning of const &#8212; it&#8217;s basically saying that const doesn&#8217;t mean just that there are no observable side effects on the object, but that there are no race-injecting side effects either, on the object directly or on other shared state.</p>
+<p>@akondratskiy: Taking a lock conceptually (and actually) modifies the mutex, so mutex::lock should be non-const. However, the next higher level of code that uses the mutex as an internal implementation detail may need to take a lock on that mutex as part of its own higher-level conceptually non-modifying operation, as in the talk&#8217;s examples.</p>
+<p>@Balog: Thinko, you got me &#8212; I was thinking of the other Schneier book with a similar title. Maybe Schneier uses &#8220;lies&#8221; and &#8220;liars&#8221; too much. :)</p>
+<p>@tala: The analysis is the same whether the X copy constructor takes a const X&amp; or a const volatile X&amp;. (C/C++ volatile has nothing to do with concurrency by the way &#8212; see my article &#8220;volatile vs volatile&#8221; at <a href="https://herbsutter.com/2009/01/12/effective-concurrency-volatile-vs-volatile/" rel="nofollow">https://herbsutter.com/2009/01/12/effective-concurrency-volatile-vs-volatile/</a> .)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Joe				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7763</link>
+		<dc:creator><![CDATA[Joe]]></dc:creator>
+		<pubDate>Thu, 03 Jan 2013 02:54:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7763</guid>
+					<description><![CDATA[Two comments:
+
+ 1) The usual (C++98) definitions of const and mutable are what the compiler is responsible for enforcing.  Herb&#039;s definitions are what the library and coder are responsible for.
+
+ 2) I think the difference between Herb&#039;s definitions of const and mutable is that const means &quot;thread-safe for reading&quot; and mutable means &quot;thread-safe for writing&quot;.]]></description>
+		<content:encoded><![CDATA[<p>Two comments:</p>
+<p> 1) The usual (C++98) definitions of const and mutable are what the compiler is responsible for enforcing.  Herb&#8217;s definitions are what the library and coder are responsible for.</p>
+<p> 2) I think the difference between Herb&#8217;s definitions of const and mutable is that const means &#8220;thread-safe for reading&#8221; and mutable means &#8220;thread-safe for writing&#8221;.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: petke				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7752</link>
+		<dc:creator><![CDATA[petke]]></dc:creator>
+		<pubDate>Wed, 02 Jan 2013 17:14:36 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7752</guid>
+					<description><![CDATA[Like the previous posters asked.
+
+&quot;If const means thread-safe. Why isn&#039;t the method std::mutex::lock defined as const (as its internally synchronized)?&quot;
+
+Surely it not a good idea to slap const on any method just because its internally syncronized, if observable state changes (in this case if the lock method blocks or does not)?]]></description>
+		<content:encoded><![CDATA[<p>Like the previous posters asked.</p>
+<p>&#8220;If const means thread-safe. Why isn&#8217;t the method std::mutex::lock defined as const (as its internally synchronized)?&#8221;</p>
+<p>Surely it not a good idea to slap const on any method just because its internally syncronized, if observable state changes (in this case if the lock method blocks or does not)?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: tala				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7750</link>
+		<dc:creator><![CDATA[tala]]></dc:creator>
+		<pubDate>Wed, 02 Jan 2013 16:42:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7750</guid>
+					<description><![CDATA[Will it still be thread safe for a class X with a copy constructor where its first parameter is of type const volatile X&#038; ?]]></description>
+		<content:encoded><![CDATA[<p>Will it still be thread safe for a class X with a copy constructor where its first parameter is of type const volatile X&amp; ?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: How Sutter&#8217;s Wrong About const in C++ 11 &#171; Codecraft				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7748</link>
+		<dc:creator><![CDATA[How Sutter&#8217;s Wrong About const in C++ 11 &#171; Codecraft]]></dc:creator>
+		<pubDate>Wed, 02 Jan 2013 15:50:27 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7748</guid>
+					<description><![CDATA[[...] Video: You Don&#8217;t Know const and mutable (herbsutter.com) [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Video: You Don&#8217;t Know const and mutable (herbsutter.com) [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Andy Jewell				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7745</link>
+		<dc:creator><![CDATA[Andy Jewell]]></dc:creator>
+		<pubDate>Wed, 02 Jan 2013 15:10:56 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7745</guid>
+					<description><![CDATA[Perhaps it needs to be stressed that const and mutable mean &quot;thread-safe&quot; in addition to their old meaning, not instead of their old meaning. Any other interpretation leads to madness and chaos.]]></description>
+		<content:encoded><![CDATA[<p>Perhaps it needs to be stressed that const and mutable mean &#8220;thread-safe&#8221; in addition to their old meaning, not instead of their old meaning. Any other interpretation leads to madness and chaos.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Balog Pal				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7737</link>
+		<dc:creator><![CDATA[Balog Pal]]></dc:creator>
+		<pubDate>Wed, 02 Jan 2013 04:05:23 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7737</guid>
+					<description><![CDATA[Is this an old video? Secrets and lies as a decade old book. (a very good one certainly and not a bit outdated or irrelevant. ;-)  The most recent was Beyond Fear until last year&#039;s Liars and Outliers.]]></description>
+		<content:encoded><![CDATA[<p>Is this an old video? Secrets and lies as a decade old book. (a very good one certainly and not a bit outdated or irrelevant. ;-)  The most recent was Beyond Fear until last year&#8217;s Liars and Outliers.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: cmhayden				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7736</link>
+		<dc:creator><![CDATA[cmhayden]]></dc:creator>
+		<pubDate>Wed, 02 Jan 2013 03:40:42 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7736</guid>
+					<description><![CDATA[My thoughts are similar to the previous comment.  Suppose I have a concurrent queue and that all operations are correctly synchronized using mutexes. Since const means thread-safe and all of the operations are thread-safe (because I use synchronization), doesn’t that imply I should mark all of the operations const? Even the ones that do modify the *observable* state of the queue?
+
+If that’s the case then it’s a radical departure from how we understand const now since there’s no way I can indicate that an operation doesn’t modify the observable state of an operation. The best I can do is say that any modifications that do occur will be thread-safe. That doesn’t seem like the original intent of the const keyword and it would meaning losing a way to express valuable semantic information.
+
+What’s more, if applying mutable to a class member implies that the member is thread-safe, doesn’t that introduce a dangerous level of semantic coupling between the member and the containing class? What if someone changes the definition of the member type such that it is no longer thread-safe? The program would compile just fine, but it would be broken. It shouldn’t be the client’s responsibility to tell the member it’s thread safe; it should be the member types responsibility to tell all clients that it is thread-safe.]]></description>
+		<content:encoded><![CDATA[<p>My thoughts are similar to the previous comment.  Suppose I have a concurrent queue and that all operations are correctly synchronized using mutexes. Since const means thread-safe and all of the operations are thread-safe (because I use synchronization), doesn’t that imply I should mark all of the operations const? Even the ones that do modify the *observable* state of the queue?</p>
+<p>If that’s the case then it’s a radical departure from how we understand const now since there’s no way I can indicate that an operation doesn’t modify the observable state of an operation. The best I can do is say that any modifications that do occur will be thread-safe. That doesn’t seem like the original intent of the const keyword and it would meaning losing a way to express valuable semantic information.</p>
+<p>What’s more, if applying mutable to a class member implies that the member is thread-safe, doesn’t that introduce a dangerous level of semantic coupling between the member and the containing class? What if someone changes the definition of the member type such that it is no longer thread-safe? The program would compile just fine, but it would be broken. It shouldn’t be the client’s responsibility to tell the member it’s thread safe; it should be the member types responsibility to tell all clients that it is thread-safe.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: akondratskiy				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7735</link>
+		<dc:creator><![CDATA[akondratskiy]]></dc:creator>
+		<pubDate>Tue, 01 Jan 2013 22:15:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7735</guid>
+					<description><![CDATA[Cool talk! I am wondering though - if const now means thread-safe, can&#039;t the lock/unlock methods of std::mutex also be made const? This would mean that unique_lock could take the mutex by reference to const, and mutable would no longer be required in the example. 
+
+In other words, should the standard library be modified to &#039;bury&#039; mutable as deep as possible, so that users don&#039;t even need to use it in most cases?]]></description>
+		<content:encoded><![CDATA[<p>Cool talk! I am wondering though &#8211; if const now means thread-safe, can&#8217;t the lock/unlock methods of std::mutex also be made const? This would mean that unique_lock could take the mutex by reference to const, and mutable would no longer be required in the example. </p>
+<p>In other words, should the standard library be modified to &#8216;bury&#8217; mutable as deep as possible, so that users don&#8217;t even need to use it in most cases?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Concerned C++ Programmer				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7734</link>
+		<dc:creator><![CDATA[Concerned C++ Programmer]]></dc:creator>
+		<pubDate>Tue, 01 Jan 2013 21:29:51 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7734</guid>
+					<description><![CDATA[The guy doing the camera work should be shot.]]></description>
+		<content:encoded><![CDATA[<p>The guy doing the camera work should be shot.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: DeadMG				</title>
+				<link>https://herbsutter.com/2013/01/01/video-you-dont-know-const-and-mutable/#comment-7732</link>
+		<dc:creator><![CDATA[DeadMG]]></dc:creator>
+		<pubDate>Tue, 01 Jan 2013 18:54:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1700#comment-7732</guid>
+					<description><![CDATA[Does this imply that it&#039;s now completely legal for any compiler vendor to implement, say, std::sort as always in parallel?]]></description>
+		<content:encoded><![CDATA[<p>Does this imply that it&#8217;s now completely legal for any compiler vendor to implement, say, std::sort as always in parallel?</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

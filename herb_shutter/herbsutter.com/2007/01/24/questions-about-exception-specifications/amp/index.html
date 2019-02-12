@@ -1,0 +1,546 @@
+<!doctype html>
+<html amp lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+	
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Questions About Exception Specifications" />
+<meta property="og:url" content="https://herbsutter.com/2007/01/24/questions-about-exception-specifications/" />
+<meta property="og:description" content="In the past few days, I&#8217;ve had several people independently send me email to ask related questions about exception specifications. That must be reason enough to echo some answers here. Backgr…" />
+<meta property="article:published_time" content="-001-11-30T00:00:00+00:00" />
+<meta property="article:modified_time" content="-001-11-30T00:00:00+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542966238" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Questions About Exception Specifications" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+	<title>Questions About Exception Specifications &#8211; Sutter’s Mill</title>
+		<link rel="canonical" href="https://herbsutter.com/2007/01/24/questions-about-exception-specifications/" />
+	<script src="https://cdn.ampproject.org/v0.js" async></script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic">	<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+		<script type="application/ld+json">{"@context":"http:\/\/schema.org","@type":"BlogPosting","mainEntityOfPage":"https:\/\/herbsutter.com\/2007\/01\/24\/questions-about-exception-specifications\/","publisher":{"@type":"Organization","name":"Sutter\u2019s Mill","logo":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=60&d=https%3A%2F%2Fs0.wp.com%2Fi%2Ffavicons%2Fapple-touch-icon-60x60.png","width":60,"height":60}},"headline":"Questions About Exception Specifications","datePublished":"2007-01-24T11:54:00+00:00","dateModified":"2007-01-24T11:54:00+00:00","author":{"@type":"Person","name":"Herb Sutter"},"image":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=200","width":200,"height":200}}</script>
+	<meta name="generator" content="AMP Plugin v0.6.2" />	<style amp-custom>
+		/* Generic WP styling */
+
+.alignright {
+	float: right;
+}
+
+.alignleft {
+	float: left;
+}
+
+.aligncenter {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.amp-wp-enforced-sizes {
+	/** Our sizes fallback is 100vw, and we have a padding on the container; the max-width here prevents the element from overflowing. **/
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+.amp-wp-unknown-size img {
+	/** Worst case scenario when we can't figure out dimensions for an image. **/
+	/** Force the image into a box of fixed dimensions and use object-fit to scale. **/
+	object-fit: contain;
+}
+
+/* Template Styles */
+
+.amp-wp-content,
+.amp-wp-title-bar div {
+		margin: 0 auto;
+	max-width: 500px;
+	}
+
+html {
+	background: #0a89c0;
+}
+
+body {
+	background: #fff;
+	color: #353535;
+	font-family: 'Merriweather', 'Times New Roman', Times, Serif;
+	font-weight: 300;
+	line-height: 1.75em;
+}
+
+p,
+ol,
+ul,
+figure {
+	margin: 0 0 1em;
+	padding: 0;
+}
+
+a,
+a:visited {
+	color: #0a89c0;
+}
+
+a:hover,
+a:active,
+a:focus {
+	color: #353535;
+}
+
+/* Quotes */
+
+blockquote {
+	color: #353535;
+	background: rgba(127,127,127,.125);
+	border-left: 2px solid #0a89c0;
+	margin: 8px 0 24px 0;
+	padding: 16px;
+}
+
+blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+/* UI Fonts */
+
+.amp-wp-meta,
+.amp-wp-header div,
+.amp-wp-title,
+.wp-caption-text,
+.amp-wp-tax-category,
+.amp-wp-tax-tag,
+.amp-wp-comments-link,
+.amp-wp-footer p,
+.back-to-top {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen-Sans", "Ubuntu", "Cantarell", "Helvetica Neue", sans-serif;
+}
+
+/* Header */
+
+.amp-wp-header {
+	background-color: #0a89c0;
+}
+
+.amp-wp-header div {
+	color: #fff;
+	font-size: 1em;
+	font-weight: 400;
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: .875em 16px;
+	position: relative;
+}
+
+.amp-wp-header a {
+	color: #fff;
+	text-decoration: none;
+}
+
+/* Site Icon */
+
+.amp-wp-header .amp-wp-site-icon {
+	/** site icon is 32px **/
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 50%;
+	position: absolute;
+	right: 18px;
+	top: 10px;
+}
+
+/* Article */
+
+.amp-wp-article {
+	color: #353535;
+	font-weight: 400;
+	margin: 1.5em auto;
+	max-width: 840px;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+}
+
+/* Article Header */
+
+.amp-wp-article-header {
+	align-items: center;
+	align-content: stretch;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin: 1.5em 16px 0;
+}
+
+.amp-wp-title {
+	color: #353535;
+	display: block;
+	flex: 1 0 100%;
+	font-weight: 900;
+	margin: 0 0 .625em;
+	width: 100%;
+}
+
+/* Article Meta */
+
+.amp-wp-meta {
+	color: #696969;
+	display: inline-block;
+	flex: 2 1 50%;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0 0 1.5em;
+	padding: 0;
+}
+
+.amp-wp-article-header .amp-wp-meta:last-of-type {
+	text-align: right;
+}
+
+.amp-wp-article-header .amp-wp-meta:first-of-type {
+	text-align: left;
+}
+
+.amp-wp-byline amp-img,
+.amp-wp-byline .amp-wp-author {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.amp-wp-byline amp-img {
+	border: 1px solid #0a89c0;
+	border-radius: 50%;
+	position: relative;
+	margin-right: 6px;
+}
+
+.amp-wp-posted-on {
+	text-align: right;
+}
+
+/* Featured image */
+
+.amp-wp-article-featured-image {
+	margin: 0 0 1em;
+}
+.amp-wp-article-featured-image amp-img {
+	margin: 0 auto;
+}
+.amp-wp-article-featured-image.wp-caption .wp-caption-text {
+	margin: 0 18px;
+}
+
+/* Article Content */
+
+.amp-wp-article-content {
+	margin: 0 16px;
+}
+
+.amp-wp-article-content ul,
+.amp-wp-article-content ol {
+	margin-left: 1em;
+}
+
+.amp-wp-article-content amp-img {
+	margin: 0 auto;
+}
+
+.amp-wp-article-content amp-img.alignright {
+	margin: 0 0 1em 16px;
+}
+
+.amp-wp-article-content amp-img.alignleft {
+	margin: 0 16px 1em 0;
+}
+
+/* Captions */
+
+.wp-caption {
+	padding: 0;
+}
+
+.wp-caption.alignleft {
+	margin-right: 16px;
+}
+
+.wp-caption.alignright {
+	margin-left: 16px;
+}
+
+.wp-caption .wp-caption-text {
+	border-bottom: 1px solid #c2c2c2;
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0;
+	padding: .66em 10px .75em;
+}
+
+/* AMP Media */
+
+amp-carousel {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+amp-iframe,
+amp-youtube,
+amp-instagram,
+amp-vine {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+
+.amp-wp-article-content amp-carousel amp-img {
+	border: none;
+}
+
+amp-carousel > amp-img > img {
+	object-fit: contain;
+}
+
+.amp-wp-iframe-placeholder {
+	background: #c2c2c2 url( https://s2.wp.com/wp-content/plugins/amp/assets/images/placeholder-icon.png ) no-repeat center 40%;
+	background-size: 48px 48px;
+	min-height: 48px;
+}
+
+/* Article Footer Meta */
+
+.amp-wp-article-footer .amp-wp-meta {
+	display: block;
+}
+
+.amp-wp-tax-category,
+.amp-wp-tax-tag {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 1.5em 16px;
+}
+
+.amp-wp-comments-link {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	text-align: center;
+	margin: 2.25em 0 1.5em;
+}
+
+.amp-wp-comments-link a {
+	border-style: solid;
+	border-color: #c2c2c2;
+	border-width: 1px 1px 2px;
+	border-radius: 4px;
+	background-color: transparent;
+	color: #0a89c0;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 18px;
+	margin: 0 auto;
+	max-width: 200px;
+	padding: 11px 16px;
+	text-decoration: none;
+	width: 50%;
+	-webkit-transition: background-color 0.2s ease;
+			transition: background-color 0.2s ease;
+}
+
+/* AMP Footer */
+
+.amp-wp-footer {
+	border-top: 1px solid #c2c2c2;
+	margin: calc(1.5em - 1px) 0 0;
+}
+
+.amp-wp-footer div {
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: 1.25em 16px 1.25em;
+	position: relative;
+}
+
+.amp-wp-footer h2 {
+	font-size: 1em;
+	line-height: 1.375em;
+	margin: 0 0 .5em;
+}
+
+.amp-wp-footer p {
+	color: #696969;
+	font-size: .8em;
+	line-height: 1.5em;
+	margin: 0 85px 0 0;
+}
+
+.amp-wp-footer a {
+	text-decoration: none;
+}
+
+.back-to-top {
+	bottom: 1.275em;
+	font-size: .8em;
+	font-weight: 600;
+	line-height: 2em;
+	position: absolute;
+	right: 16px;
+}
+			</style>
+</head>
+
+<body class="">
+
+<header id="top" class="amp-wp-header">
+	<div>
+		<a href="https://herbsutter.com">
+									<span class="amp-site-title">
+				Sutter’s Mill			</span>
+		</a>
+	</div>
+</header>
+
+<article class="amp-wp-article">
+	<header class="amp-wp-article-header">
+		<h1 class="amp-wp-title">Questions About Exception Specifications</h1>
+			<div class="amp-wp-meta amp-wp-byline">
+					<amp-img src="https://secure.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=24&#038;d=identicon&#038;r=g" width="24" height="24" layout="fixed"></amp-img>
+				<span class="amp-wp-author author vcard">Herb Sutter</span>
+	</div>
+<div class="amp-wp-meta amp-wp-posted-on">
+	<time datetime="2007-01-24T11:54:00+00:00">
+		12 years ago	</time>
+</div>
+	</header>
+
+	
+	<div class="amp-wp-article-content">
+		<p>In the past few days, I’ve had several people independently send me email to ask related questions about exception specifications. That must be reason enough to echo some answers here.
+</p><p><strong>Background</strong>
+</p><p>For background, here are two places where I’ve written about exception specifications:</p><ul><li><a href="http://www.gotw.ca/mill22.htm">"A Pragmatic Look at Exception Specifications"</a> (<i>C/C++ Users Journal</i>, 20(7), July 2002). This is based on <a href="http://www.gotw.ca/gotw/082.htm">GotW #82</a>, and an updated version appeared as Item 13 of <em><a href="http://www.gotw.ca/publications/xc++s.htm">Exceptional C++ Style</a></em>.
+</li>
+<li>"Item 75: Avoid Exception Specifications" (in <a href="http://www.gotw.ca/publications/c++cs.htm"><em>C++ Coding Standards</em></a>, by me and Andrei Alexandrescu, Addison-Wesley, October 2004).</li>
+</ul><p>I’ve taken the liberty of pasting the entire latter reference at the bottom of this post. Enjoy!
+</p><p>Now on to Question the First…
+</p><p><strong>Q1: How can you know you’ve caught everything if you don’t use exception specifications?</strong>
+</p><p>Andrew Skypeck asked:</p><blockquote>
+<p>In CCS#75 you suggest that one ought not provide an exception specifications with functions. Without them, how can a user of the function be certain they have caught all possible exceptions without inspecting the code they are calling? This is often not possible for API users that have header files only.</p>
+</blockquote><p>Two thoughts:
+</p><p>First, the way to catch everything is to catch(…), and that always works. You seem to be wanting to use exception specifications as documentation (which is fine), and so you can get the same ability by writing the exception specification as a comment. Note that even if you try to write them all as actual code, you can’t do it in general — notably you can’t do it for templates, because if a template can be instantiated with any type, you generally can’t know in advance what it might throw.
+</p><p>Second, the caller of a function doesn’t always need to catch all possible exceptions; it should only catch the exceptions that it knows how to handle (or translate). Exception safety is not just about making sure that the code that knows how to detect an error throws, and that the code that knows how to handle the error catches; rather, in practice exception safety is largely about making sure the code in between stays out of the way, including that it doesn’t catch and absorb exceptions. For more about this aspect of exception safety, start with these Items in <a href="http://www.gotw.ca/publications/c++cs.htm"><em>C++ Coding Standards</em></a>, and follow the references at the end of each Item to dig into the details that interest you:</p><ul><li>70. Distinguish between errors and non-errors.
+</li>
+<li>71. Design and write error-safe code.
+</li>
+<li>72. Prefer to use exceptions to report errors.
+</li>
+<li>74. Report, handle, and translate errors appropriately.</li>
+</ul><p>Which brings us to Question the Second:
+</p><p><strong>Q2: Why not statically enforce exception specifications?</strong>
+</p><p>Bob Rossi asked, while kindly citing the above article:</p><blockquote>
+<p>I would like to know what the possibilities are of C++0x enforcing the exception specifications like Java does. Here is a good article describing why exception specifications acting the way they do are currently bad, <a href="http://www.gotw.ca/publications/mill22.htm">http://www.gotw.ca/publications/mill22.htm</a>
+</p>
+<p>I must not fully understand the situation. What is wrong with the compiler time checks that Java does to enforce the exception specifications? I find this feature extremely useful as a developer!</p>
+</blockquote><p>The short answer is that nobody knows how to fix exception specifications in any language, because the dynamic enforcement C++ chose has only different (not greater or fewer) problems than the static enforcement Java chose.
+</p><p>If you’re interested in reading more about this, try googling for newsgroup postings, <a href="http://groups.google.com/groups?q=sutter+exception+specifications">http://groups.google.com/groups?q=sutter+exception+specifications</a>. The following is taken from the second hit, which I wrote last fall:</p><blockquote>
+<p>Essentially, exception specifications are a wonderful idea in basic principle, but no one really knows how to design them.
+</p>
+<p>There are two major approaches, and both have serious problems. Java chose static enforcement (at compile time, as suggested above), and C++ chose dynamic enforcement. Interestingly, I see Java people ask "why not enforce these dynamically?" about as often as I see C++ people ask "why not enforce these statically?"
+</p>
+<p>Briefly:
+</p>
+<p>When you go down the Java path, people love exception specifications until they find themselves all too often encouraged, or even forced, to add <strong>throws Exception</strong>, which immediately renders the exception specification entirely meaningless. (Example: Imagine writing a Java generic that manipulates an arbitrary type <strong>T</strong>…)
+</p>
+<p>When you go down the C++ path, people love exception specifications until they discover that violating one means invoking <strong>terminate</strong>, which is almost never what you want.</p>
+</blockquote><p>So why did C++ do exception specifications the way it did, with dynamic enforcement via <strong>terminate</strong>? And why did Java do it the other way? In both cases, it seemed like a good idea that avoided some set of known problems, and you can’t always know the new problems you incur instead until you gain experience with multiple releases of large code bases, which means over time.
+</p><p><strong>The future of exception specifications?</strong>
+</p><p>Bob responded by asking why we don’t just fix exception specifications, or remove them entirely until something better comes along. Those are good questions.
+</p><p>Taking the latter part first: As tempting as it may be, one can’t just rip out a language feature because one decides it isn’t working out quite right. The primary reason is that there are people using the feature, and breaking existing legal code is, well, rude.
+</p><p>What about fixing exception specifications? That would be nice, and I think nearly everyone I know is willing to consider changing them, but only if: (a) there is a well-understood replacement (there isn’t today), and (b) there was a good way to deal with migration from existing code which may rely on the existing feature.
+</p><p>Deliberate change with a strong dose of backward compatibility is always the key. This one needs more deliberation, at least for now, and isn’t expected to change in C++0x.
+</p><p><strong>Epilogue: C++CS Item 75</strong>
+</p><p>I’m sure Addison-Wesley won’t mind overmuch if I paste one Item here in its entirety. It has been slightly reformatted for the web.
+</p><p><strong>75. Avoid exception specifications.</strong></p><blockquote>
+<div>
+<p><strong>Summary</strong>
+</p>
+<p><a>Take exception to these specifications: Don’t write exception specifications on your functions unless you’re forced to (because other code you can’t change has already introduced them; see Exceptions)</a>.
+</p>
+<p><strong>Discussion</strong>
+</p>
+<p>In brief, don’t bother with exception specifications. Even experts don’t bother. The main problems with exception specifications are that they’re only “sort of” part of the type system, they don’t do what most people think, and you almost always don’t want what they actually do. 
+</p>
+<p>Exception specifications aren’t part of a function’s type, except when they are. They form a shadow type system whereby writing an exception specification is variously:</p>
+<ul><li>
+<div><i>Illegal:</i> In a typedef for a pointer to function.</div>
+</li>
+<li>
+<div><i>Allowed:</i> In the identical code without the typedef.</div>
+</li>
+<li>
+<div><i>Required:</i> In the declaration of a virtual function that overrides a base class virtual function that has an exception specification.</div>
+</li>
+<li>
+<div><i>Implicit and automatic:</i> In the declaration of the constructors, assignment operators, and destructors when they are implicitly generated by the compiler.</div>
+</li>
+</ul><p>A common but nevertheless incorrect belief is that exception specifications statically guarantee that functions will throw only listed exceptions (possibly none), and enable compiler optimizations based on that knowledge. 
+</p>
+<p>In fact, exception specifications actually do something slightly but fundamentally different: They cause the compiler to inject additional run-time overhead in the form of implicit try/catch blocks around the function body to enforce via run-time checking that the function does in fact emit only listed exceptions (possibly none), unless the compiler can statically prove that the exception specification can never be violated in which case it is free to optimize the checking away. And exception specifications can both enable and prevent further compiler optimizations (besides the inherent overhead already described); for example, some compilers refuse to inline functions that have exception specifications.
+</p>
+
+<p>Worst of all, however, is that exception specifications are a blunt instrument: When violated, by default they immediately terminate your program. You can register an unexpected_handler, but it’s highly unlikely to help you much because you get exactly one global handler and the only way the handler could avoid immediately calling terminate would be to rethrow an exception that is permissible—but because you have only one handler for your whole application, it’s hard to see how it could do useful recovery or usefully know what exceptions might be legal without trivializing exception specifications altogether (e.g., following the discipline of having all exception specifications allow some general UnknownException eliminates any advantage that having an exception specification might have had in the first place).
+</p>
+<p>You generally can’t write useful exception specifications for function templates anyway, because you generally can’t tell what exceptions the types they operate on might throw. 
+</p>
+<p>Paying a performance overhead in exchange for enforcements that are nearly always useless because they are fatal if they ever fire is an excellent example of a premature pessimization (see Item 9).
+</p>
+<p>These is no easy fix for the problems described in this Item. In particular, the problems are not easily solved by switching to static checking. People often suggest switching from dynamically checked exception specifications to statically checked ones, as provided in Java and other languages. In short, that just trades one set of problems for another; users of languages with statically checked exception specifications seem to equally often suggest switching to dynamically checked ones.
+</p>
+<p><strong>Exceptions</strong>
+</p>
+<p>If you have to override a base class virtual function that already has an exception spec­ifi­ca­tion (e.g., ahem, std::exception::what), and you don’t have the ability to change the class to remove the exception specifications (or to convince the class’s main­tainer to remove them), you will have to write a compatible exception specification on your overriding function, and you should prefer to make it no less restrictive than the base version so as to minimize the frequency with which it might be violated:
+</p>
+<p><i>// in a class written by someone else,<br/>// the author used an exception specification,<br/>// and if you can’t get him to remove it…</i><br/>class Base { <i>// …</i><i><br/></i>virtual f() <b>throw( X, Y, Z )</b>;<i><br/></i>};
+</p>
+<p><i>// … then in your own class your override<br/>// must have a compatible (and preferably<br/></i><i>// the identical) exception specification</i><br/>class MyDerived : public Base { <i>// …<br/></i>  virtual f() <b>throw( X, Y, Z )</b>;<i><br/></i>};
+</p>
+<p>[BoostLRG]’s experience is that a throws-nothing exception specification (i.e., throw()) on a non-inline function “may have some benefit with some compilers.” Not a stunning endorsement from one of the most highly regarded and expertly designed C++ library projects in the world.
+</p>
+<p><strong>References [see the <a href="http://www.gotw.ca/publications/c++cs/bibliography.htm">C++CS online bibliography</a> for reference details and other links]</strong>
+</p>
+<p><a href="http://www.boost.org/more/lib_guide.htm">[BoostLRG]</a> – [Stroustrup00] §14.1, §14.6 – [Sutter04] §13</p>
+</div>
+</blockquote>	</div>
+
+	<footer class="amp-wp-article-footer">
+			<div class="amp-wp-meta amp-wp-tax-category">
+		Categories: <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>	</div>
+
+		<div class="amp-wp-meta amp-wp-comments-link">
+		<a href="https://herbsutter.com/2007/01/24/questions-about-exception-specifications/#comments">
+			Leave a Comment		</a>
+	</div>
+	</footer>
+</article>
+
+<footer class="amp-wp-footer">
+	<div>
+		<h2>Sutter’s Mill</h2>
+		<p>
+			<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a>
+		</p>
+		<a href="#top" class="back-to-top">Back to top</a>
+	</div>
+</footer>
+
+
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;host=herbsutter.com&#038;ref=DOCUMENT_REFERRER&#038;amp=1&#038;blog=3379246&#038;v=wpcom&#038;tz=-8&#038;user_id=0&#038;post=61&#038;subd=herbsutter"></amp-pixel>
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;v=wpcom-no-pv&#038;crypt=UE40eW5QN0p8M2Y%2FRE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29%2BSmw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8%2FMkNtblkvY1d1TjBELytHc0k%2FMXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLmpbPTlaVVYsJVRvWTBMR0d3Sks5W3ZvU1FFaltLd0c4RE5BVUVlQnNpZXRHSmJ1c2NDN2xNa1syaFQwTGlPaFRseThHY1dUclNZc2gyUlZdUXppNiVxMHpNNHpBSVlqLFEwTA%3D%3D"></amp-pixel>
+	
+</body>
+</html>

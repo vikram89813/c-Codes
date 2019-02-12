@@ -1,0 +1,870 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #90 Solution: Factories | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965306&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F30%2Fgotw-90-solution-factories%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #90 Solution:&nbsp;Factories Comments Feed" href="https://herbsutter.com/2013/05/30/gotw-90-solution-factories/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #90: Factories' href='https://herbsutter.com/2013/05/29/gotw-90-factories/' />
+<link rel='next' title='GotW #91: Smart Pointer&nbsp;Parameters' href='https://herbsutter.com/2013/05/30/gotw-91-smart-pointer-parameters/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/05/30/gotw-90-solution-factories/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-xm' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F30%2Fgotw-90-solution-factories%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F30%2Fgotw-90-solution-factories%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #90 Solution: Factories" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/30/gotw-90-solution-factories/" />
+<meta property="og:description" content="NOTE: Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn&#8217;t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is…" />
+<meta property="article:published_time" content="2013-05-30T23:04:45+00:00" />
+<meta property="article:modified_time" content="2013-06-04T17:31:37+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965306" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #90 Solution:&nbsp;Factories" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="NOTE: Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn&#039;t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is the updated version of what was GotW #104.  What should factory functions return, and why?  Problem While spelunking through the&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/05/30/gotw-90-solution-factories/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2068 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/05/29/gotw-90-factories/" rel="prev">GotW #90: Factories</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/05/30/gotw-91-smart-pointer-parameters/" rel="next">GotW #91: Smart Pointer&nbsp;Parameters</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2068 post type-post status-publish format-standard hentry category-gotw" id="post-2068">
+				<div class="posttitle">
+					<h2>GotW #90 Solution:&nbsp;Factories</h2>
+					<p class="post-info">2013-05-30 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<blockquote>
+<p><strong>NOTE:</strong> Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn&#8217;t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is the updated version of what was GotW #104.
+</p>
+</blockquote>
+<p>
+ </p>
+<p><span style="color:#5a5a5a;"><em>What should factory functions return, and why?<br />
+</em></span></p>
+<p>
+ </p>
+<h1>Problem<br />
+</h1>
+<p>While spelunking through the code of a new project you recently joined, you find the following factory function declaration:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>widget* load_widget( widget::id desired );
+</code></pre>
+</p>
+<h2>JG Question<br />
+</h2>
+<p>1. What&#8217;s wrong with this return type?
+</p>
+<h2>Guru Questions<br />
+</h2>
+<p>2. Assuming that <span style="color:#2e74b5;">widget</span> is a polymorphic type, what is the recommended return type? Explain your answer, including any tradeoffs.
+</p>
+<p>3. You&#8217;d like to actually change the return type to match the recommendation in #2, but at first you worry about breaking source compatibility with existing calling code; recompiling existing callers is fine, but having to go change them all is not. Then you have an &#8220;aha!&#8221; moment, realizing that this is a fairly new project and all of your calling code is written using modern C++ idioms, and you go ahead and change the return type without fear, knowing it will require few or no code changes to callers. What makes you so confident?
+</p>
+<p>4. If <span style="color:#2e74b5;">widget</span> is not a polymorphic type, what is the recommended return type? Explain.
+</p>
+<p>
+ </p>
+<h1>Solution<br />
+</h1>
+<h2>1. What&#8217;s wrong with this return type?<br />
+</h2>
+<p>First, what can we know or reasonably expect from the two-line problem description?
+</p>
+<p>We&#8217;re told <span style="color:#2e74b5;">load_widget</span> is a factory function. It produces an object by &#8220;loading&#8221; it in some way and then returning it to the caller. Since the return type is a pointer, the result might be null.
+</p>
+<p>The caller will reasonably expect to use the object, whether by calling member functions on it or passing it to other functions or in some other way. That isn&#8217;t safe unless the caller owns the object to ensure it is alive—either the caller gets exclusive ownership, or it gets shared ownership if the factory also maintains an internal strong or weak reference.
+</p>
+<p>Because the caller has or shares ownership, he has to do something when the object is no longer needed. If the ownership is exclusive, he should destroy the object somehow. Otherwise, if the ownership is shared, he should decrement some shared reference count.
+</p>
+<p>Unfortunately, returning a <span style="color:#2e74b5;">widget*</span> has two major problems. First, it&#8217;s unsafe by default, because the default mode of operation (i.e., when the caller writes whitespace) is to leak a <span style="color:#2e74b5;">widget</span>:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Example 1: Leak by default. Really, this is just so 20th-century...<br />// <br />widget* load_widget( widget::id desired );<br /><br />:::<br /><br />load_widget( some_id ); // oops
+</code></pre>
+</p>
+<p>The Example 1 code compiles cleanly, runs, and (un)happily leaks the <span style="color:#2e74b5;">widget</span>.
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> Don&#8217;t use explicit <strong>new</strong>, <strong>delete</strong>, and owning <strong>*</strong> pointers, except in rare cases encapsulated inside the implementation of a low-level data structure.
+</p>
+</blockquote>
+<p>Second, the signature conveys absolutely no information other than &#8220;a <span style="color:#2e74b5;">widget</span>? sure, here you go! enjoy.&#8221; The documentation may state that (and how) the caller is to own the object, but the function declaration doesn&#8217;t—it&#8217;s either exclusive ownership or shared ownership, but which? Read and remember the function&#8217;s documentation, because the function declaration isn&#8217;t telling. The signature alone doesn&#8217;t even say whether the caller shares in ownership at all.
+</p>
+<h2>2. Assuming that widget is a polymorphic type, what is the recommended return type? Explain your answer, including any tradeoffs.<br />
+</h2>
+<p>If <span style="color:#2e74b5;">widget</span> is a type that&#8217;s intended to be used polymorphically and held by pointer or reference, the factory should normally return a <span style="color:#2e74b5;">unique_ptr</span> to transfer ownership to the caller, or a <span style="color:#2e74b5;">shared_ptr</span> if the factory shares ownership by retaining a strong reference inside its internal data structures.
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> A factory that produces a reference type should return a <strong>unique_ptr</strong> by default, or a <strong>shared_ptr</strong> if ownership is to be shared with the factory.
+</p>
+</blockquote>
+<p>This solves both problems: safety, and self-documentation.
+</p>
+<p>First, consider how this immediately solves the safety problem in Example 1:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Example 2: Clean up by default. Much better...<br />// <br />unique_ptr&lt;widget&gt; load_widget( widget::id desired );<br /><br />:::<br /><br />load_widget( some_id ); // cleans up
+</code></pre>
+</p>
+<p>The Example 2 code compiles cleanly, runs, and happily cleans up the <span style="color:#2e74b5;">widget</span>. But it&#8217;s not just correct by default—it&#8217;s correct by construction, because there&#8217;s no way to make a mistake that results in a leak.
+</p>
+<p>Aside: Someone might say, &#8220;but can&#8217;t someone still write <span style="color:#2e74b5;">load_widget(some_id).release()</span>?&#8221; Of course they can, if they&#8217;re pathological; the correct answer is, &#8220;don&#8217;t do that.&#8221; Remember, our concern is to protect against Murphy, not Machiavelli—against bugs and mistakes, not deliberate crimes—and such pathological abuses fall into the latter category. That&#8217;s no different from, and doesn&#8217;t violate type safety any more than, explicitly calling <span style="color:#2e74b5;">Dispose</span> early in a C# <span style="color:#2e74b5;">using</span> block or explicitly calling <span style="color:#2e74b5;">close</span> early in a Java <span style="color:#2e74b5;">try</span>-with-resources block.
+</p>
+<p>What if the cleanup should be done by something other than a plain <span style="color:#2e74b5;">delete</span> call? Easy: Just use a custom deleter. The icing on the cake is that the factory itself knows which deleter is appropriate and can state it at the time it constructs the return value; the caller doesn&#8217;t need to worry about it, especially if he takes the result using an <span style="color:#2e74b5;">auto</span> variable.
+</p>
+<p>Second, this is self-documenting: A function that returns a <span style="color:#2e74b5;">unique_ptr</span> or a value clearly documents that it&#8217;s a pure &#8220;source&#8221; function, and one that returns a <span style="color:#2e74b5;">shared_ptr</span> clearly documents that it&#8217;s returning shared ownership and/or observation.
+</p>
+<p>Finally, why prefer <span style="color:#2e74b5;">unique_ptr</span> by default, if you don&#8217;t need to express shared ownership? Because it&#8217;s the Right Thing To Do for both performance and correctness, as noted in GotW #89, and leaves all options open to the caller:
+</p>
+<ul>
+<li>Returning <span style="color:#2e74b5;">unique_ptr</span> expresses returning unique ownership, which is the norm for a pure &#8220;source&#8221; factory function.
+</li>
+<li><span style="color:#2e74b5;">unique_ptr</span> can&#8217;t be beat in efficiency—moving one is about as cheap as moving/copying a raw pointer.
+</li>
+<li>If the caller wants to manage the produced object&#8217;s lifetime via <span style="color:#2e74b5;">shared_ptr</span>, they can easily convert to <span style="color:#2e74b5;">shared_ptr</span> via an implicit move operation—no need to say <span style="color:#2e74b5;">std::move</span> because the compiler already knows that the returned value is a temporary object.
+</li>
+<li>If the caller is using any other arbitrary method of maintaining the object&#8217;s lifetime, he can convert to a custom smart pointer or other lifetime management scheme simply by calling <span style="color:#2e74b5;">.release()</span>. This can be useful, and isn&#8217;t  possible with <span style="color:#2e74b5;">shared_ptr</span>.
+</li>
+</ul>
+<p>Here it is in action:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Example 2, continued<br />//<br /><br />// Accept as a unique_ptr (by default)<br />auto up = load_widget(1);<br /><br />// Accept as a shared_ptr (if desired)<br />auto sp = shared_ptr&lt;widget&gt;{ load_widget(2) };<br /><br />// Accept as your own smart pointer (if desired)<br />auto msp = my::smart_ptr&lt;widget&gt;{ load_widget(3).release() };
+</code></pre>
+</p>
+<p>Of course, if the factory retains some shared ownership or observation, whether via an internal <span style="color:#2e74b5;">shared_ptr</span> or <span style="color:#2e74b5;">weak_ptr</span>, return <span style="color:#2e74b5;">shared_ptr</span>. The caller will be forced to continue using it as a <span style="color:#2e74b5;">shared_ptr</span>, but in that case that&#8217;s appropriate.
+</p>
+<h2>3. […] you go ahead and change the return type without fear, knowing it will require few or no code changes to callers. What makes you so confident?<br />
+</h2>
+<p>Modern portable C++ code uses <span style="color:#2e74b5;">unique_ptr</span>, <span style="color:#2e74b5;">shared_ptr</span>, and <span style="color:#2e74b5;">auto</span>. Returning <span style="color:#2e74b5;">unique_ptr</span> works with all three; returning <span style="color:#2e74b5;">shared_ptr</span> works with the last two.
+</p>
+<p>If the caller accepts the return value in an <span style="color:#2e74b5;">auto</span> variables, such as <span style="color:#2e74b5;">auto w = load_widget(whatever);</span>, then the type will just naturally be correct, normal dereferencing will just work, and the only source ripple will be if the caller tries to explicitly <span style="color:#2e74b5;">delete</span> (if so, the <span style="color:#2e74b5;">delete</span> line can rather appropriately be deleted) or tries to store into a non-local object of a different type.
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> Prefer declaring variables using <strong>auto</strong>. It&#8217;s shorter, and helps to insulate your code from needless source ripples due to minor type changes.
+</p>
+</blockquote>
+<p>Otherwise, if the caller isn&#8217;t using <span style="color:#2e74b5;">auto</span>, then it&#8217;s likely already using the result to initialize a <span style="color:#2e74b5;">unique_ptr</span> or <span style="color:#2e74b5;">shared_ptr</span> because modern C++ calling code does not traffick in raw pointers for non-parameter variables (more on this next time). In either case, returning a <span style="color:#2e74b5;">unique_ptr</span> just works: A <span style="color:#2e74b5;">unique_ptr</span> can be seamlessly moved into either of those types, and if the semantics are to return shared ownership and then the caller should already be using a <span style="color:#2e74b5;">shared_ptr</span> and things will again work just fine (only probably better than before, because for the original return by raw pointer to work correctly the return type was probably forced to jump through the <span style="color:#2e74b5;">enable_shared_from_this</span> hoop, which isn&#8217;t needed if we just return a <span style="color:#2e74b5;">shared_ptr</span> explicitly).
+</p>
+<h2>4. If widget is not a polymorphic type, what is the recommended return type? Explain.<br />
+</h2>
+<p>If <span style="color:#2e74b5;">widget</span> is not a polymorphic type, which typically means it&#8217;s a copyable value type or a move-only type, the factory should return a <span style="color:#2e74b5;">widget</span> by value. But what kind of value?
+</p>
+<p>In C++98, programmers would often resort to returning a large object by pointer just to avoid the penalty of copying its state:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Example 4(a): Obsolete convention: return a * just to avoid a copy <br />//<br />/*BAD*/ vector&lt;gadget&gt;* load_gadgets() {<br />    vector&lt;gadget&gt;* ret = new vector&lt;gadget&gt;();<br />    // ... populate *ret ...<br />    return ret;<br />}<br /><br />// Obsolete calling code (note: NOT exception-safe) <br />vector&lt;gadget&gt;* p = load_gadgets();<br />if(p) use(*p);<br />delete p;
+</code></pre>
+</p>
+<p>This has all of the usability and fragility problems discussed in #1. Today, normally we should just return by value, because we will incur only a cheap move operation, not a deep copy, to hand the result to the caller:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Example 4(b): Default recommendation: return the value<br />//<br />vector&lt;gadget&gt; load_gadgets() {<br />    vector&lt;gadget&gt; ret;<br />    // ... populate ret ...<br />    return ret;<br />}<br /><br />// Calling code (exception-safe)<br />auto v = load_gadgets();<br />use(v);
+</code></pre>
+</p>
+<p>Most of the time, return movable objects by value. That&#8217;s all there is to it, if the only reason for the pointer on the return type was to avoid the copy.
+</p>
+<p>There could be one additional reason the function might have returned a pointer, namely to return <span style="color:#2e74b5;">nullptr</span> to indicate failure to produce an object. Normally it&#8217;s better throw an exception to report an error if we fail to load the <span style="color:#2e74b5;">widget</span>. However, if not being able to load the <span style="color:#2e74b5;">widget</span> is normal operation and should not be considered an error, return an <span style="color:#2e74b5;">optional&lt;widget&gt;</span>, and probably make the factory <span style="color:#2e74b5;">noexcept</span> if no other kinds of errors need to be reported than are communicated well by returning an empty <span style="color:#2e74b5;">optional&lt;widget&gt;</span>.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Example 4(c): Alternative if not returning an object is normal<br />//<br />optional&lt;vector&lt;gadget&gt;&gt; load_gadgets() noexcept {<br />    vector&lt;gadget&gt; ret;<br />    // ... populate ret ...<br />    if( success )            // return vector (might be empty)<br />        return move(ret);    // note: move() here to avoid a silent copy<br />    else<br />        return {};           // not returning anything<br />}<br /><br />// Calling code (exception-safe)<br />auto v = load_gadgets();<br />if(v) use(*v);
+</code></pre>
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> A factory that produces a non-reference type should return a value by default, and throw an exception if it fails to create the object. If not creating the object can be a normal result, return an <strong>optional&lt;&gt;</strong> value.
+</p>
+</blockquote>
+<h2>Coda<br />
+</h2>
+<p>By the way, see that test for <span style="color:#2e74b5;">if(v)</span> in the last line of Example 4(c)? It calls a cool function of <span style="color:#2e74b5;">optional&lt;T&gt;</span>, namely <span style="color:#2e74b5;">operator bool</span>. What makes bool so cool? In part because of how many C++ features it exercises. Here is its declaration… just think of what this lets you safely do, including at compile time! Enjoy.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>constexpr explicit optional&lt;T&gt;::operator bool() const noexcept;
+</code></pre>
+</p>
+<h2>Acknowledgments<br />
+</h2>
+<p>Thanks in particular to the following for their feedback to improve this article: Johannes Schaub, Leo, Vincent Jacquet.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											29 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">29 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-13875">
+		<div id="div-comment-13875">
+		<div class="cmtinfo"><em> on <a href="#comment-13875" title="">2013-12-18 at 8:31 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/fd8c2afb36705c076d90f59a7ca440e8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.cs.toronto.edu/~fbacchus' rel='external nofollow' class='url'>Fahiem Bacchus</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13875"></div><p>self documentation vs auto.<br />
+In example 2. </p>
+<pre class="brush: plain; title: ; notranslate" title="">
+unique_ptr&lt;widget&gt; load_widget( widget::id desired );
+</pre>
+<p>You get self documentation&#8212;you can see in the code that you get control over widget.</p>
+<p>Once you use auto </p>
+<pre class="brush: plain; title: ; notranslate" title="">
+// Accept as a unique_ptr (by default)
+auto up = load_widget(1);
+</pre>
+<p>we have to look up the signature of load_widget&#8230;it is no longer documented in the call. </p>
+<p>This seems to be a subtle trade off here. Any thoughts?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12284">
+		<div id="div-comment-12284">
+		<div class="cmtinfo"><em> on <a href="#comment-12284" title="">2013-08-22 at 3:46 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/de65458ee996992b4de08dc43daf6845?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Richard</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12284"></div><p>You missed Motti&#8217;s follow-up saying that the advantage of having a wrapper unonwned_ptr would be for self documentation(like why it&#8217;s better to use reinterpret_cast than a C style cast) and I was interested to know you opinion.<br />
+I agree with him and dread to think of the fraction of my life that I have spent determining whether the author has passed ownership.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-11332">
+		<div id="div-comment-11332">
+		<div class="cmtinfo"><em> on <a href="#comment-11332" title="">2013-06-14 at 7:00 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11332"></div><p>@Christophe: I have great news for you! That&#8217;s actually not a problem at all, because unique_ptr doesn&#8217;t need to know about the destructor &#8212; only the deleter does, which can be separately compiled. In fact, unique_ptr was explicitly designed to be usable with incomplete (forward-declared types), and the standard normatively requires: &#8220;The template parameter T of unique_ptr may be an incomplete type.&#8221; (N3690, 20.9.1 [unique_ptr] /5)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11310">
+		<div id="div-comment-11310">
+		<div class="cmtinfo"><em> on <a href="#comment-11310" title="">2013-06-14 at 1:57 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/22cfb0f5a78cf2032ba441b1cf3b2a8d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Christophe</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11310"></div><p>The fact that unique_ptr forces to know the destructor of the object forces to expose the class definition at each level (which is not the case with raw pointer, neither with shared_ptr), even when passing the unique_ptr through different layers. As a consequence that each time the class definition changes, it will imply the recompilation of those intermediate layers even if they do not really use the object. This tends to brake the usage of unique_ptr with factory.<br />
+Any comment about this ?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-11062">
+		<div id="div-comment-11062">
+		<div class="cmtinfo"><em> on <a href="#comment-11062" title="">2013-06-07 at 4:56 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11062"></div><p>@Kai: Definitely not recommending smart pointers for everything, in particular not for most parameters; see GotW #91.</p>
+<p>But overall tool support is an interesting question. I view it like other features such as template mangling or generating lambda function objects. The features are good for clarity and correctness, should be recommended, and will be used. Many C++ code bases have long routinely used custom nonstandard smart pointers already anyway. If sometimes a tool&#8217;s implementations has scalability trouble with a popular feature, if it causes a real problem then the tool needs to be improved. (However, for balance, there have been one or two complexity-inducing C++ features that caused tool trouble where it wasn&#8217;t fair to blame the tools, but we don&#8217;t have export any more and that was the main one.)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11043">
+		<div id="div-comment-11043">
+		<div class="cmtinfo"><em> on <a href="#comment-11043" title="">2013-06-07 at 12:15 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/5739565e36c37d766403d19db9bc4755?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Kai Koehne</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11043"></div><p>I&#8217;m not sure recommending unique_ptr et al for every pointer out there is a good idea, because it will blow up debug symbol sizes. I did a quick test and replaced the pimpl pointer of an otherwise empty class with unique_ptr &#8211; for clang 3.2 that adds 30 additional debugging symbols to the .o file, for gcc 4.8 it&#8217;s even 60 (!). I can easily imagine this kills debugging performance in larger projects &#8230;</p>
+<p>Any thoughts on this?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10888">
+		<div id="div-comment-10888">
+		<div class="cmtinfo"><em> on <a href="#comment-10888" title="">2013-06-04 at 9:32 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10888"></div><p>@Vincent: That&#8217;s reasonable, I&#8217;ve added a path to the example to demonstrate returning &#8220;nothing&#8221; too so people can see what that looks like. Thanks for the suggestion.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10884">
+		<div id="div-comment-10884">
+		<div class="cmtinfo"><em> on <a href="#comment-10884" title="">2013-06-04 at 9:18 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10884"></div><p>@Sebastian: make_shared should be used by default when you know you&#8217;re constructing an object that will be owned by shared_ptrs. The factory doesn&#8217;t know that and so returns a unique_ptr (presumably using make_unique), which the caller can then move into a shared_ptr if that&#8217;s how he wants to manage the memory.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10874">
+		<div id="div-comment-10874">
+		<div class="cmtinfo"><em> on <a href="#comment-10874" title="">2013-06-04 at 4:54 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ee2752016ea7fd9d43e9d4d176976e91?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sebastian</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10874"></div><p>Doesn&#8217;t the answer to #2 forego the recommended smart pointer construction through std::make_shared?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-lanzkron odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10867">
+		<div id="div-comment-10867">
+		<div class="cmtinfo"><em> on <a href="#comment-10867" title="">2013-06-03 at 11:42 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6183c6f9d621a125cd3aa0f7ae324285?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://lanzkron.wordpress.com' rel='external nofollow' class='url'>Motti Lanzkron</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10867"></div><p>The advantage of having a wrapper unonwned_ptr template type is purely for self documentation. When I see T* I have to ask myself whether the person who wrote this thought about ownership and decided that a raw pointer is the correct way to go or whether (for some code bases the more probable reason) the original author was just lazy/incompetent (often the original author is myself but that doesn&#8217;t rule out incompetence&#8230;).</p>
+<p>After looking though the code I came to the conclusion that a raw pointer is the correct choice but tomorrow someone else will see the same code and wonder the same thing and have to duplicate the work of understanding  the correct semantics for this pointer. It&#8217;s akin to why it&#8217;s better to use reinterpret_cast than a C style cast.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10865">
+		<div id="div-comment-10865">
+		<div class="cmtinfo"><em> on <a href="#comment-10865" title="">2013-06-03 at 9:43 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/17434aaee15d3d6f4a697eea7db70df1?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Vincent Jacquet</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10865"></div><p>I understand the difference between empty and null. I am just wondering, in the context of factories, when returning a verctor of things, what is the benefit of returning a null value. How is it a better solution that returning an empty vector? Also, as currently implemented, it looks like your example 4(c) always returns a valid vector, that can be empty but not null.</p>
+<p>I have mitigated feelings about optional. I find that sometimes it is an easy solution but not a good solution. I would be very interrested in a post discussing when to use it and when to not use it.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10862">
+		<div id="div-comment-10862">
+		<div class="cmtinfo"><em> on <a href="#comment-10862" title="">2013-06-03 at 2:35 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10862"></div><p>@Marcel: Yes.</p>
+<p>@Vincent: Null can be different from empty because empty may be a valid value. A classic example is a nullable string, where an empty string &#8220;&#8221; is different from no string&#8230; for C-style strings, it&#8217;s the difference between </p>
+<pre class="brush: plain; title: ; notranslate" title="">strlen(s) == 0   // a.k.a. !strlen(s)</pre>
+<p> and </p>
+<pre class="brush: plain; title: ; notranslate" title="">s == nullptr     // a.k.a. !s</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10858">
+		<div id="div-comment-10858">
+		<div class="cmtinfo"><em> on <a href="#comment-10858" title="">2013-06-03 at 10:16 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/17434aaee15d3d6f4a697eea7db70df1?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Vincent Jacquet</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10858"></div><p>I wonder why we should returning optional&lt;vector&gt;. If no widgets can be loading what&#8217;s the benefit compared to returning an empty vector. This way I do not introduce a special case.<br />
+Also, when loading a single gadget, returning optional is only an option (pun intended). I could also return a default gadget or an error gadget.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10848">
+		<div id="div-comment-10848">
+		<div class="cmtinfo"><em> on <a href="#comment-10848" title="">2013-06-03 at 4:22 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/69f49a6f6d12844e9043c6916efe70d5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Marcel Wid</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10848"></div><p>@Johannes and @Herb: This is the first time that I think I understand when to write &#8216;return move&#8217;. But I think that this has nothing to do with copy elision in contrast to what Johannes is saying. In the following code</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+optional&lt;vector&lt;gadget&gt;&gt; load_gadgets() noexcept {
+    vector&lt;gadget&gt; ret;
+    // ... populate ret ...
+    return move(ret);   // important: move() here to avoid a silent copy
+}
+</pre>
+<p>ret is implicitely converted to optional&lt;vector&gt; by one of the following converting constructors of optional: constexpr optional(const T&amp;) or constexpr optional(T&amp;&amp;) depending whether you write return ret; (for the former) or return move(ret); (for the latter). The result of this coversion is a temporary object, which is copied/moved into the function&#8217;s return value. An implementation is allowed to elide this last copy/move. Please correct me if I got it wrong.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10835">
+		<div id="div-comment-10835">
+		<div class="cmtinfo"><em> on <a href="#comment-10835" title="">2013-06-02 at 10:31 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10835"></div><p>@Motti: 1. Yes. 2. What benefit is there to providing another name for * pointers? FWIW we do now teach not to use owning * pointers, but non-owning * pointers are fine &#8212; see the GotW #91 solution that will be posted tomorrow for an example.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-lanzkron odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10821">
+		<div id="div-comment-10821">
+		<div class="cmtinfo"><em> on <a href="#comment-10821" title="">2013-06-02 at 12:59 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6183c6f9d621a125cd3aa0f7ae324285?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://lanzkron.wordpress.com' rel='external nofollow' class='url'>Motti Lanzkron</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10821"></div><p>This article raises two questions in my mind.<br />
+1. Does the fact that we now have explicit cast operators mean that we no longer need the &#8220;safe bool idiom&#8221;?<br />
+2. Perhaps the standard should include a self documenting unowned_ptr template for cases where you semantically *want* to return a raw pointer.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10807">
+		<div id="div-comment-10807">
+		<div class="cmtinfo"><em> on <a href="#comment-10807" title="">2013-06-01 at 1:48 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10807"></div><p>@Leo: Thanks, fixed.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10805">
+		<div id="div-comment-10805">
+		<div class="cmtinfo"><em> on <a href="#comment-10805" title="">2013-06-01 at 11:07 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d51032a14bd8da40bbc1f0d7412b090b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Leo</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10805"></div><p>Tiny typo: &#8220;by calling members functions on it&#8221;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10785">
+		<div id="div-comment-10785">
+		<div class="cmtinfo"><em> on <a href="#comment-10785" title="">2013-05-31 at 12:07 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10785"></div><p>@Johannes: You are correct &#8212; here&#8217;s a case where &#8220;you never have to write &#8216;return move'&#8221; is not correct, when they&#8217;re different types. Fixed, thanks!</p>
+<p>@esgames.org: Yes, if(option) can and does use explicit operator bool. That&#8217;s considered an &#8220;explicit&#8221; request for a boolean test.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10780">
+		<div id="div-comment-10780">
+		<div class="cmtinfo"><em> on <a href="#comment-10780" title="">2013-05-31 at 11:22 am</a></em> <img alt='' src='https://i2.wp.com/a0.twimg.com/profile_images/1208279867/es_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/esgamesorg' rel='external nofollow' class='url'>esgames.org (@esgamesorg)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10780"></div><p>@germinolegrand Does this mean</p>
+<p>if (option) {<br />
+    // &#8230;<br />
+}</p>
+<p>is an explicit conversion?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10775">
+		<div id="div-comment-10775">
+		<div class="cmtinfo"><em> on <a href="#comment-10775" title="">2013-05-31 at 9:28 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f80eb98f480f76f5101cac3164474502?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/monamimani' rel='external nofollow' class='url'>monamimani</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10775"></div><p>In question 4 I think you should be talking about vector. It makes it irrelevant to compare it with the polymorphic type widget. By that I mean of course you can return by value a vector because it is heap based. </p>
+<p>But the question remains to be answer, would you return a widget by value if it is not a polymorphic type. The function should probably be changed to create instead of load because there is no failure possible when you return by value. But still let take a common class, a mammoth class, not something small like a Matrix4x4, but something with bad design that does too much things and has plenty of states, bools, floats,&#8230;.. I would still think twice to return that by value. It might not be call often in that case well you need to decide if you pay the price. I am just saying that this is probably more what should have been the answer to number 4 and have an other question or a note for cheap moveable type like vector.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-fr0stw01f odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10767">
+		<div id="div-comment-10767">
+		<div class="cmtinfo"><em> on <a href="#comment-10767" title="">2013-05-31 at 3:12 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/013d74d6df118431730d41e2e5b09b28?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>tangzhnju</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10767"></div><p>@Sebastian Redl: Thanks for explaining constexpr to me which I did&#8217;nt quite understand before.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10766">
+		<div id="div-comment-10766">
+		<div class="cmtinfo"><em> on <a href="#comment-10766" title="">2013-05-31 at 3:00 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/2385676760fc16f76a43f3319faaa843?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Johannes Schaub (litb)</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10766"></div><p>When the return type of the function is &#8220;optional&#8221; and you are returning a local variable of type &#8220;T&#8221;, NRVO doesn&#8217;t apply. I think that means you should explicitly move &#8220;vector&#8221; it in that case, because the implicit move-treatment is based on the possibility of being able to do NRVO, or has that rule changed for C++14?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10765">
+		<div id="div-comment-10765">
+		<div class="cmtinfo"><em> on <a href="#comment-10765" title="">2013-05-31 at 2:35 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f1634a09333f7b391db92e1d2bea6253?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sebastian Redl</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10765"></div><p>@tangzhnju: If you write optional(), you know statically that the object you created is empty. So operator bool on it is a compile time constant.<br />
+constexpr functions don&#8217;t mean &#8220;I always return a constant expression&#8221;, they mean &#8220;if my arguments are constants, so is my result&#8221;. If the value of an optional is known at compile time, so is its empty/non-empty status.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10753">
+		<div id="div-comment-10753">
+		<div class="cmtinfo"><em> on <a href="#comment-10753" title="">2013-05-30 at 5:53 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/2f91e7ffad34f35c3d035838acf156ac?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jon</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10753"></div><p>&#8220;In C++98, programmers would often resort to returning a large object by pointer just to avoid the penalty of copying its state:&#8221;<br />
+Programmers would also often resort to creating an object and then passing it by reference to copy its state. I think the solution should also be compared with that technique.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10752">
+		<div id="div-comment-10752">
+		<div class="cmtinfo"><em> on <a href="#comment-10752" title="">2013-05-30 at 5:44 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/013d74d6df118431730d41e2e5b09b28?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/tangzhnju' rel='external nofollow' class='url'>tangzhnju</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10752"></div><p>Why can optional::operator bool() be constexpr? Whether optional is valid or not is known at run time.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10750">
+		<div id="div-comment-10750">
+		<div class="cmtinfo"><em> on <a href="#comment-10750" title="">2013-05-30 at 4:47 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/28fb981f4140586663137d6225e6862f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/germinolegrand' rel='external nofollow' class='url'>germinolegrand</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10750"></div><p>@esgames.org: to prevent things like return option + 1; which returns an int if i&#8217;m not mistaken.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10746">
+		<div id="div-comment-10746">
+		<div class="cmtinfo"><em> on <a href="#comment-10746" title="">2013-05-30 at 3:15 pm</a></em> <img alt='' src='https://i2.wp.com/a0.twimg.com/profile_images/1208279867/es_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/esgamesorg' rel='external nofollow' class='url'>esgames.org (@esgamesorg)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10746"></div><p>Why is optional::operator bool() declared explicit?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10744">
+		<div id="div-comment-10744">
+		<div class="cmtinfo"><em> on <a href="#comment-10744" title="">2013-05-30 at 3:07 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10744"></div><p>Repeating my comment I also made on the #89 solution: BTW, the reason I’m posting #89 to #91 in faster succession is because we already saw versions of these exactly one year ago, as then-numbered #103 to #105, so some of the comment discussion about them would be duplicated and I also wanted to get more quickly to the solution for the third which I didn’t post last year. I think you’ll see that all three have been considerably updated since the initial three questions and two solutions I posted a year ago — and not just because of make_unique, and its corollary don’t-write-new, but also some other C++14-isms including the brand-new optional which, like make_unique, has only been in the draft standard since last month.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/05/30/gotw-90-solution-factories/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-fd8c2afb36705c076d90f59a7ca440e8">
+	</div>
+	<div class="grofile-hash-map-de65458ee996992b4de08dc43daf6845">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-22cfb0f5a78cf2032ba441b1cf3b2a8d">
+	</div>
+	<div class="grofile-hash-map-5739565e36c37d766403d19db9bc4755">
+	</div>
+	<div class="grofile-hash-map-ee2752016ea7fd9d43e9d4d176976e91">
+	</div>
+	<div class="grofile-hash-map-6183c6f9d621a125cd3aa0f7ae324285">
+	</div>
+	<div class="grofile-hash-map-17434aaee15d3d6f4a697eea7db70df1">
+	</div>
+	<div class="grofile-hash-map-69f49a6f6d12844e9043c6916efe70d5">
+	</div>
+	<div class="grofile-hash-map-d51032a14bd8da40bbc1f0d7412b090b">
+	</div>
+	<div class="grofile-hash-map-d416dbeac70cd587ae38a00d2e83d83b">
+	</div>
+	<div class="grofile-hash-map-f80eb98f480f76f5101cac3164474502">
+	</div>
+	<div class="grofile-hash-map-013d74d6df118431730d41e2e5b09b28">
+	</div>
+	<div class="grofile-hash-map-2385676760fc16f76a43f3319faaa843">
+	</div>
+	<div class="grofile-hash-map-f1634a09333f7b391db92e1d2bea6253">
+	</div>
+	<div class="grofile-hash-map-2f91e7ffad34f35c3d035838acf156ac">
+	</div>
+	<div class="grofile-hash-map-013d74d6df118431730d41e2e5b09b28">
+	</div>
+	<div class="grofile-hash-map-28fb981f4140586663137d6225e6862f">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_13875={"id":468178,"unique_id":"wp-comment-13875","title":"self%20documentation%20vs%20auto.In%20example%202.%20%26%23091%3Bcode%26%23093%3Bunique_ptr%26lt%3Bwidget%26gt%3B%20load_widget%28%20widget%3A%3Aid%20desired%20%29%3B%26%23091%3B%2Fcode%26%23093%3BYou%20get%20self%20documentation---you%20can%20see%20in%20the%20code%20that%20you%20get%20control%20over%20wid...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-13875","item_id":"_comm_13875"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13875 == 'undefined' ){PDRTJS_468178_comm_13875 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13875 );}}PDRTJS_settings_468178_comm_12284={"id":468178,"unique_id":"wp-comment-12284","title":"You%20missed%20Motti%26%23039%3Bs%20follow-up%20saying%20that%20the%20advantage%20of%20having%20a%20wrapper%20unonwned_ptr%20would%20be%20for%20self%20documentation%28like%20why%20it%26%23039%3Bs%20better%20to%20use%20reinterpret_cast%20than%20a%20C%20style%20cast%29%20and%20I%20was...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-12284","item_id":"_comm_12284"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12284 == 'undefined' ){PDRTJS_468178_comm_12284 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12284 );}}PDRTJS_settings_468178_comm_11332={"id":468178,"unique_id":"wp-comment-11332","title":"%40Christophe%3A%20I%20have%20great%20news%20for%20you%21%20That%26%23039%3Bs%20actually%20not%20a%20problem%20at%20all%2C%20because%20unique_ptr%20doesn%26%23039%3Bt%20need%20to%20know%20about%20the%20destructor%20--%20only%20the%20deleter%20does%2C%20which%20can%20be%20separately%20compil...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-11332","item_id":"_comm_11332"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11332 == 'undefined' ){PDRTJS_468178_comm_11332 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11332 );}}PDRTJS_settings_468178_comm_11310={"id":468178,"unique_id":"wp-comment-11310","title":"The%20fact%20that%20unique_ptr%20forces%20to%20know%20the%20destructor%20of%20the%20object%20forces%20to%20expose%20the%20class%20definition%20at%20each%20level%20%28which%20is%20not%20the%20case%20with%20raw%20pointer%2C%20neither%20with%20shared_ptr%29%2C%20even%20wh...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-11310","item_id":"_comm_11310"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11310 == 'undefined' ){PDRTJS_468178_comm_11310 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11310 );}}PDRTJS_settings_468178_comm_11062={"id":468178,"unique_id":"wp-comment-11062","title":"%40Kai%3A%20Definitely%20not%20recommending%20smart%20pointers%20for%20everything%2C%20in%20particular%20not%20for%20most%20parameters%3B%20see%20GotW%20%2391.But%20overall%20tool%20support%20is%20an%20interesting%20question.%20I%20view%20it%20like%20other%20feat...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-11062","item_id":"_comm_11062"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11062 == 'undefined' ){PDRTJS_468178_comm_11062 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11062 );}}PDRTJS_settings_468178_comm_11043={"id":468178,"unique_id":"wp-comment-11043","title":"I%26%23039%3Bm%20not%20sure%20recommending%20unique_ptr%20et%20al%20for%20every%20pointer%20out%20there%20is%20a%20good%20idea%2C%20because%20it%20will%20blow%20up%20debug%20symbol%20sizes.%20I%20did%20a%20quick%20test%20and%20replaced%20the%20pimpl%20pointer%20of%20an%20otherwis...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-11043","item_id":"_comm_11043"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11043 == 'undefined' ){PDRTJS_468178_comm_11043 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11043 );}}PDRTJS_settings_468178_comm_10888={"id":468178,"unique_id":"wp-comment-10888","title":"%40Vincent%3A%20That%26%23039%3Bs%20reasonable%2C%20I%26%23039%3Bve%20added%20a%20path%20to%20the%20example%20to%20demonstrate%20returning%20%26quot%3Bnothing%26quot%3B%20too%20so%20people%20can%20see%20what%20that%20looks%20like.%20Thanks%20for%20the%20suggestion....","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10888","item_id":"_comm_10888"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10888 == 'undefined' ){PDRTJS_468178_comm_10888 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10888 );}}PDRTJS_settings_468178_comm_10884={"id":468178,"unique_id":"wp-comment-10884","title":"%40Sebastian%3A%20make_shared%20should%20be%20used%20by%20default%20when%20you%20know%20you%26%23039%3Bre%20constructing%20an%20object%20that%20will%20be%20owned%20by%20shared_ptrs.%20The%20factory%20doesn%26%23039%3Bt%20know%20that%20and%20so%20returns%20a%20unique_ptr%20%28presuma...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10884","item_id":"_comm_10884"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10884 == 'undefined' ){PDRTJS_468178_comm_10884 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10884 );}}PDRTJS_settings_468178_comm_10874={"id":468178,"unique_id":"wp-comment-10874","title":"Doesn%26%23039%3Bt%20the%20answer%20to%20%232%20forego%20the%20recommended%20smart%20pointer%20construction%20through%20std%3A%3Amake_shared%3F...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10874","item_id":"_comm_10874"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10874 == 'undefined' ){PDRTJS_468178_comm_10874 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10874 );}}PDRTJS_settings_468178_comm_10867={"id":468178,"unique_id":"wp-comment-10867","title":"The%20advantage%20of%20having%20a%20wrapper%20unonwned_ptr%20template%20type%20is%20purely%20for%20self%20documentation.%20When%20I%20see%20T%2A%20I%20have%20to%20ask%20myself%20whether%20the%20person%20who%20wrote%20this%20thought%20about%20ownership%20and%20dec...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10867","item_id":"_comm_10867"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10867 == 'undefined' ){PDRTJS_468178_comm_10867 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10867 );}}PDRTJS_settings_468178_comm_10865={"id":468178,"unique_id":"wp-comment-10865","title":"I%20understand%20the%20difference%20between%20empty%20and%20null.%20I%20am%20just%20wondering%2C%20in%20the%20context%20of%20factories%2C%20when%20returning%20a%20verctor%20of%20things%2C%20what%20is%20the%20benefit%20of%20returning%20a%20null%20value.%20How%20is%20it%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10865","item_id":"_comm_10865"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10865 == 'undefined' ){PDRTJS_468178_comm_10865 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10865 );}}PDRTJS_settings_468178_comm_10862={"id":468178,"unique_id":"wp-comment-10862","title":"%40Marcel%3A%20Yes.%40Vincent%3A%20Null%20can%20be%20different%20from%20empty%20because%20empty%20may%20be%20a%20valid%20value.%20A%20classic%20example%20is%20a%20nullable%20string%2C%20where%20an%20empty%20string%20%26quot%3B%26quot%3B%20is%20different%20from%20no%20string...%20for%20C-s...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10862","item_id":"_comm_10862"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10862 == 'undefined' ){PDRTJS_468178_comm_10862 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10862 );}}PDRTJS_settings_468178_comm_10858={"id":468178,"unique_id":"wp-comment-10858","title":"I%20wonder%20why%20we%20should%20returning%20optional%26lt%3Bvector%26gt%3B.%20If%20no%20widgets%20can%20be%20loading%20what%26%23039%3Bs%20the%20benefit%20compared%20to%20returning%20an%20empty%20vector.%20This%20way%20I%20do%20not%20introduce%20a%20special%20case.Also%2C%20wh...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10858","item_id":"_comm_10858"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10858 == 'undefined' ){PDRTJS_468178_comm_10858 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10858 );}}PDRTJS_settings_468178_comm_10848={"id":468178,"unique_id":"wp-comment-10848","title":"%40Johannes%20and%20%40Herb%3A%20This%20is%20the%20first%20time%20that%20I%20think%20I%20understand%20when%20to%20write%20%26%23039%3Breturn%20move%26%23039%3B.%20But%20I%20think%20that%20this%20has%20nothing%20to%20do%20with%20copy%20elision%20in%20contrast%20to%20what%20Johannes%20is%20saying...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10848","item_id":"_comm_10848"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10848 == 'undefined' ){PDRTJS_468178_comm_10848 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10848 );}}PDRTJS_settings_468178_comm_10835={"id":468178,"unique_id":"wp-comment-10835","title":"%40Motti%3A%201.%20Yes.%202.%20What%20benefit%20is%20there%20to%20providing%20another%20name%20for%20%2A%20pointers%3F%20FWIW%20we%20do%20now%20teach%20not%20to%20use%20owning%20%2A%20pointers%2C%20but%20non-owning%20%2A%20pointers%20are%20fine%20--%20see%20the%20GotW%20%2391%20soluti...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10835","item_id":"_comm_10835"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10835 == 'undefined' ){PDRTJS_468178_comm_10835 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10835 );}}PDRTJS_settings_468178_comm_10821={"id":468178,"unique_id":"wp-comment-10821","title":"This%20article%20raises%20two%20questions%20in%20my%20mind.1.%20Does%20the%20fact%20that%20we%20now%20have%20explicit%20cast%20operators%20mean%20that%20we%20no%20longer%20need%20the%20%26quot%3Bsafe%20bool%20idiom%26quot%3B%3F%20%202.%20Perhaps%20the%20standard%20should%20include%20a...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10821","item_id":"_comm_10821"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10821 == 'undefined' ){PDRTJS_468178_comm_10821 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10821 );}}PDRTJS_settings_468178_comm_10807={"id":468178,"unique_id":"wp-comment-10807","title":"%40Leo%3A%20Thanks%2C%20fixed....","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10807","item_id":"_comm_10807"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10807 == 'undefined' ){PDRTJS_468178_comm_10807 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10807 );}}PDRTJS_settings_468178_comm_10805={"id":468178,"unique_id":"wp-comment-10805","title":"Tiny%20typo%3A%20%26quot%3Bby%20calling%20members%20functions%20on%20it%26quot%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10805","item_id":"_comm_10805"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10805 == 'undefined' ){PDRTJS_468178_comm_10805 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10805 );}}PDRTJS_settings_468178_comm_10785={"id":468178,"unique_id":"wp-comment-10785","title":"%40Johannes%3A%20You%20are%20correct%20--%20here%26%23039%3Bs%20a%20case%20where%20%26quot%3Byou%20never%20have%20to%20write%20%26%23039%3Breturn%20move%26%23039%3B%26quot%3B%20is%20not%20correct%2C%20when%20they%26%23039%3Bre%20different%20types.%20Fixed%2C%20thanks%21%40esgames.org%3A%20Yes%2C%20if%28option%29%20can%20and%20does%20us...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10785","item_id":"_comm_10785"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10785 == 'undefined' ){PDRTJS_468178_comm_10785 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10785 );}}PDRTJS_settings_468178_comm_10780={"id":468178,"unique_id":"wp-comment-10780","title":"%40germinolegrand%20Does%20this%20meanif%20%28option%29%20%7B%20%20%20%20%2F%2F%20...%7Dis%20an%20explicit%20conversion%3F...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10780","item_id":"_comm_10780"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10780 == 'undefined' ){PDRTJS_468178_comm_10780 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10780 );}}PDRTJS_settings_468178_comm_10775={"id":468178,"unique_id":"wp-comment-10775","title":"In%20question%204%20I%20think%20you%20should%20be%20talking%20about%20vector.%20It%20makes%20it%20irrelevant%20to%20compare%20it%20with%20the%20polymorphic%20type%20widget.%20By%20that%20I%20mean%20of%20course%20you%20can%20return%20by%20value%20a%20vector%20because%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10775","item_id":"_comm_10775"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10775 == 'undefined' ){PDRTJS_468178_comm_10775 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10775 );}}PDRTJS_settings_468178_comm_10767={"id":468178,"unique_id":"wp-comment-10767","title":"%40Sebastian%20Redl%3A%20Thanks%20for%20explaining%20constexpr%20to%20me%20which%20I%20did%26%23039%3Bnt%20quite%20understand%20before....","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10767","item_id":"_comm_10767"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10767 == 'undefined' ){PDRTJS_468178_comm_10767 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10767 );}}PDRTJS_settings_468178_comm_10766={"id":468178,"unique_id":"wp-comment-10766","title":"When%20the%20return%20type%20of%20the%20function%20is%20%26quot%3Boptional%26quot%3B%20and%20you%20are%20returning%20a%20local%20variable%20of%20type%20%26quot%3BT%26quot%3B%2C%20NRVO%20doesn%26%23039%3Bt%20apply.%20I%20think%20that%20means%20you%20should%20explicitly%20move%20%26quot%3Bvector%26quot%3B%20it%20in%20that%20case%2C%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10766","item_id":"_comm_10766"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10766 == 'undefined' ){PDRTJS_468178_comm_10766 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10766 );}}PDRTJS_settings_468178_comm_10765={"id":468178,"unique_id":"wp-comment-10765","title":"%40tangzhnju%3A%20If%20you%20write%20optional%28%29%2C%20you%20know%20statically%20that%20the%20object%20you%20created%20is%20empty.%20So%20operator%20bool%20on%20it%20is%20a%20compile%20time%20constant.constexpr%20functions%20don%26%23039%3Bt%20mean%20%26quot%3BI%20always%20return%20a%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10765","item_id":"_comm_10765"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10765 == 'undefined' ){PDRTJS_468178_comm_10765 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10765 );}}PDRTJS_settings_468178_comm_10753={"id":468178,"unique_id":"wp-comment-10753","title":"%26quot%3BIn%20C%2B%2B98%2C%20programmers%20would%20often%20resort%20to%20returning%20a%20large%20object%20by%20pointer%20just%20to%20avoid%20the%20penalty%20of%20copying%20its%20state%3A%26quot%3BProgrammers%20would%20also%20often%20resort%20to%20creating%20an%20object%20and%20then...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10753","item_id":"_comm_10753"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10753 == 'undefined' ){PDRTJS_468178_comm_10753 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10753 );}}PDRTJS_settings_468178_comm_10752={"id":468178,"unique_id":"wp-comment-10752","title":"Why%20can%20optional%3A%3Aoperator%20bool%28%29%20be%20constexpr%3F%20Whether%20optional%20is%20valid%20or%20not%20is%20known%20at%20run%20time....","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10752","item_id":"_comm_10752"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10752 == 'undefined' ){PDRTJS_468178_comm_10752 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10752 );}}PDRTJS_settings_468178_comm_10750={"id":468178,"unique_id":"wp-comment-10750","title":"%40esgames.org%3A%20to%20prevent%20things%20like%20return%20option%20%2B%201%3B%20which%20returns%20an%20int%20if%20i%26%23039%3Bm%20not%20mistaken....","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10750","item_id":"_comm_10750"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10750 == 'undefined' ){PDRTJS_468178_comm_10750 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10750 );}}PDRTJS_settings_468178_comm_10746={"id":468178,"unique_id":"wp-comment-10746","title":"Why%20is%20optional%3A%3Aoperator%20bool%28%29%20declared%20explicit%3F...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10746","item_id":"_comm_10746"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10746 == 'undefined' ){PDRTJS_468178_comm_10746 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10746 );}}PDRTJS_settings_468178_comm_10744={"id":468178,"unique_id":"wp-comment-10744","title":"Repeating%20my%20comment%20I%20also%20made%20on%20the%20%2389%20solution%3A%20BTW%2C%20the%20reason%20Im%20posting%20%2389%20to%20%2391%20in%20faster%20succession%20is%20because%20we%20already%20saw%20versions%20of%20these%20exactly%20one%20year%20ago%2C%20as%20then-numbered...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/#comment-10744","item_id":"_comm_10744"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10744 == 'undefined' ){PDRTJS_468178_comm_10744 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10744 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F30%2Fgotw-90-solution-factories%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-90-solution-factories\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F05%2F30%2Fgotw-90-solution-factories%2F","postID":"2068","shortlink":"https:\/\/wp.me\/peb5Y-xm","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2068","statsLink":"https:\/\/wordpress.com\/stats\/post\/2068\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F30%2Fgotw-90-solution-factories%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2068','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLnx2MlEtR1Rrd1FdY2hyVXFoUHxWOFQ3OTcuNTZsQV9ob0czQ2d1bW9WT2NkdHFlU2dHVmJRTGtMTG0lPURZNFE/bDBLbmcvPVpuLzAsaDFqfEdbRU5MMT05Vz9VJi5rY2JWUGNDczhUSDBLRTVUZ0NNLC4yTi9dOTVLK0tHNk4vN1hXMndpbUZLcGdheG5XLmFxOThOP0VXaGc0U1BQZFgvNVpTcixyLlczRHFwXTUtVX5lUXVtdnxHJjdITF8udGYxSEF4OQ=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2068' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

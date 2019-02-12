@@ -1,0 +1,1001 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Reader Q&amp;A: When will better JITs save managed code? | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965444&amp;back=https%3A%2F%2Fherbsutter.com%2F2012%2F04%2F02%2Freader-qa-when-will-better-jits-save-managed-code%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Reader Q&amp;A: When will better JITs save managed&nbsp;code? Comments Feed" href="https://herbsutter.com/2012/04/02/reader-qa-when-will-better-jits-save-managed-code/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Reader Q&amp;A: Keywords and&nbsp;Attributes' href='https://herbsutter.com/2012/04/02/reader-qa-keywords-and-attributes/' />
+<link rel='next' title='Reader Q&amp;A: auto and expression&nbsp;templates' href='https://herbsutter.com/2012/04/03/reader-qa/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2012/04/02/reader-qa-when-will-better-jits-save-managed-code/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-n9' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2012%2F04%2F02%2Freader-qa-when-will-better-jits-save-managed-code%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2012%2F04%2F02%2Freader-qa-when-will-better-jits-save-managed-code%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Reader Q&amp;A: When will better JITs save managed code?" />
+<meta property="og:url" content="https://herbsutter.com/2012/04/02/reader-qa-when-will-better-jits-save-managed-code/" />
+<meta property="og:description" content="In the comments on last week’s interview, MichaelTK asked: @Herb: You mentioned two things I don’t fully understand in your talk. 1) Why would C++ be a better choice for very large scale applicatio…" />
+<meta property="article:published_time" content="2012-04-03T01:15:27+00:00" />
+<meta property="article:modified_time" content="2012-04-03T01:15:28+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965444" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Reader Q&amp;A: When will better JITs save managed&nbsp;code?" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="In the comments on last week’s interview, MichaelTK asked: @Herb: You mentioned two things I don’t fully understand in your talk. 1) Why would C++ be a better choice for very large scale applications than NET/Java? I mean the zero abstraction penalty (which is more a JIT compiler issue and not intrinsically hardwired into C#)&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2012/04/02/reader-qa-when-will-better-jits-save-managed-code/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-1435 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2012/04/02/reader-qa-keywords-and-attributes/" rel="prev">Reader Q&amp;A: Keywords and&nbsp;Attributes</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2012/04/03/reader-qa/" rel="next">Reader Q&amp;A: auto and expression&nbsp;templates</a> &raquo;</div>
+			</div>
+			
+			<div class="post-1435 post type-post status-publish format-standard hentry category-c category-reader-qa" id="post-1435">
+				<div class="posttitle">
+					<h2>Reader Q&amp;A: When will better JITs save managed&nbsp;code?</h2>
+					<p class="post-info">2012-04-02 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>In the comments on <a href="https://herbsutter.com/2012/03/29/interview-ca-language-for-modern-times/">last week’s interview</a>, MichaelTK asked:</p>
+<blockquote>
+<p>@Herb: You mentioned two things I don’t fully understand in your talk.</p>
+<p>1) Why would C++ be a better choice for very large scale applications than NET/Java? I mean the zero abstraction penalty (which is more a JIT compiler issue and not intrinsically hardwired into C#) , okay, but besides that?</p>
+<p>2) C++ really only has a few language features which actually let you write faster code in theory. In practice, JIT compilers are just not good enough, yet, to fully optimize on C++ pace and that’s one of the main reasons why C++ excels at efficiency. </p>
+</blockquote>
+<p>No, the reasons go deeper than that. I’m actually giving a talk at <a href="http://channel9.msdn.com/Events/Lang-NEXT/Lang-NEXT-2012">Lang.NEXT</a> on Wednesday which focuses exactly on the managed/native divide. I’ll post a link next week.</p>
+<p>In the meantime, short answer: C++ and managed languages make different fundamental tradeoffs that opt for either performance or productivity when they are in tension.</p>
+<blockquote>
+<p>Why does Microsoft not put effort into a static C++ like compiler for C#/NET, say in manner of NGen, so that C# actually has even the slightest chance of being competitive with C++? </p>
+</blockquote>
+<p>Actually, Microsoft has been actively investing in that for over a decade. So have Java vendors. I expect those efforts to continue.</p>
+<blockquote>
+<p>Otherwise, saying C++ is more efficient than C# is not a theoretical issue, but caused by bad JIT compilers.</p>
+</blockquote>
+<p>This is a 199x/200x meme that’s hard to kill – “just wait for the next generation of (JIT or static) compilers and then managed languages will be as efficient.” Yes, I fully expect C# and Java compilers to keep improving – both JIT and NGEN-like static compilers. But no, they won’t erase the efficiency difference with native code, for two reasons.</p>
+<p>First, JIT compilation isn’t the main issue. The root cause is much more fundamental: Managed languages made deliberate design tradeoffs to optimize for programmer productivity even when that was fundamentally in tension with, and at the expense of, performance efficiency. (This is the opposite of C++, which has added a lot of productivity-oriented features like auto and lambdas in the latest standard, but never at the expense of performance efficiency.) In particular, managed languages chose to incur costs even for programs that don’t need or use a given feature; the major examples are assumption/reliance on always-on or default-on garbage collection, a virtual machine runtime, and metadata. But there are other examples; for instance, managed apps are built around virtual functions as the default, whereas C++ apps are built around inlined functions as the default, and an ounce of inlining prevention is worth a pound of devirtualization optimization cure.</p>
+<p>Second, even if JIT were the only big issue, a JIT can never be as good as a regular optimizing compiler because a JIT compiler is in the business of being fast, not in the business of generating optimal code. Yes, JITters can target the user’s actual hardware and theoretically take advantage of a specific instruction set and such, but at best that’s a theoretical advantage of NGEN approaches (specifically, installation-time compilation), not JIT, because a JIT has no time to take much advantage of that knowledge, or do much of anything besides translation and code gen.</p>
+<p>More in the talk on Wednesday (for those who are at the conference) which will go live online next week&#8230; I’ll blog about it when it’s up.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/reader-qa/" rel="category tag">Reader Q&amp;A</a> | 											58 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">58 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-13163">
+		<div id="div-comment-13163">
+		<div class="cmtinfo"><em> on <a href="#comment-13163" title="">2013-11-07 at 10:32 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/2f91e7ffad34f35c3d035838acf156ac?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jon</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13163"></div><p>@Jon Harrop: Do you have any code samples where MSVC++ runs slower than managed?</p>
+<p>@Herb: It would be interesting to see code samples and benchmarks in C++ and C# which illustrate the points made in this article.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12984">
+		<div id="div-comment-12984">
+		<div class="cmtinfo"><em> on <a href="#comment-12984" title="">2013-10-20 at 3:05 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/dde3a5048e456c451b7c518857e1818c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://mvp.support.microsoft.com/profile/Voigt' rel='external nofollow' class='url'>Ben Voigt</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12984"></div><p>Sure, many times there are complex expressions (perhaps including loops) performing computations which are parameterized by the parameters are known at compile-time.  Numeric integration of a function that has no closed-form algebraic integral, parameterized on the limits/bounds would be an example.  In C++, meta-programming (formerly with templates, now with `constexpr`) can cause those to be precomputed at compile time.  JITs won&#8217;t compute those at compile time, and in fact there would be no advantage to doing so, because the compile time cost is paid for every execution.  In a JITted environment, you might as well just use memoization to ensure the computation is done at most once per execution.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12983">
+		<div id="div-comment-12983">
+		<div class="cmtinfo"><em> on <a href="#comment-12983" title="">2013-10-20 at 5:24 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/827b1643b9e1ac6af6a9341db5bd3f6a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.ffconsultancy.com' rel='external nofollow' class='url'>Jon Harrop</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12983"></div><p>&#8220;This is a 199x/200x meme that’s hard to kill&#8230;a JIT can never be as good as a regular optimizing compiler because a JIT compiler is in the business of being fast, not in the business of generating optimal code&#8221;</p>
+<p>In my experience, the variance between different C++ compilers is much greater than between C++ and managed languages. For example, I have found that MSVC++ usually generates poor code that runs slower than most managed languages. The Clang C++ compiler usually generates fast code but it uses the same backend (LLVM) that managed languages use. So I don&#8217;t believe your claim.</p>
+<p>Do you have any concrete examples of optimizations done by C++ compilers that are not done by JITs because compile times would be unacceptable?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12950">
+		<div id="div-comment-12950">
+		<div class="cmtinfo"><em> on <a href="#comment-12950" title="">2013-10-12 at 11:07 pm</a></em>  <cite><a href='http://abujj.me/archives/376' rel='external nofollow' class='url'>[转]为什么移动Web 应用程序很慢</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12950"></div><p>[&#8230;] 下面这段话出自于Herb Sutter ，现代C++中最著名的人物之一： [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-11955">
+		<div id="div-comment-11955">
+		<div class="cmtinfo"><em> on <a href="#comment-11955" title="">2013-07-14 at 3:40 pm</a></em>  <cite><a href='http://note-to-self.baker.com/2013/07/14/why-mobile-web-apps-are-slow-drew-crawford/' rel='external nofollow' class='url'>Why Mobile Web Apps are Slow | Drew Crawford | Note To Self</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11955"></div><p>[&#8230;] Sutter; Reader Q&amp;A: When will better JITs save managed code?; In His Blog; [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11950">
+		<div id="div-comment-11950">
+		<div class="cmtinfo"><em> on <a href="#comment-11950" title="">2013-07-14 at 8:49 am</a></em>  <cite><a href='http://beranger.org/2013/07/14/the-javascript-mobile-apocalypse/' rel='external nofollow' class='url'>The JavaScript mobile apocalypse | Homo Ludditus</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11950"></div><p>[&#8230;] is from Herb Sutter, one of the big names in modern [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-11892">
+		<div id="div-comment-11892">
+		<div class="cmtinfo"><em> on <a href="#comment-11892" title="">2013-07-09 at 8:47 am</a></em> <img alt='' src='https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/' rel='external nofollow' class='url'>Recommended reading: Why mobile web apps are slow (Drew Crawford) | Sutter’s Mill</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11892"></div><p>[&#8230;] agree with most of it, and not just because he quotes from my When Will Better JITs Save Managed Code blog post from last [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11889">
+		<div id="div-comment-11889">
+		<div class="cmtinfo"><em> on <a href="#comment-11889" title="">2013-07-08 at 11:08 pm</a></em>  <cite><a href='http://sealedabstract.com/rants/why-mobile-web-apps-are-slow/' rel='external nofollow' class='url'>Why mobile web apps are slow | Sealed Abstract</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11889"></div><p>[&#8230;] is from Herb Sutter, one of the big names in modern [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-11867">
+		<div id="div-comment-11867">
+		<div class="cmtinfo"><em> on <a href="#comment-11867" title="">2013-07-06 at 2:20 pm</a></em>  <cite><a href='http://www.codestrokes.com/2012/08/the-turbulent-history-of-managed-code/' rel='external nofollow' class='url'>The Turbulent History of Managed Code | Code Strokes</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11867"></div><p>[&#8230;] <a href="https://herbsutter.com/2012/04/02/reader-qa-when-will-better-jits-save-managed-code/" rel="nofollow">https://herbsutter.com/2012/04/02/reader-qa-when-will-better-jits-save-managed-code/</a> [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5169">
+		<div id="div-comment-5169">
+		<div class="cmtinfo"><em> on <a href="#comment-5169" title="">2012-04-09 at 9:37 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6c5f35687f3c95916e3fc941faf057c3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://williamedwardscoder.tumblr.com' rel='external nofollow' class='url'>William Edwards</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5169"></div><p>Is the much mentioned LMAX the exception that proves the rule?</p>
+<p>It shows that if you use a tiny, non-dynamic (as in not dynamically allocating) subset of a language you can avoid nasty stalls.  That is, by carefully avoiding the &#8220;default-on garbage collection&#8221; that Herb listed.</p>
+<p>C&#8217;s malloc too can stall; its easy to forget that.</p>
+<p>You&#8217;d use the same trick in C and C++ except you&#8217;d avoid indirection and boxing on the elements on the circular buffer because in C and C++ arrays of structs have adjacent memory and all the cache goodness that comes from that.</p>
+<p>(CLR with its arrays of `struct` would be that bit faster than JVM, perhaps?)</p>
+<p>Herb is saying that native code wins because the time a programmer is prepared to wait for a compilation is longer and affords more crunching than the time a JIT can actually spend at runtime.</p>
+<p>We know that PGO pays well for statically natively compiled apps yet we know that running a profile-gathering build is slightly slower; if you are always gathering statistics, are you always hurting slightly and stopping yourself from reaching optimal runtime efficiency?  And to what extend does the measuring alter the actual profile of the code itself?</p>
+<p>But Herb, your point is more about the tradeoffs and product purpose of the mainstream JITs than about the technical absolutes, right?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-dmihailescu even thread-even depth-1 highlander-comment" id="comment-5161">
+		<div id="div-comment-5161">
+		<div class="cmtinfo"><em> on <a href="#comment-5161" title="">2012-04-09 at 9:04 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ec36fb14a91f31d9c14422dcb5fc3d61?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>dmihailescu</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5161"></div><p>@Tony Arcieri</p>
+<p>Tony wrote: &#8220;This is exactly how LMAX works on top of the JVM. They preallocate all resources and store them inside of lock-free ring buffers as part of a framework they call Disruptor.&#8221;<br />
+Tony, that optimizations appears to work fine in certain scenarios where I bet the memory and CPU power is plentiful.<br />
+Many projects are written by average developers that churn code without thinking much about performance or post build optimizations.<br />
+I suspect that LMAX comes short when moved from powerful servers to desktop and worse on mobile devices.<br />
+FYI, this article: <a href="http://www.codeproject.com/Articles/92812/Benchmark-start-up-and-system-performance-for-Net" rel="nofollow">http://www.codeproject.com/Articles/92812/Benchmark-start-up-and-system-performance-for-Net</a><br />
+ shows that for the user experience, other factors than raw performance can come into play, like start-up time and power consumption.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5113">
+		<div id="div-comment-5113">
+		<div class="cmtinfo"><em> on <a href="#comment-5113" title="">2012-04-06 at 6:04 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f2d485d809e88339a6f78e584ce760b3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bcs</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5113"></div><p>@Ben Voigt: OK, you got me, I&#8217;d forgotten that it also did a strstr &amp; replace for a pair of embedded magic constants.</p>
+<p>As for generality, the generator function worked for any method type you passed it by copying from a template function.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5112">
+		<div id="div-comment-5112">
+		<div class="cmtinfo"><em> on <a href="#comment-5112" title="">2012-04-05 at 8:36 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/dde3a5048e456c451b7c518857e1818c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://mvp.support.microsoft.com/profile/Voigt' rel='external nofollow' class='url'>Ben Voigt</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5112"></div><p>@bcs: That&#8217;s not very general, and I&#8217;m sure you had to write an object pointer in there somewhere, not just copy existing code.  Without an object pointer, you aren&#8217;t actually solving the problem I mentioned.</p>
+<p>@Doug: Of course C++ can benefit from limited JIT compilation also, not all cases require extensive metadata.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5106">
+		<div id="div-comment-5106">
+		<div class="cmtinfo"><em> on <a href="#comment-5106" title="">2012-04-05 at 12:59 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5106"></div><p>@bulldozer00: Metadata generally means information about types and is used for things like reflection. This adds significant space overhead to libraries/assemblies. In .NET, metadata is typically several times the size of the actual code instructions in an assembly (&#8220;assembly&#8221; means approximately library or DLL). For a C++ library/DLL, the extra housekeeping information is typically a fraction of the amount of code instructions. Metadata is the main reason why managed assemblies tend to be large.</p>
+<p>@Ziad: I just gave a talk yesterday that covered this and will be online in a week or so; I&#8217;ll post a link when it&#8217;s up. In the meantime, note that &#8220;managed&#8221; and &#8220;native&#8221; mean different things to different people, so I generally prefer to stick with more precise things like comparing &#8220;Java/.NET&#8221; and &#8220;C++&#8221;. For example, there was a rousing discussion yesterday about whether Go is a managed language; people argue about it because &#8220;managed&#8221; is not a crisp term with a consistent definition, so my view these days is that if the term is confusing then it&#8217;s not useful and it&#8217;s best to not use it &#8212; &#8220;the only way to win is not to play&#8221; and use crisp terminology instead.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5103">
+		<div id="div-comment-5103">
+		<div class="cmtinfo"><em> on <a href="#comment-5103" title="">2012-04-05 at 12:25 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f2d485d809e88339a6f78e584ce760b3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bcs</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5103"></div><p>To mis-quote Pilate: &#8220;What is JIT compilation?&#8221;</p>
+<p>I can&#8217;t find it now, but a few months back I wrote a thunk template where the only thing it did at run time to generate each thunk was memcpy machine code into a new buffer. It required zero ASM or ABI knowledge to implement. (It did however make some rather nieave assumptions about the length of the function it copied.) If you want to call that JIT compilation than I can&#8217;t stop you but I will beg to differ.</p>
+<p>IIRC it was even able to curry general functions rather than just methods.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5102">
+		<div id="div-comment-5102">
+		<div class="cmtinfo"><em> on <a href="#comment-5102" title="">2012-04-05 at 11:08 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/3a56d31100092c52f0ff4e9e395998bd?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ziad Hatahet</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5102"></div><p>Hi Herb,</p>
+<p>Where do you draw the line between &#8220;managed&#8221; and &#8220;native'&#8221; languages, especially with some newer languages like D and Go, both of which compile to native code, while providing GC and safety features, as well as higher level ones (like reflection) which C++ lacks. At the same time they allow you to get close to the metal if you really need to (though form my limited experience, D seems to allow that more than Go.)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5097">
+		<div id="div-comment-5097">
+		<div class="cmtinfo"><em> on <a href="#comment-5097" title="">2012-04-05 at 1:58 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a79df09f1a33afcf65306fe23bf4aadd?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>pjmlp</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5097"></div><p>@MichaelTK</p>
+<p>This is where I disagree with Herb.</p>
+<p>If we look at the Algol/Pascal language family, the compile times are pretty close to what &#8220;managed languages&#8221; do, they offer the safe nice features as &#8220;managed languages&#8221; are known for, and yet they compile directly to native code while achieving performance similar to C++ compilers.</p>
+<p>Usually most of those compilers also offer settings to disable bounds checking, among other security checks, in order to improve performance in certain critic parts.</p>
+<p>Heck, even Bartok as a AOT compiler for .NET generates quite good code.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-bulldozer00 odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5096">
+		<div id="div-comment-5096">
+		<div class="cmtinfo"><em> on <a href="#comment-5096" title="">2012-04-05 at 1:24 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a48dca9ac3f34859fffcd402780ffe60?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.bulldozer00.com' rel='external nofollow' class='url'>bulldozer00</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5096"></div><p>Hi Herb,</p>
+<p>In your talks, I&#8217;ve heard you say the term &#8220;metadata&#8221; several times in the context of C++ vs managed language performance. Can you elaborate on it for me?</p>
+<p>Thanks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5095">
+		<div id="div-comment-5095">
+		<div class="cmtinfo"><em> on <a href="#comment-5095" title="">2012-04-05 at 12:14 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7a6742b56fbcdbc8e6231b9f21b5ee39?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>MichaelTK</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5095"></div><p>@pchethan: &#8220;Or, is this even in a scenario where managed langs are compiled directly to machine code?&#8221; </p>
+<p>Yes it is&#8230; As he pointed out and this is obvious anyway, JIT compilers do not optimize anywhere near a C++ compiler (just look at compilation times &#8211; even when you strip off the C++ specific parsing and stuff &#8211; then you get the idea). Additionally, and that was the point in which I am not convinced, Herb pointed out that even static compilers for NET would not be as fast because of language tradeoffs. I beg some language extensions here and there could cover for it, but maybe I am wrong ^^.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5094">
+		<div id="div-comment-5094">
+		<div class="cmtinfo"><em> on <a href="#comment-5094" title="">2012-04-04 at 11:32 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/fcb558016b6fa0d6d7c93c39faaa31d0?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://pchethan.wordpress.com/' rel='external nofollow' class='url'>pchethan</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5094"></div><p>Hi Herb,<br />
+I have been following your talks for a while and you mention that  C++ being roughly 2 times faster than the managed languages (while talking about energy savings).  </p>
+<p>Where does this data come from? Is it roughly from the fact that for every machine instruction, there is an equal amount of CPU spent on JIT translation? </p>
+<p>Or, is this even in a scenario where managed langs are compiled directly to machine code?</p>
+<p>&#8211; Chethan</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-decourse even thread-even depth-1 highlander-comment" id="comment-5093">
+		<div id="div-comment-5093">
+		<div class="cmtinfo"><em> on <a href="#comment-5093" title="">2012-04-04 at 5:35 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3352d7b7b661c84c5b888312397efc76?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>decourse</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5093"></div><p>Ah, looks like Arash made the point on energy consumption just before I did.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-decourse odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5092">
+		<div id="div-comment-5092">
+		<div class="cmtinfo"><em> on <a href="#comment-5092" title="">2012-04-04 at 5:34 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3352d7b7b661c84c5b888312397efc76?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>decourse</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5092"></div><p>One thing that I haven&#8217;t seen here, but is very important to note, is that different platforms require different tradeoffs. It would be difficult, for example, to see &#8220;sufficiently powerful JIT&#8221; ever beat statically compiled languages on some mobile platforms because late-compilation causes a significant hit to battery life.</p>
+<p>Here&#8217;s the thing, though. Almost every sufficiently large, sufficiently complex application is <i>effectively</i> a combination of both &#8220;managed environment&#8221; and &#8220;unmanaged environment&#8221;. There is almost always some low-level bit/pointer/structure manipulation which optimises some critical inner loop. And there is almost always some kind of high-level scripting capability for user customisation.</p>
+<p>Of course, sometimes the &#8220;unmanaged&#8221; layer is hidden behind a black box, such as a DBMS.  And sometimes the &#8220;managed&#8221; layer is batch files/shell scripts. They are still a part of your system.</p>
+<p>So in practice, it&#8217;s not a case of either/or. The two approaches complement each other. It&#8217;s part of the job of an engineer to decide where the boundary is best drawn, taking into account everything from performance criteria to budget constraints. In a sense, the only objectively wrong answer is not to realise that there is a boundary to be drawn.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5091">
+		<div id="div-comment-5091">
+		<div class="cmtinfo"><em> on <a href="#comment-5091" title="">2012-04-04 at 5:33 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3385f1a766359ec967ff34df36390032?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://partow.net' rel='external nofollow' class='url'>Arash Partow</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5091"></div><p>On a side note, If one were to consider a simplification to the notion of computation based entirely on the amount of energy consumed when performing said computation, then it is obvious that JIT based solutions can never be better than proper native (pgo) generated code, furthermore it is more than likely in the overwhelming majority of scenarios that because the JIT approach inherently does more &#8220;stuff&#8221; it will inevitably consume more energy, hence it is by the previous definition of computation more inefficient, note that is still the case even if the excess consumption of energy is carried concurrently &#8211; not affecting overall computation time.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-pjmlp odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5090">
+		<div id="div-comment-5090">
+		<div class="cmtinfo"><em> on <a href="#comment-5090" title="">2012-04-04 at 12:43 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/a79df09f1a33afcf65306fe23bf4aadd?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>pjmlp</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5090"></div><p>@Ben Voigt: You are thinking too narrowly.</p>
+<p>Ada, Modula-3 and D are just a few of the languages with native implementations that have function pointers, and also support genericity with dynamic libraries.</p>
+<p>Many features of the so called managed languages, are also possible to have with pure AOT compilers, it just takes more effort to do so.</p>
+<p>The reason behind the JIT approach is mainly one of the convenience of easiness of implementation vs achievable performance.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5087">
+		<div id="div-comment-5087">
+		<div class="cmtinfo"><em> on <a href="#comment-5087" title="">2012-04-04 at 11:02 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7a6742b56fbcdbc8e6231b9f21b5ee39?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>MichaelTK</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5087"></div><p>@Ben Voigt: Sorry but you are thinking just too conservative then&#8230; A JIT compiler in principle has not much to offer. Most of the nice stuff in NET comes from IL code and Metadata, and of course the huge runtime library and tool-support.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5086">
+		<div id="div-comment-5086">
+		<div class="cmtinfo"><em> on <a href="#comment-5086" title="">2012-04-04 at 10:49 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/dde3a5048e456c451b7c518857e1818c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://mvp.support.microsoft.com/profile/Voigt' rel='external nofollow' class='url'>Ben Voigt</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5086"></div><p>Nothing except the definition of JIT compilation.  If you are generating the machine code for a thunk, you are performing compilation at run-time.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5085">
+		<div id="div-comment-5085">
+		<div class="cmtinfo"><em> on <a href="#comment-5085" title="">2012-04-04 at 10:47 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f2d485d809e88339a6f78e584ce760b3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bcs</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5085"></div><p>@Ben Voigt: There is nothing to stop non-JIT code from generating thunks in machine code.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5084">
+		<div id="div-comment-5084">
+		<div class="cmtinfo"><em> on <a href="#comment-5084" title="">2012-04-04 at 10:42 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/009dcae233c48a51c7be09e29a447493?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Doug</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5084"></div><p>@Ben:</p>
+<p>GCC and ATL both support bound delegates. GCC calls them trampolines. ATL calls them thunks. C/C++ language designers should seriously consider adding them as a standard library feature since they&#8217;re so freaking useful. (They&#8217;re different from lambdas because they are of type function pointer, not of type class/struct.)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5083">
+		<div id="div-comment-5083">
+		<div class="cmtinfo"><em> on <a href="#comment-5083" title="">2012-04-04 at 10:23 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/dde3a5048e456c451b7c518857e1818c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://mvp.support.microsoft.com/profile/Voigt' rel='external nofollow' class='url'>Ben Voigt</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5083"></div><p>It&#8217;s not an accident.</p>
+<p>Generics do not and cannot work the same without a JIT.  Right now, you can load a library dynamically and create a generic collection of a type in that library.  Take away the JIT, and you limit yourself to collections of types which existed when the collection was compiled.</p>
+<p>.NET generics and C++ templates are not equal.</p>
+<p>The JIT is also necessary to making bound delegates work with APIs that expect function pointers.  There&#8217;s no place to store the target object handle except inside code generated at runtime.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5081">
+		<div id="div-comment-5081">
+		<div class="cmtinfo"><em> on <a href="#comment-5081" title="">2012-04-04 at 8:49 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7a6742b56fbcdbc8e6231b9f21b5ee39?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>MichaelTK</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5081"></div><p>@Herb: BTW, concerning your hatred?! against &#8220;attributes&#8221;, my last sentence pretty much provides a strong justification for them. They are really great to play around with language extension (the ones that are not too invasive) without messing up parsers/tools. You can easily extend compilers like Mono or Clang to understand new attributes and try out your ideas right away. This is an unvaluable tool. I agree there are other similar ways like deriving from placeholder objects and stuff like that but they are rather limited and annoying to use. But I agree, these attribute extensions should always be backwards compatible which means the program should run on a compiler not supporting them&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5080">
+		<div id="div-comment-5080">
+		<div class="cmtinfo"><em> on <a href="#comment-5080" title="">2012-04-04 at 8:41 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7a6742b56fbcdbc8e6231b9f21b5ee39?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>MichaelTK</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5080"></div><p>@Herb: First, thank you for explicitly answering like that. Obviously this topic draws a lot attention, so I don&#8217;t seem to be the only one concerned with it ;). I will sure wait for your talk to be online. Given your statements, I feel rather tempted to validate them in experiments ^^. But that is not that easy. Might be a longer research effort. There are a lot of concrete ideas I have for improving NET performance. Unfortunately it is hard to get them noticed without proof. So I guess I&#8217;ll just have to go the route of implementing them in the Mono compiler to either show that my assumptions about C# being able to run on C++ pace are wrong or you were too pessimistic in terms of NET compilers, or I too optimistic. I agree though, that such a performance leap is rather impossible without C# language extensions. But so far I am confident that we could get away pretty cheap at this, maybe entirely through Attributes in the first place (to play around without messing with parsers/tools)&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5079">
+		<div id="div-comment-5079">
+		<div class="cmtinfo"><em> on <a href="#comment-5079" title="">2012-04-04 at 8:38 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a79df09f1a33afcf65306fe23bf4aadd?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>pjmlp</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5079"></div><p>I also agree with Doug&#8217;s post.</p>
+<p>It is just due to an accident that today&#8217;s managed environments, as Microsoft calls them, make use of a JIT.</p>
+<p>There are quite a few languages with GC and other programmer productivity features, that compile to plain native code. I quite convinced that most of these languages are able to have implementations with a performance comparable to current C and C++ compilers.</p>
+<p>Lets not forget that C and C++ compiler have years of money invested into them, making them able to squeeze every performance out of current systems.</p>
+<p>To pick on Microsoft&#8217;s own technology, Bartok&#8217;s compiler achieves quite a good code quality when compared with C++. Maybe it should be about time that it is made part of the .NET SDK?</p>
+<p><a href="http://www.eng.auburn.edu/~agrawvd/COURSE/READING/ARCH/The_singularity_system.pdf" rel="nofollow">http://www.eng.auburn.edu/~agrawvd/COURSE/READING/ARCH/The_singularity_system.pdf</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5077">
+		<div id="div-comment-5077">
+		<div class="cmtinfo"><em> on <a href="#comment-5077" title="">2012-04-04 at 4:03 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/5e54e3d0eef9b984d8778a0ebdd84980?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>rk</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5077"></div><p>When Herb says that managed apps use virtual functions by default it&#8217;s rather obvious that he doesn&#8217;t mean that in C# all methods are virtual by default – if you think so, you just didn&#8217;t get the point. What he wants to say is that managed languages create pressure to solve many problems using virtual dispatch, while the same problems would usually be solved in other (more efficient) ways in C++.</p>
+<p>Moreover, although methods in C# are indeed not virtual by default, each type is virtual-enabled by default and with no way to opt-out. Every single object on the heap will have a vtable and several elementary methods inherited from System.Object that are virtual, so I can&#8217;t see how C# is not build around virtual functions.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5071">
+		<div id="div-comment-5071">
+		<div class="cmtinfo"><em> on <a href="#comment-5071" title="">2012-04-03 at 11:12 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/39dff1a7e41248e1589586ee8ac672cc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Frisian</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5071"></div><p>I agree with Doug&#8217;s post. We handed over a lot of control to the compiler or the OS over time and most of us did it without looking back nor regret.<br />
+And my guess is, that some programming languages will become even more abstract as to allow for optimizing parallel processing. At some point it will probably be more important to know, if a method is side-effect free than if it&#8217;s virtual or static.<br />
+Unless you embrace functional programming, especially loops aren&#8217;t abstract enough to let the JIT do all the optimizing. Java&#8217;s enhanced for-loop and the upcoming closures are but two steps in this direction.<br />
+Optimizing parallel processing could turn out to be so complex, that programs, which can take advantage of this, are always faster when written in Java or C# as compared to C++.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-bascule even thread-even depth-1 highlander-comment" id="comment-5070">
+		<div id="div-comment-5070">
+		<div class="cmtinfo"><em> on <a href="#comment-5070" title="">2012-04-03 at 7:53 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/4131d2f57a0db2a2b4d9a62bd389fd44?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://btwg.wordpress.com/' rel='external nofollow' class='url'>Tony Arcieri</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5070"></div><p>&#8220;In garbage collected languages this is a lot harder to pull off.&#8221;</p>
+<p>It&#8217;s not. It&#8217;s called: don&#8217;t allocate memory. If you don&#8217;t allocate memory, you won&#8217;t run the garbage collector.</p>
+<p>This is exactly how LMAX works on top of the JVM. They preallocate all resources and store them inside of lock-free ring buffers as part of a framework they call Disruptor.</p>
+<p>Worker threads can check-in and check-out work units from these ring buffers in a completely lock-free manner without ever having to allocate any memory. Data is read off the wire into preallocated buffers, which are then used to process stock trades.</p>
+<p>By never running the garbage collector, they are able to satisfy the latency requirements of a stock exchange, even while running on top of the JVM.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5067">
+		<div id="div-comment-5067">
+		<div class="cmtinfo"><em> on <a href="#comment-5067" title="">2012-04-03 at 5:52 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/023288ff4de930252850b0bc5d7b9c79?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Eric Shaw</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5067"></div><p>I think an even bigger factor is memory management.  Allocating &amp; deallocating objects on the heap should be avoided in any performance critical code.  They are ***FAR*** more expensive than most people think, especially on multi-core systems.  C++ it&#8217;s not that hard to create an efficient pool of objects of a given type (where the actual allocation is one big array that you grab elements out of), and have short string members of the object inlined as part of it instead of separate allocations.  In garbage collected languages this is a lot harder to pull off.  And while the per-allocation overhead of the garbage collector might be less than most malloc &amp; free implementations it is still to be avoided if you are at all interested in performance.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5066">
+		<div id="div-comment-5066">
+		<div class="cmtinfo"><em> on <a href="#comment-5066" title="">2012-04-03 at 5:35 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/009dcae233c48a51c7be09e29a447493?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Doug</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5066"></div><p>I think that to a certain extent, we all agree on 99% of what is being said and are only disagreeing on semantics. I take it as given that, with enough effort, you can always write a C++ program that beats a .NET program (or any other &#8220;managed&#8221; system), because if worst comes to worst, you can write a C++ runtime that does whatever the managed runtime does but does it in a way more optimized for the specific task at hand. And I agree that, as Herb says, there are constant tradeoffs between developer productivity and runtime efficiency and that the C++ vs. .NET split manifests some of those tradeoffs.</p>
+<p>There are some disagreements about what Herb said regarding virtual dispatch. In particular, it is worth noting that C# classes do not use virtual dispatch by default, contrary to what is done by Java and contrary to what one might think after reading Herb&#8217;s initial post. On the other hand, the .NET framework does make use of virtual dispatch for many cases, WriteLine being one of them (it uses virtual dispatch to convert each formatted object into a string, probably another to convert the string into bytes based on a runtime-selectable encoding, and then uses a third virtual dispatch to send the bytes to the underlying I/O device). It should be noted that C++ also uses virtual or virtual-like dispatch in similar places for its I/O (printf uses switch statements based on type and usually uses a function pointer to connect to the underlying I/O; iostream uses templates to convert the string to char but still uses virtual methods to send I/O to the output device). So both .NET and C++ use virtual dispatch where appropriate, though perhaps it would be fair to say that the .NET framework uses virtual dispatch more often. I think we all agree that virtual dispatch can substantially affect optimization and that in some cases, it can make a big difference in performance. I don&#8217;t think WriteLine is a particularly good example (I have never found the virtual dispatch in WriteLine to be the root of any performance issue), but virtual dispatch should definitely be avoided in any performance-critical inner loop. That said, I don&#8217;t think virtual dispatch is really a core issue since the problem exists and is solvable for both C++ and C#.</p>
+<p>Herb also mentioned several other costs associated with managed code &#8212; a larger runtime, additional metadata, and garbage collection. I think here we probably also agree in substance of fact, though we might disagree regarding the conclusions to draw from the facts. One thing that is clear to me is that if you aren&#8217;t taking advantage of the benefits provided by a technology, it is pointless to pay the costs of it. On the other hand, if you are getting a benefit out of a technology, it might be worth a price. C++ offers a wide range of prices and corresponding benefits (from freestanding with no EH or RTTI all the way up to full STL and beyond with some very powerful libraries available). Microsoft&#8217;s current managed offerings are somewhat less flexible, but also offer a range with varying costs and benefits (Micro framework, Compact framework, Silverlight, Client framework, Full framework). Other managed frameworks such as Mono offer even more flexibility, compiling a managed project down to a standalone executable. It might be accurate to say that there is a function &#8220;price paid versus benefit obtained&#8221; for each runtime environment, and that the range and domain of the function will vary for different environments. So certain situations, it would be stupid to use .NET, and for other situations, it would be silly to use C++. If .NET causes performance problems for your app and C++ does not, and if your app isn&#8217;t using any .NET features, there isn&#8217;t much point in using .NET. If you need features available in .NET that aren&#8217;t in C++ and the .NET performance characteristics meet your needs, you should definitely be using .NET.</p>
+<p>Here&#8217;s where I think the big division occurs: what will the future hold? My personal opinion is that the managed runtime will follow a development path similar to many other technologies designed to improve developer productivity &#8212; it will be resisted as too slow and expensive, become somewhat more efficient, become mainstream, and eventually get to the point where it beats the performance of the older technology in some cases but not in others (mainly in &#8220;bigger&#8221; systems, though machines meeting the definition of &#8220;bigger&#8221; will be more common as time goes on).</p>
+<p>Quick trip down memory lane. Remember the Von Neumann architecture of programmable computers and how inefficient that was compared with the special-purpose hardwired machines, for the sole purpose of trading off efficiency versus developer productivity? And those nasty compilers that generated such horribly inefficient machine code just to make developers happy? And that kernel/user split that takes power out of the hands of the developer and tells the developer that the program must get permission from the OS before doing certain things? What about the substantial performance penalty (not to mention unpredictable pauses) that all user-mode programs have to pay in order to get access to virtual memory? Aren&#8217;t all of these just tradeoffs that give up programmer control and performance efficiency in order to improve programmer productivity?</p>
+<p>Each of these technologies adds a level of abstraction with non-zero cost, but they also open up possibilities that were previously infeasible. When introduced, the cost of each technology was prohibitive, but hardware and software refinements have made the costs acceptable for most systems (though still unacceptable on small systems). Eventually each technology always gets to the point where it becomes quite challenging to beat the new technology with the old technology (at least for &#8220;bigger&#8221; systems), though with enough effort you can always make something using the older technology that is more efficient than what can be achieved using the newer technology. For some applications, it&#8217;s still easier to use the older technology (light dimmer switches don&#8217;t usually have embedded Pentium processors &#8212; they&#8217;re usually just hardwired potentiometers or rheostats), but as time goes by, it requires more and more work to match the productivity and even the performance of the new method using the old method (nowadays thermostats often do have programmable CPUs). For example, a good assembly-language programmer can always out-optimize the compiler, but beating the compiler gets harder and less worthwhile every year.</p>
+<p>Of course, for simple or limited hardware, the old technology will still win in both performance and productivity, but each year you have to go lower and lower on the totem pole before you reach that point.</p>
+<p>I still do more C++ development than C# development, but the reasons almost always have to do with dependency management or because I&#8217;m working with an existing C++ project. The reasons essentially never have to to with performance or efficiency. In nearly all cases where the .NET framework is an option, it meets my performance needs. The primary exceptions are for programs that do very little work per process, in which the runtime initialization and runtime shutdown dominate the total runtime.</p>
+<p>Herb is definitely correct that the Microsoft .NET framework is not currently aiming for high levels of optimization. The current level of optimization is good enough for most use cases of the target audience. More optimization would require more time spent JITting, and most customers are voting for faster JIT over faster execution. However, if more customers ask for faster runtime in the future, it would be possible possible to reduce load times with NGEN ahead-of-time compilation and then to use use profile-guided re-JIT at runtime. Using techniques proven in JavaScript engines, the hot paths can be determined at runtime, heavily optimized, and then the re-optimized versions can replace the original quick-JIT or NGEN versions. There is no reason why such a dynamic JIT could not beat the performance of any native code (assuming the host machine is &#8220;big&#8221; enough to support the runtime).</p>
+<p>The trend in programming is to hand over more and more of the management of the runtime environment to the system each year. For example, we no longer manage overlays and instead depend on the OS to manage virtual memory for us. By providing metadata, we pay a price in terms of disk space but we get the benefit that the runtime can manage a lot more aspects of the program&#8217;s execution. I currently trust that the OS will do a much better job managing virtual memory than I could if I were to do it by hand. I don&#8217;t currently trust that the .NET runtime will do much better than I could do by hand, but it does a pretty good job now and will only get better with time.</p>
+<p>One additional note is that it isn&#8217;t just programmer productivity that is purchased with the use of a managed runtime. In addition, you get many capabilities that are hard or impossible to offer with current C++ systems. For example, you get a working module system. The best module system available for C++ right now (to my knowledge) is COM, and that requires the use of a non-C++ tool (MIDL) to make up for the language and runtime shortcomings. WinRT looks very promising, but it isn&#8217;t out yet and isn&#8217;t standardized in any meaningful way. On the other hand, .NET has type-safe cross-module (and cross-process) communication built-in and standardized, so it is much easier to create a multi-module composable system. As another example, C++ code cannot be analyzed by the system sufficiently to make a solid decision about whether or not it would be safe to run the code, but .NET&#8217;s verifier provides a very powerful way to know exactly what a piece of code can and cannot do before running it.</p>
+<p>In the end, it comes down to whether the price you pay for your runtime environment is worth it. The freestanding C runtime environment is very cheap. The minimal C++ runtime environment is quite a bit more expensive (includes memory allocation, exception handling, and RTTI). The complete hosted C or C++ runtime environment is more expensive still. But the price is amortized across multiple instances and is worthwhile if you use the features. The same can be said about any runtime.</p>
+<p>Anyway, sorry for blathering on for so long. Cheers!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5062">
+		<div id="div-comment-5062">
+		<div class="cmtinfo"><em> on <a href="#comment-5062" title="">2012-04-03 at 2:35 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/4131d2f57a0db2a2b4d9a62bd389fd44?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://btwg.wordpress.com/' rel='external nofollow' class='url'>Tony Arcieri</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5062"></div><p>&#8220;The root cause is much more fundamental: Managed languages made deliberate design tradeoffs to optimize for programmer productivity even when that was fundamentally in tension with, and at the expense of, performance efficiency.&#8221;</p>
+<p>This is completely untrue. As evidence to the contrary, I ask you to take a look at LMAX:</p>
+<p><a href="http://www.infoq.com/presentations/LMAX" rel="nofollow">http://www.infoq.com/presentations/LMAX</a><br />
+<a href="http://www.infoq.com/presentations/LMAX-Disruptor-100K-TPS-at-Less-than-1ms-Latency" rel="nofollow">http://www.infoq.com/presentations/LMAX-Disruptor-100K-TPS-at-Less-than-1ms-Latency</a></p>
+<p>LMAX is the world&#8217;s only stock exchange with a public API where you can trade directly without going through a broker, and they didn&#8217;t write it in C++, they wrote it in Java.</p>
+<p>Please look at how they&#8217;re reasoning about the hardware. Their talk could serve as a great introduction to modern hardware and memory/cache architecture in and of itself. These aren&#8217;t people who are blinded by abstractions. These are people who understand and can reason about those abstractions in the context of how modern CPUs and memory architectures operate.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5060">
+		<div id="div-comment-5060">
+		<div class="cmtinfo"><em> on <a href="#comment-5060" title="">2012-04-03 at 12:36 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/cdc12ff3c5666c8ea0a71ce872555089?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Chris</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5060"></div><p>I see a lot of commenters defending JIT compilers.</p>
+<p>Do you guys even understand what &#8216;optimization&#8217; is? If you have a fixed set of instructions that will always have to run, there is no room for optimizations. In these cases C++ will perform faster than any managed language. And if you don&#8217;t write overly ambiguous code, the C++ compiler can perfectly optimize away unnecessary instructions where possible.</p>
+<p>About what the JIT compilers could theoretically do&#8230; guess what my fantasy C++ compiler is better than your fantasy JIT compilers will ever be.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5058">
+		<div id="div-comment-5058">
+		<div class="cmtinfo"><em> on <a href="#comment-5058" title="">2012-04-03 at 10:26 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/dde3a5048e456c451b7c518857e1818c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://mvp.support.microsoft.com/profile/Voigt' rel='external nofollow' class='url'>Ben Voigt</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5058"></div><p>@Miguel: Make it `Trace.WriteLine()`, then.  That could go to a console, debugger, file, network socket, etc.  It&#8217;s extremely hard to say that performance doesn&#8217;t matter in such cases.  That the I/O target is the bottleneck is an oft-stated but rarely validation assumption.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5057">
+		<div id="div-comment-5057">
+		<div class="cmtinfo"><em> on <a href="#comment-5057" title="">2012-04-03 at 10:14 am</a></em> <img alt='' src='https://i2.wp.com/a2.twimg.com/profile_images/422542052/nueva_normal.jpg?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/migueldeicaza' rel='external nofollow' class='url'>Miguel de Icaza (@migueldeicaza)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5057"></div><p>I am not sure why Console.WriteLine is the focus of a discussion on virtuals and performance.</p>
+<p>Console.WriteLine is about I/O which is about the slowest code path in a program, so any performance slowdowns on Console.WriteLine is minimal in comparison with the actual kernel context switch and actual delivery to the output mechanism (worst case: a windowing system showing a console output, best case: output redirected to /dev/null).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5056">
+		<div id="div-comment-5056">
+		<div class="cmtinfo"><em> on <a href="#comment-5056" title="">2012-04-03 at 8:29 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f2d485d809e88339a6f78e584ce760b3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bcs</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5056"></div><p>Why do people persist in using general purpose programming languages? Maybe what is needed is a collection of special purpose languages designed to seamlessly integrate. Kind of like the .NET environment but with the c++ model rather than the managed model as the global assumption.</p>
+<p>I&#8217;ve heard it claimed that 90% of code is input, output and format translation. Why isn&#8217;t there a language tuned for exactly that case? Another claim has been made that 90% of code is irrelevant to performance, so why isn&#8217;t a lot of that code written in a productivity oriented language? Large scale optimization is hard so why isn&#8217;t performance critical code written in a language tuned to support it at the expense of some productivity? Similar statements can be made about threading and a number of other domains.</p>
+<p>If such languages existed such that inter-language calls were just as easy and efficient as intra-language, why not go that way?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5054">
+		<div id="div-comment-5054">
+		<div class="cmtinfo"><em> on <a href="#comment-5054" title="">2012-04-03 at 7:24 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c4e926fdc0905d11899b69c6387f6ed7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Achilleas Margaritis</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5054"></div><p>So, if we have a JIT VM for C++, wouldn&#8217;t the JIT&#8217;ed program be faster than the natively compiled program? (assuming the JIT VM can do some optimizations the compiler cannot do).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5053">
+		<div id="div-comment-5053">
+		<div class="cmtinfo"><em> on <a href="#comment-5053" title="">2012-04-03 at 7:21 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5053"></div><p>@Ivan: For one thing, some high-performance lock-free algorithms are not possible unless you solve ABA, so having GC will strictly enable things we can&#8217;t otherwise do in portable code using C++11 today.</p>
+<p>@Achilleas: You can have a JIT VM for C++ &#8212; for example, VC++ /clr basically does that by compiling Standard C++ to .NET IL as a target &#8212; just like you can compile C# and Java to native code &#8212; NGEN and newer efforts do this though you still need some runtime but can avoid JIT. However, doing either doesn&#8217;t change that the languages were designed with the opposite assumptions, it doesn&#8217;t change their semantics, and it doesn&#8217;t turn one into the other. For example, when you compile Standard C++ code on VC++ using /clr we&#8217;ll emit .NET IL for the code, but the data types stay native (e.g., no metadata, no JIT layout) and the program uses only the native heap (because C++ objects cannot in general tolerate being moved in memory without their knowledge, it is impossible in general to allocate C++ objects directly on a compacting GC heap without pinning the world which means it is no longer a GC heap, or even a functioning heap for that matter in many cases).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5052">
+		<div id="div-comment-5052">
+		<div class="cmtinfo"><em> on <a href="#comment-5052" title="">2012-04-03 at 6:52 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c4e926fdc0905d11899b69c6387f6ed7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Achilleas Margaritis</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5052"></div><p>What if we had a JIT VM for c++?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5051">
+		<div id="div-comment-5051">
+		<div class="cmtinfo"><em> on <a href="#comment-5051" title="">2012-04-03 at 5:37 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d3f0fc36284467553ccafd8e1b31d521?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://projectshave.wordpress.com/' rel='external nofollow' class='url'>projectshave</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5051"></div><p>I sort of agree with Herb. People have long been arguing that a &#8220;Sufficiently Smart JIT Compiler&#8221; could use runtime information to beat a static C++ compiler. However, languages get more abstract as compilers get smarter, so it&#8217;s a wash. I would not, as Herb does, make the strong statement that &#8220;managed&#8221; languages can&#8217;t be faster than C++. There used to be tons of research in the early 90s on very low-level portable instruction sets (lower than LLVM) that are JIT compiled into native code. It&#8217;s basically a static C++ compiler that has one last chance to use a JIT at runtime to beat a static compiler.Similar to, but better than, Apple&#8217;s Rosetta: <a href="http://en.wikipedia.org/wiki/Rosetta_(software)" rel="nofollow">http://en.wikipedia.org/wiki/Rosetta_(software)</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5050">
+		<div id="div-comment-5050">
+		<div class="cmtinfo"><em> on <a href="#comment-5050" title="">2012-04-03 at 5:12 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6c5f35687f3c95916e3fc941faf057c3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://williamedwardscoder.tumblr.com' rel='external nofollow' class='url'>William Edwards</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5050"></div><p>Hi Herb,</p>
+<p>I&#8217;ve been trying to work out how to make my favourite dynamic language compiled.  Imagining writing compilers is a very good thought exercise :)</p>
+<p>Now here you&#8217;re talking about JIT in a static language context but I think that there&#8217;s some similiarities &#8211; that Java even chooses to tag and box (while sometimes .NET doesn&#8217;t).</p>
+<p>The bit of my dyanmically-typed code that I can&#8217;t work out how to &#8216;optimise&#8217; to be as fast as, say, C or C++ is dyanmic types.  In JITing with specialisation you can smooth over a large amount of it at local scope, but you&#8217;re stuck with tagged types for everything shared and they can&#8217;t easily be in sequential memory either.</p>
+<p>Can you please assure me that my own investigation is flawed?  <a href="http://williamedwardscoder.tumblr.com/post/19538827844/why-dynamic-programming-languages-are-slow" rel="nofollow">http://williamedwardscoder.tumblr.com/post/19538827844/why-dynamic-programming-languages-are-slow</a></p>
+<p>I would love to be wrong and have missed something; it&#8217;d be so cool if you could point me to a way around this problem!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5048">
+		<div id="div-comment-5048">
+		<div class="cmtinfo"><em> on <a href="#comment-5048" title="">2012-04-03 at 2:45 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6aea6e2f57f2a7b1cd6870375fbdc42f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ivan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5048"></div><p>@ Herb &#8221; GC can help some high-performance data structures and algorithms: &#8221;<br />
+Can you explain this in a bit more detail. I know of the the for eg. ABA problem but I never got how having another GC thread in lock free alg is helpful.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-5044">
+		<div id="div-comment-5044">
+		<div class="cmtinfo"><em> on <a href="#comment-5044" title="">2012-04-02 at 11:54 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5044"></div><p>@Doug, re this specifically:</p>
+<blockquote><p>
+It is conceivable that a future version of the C++ compiler front-end could emit pure .NET IL,
+</p></blockquote>
+<p>Actually, I think you know (but not all readers might) that past and current versions do the above part. Visual C++ 2005 and higher do that under the /clr switch &#8212; pure IL for instructions, all native data (e.g., all native types and heap, no .NET types or GC heap).</p>
+<blockquote><p>
+and the .NET ahead-of-time compiler would convert that to a native EXE or DLL indistinguishable from the result generated from a similar C# program (as long as the C# program doesn’t use any GC types). The .NET platform is rich enough to allow for that. While this isn’t the direction the platform is currently taking, I would be very hesitant to claim that .NET intrinsically cannot reach those goals.
+</p></blockquote>
+<p>I used to be hesitant, but am not any more: It won&#8217;t, because it&#8217;s designed to reach legitimately different goals that are in tension with full-on performance efficiency, and invoking Turing-completeness to say X could do Y isn&#8217;t really helpful or feasible in the end &#8212; we should use the tool optimized for X *and* the tool optimized for Y.</p>
+<p>It&#8217;s important not to fall into the &#8220;one size fits all&#8221; == &#8220;one language can theoretically optimize for everything&#8221; trap, tempting though it is, because the trap is based on (and baited with) the faulty assumption that there are no tradeoffs. There are tradeoffs, and good languages are carefully designed to choose among them. The right way to use each of Java or .NET or C++ is to evaluate what it really is designed to excel at and use it for that purpose.</p>
+<p>Remember, one of the first questions to ask any seller of any new product is: &#8220;So, tell me, what *isn&#8217;t* this good at?&#8221;, or &#8220;What *shouldn&#8217;t* this be used for?&#8221; If the seller can answer that kind of question clearly, then you know two important things: (a) they understand their product; and (b) they&#8217;re not trying to pull the wool over your eyes. (If they can&#8217;t or won&#8217;t, run the other way.)</p>
+<p>Let me give a partial starter answer for C++: C++ is not, and never will be, good at always-on runtime dynamic reflection for all types and methods, as long as that would incur metadata overheads on programs that don&#8217;t use it (which as far as we know it does today). Although I could imagine C++ someday allowing opt-in metadata &#8212; generating metadata under a compiler switch or allowing types to optionally add the overhead of supplying metadata, so that it&#8217;s pay-for-play.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5040">
+		<div id="div-comment-5040">
+		<div class="cmtinfo"><em> on <a href="#comment-5040" title="">2012-04-02 at 10:44 pm</a></em> <img alt='' src='https://i2.wp.com/a0.twimg.com/sticky/default_profile_images/default_profile_5_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/Henrik_Vallgren' rel='external nofollow' class='url'>Henrik Vallgren (@Henrik_Vallgren)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5040"></div><p>For GC to beat C++ memory deallocation, it could either be done at a later time or by another thread. Doing it later increases memory usage so it&#8217;s probably not a good idea beyond the scope of simple benchmarking. As multithreading finally gets easy, moving deallocation to a separate thread loses efficiency, since most cores are likely to be used anyway.</p>
+<p>Besides, C++ has plenty of tricks up it&#8217;s sleeve. For small temporary storage, use a stack based allocator that reduces memory allocation/deallocation cost to almost zero. I&#8217;ve used the one written by Howard Hinnant:</p>
+<p><a href="http://home.roadrunner.com/~hinnant/stack_alloc.h" rel="nofollow">http://home.roadrunner.com/~hinnant/stack_alloc.h</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-5039">
+		<div id="div-comment-5039">
+		<div class="cmtinfo"><em> on <a href="#comment-5039" title="">2012-04-02 at 10:42 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5039"></div><p>@All: In addition to the previous comment, let me contrast C++&#8217;s versions of &#8220;Console.WriteLine&#8221; and &#8220;generics&#8221; &#8212; unlike .NET Console.WriteLine which relies on virtual dispatch, C++ stream I/O is usually about direct function calls; and unlike .NET generics which are all about virtual dispatch, C++ templates are not only always about direct function calls, but inlined-by-default direct calls.</p>
+<p>Yes, absolutely there&#8217;s great heroic effort and effect in the managed language world around things like devirtualization and always-on PGO. But which is faster, and more reliably and often faster: (a) an advanced JIT with 20 years of research and field experience that with lots of runs can often guess well about which calls to safely inline; or (b) aggressive inlining by default all the time from the first build, on top of option (a)? (And note that (b) is inherently a strict superset of the optimizations in (a)&#8230;)</p>
+<p>There really is a difference here, and managed languages legitimately prioritize something else (productivity) and then try to make the performance back via optimization. That&#8217;s great when you want to optimize programmer productivity first at the expense of mandatory overheads, which you should do when programmer time is your biggest cost and you can afford the extras (e.g., 199x/200x in-house LOB client apps as just one example category where those are often both true and so tends to be well served this way).</p>
+<p>But there&#8217;s always an inescapable and fundamental difference between &#8220;prevention&#8221; and &#8220;cure&#8221; &#8212; when it comes to performance optimization, C++ always chooses &#8220;prevention,&#8221; and managed languages choose &#8220;cure&#8221; with the above-mentioned heroic efforts and many more. But the old ounce/pound saying is inescapable; you can&#8217;t beat prevention (in part because you can always add the cure after first doing the prevention, but not the reverse), and if you care about performance and control primarily then you should use a language that is designed to prioritize that up front, that&#8217;s all.</p>
+<p>Like many of you, I&#8217;ve lived the prevention/cure choice many times in many contexts. For example, if database consistency is paramount, then it&#8217;s much cheaper and simpler and easier to do even *lots* of extra work up front to keep databases consistent all the time where possible, than to allow inconsistencies to happen and then later try to fix them up with compensating writes or merges &#8212; you end up giving up overall performance and/or never making it back to full consistency. (Note that failing to have full consistency can be a perfectly valid choice in a world-class system; many distributed database systems are built on such imperfect-consistency models.) But giving up consistency, which after all is the C in ACID, takes some getting used to, and you have to be very careful to know exactly what you&#8217;re getting and what you&#8217;re paying if you opt to go down that road. Once you let those databases get out of sync, you *will* pay more in aggregate to get them back in sync and/or won&#8217;t get them in perfectly consistent sync again. Be sure it&#8217;s worth it and you can afford the compromise, that&#8217;s all. It often is, but as in any commercial transaction you have to know both what you&#8217;re paying and what you&#8217;re getting.</p>
+<p>The C++/managed choices around prevention vs. cure are not fundamentally different.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5035">
+		<div id="div-comment-5035">
+		<div class="cmtinfo"><em> on <a href="#comment-5035" title="">2012-04-02 at 9:54 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5035"></div><p>@Doug: Thanks for the informed points, and some short answers:</p>
+<p>Re virtual: It&#8217;s true that C# and Java have differences, but C# is also based on assuming virtual functions as a basis for many things &#8212; from the oldest Console.WriteLine accepting big-Oh Object and virtual ToString formatting, to the more recent .NET generics which are all about virtual dispatch.</p>
+<p>Re GC can help some high-performance data structures and algorithms: Absolutely, and I&#8217;m personally proposing a GC facility for C++ &#8212; not as a replacement to any use of traditional C++ memory management (smart pointers and ref counting), but rather in addition to it via a special GC allocator that you use explicitly exactly in those rare cases when you want it for things like solving ABA problems for high-performance lock-free coding (which is one of the key examples in the category of &#8220;some algorithms that are faster with GC&#8221;).</p>
+<p>Re managed pegs and native holes: Managed languages were designed under the assumption that VMs, metadata, and GC are &#8220;always-on or default-on,&#8221; and those are major examples of how managed languages are deliberately designed for optimizing for programmer productivity at the expense of incurring overheads on code that doesn&#8217;t need the features they enable. Yes, you can fight your platform and language &#8212; but you&#8217;re working against it, not with it. I do think the right answer is not to try to make C# do what C++ does, or C++ do what C# does, any more than it would make sense to try to make a hammer do what a screwdriver does or vice versa &#8212; each is a finely crafted and optimized tool for its job. It&#8217;s just about understanding what the tool is designed for, and working with it as we select and use the right tool for the right job.</p>
+<p>Please do watch the Lang.NEXT talk and then let me know what you think!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5034">
+		<div id="div-comment-5034">
+		<div class="cmtinfo"><em> on <a href="#comment-5034" title="">2012-04-02 at 9:54 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c5a2a075479a1bfcc571330a81567cf9?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://avranju.wordpress.com' rel='external nofollow' class='url'>avranju</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5034"></div><p>Another post on more or less the same topic &#8211; <a href="http://blog.achrissmith.com/2012/03/if-your-software-matters-you-will-write.html" rel="nofollow">http://blog.achrissmith.com/2012/03/if-your-software-matters-you-will-write.html</a> &#8211; and the conclusion is similar too.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5033">
+		<div id="div-comment-5033">
+		<div class="cmtinfo"><em> on <a href="#comment-5033" title="">2012-04-02 at 9:53 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/a79df09f1a33afcf65306fe23bf4aadd?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>pjmlp</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5033"></div><p>As the commenters before me, I would like to say that you seem to be misinformed in what regards C#, as it also provides non-virtual member functions by default like C++ does.</p>
+<p>Personally I don&#8217;t like the &#8220;managed languages&#8221; term created by Microsoft, as this is only an implementation detail. Does C# become native when I get a compiler that only generates native code, like Bartok does? Or does C++ suddenly turn into a managed language when I use C++/CLI to compile C++ code?</p>
+<p>A proper C# compiler with compilation flags to turn off range checking when desired, escape analysis, and optimizations across module boundaries, can go a long way to provide a performance level that is quite close to what most C++ compilers usually provide.</p>
+<p>Heck, Mono&#8217;s AOT compiler is a good example here, specially with the SIMD integration that .NET lacks.</p>
+<p>Modula-3 and Ada are two languages with features that one could consider to be &#8220;managed&#8221;, but also compile to native code with performance very close to C++. Sadly both never really caught on, besides niche markets.</p>
+<p>Anyway I am looking forward to watch your talk in Channel 9, as they are always quite interesting.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5030">
+		<div id="div-comment-5030">
+		<div class="cmtinfo"><em> on <a href="#comment-5030" title="">2012-04-02 at 6:19 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0089a449f5cfeac27d602005e939687?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>potatoswatter</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5030"></div><p>Have to agree with barrkel.</p>
+<p>JITs have the fundamental advantage that profile-guided optimization is always turned on. There&#8217;s no limit to the degree of optimization, but the JIT has to be careful that expensive optimizations are applied with sufficient selectivity.</p>
+<p>Productivity features aren&#8217;t at odds with performance. C++ teaches us that type safety positively affects both. It might be easier to add features to a language with lazier interpretation and looser types, but in the end everything can be optimized to the same machine code once it&#8217;s determined what the program really does. Even JavaScript is getting a lot faster these days!</p>
+<p>The reason JITs won&#8217;t beat native code is that no JIT bytecode is ultimately better than what can be derived from native code. When JIT technology advances to the point that it can reliably beat native code, native-to-native optimization will simply be widely deployed. The process is already underway. Transmeta did fail… but that was long ago.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5028">
+		<div id="div-comment-5028">
+		<div class="cmtinfo"><em> on <a href="#comment-5028" title="">2012-04-02 at 6:12 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/009dcae233c48a51c7be09e29a447493?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Doug</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5028"></div><p>Note that your information on virtualization is based on the design of Java and does not apply to .NET. In particular, C# methods are non-virtual by default, while Java methods are virtual by default. You might be confusing this with C#&#8217;s use of the callvirt instruction for non-virtual method calls. The use of callvirt doesn&#8217;t affect the method resolution. Instead, it simply tells the JIT to validate that the object is non-null before calling a method on that object. This means C# has an extra language-mandated runtime check over C++ (test ecx, [ecx]) for each method call, but otherwise C++ and C# are on equal footing here.</p>
+<p>I also want to note that some of the issues you mention are not intrinsic to the .NET platform itself, but are instead due to the way it is currently implemented.</p>
+<p>It would be possible to implement a .NET runtime with a fully-optimizing JIT that can meet or beat the efficiency of a C++ compiler (beat due to cross-DLL inlining). I agree that it won&#8217;t happen for the common case anytime soon since most of the users of .NET care more about app load time than execution efficiency, but it might happen with a fork or special-purpose variant of the runtime, or with a next-generation NGEN. (Of course, C++ could also take advantage of this. Which would be pretty cool, given that AMD and Intel can&#8217;t get their story straight regarding FMA3 and FMA4, and SSExyz.)</p>
+<p>It is possible to use .NET (and C#) without the garbage collector and its associated write barriers, either by avoiding dynamic allocations or by using unsafe code for dynamic allocation the same way that C++ does. Only C++/CLI currently makes this even close to convenient, but there is nothing intrinsic in the platform or runtime that makes it impossible to eliminate the overhead. In other words, .NET&#8217;s garbage collector could also be made pay-for-play.</p>
+<p>Finally, there are some algorithms for which GC is faster than equivalent manual malloc/free. The overhead of malloc/free and ref-count maintenance is non-zero. So is the overhead of GC. The interesting part is that the variables that go into the calculation of the overhead are very different for each technique, and comparing them is apples vs. oranges. Carefully-managed malloc/free (or unique_ptr/shared_ptr) memory management may or may not beat carefully-managed garbage-collected memory management &#8212; it depends greatly on the task at hand. The nice thing about .NET is that you have the option of going either way as needed (though the present languages strongly encourage use of GC memory and the current platform always loads the GC even if your program never uses any GC types).</p>
+<p>I will agree that in the current implementation, the .NET platform is heavily optimized towards developer productivity and runtime verifiability, and all of the .NET languages make available several features that have high runtime costs. C# provides support for GC types but does not provide efficient support for RAII types, and C++ is the opposite. The developer is encouraged to take advantage of .NET platform features anywhere it makes his/her life easier. However, it is also possible to write .NET code that uses the runtime efficiently such that it takes quite a bit of effort to make a C++ program that runs as quickly on modern hardware. Can you beat the .NET version? It&#8217;s always possible (since the .NET version eventually boils down to something you could do with C++), but it&#8217;s a question of how much effort you have to put out.</p>
+<p>It is conceivable that a future version of the C++ compiler front-end could emit pure .NET IL, and the .NET ahead-of-time compiler would convert that to a native EXE or DLL indistinguishable from the result generated from a similar C# program (as long as the C# program doesn&#8217;t use any GC types). The .NET platform is rich enough to allow for that. While this isn&#8217;t the direction the platform is currently taking, I would be very hesitant to claim that .NET intrinsically cannot reach those goals.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5027">
+		<div id="div-comment-5027">
+		<div class="cmtinfo"><em> on <a href="#comment-5027" title="">2012-04-02 at 5:58 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6aea6e2f57f2a7b1cd6870375fbdc42f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ivan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5027"></div><p>Cliff Click said in a lecture that JIT compilers for Java are basically doing runtime profiling, he compared it to O2 optimizations in GCC.<br />
+ Regarding NGEN: does it do RAII like &#8220;GC&#8221; for objects that it can prove have scoped lifetime, or is it just &#8220;simple&#8221; C# static compiler? And more importantly if answer is no: would &#8220;RAIIing&#8221; in NGEN provide performance gains ?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-barrkel odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5026">
+		<div id="div-comment-5026">
+		<div class="cmtinfo"><em> on <a href="#comment-5026" title="">2012-04-02 at 5:52 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/cb51c46fc788ab57424b7ca2ff41baa0?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>barrkel</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5026"></div><p>JITs get their performance advantages from profiling the final running code, not from NGEN approaches. The poster child is inlining in situations C++ and similar languages cannot statically determine are safe places, with inline caching. NGEN approaches are the route to reducing startup time, not maximizing performance (because pre-compiled code, even if as late as installation time, is not maximal).</p>
+<p>That&#8217;s a distinct issue from the productivity advantages of managed languages. C# does not have virtual functions as a default, BTW; but dynamic languages do, because of the ease with which their approaches let you leverage code to write code (i.e. metaprogramming). They explicitly trade performance for productivity, and hope to get some, but not all, of that performance back with optimizations that come from profiling. But that doesn&#8217;t stop you from using a non-virtual by default language like C# with a runtime that&#8217;s ultimately able to use dynamic optimization. GC too is a red herring; memory safety greatly increases the certainty with which the compiler can understand semantic intent, but there is no requirement that performance critical code use GC.</p>
+<p>IOW, you&#8217;re not being very convincing here, and sound misinformed.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2012/04/02/reader-qa-when-will-better-jits-save-managed-code/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-2f91e7ffad34f35c3d035838acf156ac">
+	</div>
+	<div class="grofile-hash-map-dde3a5048e456c451b7c518857e1818c">
+	</div>
+	<div class="grofile-hash-map-827b1643b9e1ac6af6a9341db5bd3f6a">
+	</div>
+	<div class="grofile-hash-map-6c5f35687f3c95916e3fc941faf057c3">
+	</div>
+	<div class="grofile-hash-map-ec36fb14a91f31d9c14422dcb5fc3d61">
+	</div>
+	<div class="grofile-hash-map-f2d485d809e88339a6f78e584ce760b3">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-3a56d31100092c52f0ff4e9e395998bd">
+	</div>
+	<div class="grofile-hash-map-a79df09f1a33afcf65306fe23bf4aadd">
+	</div>
+	<div class="grofile-hash-map-a48dca9ac3f34859fffcd402780ffe60">
+	</div>
+	<div class="grofile-hash-map-7a6742b56fbcdbc8e6231b9f21b5ee39">
+	</div>
+	<div class="grofile-hash-map-fcb558016b6fa0d6d7c93c39faaa31d0">
+	</div>
+	<div class="grofile-hash-map-3352d7b7b661c84c5b888312397efc76">
+	</div>
+	<div class="grofile-hash-map-3385f1a766359ec967ff34df36390032">
+	</div>
+	<div class="grofile-hash-map-a79df09f1a33afcf65306fe23bf4aadd">
+	</div>
+	<div class="grofile-hash-map-009dcae233c48a51c7be09e29a447493">
+	</div>
+	<div class="grofile-hash-map-5e54e3d0eef9b984d8778a0ebdd84980">
+	</div>
+	<div class="grofile-hash-map-39dff1a7e41248e1589586ee8ac672cc">
+	</div>
+	<div class="grofile-hash-map-4131d2f57a0db2a2b4d9a62bd389fd44">
+	</div>
+	<div class="grofile-hash-map-023288ff4de930252850b0bc5d7b9c79">
+	</div>
+	<div class="grofile-hash-map-4131d2f57a0db2a2b4d9a62bd389fd44">
+	</div>
+	<div class="grofile-hash-map-cdc12ff3c5666c8ea0a71ce872555089">
+	</div>
+	<div class="grofile-hash-map-a8f5bfe4341a38bb87c8c6e70f00634d">
+	</div>
+	<div class="grofile-hash-map-c4e926fdc0905d11899b69c6387f6ed7">
+	</div>
+	<div class="grofile-hash-map-d3f0fc36284467553ccafd8e1b31d521">
+	</div>
+	<div class="grofile-hash-map-6aea6e2f57f2a7b1cd6870375fbdc42f">
+	</div>
+	<div class="grofile-hash-map-f17a89641c8e18f8dbdccb14d61bddf9">
+	</div>
+	<div class="grofile-hash-map-c5a2a075479a1bfcc571330a81567cf9">
+	</div>
+	<div class="grofile-hash-map-c0089a449f5cfeac27d602005e939687">
+	</div>
+	<div class="grofile-hash-map-cb51c46fc788ab57424b7ca2ff41baa0">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_13163={"id":468178,"unique_id":"wp-comment-13163","title":"%40Jon%20Harrop%3A%20Do%20you%20have%20any%20code%20samples%20where%20MSVC%2B%2B%20runs%20slower%20than%20managed%3F%40Herb%3A%20It%20would%20be%20interesting%20to%20see%20code%20samples%20and%20benchmarks%20in%20C%2B%2B%20and%20C%23%20which%20illustrate%20the%20points%20made%20in...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-13163","item_id":"_comm_13163"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13163 == 'undefined' ){PDRTJS_468178_comm_13163 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13163 );}}PDRTJS_settings_468178_comm_12984={"id":468178,"unique_id":"wp-comment-12984","title":"Sure%2C%20many%20times%20there%20are%20complex%20expressions%20%28perhaps%20including%20loops%29%20performing%20computations%20which%20are%20parameterized%20by%20the%20parameters%20are%20known%20at%20compile-time.%20%20Numeric%20integration%20of%20a%20fun...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-12984","item_id":"_comm_12984"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12984 == 'undefined' ){PDRTJS_468178_comm_12984 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12984 );}}PDRTJS_settings_468178_comm_12983={"id":468178,"unique_id":"wp-comment-12983","title":"%26quot%3BThis%20is%20a%20199x%2F200x%20meme%20thats%20hard%20to%20kill...a%20JIT%20can%20never%20be%20as%20good%20as%20a%20regular%20optimizing%20compiler%20because%20a%20JIT%20compiler%20is%20in%20the%20business%20of%20being%20fast%2C%20not%20in%20the%20business%20of%20generati...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-12983","item_id":"_comm_12983"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12983 == 'undefined' ){PDRTJS_468178_comm_12983 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12983 );}}PDRTJS_settings_468178_comm_12950={"id":468178,"unique_id":"wp-comment-12950","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20Herb%20Sutter%20C%2B%2B%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-12950","item_id":"_comm_12950"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12950 == 'undefined' ){PDRTJS_468178_comm_12950 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12950 );}}PDRTJS_settings_468178_comm_11955={"id":468178,"unique_id":"wp-comment-11955","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20Sutter%3BReader%20Q%26amp%3BA%3A%20When%20will%20better%20JITs%20save%20managed%20code%3F%3B%20In%20His%20Blog%3B%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-11955","item_id":"_comm_11955"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11955 == 'undefined' ){PDRTJS_468178_comm_11955 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11955 );}}PDRTJS_settings_468178_comm_11950={"id":468178,"unique_id":"wp-comment-11950","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20is%20from%20Herb%20Sutter%2C%20one%20of%20the%20big%20names%20in%20modern%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-11950","item_id":"_comm_11950"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11950 == 'undefined' ){PDRTJS_468178_comm_11950 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11950 );}}PDRTJS_settings_468178_comm_11892={"id":468178,"unique_id":"wp-comment-11892","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20agree%20with%20most%20of%20it%2C%20and%20not%20just%20because%20he%20quotes%20from%20my%20When%20Will%20Better%20JITs%20Save%20Managed%20Code%20blog%20post%20from%20last%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-11892","item_id":"_comm_11892"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11892 == 'undefined' ){PDRTJS_468178_comm_11892 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11892 );}}PDRTJS_settings_468178_comm_11889={"id":468178,"unique_id":"wp-comment-11889","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20is%20from%20Herb%20Sutter%2C%20one%20of%20the%20big%20names%20in%20modern%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-11889","item_id":"_comm_11889"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11889 == 'undefined' ){PDRTJS_468178_comm_11889 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11889 );}}PDRTJS_settings_468178_comm_11867={"id":468178,"unique_id":"wp-comment-11867","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20http%3A%2F%2Fherbsutter.com%2F2012%2F04%2F02%2Freader-qa-when-will-better-jits-save-managed-code%2F%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-11867","item_id":"_comm_11867"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11867 == 'undefined' ){PDRTJS_468178_comm_11867 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11867 );}}PDRTJS_settings_468178_comm_5169={"id":468178,"unique_id":"wp-comment-5169","title":"Is%20the%20much%20mentioned%20LMAX%20the%20exception%20that%20proves%20the%20rule%3FIt%20shows%20that%20if%20you%20use%20a%20tiny%2C%20non-dynamic%20%28as%20in%20not%20dynamically%20allocating%29%20subset%20of%20a%20language%20you%20can%20avoid%20nasty%20stalls.%20%20Tha...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5169","item_id":"_comm_5169"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5169 == 'undefined' ){PDRTJS_468178_comm_5169 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5169 );}}PDRTJS_settings_468178_comm_5161={"id":468178,"unique_id":"wp-comment-5161","title":"%40Tony%20ArcieriTony%20wrote%3A%20%26quot%3BThis%20is%20exactly%20how%20LMAX%20works%20on%20top%20of%20the%20JVM.%20They%20preallocate%20all%20resources%20and%20store%20them%20inside%20of%20lock-free%20ring%20buffers%20as%20part%20of%20a%20framework%20they%20call%20Disrupt...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5161","item_id":"_comm_5161"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5161 == 'undefined' ){PDRTJS_468178_comm_5161 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5161 );}}PDRTJS_settings_468178_comm_5113={"id":468178,"unique_id":"wp-comment-5113","title":"%40Ben%20Voigt%3A%20OK%2C%20you%20got%20me%2C%20I%26%23039%3Bd%20forgotten%20that%20it%20also%20did%20a%20strstr%20%26amp%3B%20replace%20for%20a%20pair%20of%20embedded%20magic%20constants.As%20for%20generality%2C%20the%20generator%20function%20worked%20for%20any%20method%20type%20you%20p...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5113","item_id":"_comm_5113"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5113 == 'undefined' ){PDRTJS_468178_comm_5113 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5113 );}}PDRTJS_settings_468178_comm_5112={"id":468178,"unique_id":"wp-comment-5112","title":"%40bcs%3A%20That%26%23039%3Bs%20not%20very%20general%2C%20and%20I%26%23039%3Bm%20sure%20you%20had%20to%20write%20an%20object%20pointer%20in%20there%20somewhere%2C%20not%20just%20copy%20existing%20code.%20%20Without%20an%20object%20pointer%2C%20you%20aren%26%23039%3Bt%20actually%20solving%20the%20problem...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5112","item_id":"_comm_5112"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5112 == 'undefined' ){PDRTJS_468178_comm_5112 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5112 );}}PDRTJS_settings_468178_comm_5106={"id":468178,"unique_id":"wp-comment-5106","title":"%40bulldozer00%3A%20Metadata%20generally%20means%20information%20about%20types%20and%20is%20used%20for%20things%20like%20reflection.%20This%20adds%20significant%20space%20overhead%20to%20libraries%2Fassemblies.%20In%20.NET%2C%20metadata%20is%20typically...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5106","item_id":"_comm_5106"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5106 == 'undefined' ){PDRTJS_468178_comm_5106 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5106 );}}PDRTJS_settings_468178_comm_5103={"id":468178,"unique_id":"wp-comment-5103","title":"To%20mis-quote%20Pilate%3A%20%26quot%3BWhat%20is%20JIT%20compilation%3F%26quot%3BI%20can%26%23039%3Bt%20find%20it%20now%2C%20but%20a%20few%20months%20back%20I%20wrote%20a%20thunk%20template%20where%20the%20only%20thing%20it%20did%20at%20run%20time%20to%20generate%20each%20thunk%20was%20memcpy%20machin...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5103","item_id":"_comm_5103"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5103 == 'undefined' ){PDRTJS_468178_comm_5103 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5103 );}}PDRTJS_settings_468178_comm_5102={"id":468178,"unique_id":"wp-comment-5102","title":"Hi%20Herb%2CWhere%20do%20you%20draw%20the%20line%20between%20%26quot%3Bmanaged%26quot%3B%20and%20%26quot%3Bnative%26%23039%3B%26quot%3B%20languages%2C%20especially%20with%20some%20newer%20languages%20like%20D%20and%20Go%2C%20both%20of%20which%20compile%20to%20native%20code%2C%20while%20providing%20GC%20and%20safe...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5102","item_id":"_comm_5102"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5102 == 'undefined' ){PDRTJS_468178_comm_5102 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5102 );}}PDRTJS_settings_468178_comm_5097={"id":468178,"unique_id":"wp-comment-5097","title":"%40MichaelTKThis%20is%20where%20I%20disagree%20with%20Herb.If%20we%20look%20at%20the%20Algol%2FPascal%20language%20family%2C%20the%20compile%20times%20are%20pretty%20close%20to%20what%20%26quot%3Bmanaged%20languages%26quot%3B%20do%2C%20they%20offer%20the%20safe%20nice%20features%20a...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5097","item_id":"_comm_5097"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5097 == 'undefined' ){PDRTJS_468178_comm_5097 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5097 );}}PDRTJS_settings_468178_comm_5096={"id":468178,"unique_id":"wp-comment-5096","title":"Hi%20Herb%2CIn%20your%20talks%2C%20I%26%23039%3Bve%20heard%20you%20say%20the%20term%20%26quot%3Bmetadata%26quot%3B%20several%20times%20in%20the%20context%20of%20C%2B%2B%20vs%20managed%20language%20performance.%20Can%20you%20elaborate%20on%20it%20for%20me%3FThanks....","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5096","item_id":"_comm_5096"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5096 == 'undefined' ){PDRTJS_468178_comm_5096 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5096 );}}PDRTJS_settings_468178_comm_5095={"id":468178,"unique_id":"wp-comment-5095","title":"%40pchethan%3A%20%26quot%3BOr%2C%20is%20this%20even%20in%20a%20scenario%20where%20managed%20langs%20are%20compiled%20directly%20to%20machine%20code%3F%26quot%3B%20Yes%20it%20is...%20As%20he%20pointed%20out%20and%20this%20is%20obvious%20anyway%2C%20JIT%20compilers%20do%20not%20optimize%20any...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5095","item_id":"_comm_5095"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5095 == 'undefined' ){PDRTJS_468178_comm_5095 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5095 );}}PDRTJS_settings_468178_comm_5094={"id":468178,"unique_id":"wp-comment-5094","title":"Hi%20Herb%2CI%20have%20been%20following%20your%20talks%20for%20a%20while%20and%20you%20mention%20that%20%20C%2B%2B%20being%20roughly%202%20times%20faster%20than%20the%20managed%20languages%20%28while%20talking%20about%20energy%20savings%29.%20%20Where%20does%20this%20data%20...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5094","item_id":"_comm_5094"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5094 == 'undefined' ){PDRTJS_468178_comm_5094 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5094 );}}PDRTJS_settings_468178_comm_5093={"id":468178,"unique_id":"wp-comment-5093","title":"Ah%2C%20looks%20like%20Arash%20made%20the%20point%20on%20energy%20consumption%20just%20before%20I%20did....","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5093","item_id":"_comm_5093"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5093 == 'undefined' ){PDRTJS_468178_comm_5093 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5093 );}}PDRTJS_settings_468178_comm_5092={"id":468178,"unique_id":"wp-comment-5092","title":"One%20thing%20that%20I%20haven%26%23039%3Bt%20seen%20here%2C%20but%20is%20very%20important%20to%20note%2C%20is%20that%20different%20platforms%20require%20different%20tradeoffs.%20It%20would%20be%20difficult%2C%20for%20example%2C%20to%20see%20%26quot%3Bsufficiently%20powerful%20JIT%26quot%3B%20...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5092","item_id":"_comm_5092"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5092 == 'undefined' ){PDRTJS_468178_comm_5092 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5092 );}}PDRTJS_settings_468178_comm_5091={"id":468178,"unique_id":"wp-comment-5091","title":"On%20a%20side%20note%2C%20If%20one%20were%20to%20consider%20a%20simplification%20to%20the%20notion%20of%20computation%20based%20entirely%20on%20the%20amount%20of%20energy%20consumed%20when%20performing%20said%20computation%2C%20then%20it%20is%20obvious%20that%20JIT...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5091","item_id":"_comm_5091"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5091 == 'undefined' ){PDRTJS_468178_comm_5091 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5091 );}}PDRTJS_settings_468178_comm_5090={"id":468178,"unique_id":"wp-comment-5090","title":"%40Ben%20Voigt%3A%20You%20are%20thinking%20too%20narrowly.Ada%2C%20Modula-3%20and%20D%20are%20just%20a%20few%20of%20the%20languages%20with%20native%20implementations%20that%20have%20function%20pointers%2C%20and%20also%20support%20genericity%20with%20dynamic%20lib...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5090","item_id":"_comm_5090"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5090 == 'undefined' ){PDRTJS_468178_comm_5090 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5090 );}}PDRTJS_settings_468178_comm_5087={"id":468178,"unique_id":"wp-comment-5087","title":"%40Ben%20Voigt%3A%20Sorry%20but%20you%20are%20thinking%20just%20too%20conservative%20then...%20A%20JIT%20compiler%20in%20principle%20has%20not%20much%20to%20offer.%20Most%20of%20the%20nice%20stuff%20in%20NET%20comes%20from%20IL%20code%20and%20Metadata%2C%20and%20of%20cours...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5087","item_id":"_comm_5087"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5087 == 'undefined' ){PDRTJS_468178_comm_5087 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5087 );}}PDRTJS_settings_468178_comm_5086={"id":468178,"unique_id":"wp-comment-5086","title":"Nothing%20except%20the%20definition%20of%20JIT%20compilation.%20%20If%20you%20are%20generating%20the%20machine%20code%20for%20a%20thunk%2C%20you%20are%20performing%20compilation%20at%20run-time....","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5086","item_id":"_comm_5086"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5086 == 'undefined' ){PDRTJS_468178_comm_5086 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5086 );}}PDRTJS_settings_468178_comm_5085={"id":468178,"unique_id":"wp-comment-5085","title":"%40Ben%20Voigt%3A%20There%20is%20nothing%20to%20stop%20non-JIT%20code%20from%20generating%20thunks%20in%20machine%20code....","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5085","item_id":"_comm_5085"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5085 == 'undefined' ){PDRTJS_468178_comm_5085 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5085 );}}PDRTJS_settings_468178_comm_5084={"id":468178,"unique_id":"wp-comment-5084","title":"%40Ben%3AGCC%20and%20ATL%20both%20support%20bound%20delegates.%20GCC%20calls%20them%20trampolines.%20ATL%20calls%20them%20thunks.%20C%2FC%2B%2B%20language%20designers%20should%20seriously%20consider%20adding%20them%20as%20a%20standard%20library%20feature%20sinc...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5084","item_id":"_comm_5084"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5084 == 'undefined' ){PDRTJS_468178_comm_5084 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5084 );}}PDRTJS_settings_468178_comm_5083={"id":468178,"unique_id":"wp-comment-5083","title":"It%26%23039%3Bs%20not%20an%20accident.Generics%20do%20not%20and%20cannot%20work%20the%20same%20without%20a%20JIT.%20%20Right%20now%2C%20you%20can%20load%20a%20library%20dynamically%20and%20create%20a%20generic%20collection%20of%20a%20type%20in%20that%20library.%20%20Take%20away%20t...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5083","item_id":"_comm_5083"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5083 == 'undefined' ){PDRTJS_468178_comm_5083 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5083 );}}PDRTJS_settings_468178_comm_5081={"id":468178,"unique_id":"wp-comment-5081","title":"%40Herb%3A%20BTW%2C%20concerning%20your%20hatred%3F%21%20against%20%26quot%3Battributes%26quot%3B%2C%20my%20last%20sentence%20pretty%20much%20provides%20a%20strong%20justification%20for%20them.%20They%20are%20really%20great%20to%20play%20around%20with%20language%20extension%20%28the...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5081","item_id":"_comm_5081"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5081 == 'undefined' ){PDRTJS_468178_comm_5081 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5081 );}}PDRTJS_settings_468178_comm_5080={"id":468178,"unique_id":"wp-comment-5080","title":"%40Herb%3A%20First%2C%20thank%20you%20for%20explicitly%20answering%20like%20that.%20Obviously%20this%20topic%20draws%20a%20lot%20attention%2C%20so%20I%20don%26%23039%3Bt%20seem%20to%20be%20the%20only%20one%20concerned%20with%20it%20%3B%29.%20I%20will%20sure%20wait%20for%20your%20talk%20to%20...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5080","item_id":"_comm_5080"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5080 == 'undefined' ){PDRTJS_468178_comm_5080 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5080 );}}PDRTJS_settings_468178_comm_5079={"id":468178,"unique_id":"wp-comment-5079","title":"I%20also%20agree%20with%20Doug%26%23039%3Bs%20post.It%20is%20just%20due%20to%20an%20accident%20that%20today%26%23039%3Bs%20managed%20environments%2C%20as%20Microsoft%20calls%20them%2C%20make%20use%20of%20a%20JIT.There%20are%20quite%20a%20few%20languages%20with%20GC%20and%20other%20program...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5079","item_id":"_comm_5079"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5079 == 'undefined' ){PDRTJS_468178_comm_5079 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5079 );}}PDRTJS_settings_468178_comm_5077={"id":468178,"unique_id":"wp-comment-5077","title":"When%20Herb%20says%20that%20managed%20apps%20use%20virtual%20functions%20by%20default%20it%26%23039%3Bs%20rather%20obvious%20that%20he%20doesn%26%23039%3Bt%20mean%20that%20in%20C%23%20all%20methods%20are%20virtual%20by%20default%20%20if%20you%20think%20so%2C%20you%20just%20didn%26%23039%3Bt%20get%20the%20...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5077","item_id":"_comm_5077"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5077 == 'undefined' ){PDRTJS_468178_comm_5077 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5077 );}}PDRTJS_settings_468178_comm_5071={"id":468178,"unique_id":"wp-comment-5071","title":"I%20agree%20with%20Doug%26%23039%3Bs%20post.%20We%20handed%20over%20a%20lot%20of%20control%20to%20the%20compiler%20or%20the%20OS%20over%20time%20and%20most%20of%20us%20did%20it%20without%20looking%20back%20nor%20regret.And%20my%20guess%20is%2C%20that%20some%20programming%20language...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5071","item_id":"_comm_5071"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5071 == 'undefined' ){PDRTJS_468178_comm_5071 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5071 );}}PDRTJS_settings_468178_comm_5070={"id":468178,"unique_id":"wp-comment-5070","title":"%26quot%3BIn%20garbage%20collected%20languages%20this%20is%20a%20lot%20harder%20to%20pull%20off.%26quot%3BIt%26%23039%3Bs%20not.%20It%26%23039%3Bs%20called%3A%20don%26%23039%3Bt%20allocate%20memory.%20If%20you%20don%26%23039%3Bt%20allocate%20memory%2C%20you%20won%26%23039%3Bt%20run%20the%20garbage%20collector.This%20is%20exactly%20h...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5070","item_id":"_comm_5070"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5070 == 'undefined' ){PDRTJS_468178_comm_5070 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5070 );}}PDRTJS_settings_468178_comm_5067={"id":468178,"unique_id":"wp-comment-5067","title":"I%20think%20an%20even%20bigger%20factor%20is%20memory%20management.%20%20Allocating%20%26amp%3B%20deallocating%20objects%20on%20the%20heap%20should%20be%20avoided%20in%20any%20performance%20critical%20code.%20%20They%20are%20%2A%2A%2AFAR%2A%2A%2A%20more%20expensive%20than%20...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5067","item_id":"_comm_5067"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5067 == 'undefined' ){PDRTJS_468178_comm_5067 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5067 );}}PDRTJS_settings_468178_comm_5066={"id":468178,"unique_id":"wp-comment-5066","title":"I%20think%20that%20to%20a%20certain%20extent%2C%20we%20all%20agree%20on%2099%25%20of%20what%20is%20being%20said%20and%20are%20only%20disagreeing%20on%20semantics.%20I%20take%20it%20as%20given%20that%2C%20with%20enough%20effort%2C%20you%20can%20always%20write%20a%20C%2B%2B%20program%20...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5066","item_id":"_comm_5066"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5066 == 'undefined' ){PDRTJS_468178_comm_5066 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5066 );}}PDRTJS_settings_468178_comm_5062={"id":468178,"unique_id":"wp-comment-5062","title":"%26quot%3BThe%20root%20cause%20is%20much%20more%20fundamental%3A%20Managed%20languages%20made%20deliberate%20design%20tradeoffs%20to%20optimize%20for%20programmer%20productivity%20even%20when%20that%20was%20fundamentally%20in%20tension%20with%2C%20and%20at%20the%20e...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5062","item_id":"_comm_5062"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5062 == 'undefined' ){PDRTJS_468178_comm_5062 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5062 );}}PDRTJS_settings_468178_comm_5060={"id":468178,"unique_id":"wp-comment-5060","title":"I%20see%20a%20lot%20of%20commenters%20defending%20JIT%20compilers.Do%20you%20guys%20even%20understand%20what%20%26%23039%3Boptimization%26%23039%3B%20is%3F%20If%20you%20have%20a%20fixed%20set%20of%20instructions%20that%20will%20always%20have%20to%20run%2C%20there%20is%20no%20room%20for%20op...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5060","item_id":"_comm_5060"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5060 == 'undefined' ){PDRTJS_468178_comm_5060 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5060 );}}PDRTJS_settings_468178_comm_5058={"id":468178,"unique_id":"wp-comment-5058","title":"%40Miguel%3A%20Make%20it%20%60Trace.WriteLine%28%29%60%2C%20then.%20%20That%20could%20go%20to%20a%20console%2C%20debugger%2C%20file%2C%20network%20socket%2C%20etc.%20%20It%26%23039%3Bs%20extremely%20hard%20to%20say%20that%20performance%20doesn%26%23039%3Bt%20matter%20in%20such%20cases.%20%20That%20the%20...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5058","item_id":"_comm_5058"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5058 == 'undefined' ){PDRTJS_468178_comm_5058 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5058 );}}PDRTJS_settings_468178_comm_5057={"id":468178,"unique_id":"wp-comment-5057","title":"I%20am%20not%20sure%20why%20Console.WriteLine%20is%20the%20focus%20of%20a%20discussion%20on%20virtuals%20and%20performance.Console.WriteLine%20is%20about%20I%2FO%20which%20is%20about%20the%20slowest%20code%20path%20in%20a%20program%2C%20so%20any%20performance%20s...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5057","item_id":"_comm_5057"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5057 == 'undefined' ){PDRTJS_468178_comm_5057 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5057 );}}PDRTJS_settings_468178_comm_5056={"id":468178,"unique_id":"wp-comment-5056","title":"Why%20do%20people%20persist%20in%20using%20general%20purpose%20programming%20languages%3F%20Maybe%20what%20is%20needed%20is%20a%20collection%20of%20special%20purpose%20languages%20designed%20to%20seamlessly%20integrate.%20Kind%20of%20like%20the%20.NET%20env...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5056","item_id":"_comm_5056"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5056 == 'undefined' ){PDRTJS_468178_comm_5056 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5056 );}}PDRTJS_settings_468178_comm_5054={"id":468178,"unique_id":"wp-comment-5054","title":"So%2C%20if%20we%20have%20a%20JIT%20VM%20for%20C%2B%2B%2C%20wouldn%26%23039%3Bt%20the%20JIT%26%23039%3Bed%20program%20be%20faster%20than%20the%20natively%20compiled%20program%3F%20%28assuming%20the%20JIT%20VM%20can%20do%20some%20optimizations%20the%20compiler%20cannot%20do%29....","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5054","item_id":"_comm_5054"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5054 == 'undefined' ){PDRTJS_468178_comm_5054 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5054 );}}PDRTJS_settings_468178_comm_5053={"id":468178,"unique_id":"wp-comment-5053","title":"%40Ivan%3A%20For%20one%20thing%2C%20some%20high-performance%20lock-free%20algorithms%20are%20not%20possible%20unless%20you%20solve%20ABA%2C%20so%20having%20GC%20will%20strictly%20enable%20things%20we%20can%26%23039%3Bt%20otherwise%20do%20in%20portable%20code%20using%20C%2B%2B11...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5053","item_id":"_comm_5053"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5053 == 'undefined' ){PDRTJS_468178_comm_5053 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5053 );}}PDRTJS_settings_468178_comm_5052={"id":468178,"unique_id":"wp-comment-5052","title":"What%20if%20we%20had%20a%20JIT%20VM%20for%20c%2B%2B%3F...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5052","item_id":"_comm_5052"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5052 == 'undefined' ){PDRTJS_468178_comm_5052 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5052 );}}PDRTJS_settings_468178_comm_5051={"id":468178,"unique_id":"wp-comment-5051","title":"I%20sort%20of%20agree%20with%20Herb.%20People%20have%20long%20been%20arguing%20that%20a%20%26quot%3BSufficiently%20Smart%20JIT%20Compiler%26quot%3B%20could%20use%20runtime%20information%20to%20beat%20a%20static%20C%2B%2B%20compiler.%20However%2C%20languages%20get%20more%20abstract...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5051","item_id":"_comm_5051"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5051 == 'undefined' ){PDRTJS_468178_comm_5051 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5051 );}}PDRTJS_settings_468178_comm_5050={"id":468178,"unique_id":"wp-comment-5050","title":"Hi%20Herb%2CI%26%23039%3Bve%20been%20trying%20to%20work%20out%20how%20to%20make%20my%20favourite%20dynamic%20language%20compiled.%20%20Imagining%20writing%20compilers%20is%20a%20very%20good%20thought%20exercise%20%3A%29Now%20here%20you%26%23039%3Bre%20talking%20about%20JIT%20in%20a%20stat...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5050","item_id":"_comm_5050"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5050 == 'undefined' ){PDRTJS_468178_comm_5050 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5050 );}}PDRTJS_settings_468178_comm_5048={"id":468178,"unique_id":"wp-comment-5048","title":"%40%20Herb%20%26quot%3B%20GC%20can%20help%20some%20high-performance%20data%20structures%20and%20algorithms%3A%20%26quot%3BCan%20you%20explain%20this%20in%20a%20bit%20more%20detail.%20I%20know%20of%20the%20the%20for%20eg.%20ABA%20problem%20but%20I%20never%20got%20how%20having%20another%20GC%20...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5048","item_id":"_comm_5048"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5048 == 'undefined' ){PDRTJS_468178_comm_5048 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5048 );}}PDRTJS_settings_468178_comm_5044={"id":468178,"unique_id":"wp-comment-5044","title":"%40Doug%2C%20re%20this%20specifically%3A%26lt%3Bblockquote%26gt%3BIt%20is%20conceivable%20that%20a%20future%20version%20of%20the%20C%2B%2B%20compiler%20front-end%20could%20emit%20pure%20.NET%20IL%2C%20%26lt%3B%2Fblockquote%26gt%3BActually%2C%20I%20think%20you%20know%20%28but%20not%20all%20readers...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5044","item_id":"_comm_5044"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5044 == 'undefined' ){PDRTJS_468178_comm_5044 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5044 );}}PDRTJS_settings_468178_comm_5040={"id":468178,"unique_id":"wp-comment-5040","title":"For%20GC%20to%20beat%20C%2B%2B%20memory%20deallocation%2C%20it%20could%20either%20be%20done%20at%20a%20later%20time%20or%20by%20another%20thread.%20Doing%20it%20later%20increases%20memory%20usage%20so%20it%26%23039%3Bs%20probably%20not%20a%20good%20idea%20beyond%20the%20scope%20of%20si...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5040","item_id":"_comm_5040"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5040 == 'undefined' ){PDRTJS_468178_comm_5040 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5040 );}}PDRTJS_settings_468178_comm_5039={"id":468178,"unique_id":"wp-comment-5039","title":"%40All%3A%20In%20addition%20to%20the%20previous%20comment%2C%20let%20me%20contrast%20C%2B%2B%26%23039%3Bs%20versions%20of%20%26quot%3BConsole.WriteLine%26quot%3B%20and%20%26quot%3Bgenerics%26quot%3B%20--%20unlike%20.NET%20Console.WriteLine%20which%20relies%20on%20virtual%20dispatch%2C%20C%2B%2B%20stream%20I%2FO%20i...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5039","item_id":"_comm_5039"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5039 == 'undefined' ){PDRTJS_468178_comm_5039 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5039 );}}PDRTJS_settings_468178_comm_5035={"id":468178,"unique_id":"wp-comment-5035","title":"%40Doug%3A%20Thanks%20for%20the%20informed%20points%2C%20and%20some%20short%20answers%3ARe%20virtual%3A%20It%26%23039%3Bs%20true%20that%20C%23%20and%20Java%20have%20differences%2C%20but%20C%23%20is%20also%20based%20on%20assuming%20virtual%20functions%20as%20a%20basis%20for%20many%20thing...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5035","item_id":"_comm_5035"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5035 == 'undefined' ){PDRTJS_468178_comm_5035 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5035 );}}PDRTJS_settings_468178_comm_5034={"id":468178,"unique_id":"wp-comment-5034","title":"Another%20post%20on%20more%20or%20less%20the%20same%20topic%20-%20http%3A%2F%2Fblog.achrissmith.com%2F2012%2F03%2Fif-your-software-matters-you-will-write.html%20-%20and%20the%20conclusion%20is%20similar%20too....","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5034","item_id":"_comm_5034"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5034 == 'undefined' ){PDRTJS_468178_comm_5034 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5034 );}}PDRTJS_settings_468178_comm_5033={"id":468178,"unique_id":"wp-comment-5033","title":"As%20the%20commenters%20before%20me%2C%20I%20would%20like%20to%20say%20that%20you%20seem%20to%20be%20misinformed%20in%20what%20regards%20C%23%2C%20as%20it%20also%20provides%20non-virtual%20member%20functions%20by%20default%20like%20C%2B%2B%20does.Personally%20I%20don%26%23039%3Bt%20l...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5033","item_id":"_comm_5033"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5033 == 'undefined' ){PDRTJS_468178_comm_5033 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5033 );}}PDRTJS_settings_468178_comm_5030={"id":468178,"unique_id":"wp-comment-5030","title":"Have%20to%20agree%20with%20barrkel.JITs%20have%20the%20fundamental%20advantage%20that%20profile-guided%20optimization%20is%20always%20turned%20on.%20There%26%23039%3Bs%20no%20limit%20to%20the%20degree%20of%20optimization%2C%20but%20the%20JIT%20has%20to%20be%20careful%20...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5030","item_id":"_comm_5030"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5030 == 'undefined' ){PDRTJS_468178_comm_5030 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5030 );}}PDRTJS_settings_468178_comm_5028={"id":468178,"unique_id":"wp-comment-5028","title":"Note%20that%20your%20information%20on%20virtualization%20is%20based%20on%20the%20design%20of%20Java%20and%20does%20not%20apply%20to%20.NET.%20In%20particular%2C%20C%23%20methods%20are%20non-virtual%20by%20default%2C%20while%20Java%20methods%20are%20virtual%20by%20def...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5028","item_id":"_comm_5028"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5028 == 'undefined' ){PDRTJS_468178_comm_5028 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5028 );}}PDRTJS_settings_468178_comm_5027={"id":468178,"unique_id":"wp-comment-5027","title":"Cliff%20Click%20said%20in%20a%20lecture%20that%20JIT%20compilers%20for%20Java%20are%20basically%20doing%20runtime%20profiling%2C%20he%20compared%20it%20to%20O2%20optimizations%20in%20GCC.%20Regarding%20NGEN%3A%20does%20it%20do%20RAII%20like%20%26quot%3BGC%26quot%3B%20for%20objects%20t...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5027","item_id":"_comm_5027"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5027 == 'undefined' ){PDRTJS_468178_comm_5027 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5027 );}}PDRTJS_settings_468178_comm_5026={"id":468178,"unique_id":"wp-comment-5026","title":"JITs%20get%20their%20performance%20advantages%20from%20profiling%20the%20final%20running%20code%2C%20not%20from%20NGEN%20approaches.%20The%20poster%20child%20is%20inlining%20in%20situations%20C%2B%2B%20and%20similar%20languages%20cannot%20statically%20deter...","permalink":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/#comment-5026","item_id":"_comm_5026"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5026 == 'undefined' ){PDRTJS_468178_comm_5026 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5026 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F04%2F02%2Freader-qa-when-will-better-jits-save-managed-code%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2012\/04\/02\/reader-qa-when-will-better-jits-save-managed-code\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2012%2F04%2F02%2Freader-qa-when-will-better-jits-save-managed-code%2F","postID":"1435","shortlink":"https:\/\/wp.me\/peb5Y-n9","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/1435","statsLink":"https:\/\/wordpress.com\/stats\/post\/1435\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F04%2F02%2Freader-qa-when-will-better-jits-save-managed-code%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'1435','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sQm04UXNRelNyMk1TVz1+MUlmblhEPSs5UURXWWZSNFgzc0syWDVwb3ZTdTV6Y04uaU9JQkMvOCx3JTk0ZlR1OE16R2Y/dUZ2QUQ1N0F+MGRIX2QyT3loWHhTZ3xDS2o9cFI3SEZVVHdpdDZYSmE5dD9acmEzZFRTb0Y/TVVVTHFpXV9KQTZvaU9xak91W08udWpLdixfTmp0cm4saWdPVXF2T0RdMHg2UGU0OU51N0Y5MWZhdkpRVlV8UkRGNlV4K011b0d0ag=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '1435' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

@@ -1,0 +1,607 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>We want await! A C# talk that&rsquo;s applicable to C++ | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965448&amp;back=https%3A%2F%2Fherbsutter.com%2F2012%2F04%2F06%2Fwe-want-await-a-c-talk-thats-applicable-to-c%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; We want await! A C# talk that&rsquo;s applicable to&nbsp;C++ Comments Feed" href="https://herbsutter.com/2012/04/06/we-want-await-a-c-talk-thats-applicable-to-c/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='The &lsquo;Of Course&rsquo; Principle of&nbsp;Design' href='https://herbsutter.com/2012/04/06/the-of-course-principle-of-design/' />
+<link rel='next' title='What languages are used to build what&nbsp;software?' href='https://herbsutter.com/2012/04/12/what-languages-are-used-to-build-what-software/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2012/04/06/we-want-await-a-c-talk-thats-applicable-to-c/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-no' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2012%2F04%2F06%2Fwe-want-await-a-c-talk-thats-applicable-to-c%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2012%2F04%2F06%2Fwe-want-await-a-c-talk-thats-applicable-to-c%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="We want await! A C# talk that&rsquo;s applicable to C++" />
+<meta property="og:url" content="https://herbsutter.com/2012/04/06/we-want-await-a-c-talk-thats-applicable-to-c/" />
+<meta property="og:description" content="A nice talk by Mads Torgersen just went live on Channel 9 about C#’s non-blocking Task&lt;T&gt;.ContinueWith() library feature and await language feature, which are a big hit in C# (and Visual Basi…" />
+<meta property="article:published_time" content="2012-04-07T06:13:01+00:00" />
+<meta property="article:modified_time" content="2012-04-07T06:13:02+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965448" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="We want await! A C# talk that&rsquo;s applicable to&nbsp;C++" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="A nice talk by Mads Torgersen just went live on Channel 9 about C#’s non-blocking Task&lt;T&gt;.ContinueWith() library feature and await language feature, which are a big hit in C# (and Visual Basic) for writing highly concurrent code that looks pretty much just like sequential code. Mads is one of the designers of await. If you’re&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2012/04/06/we-want-await-a-c-talk-thats-applicable-to-c/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-1450 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2012/04/06/the-of-course-principle-of-design/" rel="prev">The &lsquo;Of Course&rsquo; Principle of&nbsp;Design</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2012/04/12/what-languages-are-used-to-build-what-software/" rel="next">What languages are used to build what&nbsp;software?</a> &raquo;</div>
+			</div>
+			
+			<div class="post-1450 post type-post status-publish format-standard hentry category-c-net category-c category-concurrency category-microsoft category-talks-events" id="post-1450">
+				<div class="posttitle">
+					<h2>We want await! A C# talk that&rsquo;s applicable to&nbsp;C++</h2>
+					<p class="post-info">2012-04-06 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>A <a href="http://channel9.msdn.com/Events/Lang-NEXT/Lang-NEXT-2012/Language-Support-for-Asynchronous-Programming">nice talk by Mads Torgersen just went live on Channel 9</a> about C#’s non-blocking <em>Task&lt;T&gt;.ContinueWith()</em> library feature and <em>await</em> language feature, which are a big hit in C# (and Visual Basic) for writing highly concurrent code that looks pretty much just like sequential code. Mads is one of the designers of <em>await</em>.</p>
+<p>If you’re a C++ programmer, you may be interested in this because I’ve worked to have these very features be offered as proposals for ISO C++, just with a few naming tweaks like renaming <em>Task&lt;T&gt;.ContinueWith()</em> to <em>std::future&lt;T&gt;::then()</em>. They were initially presented at the recent Kona meeting in February, and we’ll dig deeper next month at the special ISO C++ study group meeting on concurrency and parallelism.</p>
+<p>Here’s the talk link and abstract:</p>
+<blockquote>
+<h3><a href="http://channel9.msdn.com/Events/Lang-NEXT/Lang-NEXT-2012/Language-Support-for-Asynchronous-Programming">Language Support for Asynchronous Programming</a></h3>
+<p><strong>Mads Torgersen</strong></p>
+<p>Asynchronous programming is what the doctor usually orders for unresponsive client apps and for services with thread-scaling issues. This usually means a bleak departure from the imperative programming constructs we know and love into a spaghetti hell of callbacks and signups. C# and VB are putting an end to that, reinstating all your tried-and-true control structures on top of a future-based model of asynchrony.</p>
+</blockquote>
+<p>While we were chatting after the talk, I managed to gently twist Mads’ arm and he has graciously agreed to come to the May 7-9 ISO C++ parallelism study group special meeting to present this to the committee members in detail and answer questions about <em>await</em>’s design and C# users’ experience with it in production code, which will help the committee decide whether or not this is something they want to pursue for ISO C++.</p>
+<p>I hope you enjoy the talk. While at Lang.NEXT, I also participated in a panel and gave a C++ talk but those sessions aren’t live yet; I’ll post links once they are.</p>
+<p><strong></strong></p>
+<p><strong>Trivia:</strong> If you noticed the Romanian accent in the first question from the audience, it’s because it came from Andrei Alexandrescu, who was sitting beside Walter Bright, both of whom were two of the other speakers at the conference. It was fun to be in a room full of language designers and implementers sharing notes about each other’s languages and experience.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c-net/" rel="category tag">C# / .NET</a>, <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/microsoft/" rel="category tag">Microsoft</a>, <a href="https://herbsutter.com/category/talks-events/" rel="category tag">Talks &amp; Events</a> | 											20 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">20 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-5200">
+		<div id="div-comment-5200">
+		<div class="cmtinfo"><em> on <a href="#comment-5200" title="">2012-04-12 at 2:40 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/107fafc1be9639d836e67e2e73366afa?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>petke</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5200"></div><p>@MichaelTK The next C++ is not in expected in eight years but in five. C++17. Before that we will get library changes as TR&#8217;s whenever they are ready.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-robdesbois odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5188">
+		<div id="div-comment-5188">
+		<div class="cmtinfo"><em> on <a href="#comment-5188" title="">2012-04-11 at 4:02 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1e167d740c35575fe04f3290df8b204d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>robdesbois</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5188"></div><p>@Jon It&#8217;s non-standard of course, but boost::any provides a variant type, and type inference is supported in C++11 through the new semantics of the &#8216;auto&#8217; keyword.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5180">
+		<div id="div-comment-5180">
+		<div class="cmtinfo"><em> on <a href="#comment-5180" title="">2012-04-10 at 11:00 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7a6742b56fbcdbc8e6231b9f21b5ee39?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>MichaelTK</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5180"></div><p>&gt;  C++ a dead-declared language? By self-appointed gurus, I assume.</p>
+<p>Well if you don&#8217;t think C++03 is a dead declared language, then you will probably standing there alone with a small fraction of developers&#8230; A language is not kept alive by existing codebases. Just because people use it, this doesn&#8217;t necessarily mean a language is alive, unless you declare it to be ;). C++11 was a great step forward, but I think it was way too late&#8230; And the outlooks for the next iteration of the standard do not seem to be anywhere near that revolutionary. If you now take into account that a new standard needs at least 5 years to spread around&#8230; The iteration cycle is too long and except for C++11 far too conservative, period. I know the committee is voluntary but unfortunately this cannot be taken into account when judging about the language itself. The next iterations must be at least as impressive as C++11 and hopefully with a shorter cycle than 8 years. 8 years, common, this is like a life-time in todays pace of the digital evolution (which is only getting exponentially faster). I even doubt that the voluntary standard committee will be able to act fast enough to accompany for the fast growing nature of software development. Some companies like Google/Apple/Microsoft who each work on good compilers, should work together and actually invest money in the standard and not only in compilers&#8230;</p>
+<p>&gt; The GoingNative conference was great and the talks were all fantastic. C++11 is similarly great and full of great features.</p>
+<p>Yes it is&#8230; Would have been better if we could call it C++06&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5173">
+		<div id="div-comment-5173">
+		<div class="cmtinfo"><em> on <a href="#comment-5173" title="">2012-04-10 at 5:59 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/dbd8a89382c695ff6508678019708bac?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Pikkonen</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5173"></div><p>@MichealTK</p>
+<p>XP is old. XP is crap. I wish XP were dead. But it isn&#8217;t. That&#8217;s the unfortunate truth.</p>
+<p>What it comes down to is the blatant fact that Microsoft has yet to convince us that removing XP support was purely a technical decision. As seen from the workarounds available at <a href="http://tedwvc.wordpress.com" rel="nofollow">http://tedwvc.wordpress.com</a>, VS11 binaries *can* run on XP, albeit in a rather hacky/ugly manner. From the looks of it, it feels as if the entire decision was made by folks high up in the food chain just for the sake of dumping XP.</p>
+<p>On one hand, Microsoft is actively pushing the C++. The GoingNative conference was great and the talks were all fantastic. C++11 is similarly great and full of great features.</p>
+<p>On the other hand, Microsoft is pushing C++11 far into the future for many of us developers. We would love to use the ranged based for loop, atomics, improved lambdas, and all that, but we can&#8217;t dump 30% of our customers. It is just not realistic.</p>
+<p>In addition, it is simply wrong for Microsoft to put such a burden on 3rd party developers. Had Microsoft started with Office, Windows Live, etc. (yes, I&#8217;m aware that IE9 doesn&#8217;t run on XP), we wouldn&#8217;t need to be having this discussion at all.</p>
+<p>Microsoft, do the Right Thing.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5172">
+		<div id="div-comment-5172">
+		<div class="cmtinfo"><em> on <a href="#comment-5172" title="">2012-04-10 at 5:47 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/dfeed0cb9f18492e11306e5b1acb497c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>henrikvallgren</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5172"></div><p>@ MichaelTK: C++ a dead-declared language? By self-appointed gurus, I assume.</p>
+<p>Personally, I care more about portability that standard this or that. Boost or OpenMP works on many platforms, as do OpenGL.</p>
+<p>As a result, I&#8217;ve always stayed away from DirectX, but it&#8217;s interoperability with C++ AMP makes it very interesting. I&#8217;m eagerly considering rewriting the graphics part to take advantage of that combination.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5171">
+		<div id="div-comment-5171">
+		<div class="cmtinfo"><em> on <a href="#comment-5171" title="">2012-04-10 at 4:32 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7a6742b56fbcdbc8e6231b9f21b5ee39?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>MichaelTK</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5171"></div><p>What is all this Windows XP begging for? XP is dead. If your customers still use XP, so be it. Then they can&#8217;t upgrade to your latest software or you can&#8217;t upgrade to latest VS. So what, you were fine all the years before without VS11 what would you need it for just now? Obviously it can&#8217;t be new features since they are mostly not XP compatible as well. It can&#8217;t be C++11 support, since Intel Compiler 12.1 already does support a lot of it in Visual Studio 2010 (more than even VS11 supports as it is now). See it the other way. If Everyone endlessly supports XP, they it will never die. Backwards compat. is one of the biggest problems in software development and continually holding innovation back; without any obvious reason, all except some lazy people who think that using an 11 year old OS makes them cool ;)&#8230; Whenever I tried to use XP (in a Virtual Machine of course), it felt like medieval ages.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5170">
+		<div id="div-comment-5170">
+		<div class="cmtinfo"><em> on <a href="#comment-5170" title="">2012-04-10 at 2:31 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6c6d477de654bbd9926c10fe181d2026?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Justin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5170"></div><p>Herb, I will love you until the day I die if VS11 RTM will support XP :-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5155">
+		<div id="div-comment-5155">
+		<div class="cmtinfo"><em> on <a href="#comment-5155" title="">2012-04-09 at 12:20 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/827b1643b9e1ac6af6a9341db5bd3f6a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://ffconsultancy.com' rel='external nofollow' class='url'>Jon</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5155"></div><p>&#8220;he has graciously agreed to come to the May 7-9 ISO C++ parallelism study group special meeting to present this to the committee members in detail and answer questions about await’s design and C# users’ experience with it in production code&#8221;</p>
+<p>C# async has yet to ship, of course. If you want experience reports about production code you might look at F#, which is where C# is getting the feature from and shipped with it in VS2010. Before that, apps with 100k users used the same feature in OCaml (which is where F# got the feature from).</p>
+<p>&#8220;There are several powerful ideas in other languages that could transfer well to C++, would improve rather than bloat the language, and aren’t in tension with “don’t pay for what you don’t use” performance, just like auto and lambdas and other features.&#8221;</p>
+<p>You might also consider variant types, pattern matching and type inference.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5148">
+		<div id="div-comment-5148">
+		<div class="cmtinfo"><em> on <a href="#comment-5148" title="">2012-04-08 at 5:56 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7a6742b56fbcdbc8e6231b9f21b5ee39?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>MichaelTK</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5148"></div><p>PS: C++.AMP is a step in the right direction regarding parallel patterns, but unfortunately not in the ISO standard. If I were at the committee I would rather see to get a decent evolution of C++.AMP into the next C++ ISO standard&#8230; Herb was also talking about C++.AMP and distribution across clusters and heterogeneous computation environments. This is definitely nice to have but again, it must be done fast to be ahead of other languages and especially it needs to be in the standard.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5147">
+		<div id="div-comment-5147">
+		<div class="cmtinfo"><em> on <a href="#comment-5147" title="">2012-04-08 at 5:47 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7a6742b56fbcdbc8e6231b9f21b5ee39?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>MichaelTK</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5147"></div><p>&gt; It would seem many major features that are now being zealously laid out in formal papers are feasible for C++2x at best?</p>
+<p>This would be a hazard. I doubt that C++11 can cover for that long, since actually it has been due for 10 years already! C++11 is nothing new, it was the revival of a otherwise dead-declared language&#8230; </p>
+<p>What about taking complexity out of the language for making advancements easier while still allowing interaction with existing code. This could be implemented by a &#8220;safe&#8221; and &#8220;unsafe&#8221; modifier respectively for methods and classes. If the compiler defaults to &#8220;safe&#8221; then only &#8220;unsafe&#8221; is recognized and vice versa. In &#8220;safe&#8221; function one could only use the shiny new syntax which could also break backwards compatibility and in unsafe code, all C++11 features are available. </p>
+<p>The only reason why people would use C++11 as it is in 10 years is because of existing code bases. So C++ itself is in a good position to die how it has begun. That is, by introducing a new C++ derivative on top of C++, call it &#8220;c++#&#8221; or whatever, which allows full backward compatibility on demand but by default brings ALL the fancies, that are urgently needed, to the C++ world.</p>
+<p>The current C++ focused cluster and high performance revival will fade out rather sooner than later. Embedded devices evolve at incredible pace, and thus I hardly see use for C++ in this segment in the mid/long-term. For clusters, other languages and frameworks like Stanfords PPL or things like &#8220;Satin&#8221;, already provide great performance while still hiding all the low level complexity behind a compiler. </p>
+<p>So please, don&#8217;t bother us with C++2x thoughts. As much as I like C++, if I see all the shiny new languages with their great ideas and concepts, and the complexity parallelism brings on the table, C++ must not evolve, C++ must revolutionize if it wants to survive! </p>
+<p>Raw sequential performance doesn&#8217;t cut it, if it is too complicated to efficiently work in a heterogeneous parallel environment (20% more sequential performance but 50% less grid utilization won&#8217;t get you that far). What we need is efficient parallel patterns one can apply in a productive way. Only this paired with C++ sequential performance is a benefit in contrast to other languages.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mtcworks even thread-even depth-1 highlander-comment" id="comment-5143">
+		<div id="div-comment-5143">
+		<div class="cmtinfo"><em> on <a href="#comment-5143" title="">2012-04-08 at 1:35 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d939050ca3b42011988d4701a585e723?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://mtcworks.wordpress.com' rel='external nofollow' class='url'>David H. Braun</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5143"></div><p>Going over to look at N3327 and N3228, and also seeing the long list of formal proposals (already) for the next standard, I&#8217;m reminded of your earlier comment, Herb, that we could only expect one major new feature in the next standard. I would think &#8220;await&#8221; and related functionality would qualify as a major new feature. You&#8217;re pretty gung-ho about it, and with good cause. It would seem many major features that are now being zealously laid out in formal papers are feasible for C++2x at best?  It is an arduous, grinding task you are engaged in on the Committee. :-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mtcworks odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5142">
+		<div id="div-comment-5142">
+		<div class="cmtinfo"><em> on <a href="#comment-5142" title="">2012-04-08 at 1:09 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d939050ca3b42011988d4701a585e723?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://mtcworks.wordpress.com' rel='external nofollow' class='url'>David H. Braun</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5142"></div><p>After my last comment, I realized there was a higher resolution video available, besides the illegible default resolution. The higher resolution is legible, although not comfortable to read. Still, legible is legible, meaning the information can be had if one selects the highest resolution and sits close to the screen. I still think the rest of my comment applies and suggests desirable improvements.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mtcworks even thread-even depth-1 highlander-comment" id="comment-5141">
+		<div id="div-comment-5141">
+		<div class="cmtinfo"><em> on <a href="#comment-5141" title="">2012-04-07 at 11:02 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d939050ca3b42011988d4701a585e723?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://mtcworks.wordpress.com' rel='external nofollow' class='url'>David H. Braun</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5141"></div><p>The subject of the channel 9 video is interesting, but, unfortunately, the text on the screen is almost completely illegible. All you get from that almost-big-enough-to-read overhead screen is a general &#8220;sense&#8221; of what the speaker is doing. Everything else has to be gotten through carefully listening to every word the speaker says. Little content would be lost if it was a mere audio broadcast. Unfortunately, he isn&#8217;t speaking like he&#8217;s on radio, but as though he expects the viewer can see everything he sees, which means crucial information is *lost* in transmission.</p>
+<p>It would be a good idea if these broadcasts had two simultaneous views the viewer could toggle between &#8212; or even watch side-by-side &#8212; one a broad view of the speaker, the other a direct transmission of the computer screen he is projecting to his audience. That wouldn&#8217;t be significantly any more difficult than what you&#8217;re already doing &#8212; it just needs to be set up that way.</p>
+<p>Several years ago, I used to watch Sun Microsystems (the late) presentations that were much more sophisticated, having all sorts of related &#8220;resources&#8221; that could be accessed simultaneously while watching the central presentation. Having something like that would be even better than having two screen views. But, as it is, not even being able to read code that is in plain view &#8212; but not legible &#8212; is frustrating. Instinctively, I find myself squinting, like I need glasses, even though I know it isn&#8217;t going to help a bit. :-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5139">
+		<div id="div-comment-5139">
+		<div class="cmtinfo"><em> on <a href="#comment-5139" title="">2012-04-07 at 11:13 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d72bdbc0be0ada80523a0dabe47f38a6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>What we really want</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5139"></div><p>What we really want is XP SP3 support in Visual Studio 11. I think it is far more important than await. We can live without await. We (or at least many of us) can&#8217;t live without our XP customers.</p>
+<p>It is unacceptable that no comment has been made on this so far. And hiding the XP support idea from the UserVoice &#8220;Hot&#8221; list is just plain sad.</p>
+<p><a href="http://visualstudio.uservoice.com/forums/121579-visual-studio/suggestions/2287078-allow-mfc-11-to-run-in-xp-sp3" rel="nofollow">http://visualstudio.uservoice.com/forums/121579-visual-studio/suggestions/2287078-allow-mfc-11-to-run-in-xp-sp3</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5138">
+		<div id="div-comment-5138">
+		<div class="cmtinfo"><em> on <a href="#comment-5138" title="">2012-04-07 at 9:05 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/107fafc1be9639d836e67e2e73366afa?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>petke</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5138"></div><p>The sounds good. I wish we could get &#8220;then&#8221; on some fast track so we don&#8217;t have to wait years for it. I could use it now.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5137">
+		<div id="div-comment-5137">
+		<div class="cmtinfo"><em> on <a href="#comment-5137" title="">2012-04-07 at 7:59 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7a6742b56fbcdbc8e6231b9f21b5ee39?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>MichaelTK</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5137"></div><p>@Herb: If we are talking about pulling from other languages&#8230; What about the following:</p>
+<p>1) Mixin templates from D<br />
+2) Transitive const &amp; immutability for data and functions<br />
+3) &#8220;Pure&#8221; modifier for functions<br />
+4) GC classes from C++.CLI (that is, a new modifier for struct/class which restricts pointer manipulation without! introducing a new pointer/allocation syntax and in turn allows for safe&amp;generational GC. I know your other post about GCs here but I don&#8217;t think shared_ptr is the way to go. Its is very hard to get right&amp;efficient and inherently error prone. So a real safe, reliable GC would do the job for most of the time&#8230;)<br />
+5) Named parameters<br />
+6) Anonymous types like &#8220;new { x = &#8216;Hello World!&#8217;, y = 23 }&#8221;<br />
+7) Reflection, possibly based on compiler AST like the ones coming with Roslyn<br />
+8) Infix methods from Scala<br />
+9) Infinitely more ;)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-5134">
+		<div id="div-comment-5134">
+		<div class="cmtinfo"><em> on <a href="#comment-5134" title="">2012-04-07 at 7:44 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5134"></div><p>Yes, it&#8217;s N3327 and N3228.</p>
+<p>BTW, C# isn&#8217;t the only language I&#8217;m personally actively trying to get ISO C++ to pull from &#8212; I also solicited a proposal from Andrei and Walter proposing D &#8220;static if&#8221; for C++ and they too graciously agreed to write it up. There are several powerful ideas in other languages that could transfer well to C++, would improve rather than bloat the language, and aren&#8217;t in tension with &#8220;don&#8217;t pay for what you don&#8217;t use&#8221; performance, just like auto and lambdas and other features.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-cierpuchaw odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5131">
+		<div id="div-comment-5131">
+		<div class="cmtinfo"><em> on <a href="#comment-5131" title="">2012-04-07 at 7:18 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ec0c64936267028277e1bc1649ca5762?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Wojciech Cierpucha</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5131"></div><p>Tom: take a look at N3327 and N3328 from <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2012/" rel="nofollow">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2012/</a> &#8211; I&#8217;ve only skimmed through those two papers but they both contain .then() on std::future.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5129">
+		<div id="div-comment-5129">
+		<div class="cmtinfo"><em> on <a href="#comment-5129" title="">2012-04-07 at 4:37 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/99a09dff39b7735d6137055840a2eb41?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Guest</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5129"></div><p>Maybe something like this ?<br />
+<a href="http://research.microsoft.com/apps/pubs/default.aspx?id=158164" rel="nofollow">http://research.microsoft.com/apps/pubs/default.aspx?id=158164</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-tomkirbygreen odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5127">
+		<div id="div-comment-5127">
+		<div class="cmtinfo"><em> on <a href="#comment-5127" title="">2012-04-07 at 2:17 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6da9993d8784d5bfacf9f781dfa8ea39?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://tomkirbygreen.wordpress.com' rel='external nofollow' class='url'>Tom Kirby-Green</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5127"></div><p>Interesting post Herb, would it be possible to read the actual text of the proposal you made to add &#8216;then&#8217; to &#8216;future&#8217; ?<br />
+Kind regards,<br />
+Tom</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2012/04/06/we-want-await-a-c-talk-thats-applicable-to-c/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-107fafc1be9639d836e67e2e73366afa">
+	</div>
+	<div class="grofile-hash-map-1e167d740c35575fe04f3290df8b204d">
+	</div>
+	<div class="grofile-hash-map-7a6742b56fbcdbc8e6231b9f21b5ee39">
+	</div>
+	<div class="grofile-hash-map-dbd8a89382c695ff6508678019708bac">
+	</div>
+	<div class="grofile-hash-map-dfeed0cb9f18492e11306e5b1acb497c">
+	</div>
+	<div class="grofile-hash-map-6c6d477de654bbd9926c10fe181d2026">
+	</div>
+	<div class="grofile-hash-map-827b1643b9e1ac6af6a9341db5bd3f6a">
+	</div>
+	<div class="grofile-hash-map-d939050ca3b42011988d4701a585e723">
+	</div>
+	<div class="grofile-hash-map-d72bdbc0be0ada80523a0dabe47f38a6">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-ec0c64936267028277e1bc1649ca5762">
+	</div>
+	<div class="grofile-hash-map-99a09dff39b7735d6137055840a2eb41">
+	</div>
+	<div class="grofile-hash-map-6da9993d8784d5bfacf9f781dfa8ea39">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_5200={"id":468178,"unique_id":"wp-comment-5200","title":"%40MichaelTK%20The%20next%20C%2B%2B%20is%20not%20in%20expected%20in%20eight%20years%20but%20in%20five.%20C%2B%2B17.%20Before%20that%20we%20will%20get%20library%20changes%20as%20TR%26%23039%3Bs%20whenever%20they%20are%20ready....","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5200","item_id":"_comm_5200"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5200 == 'undefined' ){PDRTJS_468178_comm_5200 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5200 );}}PDRTJS_settings_468178_comm_5188={"id":468178,"unique_id":"wp-comment-5188","title":"%40Jon%20It%26%23039%3Bs%20non-standard%20of%20course%2C%20but%20boost%3A%3Aany%20provides%20a%20variant%20type%2C%20and%20type%20inference%20is%20supported%20in%20C%2B%2B11%20through%20the%20new%20semantics%20of%20the%20%26%23039%3Bauto%26%23039%3B%20keyword....","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5188","item_id":"_comm_5188"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5188 == 'undefined' ){PDRTJS_468178_comm_5188 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5188 );}}PDRTJS_settings_468178_comm_5180={"id":468178,"unique_id":"wp-comment-5180","title":"%26gt%3B%20%20C%2B%2B%20a%20dead-declared%20language%3F%20By%20self-appointed%20gurus%2C%20I%20assume.Well%20if%20you%20don%26%23039%3Bt%20think%20C%2B%2B03%20is%20a%20dead%20declared%20language%2C%20then%20you%20will%20probably%20standing%20there%20alone%20with%20a%20small%20fraction%20...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5180","item_id":"_comm_5180"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5180 == 'undefined' ){PDRTJS_468178_comm_5180 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5180 );}}PDRTJS_settings_468178_comm_5173={"id":468178,"unique_id":"wp-comment-5173","title":"%40MichealTKXP%20is%20old.%20XP%20is%20crap.%20I%20wish%20XP%20were%20dead.%20But%20it%20isn%26%23039%3Bt.%20That%26%23039%3Bs%20the%20unfortunate%20truth.What%20it%20comes%20down%20to%20is%20the%20blatant%20fact%20that%20Microsoft%20has%20yet%20to%20convince%20us%20that%20removing%20XP%20s...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5173","item_id":"_comm_5173"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5173 == 'undefined' ){PDRTJS_468178_comm_5173 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5173 );}}PDRTJS_settings_468178_comm_5172={"id":468178,"unique_id":"wp-comment-5172","title":"%40%20MichaelTK%3A%20C%2B%2B%20a%20dead-declared%20language%3F%20By%20self-appointed%20gurus%2C%20I%20assume.Personally%2C%20I%20care%20more%20about%20portability%20that%20standard%20this%20or%20that.%20Boost%20or%20OpenMP%20works%20on%20many%20platforms%2C%20as%20do%20O...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5172","item_id":"_comm_5172"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5172 == 'undefined' ){PDRTJS_468178_comm_5172 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5172 );}}PDRTJS_settings_468178_comm_5171={"id":468178,"unique_id":"wp-comment-5171","title":"What%20is%20all%20this%20Windows%20XP%20begging%20for%3F%20XP%20is%20dead.%20If%20your%20customers%20still%20use%20XP%2C%20so%20be%20it.%20Then%20they%20can%26%23039%3Bt%20upgrade%20to%20your%20latest%20software%20or%20you%20can%26%23039%3Bt%20upgrade%20to%20latest%20VS.%20So%20what%2C%20you%20were...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5171","item_id":"_comm_5171"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5171 == 'undefined' ){PDRTJS_468178_comm_5171 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5171 );}}PDRTJS_settings_468178_comm_5170={"id":468178,"unique_id":"wp-comment-5170","title":"Herb%2C%20I%20will%20love%20you%20until%20the%20day%20I%20die%20if%20VS11%20RTM%20will%20support%20XP%20%3A-%29...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5170","item_id":"_comm_5170"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5170 == 'undefined' ){PDRTJS_468178_comm_5170 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5170 );}}PDRTJS_settings_468178_comm_5155={"id":468178,"unique_id":"wp-comment-5155","title":"%26quot%3Bhe%20has%20graciously%20agreed%20to%20come%20to%20the%20May%207-9%20ISO%20C%2B%2B%20parallelism%20study%20group%20special%20meeting%20to%20present%20this%20to%20the%20committee%20members%20in%20detail%20and%20answer%20questions%20about%20awaits%20design%20and%20C%23...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5155","item_id":"_comm_5155"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5155 == 'undefined' ){PDRTJS_468178_comm_5155 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5155 );}}PDRTJS_settings_468178_comm_5148={"id":468178,"unique_id":"wp-comment-5148","title":"PS%3A%20C%2B%2B.AMP%20is%20a%20step%20in%20the%20right%20direction%20regarding%20parallel%20patterns%2C%20but%20unfortunately%20not%20in%20the%20ISO%20standard.%20If%20I%20were%20at%20the%20committee%20I%20would%20rather%20see%20to%20get%20a%20decent%20evolution%20of%20C%2B%2B...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5148","item_id":"_comm_5148"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5148 == 'undefined' ){PDRTJS_468178_comm_5148 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5148 );}}PDRTJS_settings_468178_comm_5147={"id":468178,"unique_id":"wp-comment-5147","title":"%26gt%3B%20It%20would%20seem%20many%20major%20features%20that%20are%20now%20being%20zealously%20laid%20out%20in%20formal%20papers%20are%20feasible%20for%20C%2B%2B2x%20at%20best%3FThis%20would%20be%20a%20hazard.%20I%20doubt%20that%20C%2B%2B11%20can%20cover%20for%20that%20long%2C%20si...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5147","item_id":"_comm_5147"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5147 == 'undefined' ){PDRTJS_468178_comm_5147 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5147 );}}PDRTJS_settings_468178_comm_5143={"id":468178,"unique_id":"wp-comment-5143","title":"Going%20over%20to%20look%20at%20N3327%20and%20N3228%2C%20and%20also%20seeing%20the%20long%20list%20of%20formal%20proposals%20%28already%29%20for%20the%20next%20standard%2C%20I%26%23039%3Bm%20reminded%20of%20your%20earlier%20comment%2C%20Herb%2C%20that%20we%20could%20only%20expect%20one...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5143","item_id":"_comm_5143"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5143 == 'undefined' ){PDRTJS_468178_comm_5143 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5143 );}}PDRTJS_settings_468178_comm_5142={"id":468178,"unique_id":"wp-comment-5142","title":"After%20my%20last%20comment%2C%20I%20realized%20there%20was%20a%20higher%20resolution%20video%20available%2C%20besides%20the%20illegible%20default%20resolution.%20The%20higher%20resolution%20is%20legible%2C%20although%20not%20comfortable%20to%20read.%20Stil...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5142","item_id":"_comm_5142"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5142 == 'undefined' ){PDRTJS_468178_comm_5142 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5142 );}}PDRTJS_settings_468178_comm_5141={"id":468178,"unique_id":"wp-comment-5141","title":"The%20subject%20of%20the%20channel%209%20video%20is%20interesting%2C%20but%2C%20unfortunately%2C%20the%20text%20on%20the%20screen%20is%20almost%20completely%20illegible.%20All%20you%20get%20from%20that%20almost-big-enough-to-read%20overhead%20screen%20is%20a%20...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5141","item_id":"_comm_5141"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5141 == 'undefined' ){PDRTJS_468178_comm_5141 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5141 );}}PDRTJS_settings_468178_comm_5139={"id":468178,"unique_id":"wp-comment-5139","title":"What%20we%20really%20want%20is%20XP%20SP3%20support%20in%20Visual%20Studio%2011.%20I%20think%20it%20is%20far%20more%20important%20than%20await.%20We%20can%20live%20without%20await.%20We%20%28or%20at%20least%20many%20of%20us%29%20can%26%23039%3Bt%20live%20without%20our%20XP%20customers....","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5139","item_id":"_comm_5139"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5139 == 'undefined' ){PDRTJS_468178_comm_5139 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5139 );}}PDRTJS_settings_468178_comm_5138={"id":468178,"unique_id":"wp-comment-5138","title":"The%20sounds%20good.%20I%20wish%20we%20could%20get%20%26quot%3Bthen%26quot%3B%20on%20some%20fast%20track%20so%20we%20don%26%23039%3Bt%20have%20to%20wait%20years%20for%20it.%20I%20could%20use%20it%20now....","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5138","item_id":"_comm_5138"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5138 == 'undefined' ){PDRTJS_468178_comm_5138 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5138 );}}PDRTJS_settings_468178_comm_5137={"id":468178,"unique_id":"wp-comment-5137","title":"%40Herb%3A%20If%20we%20are%20talking%20about%20pulling%20from%20other%20languages...%20What%20about%20the%20following%3A1%29%20Mixin%20templates%20from%20D2%29%20Transitive%20const%20%26amp%3B%20immutability%20for%20data%20and%20functions3%29%20%26quot%3BPure%26quot%3B%20modifier%20fo...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5137","item_id":"_comm_5137"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5137 == 'undefined' ){PDRTJS_468178_comm_5137 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5137 );}}PDRTJS_settings_468178_comm_5134={"id":468178,"unique_id":"wp-comment-5134","title":"Yes%2C%20it%26%23039%3Bs%20N3327%20and%20N3228.BTW%2C%20C%23%20isn%26%23039%3Bt%20the%20only%20language%20I%26%23039%3Bm%20personally%20actively%20trying%20to%20get%20ISO%20C%2B%2B%20to%20pull%20from%20--%20I%20also%20solicited%20a%20proposal%20from%20Andrei%20and%20Walter%20proposing%20D%20%26quot%3Bstatic%20if%26quot%3B%20...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5134","item_id":"_comm_5134"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5134 == 'undefined' ){PDRTJS_468178_comm_5134 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5134 );}}PDRTJS_settings_468178_comm_5131={"id":468178,"unique_id":"wp-comment-5131","title":"Tom%3A%20take%20a%20look%20at%20N3327%20and%20N3328%20from%20http%3A%2F%2Fwww.open-std.org%2FJTC1%2FSC22%2FWG21%2Fdocs%2Fpapers%2F2012%2F%20-%20I%26%23039%3Bve%20only%20skimmed%20through%20those%20two%20papers%20but%20they%20both%20contain%20.then%28%29%20on%20std%3A%3Afuture....","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5131","item_id":"_comm_5131"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5131 == 'undefined' ){PDRTJS_468178_comm_5131 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5131 );}}PDRTJS_settings_468178_comm_5129={"id":468178,"unique_id":"wp-comment-5129","title":"Maybe%20something%20like%20this%20%3Fhttp%3A%2F%2Fresearch.microsoft.com%2Fapps%2Fpubs%2Fdefault.aspx%3Fid%3D158164...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5129","item_id":"_comm_5129"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5129 == 'undefined' ){PDRTJS_468178_comm_5129 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5129 );}}PDRTJS_settings_468178_comm_5127={"id":468178,"unique_id":"wp-comment-5127","title":"Interesting%20post%20Herb%2C%20would%20it%20be%20possible%20to%20read%20the%20actual%20text%20of%20the%20proposal%20you%20made%20to%20add%20%26%23039%3Bthen%26%23039%3B%20to%20%26%23039%3Bfuture%26%23039%3B%20%3F%20Kind%20regards%2CTom...","permalink":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/#comment-5127","item_id":"_comm_5127"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5127 == 'undefined' ){PDRTJS_468178_comm_5127 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5127 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F04%2F06%2Fwe-want-await-a-c-talk-thats-applicable-to-c%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2012\/04\/06\/we-want-await-a-c-talk-thats-applicable-to-c\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2012%2F04%2F06%2Fwe-want-await-a-c-talk-thats-applicable-to-c%2F","postID":"1450","shortlink":"https:\/\/wp.me\/peb5Y-no","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/1450","statsLink":"https:\/\/wordpress.com\/stats\/post\/1450\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F04%2F06%2Fwe-want-await-a-c-talk-thats-applicable-to-c%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'1450','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sQms4TEREQ014NG03dTMsWD9bV2RNLEItXVR0Z3hHME42VlUwJmFXOU1zblAmaiZGLWpfaUd2NEwlZlZrd1NnTG0xP0xkT3Vafm1qXVtyOF9GP1g2cEszbExEWVhOfE8yNU5UcE9JUVt2WXdJZWpzUGwrM1c0Ji03bXRkL1hxODE3bWJqLDBERFkmbmpQTHRnRXRiVnhJSVlud0gwLU8uMUlaYW1aNH4zYXR+WiZqL3Q3WDRwQnBvTXp6P1RwLDArQkl5NDQtVQ=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '1450' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

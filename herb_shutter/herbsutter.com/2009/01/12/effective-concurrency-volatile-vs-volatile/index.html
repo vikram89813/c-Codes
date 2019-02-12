@@ -1,0 +1,538 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Effective Concurrency: volatile vs. volatile | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965479&amp;back=https%3A%2F%2Fherbsutter.com%2F2009%2F01%2F12%2Feffective-concurrency-volatile-vs-volatile%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Effective Concurrency: volatile vs.&nbsp;volatile Comments Feed" href="https://herbsutter.com/2009/01/12/effective-concurrency-volatile-vs-volatile/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Answer to &quot;16 Technologies&quot;: Engelbart and the Mother of All&nbsp;Demos' href='https://herbsutter.com/2009/01/08/answer-to-16-technologies-engelbart-and-the-mother-of-all-demos/' />
+<link rel='next' title='From the &quot;we know what they meant, but it&#8217;s not what they said&quot;&nbsp;department' href='https://herbsutter.com/2009/01/16/from-the-we-know-what-they-meant-but-its-not-what-they-said-department/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2009/01/12/effective-concurrency-volatile-vs-volatile/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-3j' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2009%2F01%2F12%2Feffective-concurrency-volatile-vs-volatile%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2009%2F01%2F12%2Feffective-concurrency-volatile-vs-volatile%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Effective Concurrency: volatile vs. volatile" />
+<meta property="og:url" content="https://herbsutter.com/2009/01/12/effective-concurrency-volatile-vs-volatile/" />
+<meta property="og:description" content="This month&#8217;s Effective Concurrency column, &#8220;volatile vs. volatile&#8221;, is now live on DDJ&#8217;s website and also appears in the print magazine. (As a historical note, it&#8217;s DD…" />
+<meta property="article:published_time" content="2009-01-12T09:12:15+00:00" />
+<meta property="article:modified_time" content="2009-01-12T09:12:15+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965479" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Effective Concurrency: volatile vs.&nbsp;volatile" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="This month&#039;s Effective Concurrency column, &quot;volatile vs. volatile&quot;, is now live on DDJ&#039;s website and also appears in the print magazine. (As a historical note, it&#039;s DDJ&#039;s final print issue, as I mentioned previously.) This article aims to answer the frequently asked question: &quot;What does volatile mean?&quot; The short answer: &quot;It depends, do you mean&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2009/01/12/effective-concurrency-volatile-vs-volatile/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-205 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2009/01/08/answer-to-16-technologies-engelbart-and-the-mother-of-all-demos/" rel="prev">Answer to &quot;16 Technologies&quot;: Engelbart and the Mother of All&nbsp;Demos</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2009/01/16/from-the-we-know-what-they-meant-but-its-not-what-they-said-department/" rel="next">From the &quot;we know what they meant, but it&#8217;s not what they said&quot;&nbsp;department</a> &raquo;</div>
+			</div>
+			
+			<div class="post-205 post type-post status-publish format-standard hentry category-c-net category-c category-concurrency category-java" id="post-205">
+				<div class="posttitle">
+					<h2>Effective Concurrency: volatile vs.&nbsp;volatile</h2>
+					<p class="post-info">2009-01-12 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>This month&#8217;s <strong>Effective Concurrency</strong> column, <strong><a href="http://www.ddj.com/hpc-high-performance-computing/212701484">&#8220;volatile vs. volatile&#8221;</a></strong>, is now live on DDJ&#8217;s website and also appears in the print magazine. (As a historical note, it&#8217;s DDJ&#8217;s final print issue, as I <a href="https://herbsutter.wordpress.com/2008/12/31/the-2008-media-inflection-meet-dr-web-the-new-gorilla/">mentioned previously</a>.)</p>
+<p>This article aims to answer the frequently asked question: &#8220;What does volatile mean?&#8221; The short answer: &#8220;It depends, do you mean Java/.NET volatile or C/C++ volatile?&#8221; From the article:</p>
+<blockquote>
+<p>What does the <b>volatile</b> keyword mean? How should you use it? Confusingly, there are two common answers, because depending on the language you use volatile supports one or the other of two different programming techniques: lock-free programming, and dealing with &#8216;unusual&#8217; memory.</p>
+<p>Adding to the confusion, these two different uses have overlapping requirements and impose overlapping restrictions, which makes them appear more similar than they are. Let&#8217;s define and understand them clearly, and see how to spell them correctly in C, C++, Java and C# &#8212; and not always as <b>volatile</b>. &#8230;</p>
+</blockquote>
+<p>I hope you enjoy it. Finally, here are links to previous Effective Concurrency columns and the DDJ print magazine issue in which they first appeared:</p>
+<blockquote>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/200001985">The Pillars of Concurrency</a> (Aug 2007)  </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/201202924">How Much Scalability Do You Have or Need?</a> (Sep 2007)  </p>
+<p><a href="http://ddj.com/cpp/201804238">Use Critical Sections (Preferably Locks) to Eliminate Races</a> (Oct 2007)  </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/202401098">Apply Critical Sections Consistently</a> (Nov 2007)  </p>
+<p><a href="http://ddj.com/architect/202802983">Avoid Calling Unknown Code While Inside a Critical Section</a> (Dec 2007)  </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/204801163">Use Lock Hierarchies to Avoid Deadlock</a> (Jan 2008)  </p>
+<p><a href="http://www.ddj.com/cpp/205900309">Break Amdahl’s Law!</a> (Feb 2008)  </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/206100542">Going Superlinear</a> (Mar 2008)  </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/206903306">Super Linearity and the Bigger Machine</a> (Apr 2008)  </p>
+<p><a href="http://ddj.com/architect/207100682">Interrupt Politely</a> (May 2008)  </p>
+<p><a href="http://ddj.com/architect/208200273">Maximize Locality, Minimize Contention</a> (Jun 2008)  </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/208801371">Choose Concurrency-Friendly Data Structures</a> (Jul 2008)  </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/209900973">The Many Faces of Deadlock</a> (Aug 2008)  </p>
+<p><a href="http://www.ddj.com/cpp/210600279">Lock-Free Code: A False Sense of Security</a> (Sep 2008)  </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/210604448">Writing Lock-Free Code: A Corrected Queue</a> (Oct 2008)  </p>
+<p><a href="http://www.ddj.com/cpp/211601363">Writing a Generalized Concurrent Queue</a> (Nov 2008)  </p>
+<p><a href="http://www.ddj.com/cpp/211800538">Understanding Parallel Performance</a> (Dec 2008)</p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/212201163">Measuring Parallel Performance: Optimizing a Concurrent Queue</a> (Jan 2009)</p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/212701484">volatile vs. volatile</a> (Feb 2009)</p>
+</blockquote>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c-net/" rel="category tag">C# / .NET</a>, <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/java/" rel="category tag">Java</a> | 											12 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">12 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-1431">
+		<div id="div-comment-1431">
+		<div class="cmtinfo"><em> on <a href="#comment-1431" title="">2009-08-10 at 12:37 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1431"></div><p>@Yang: That&#8217;s not quite true. In .NET today, &#8216;volatile&#8217; operations are sequentially consistent (SC, fully ordered) except only that a volatile store followed by a volatile load can be reordered. This is true on both x86/x64 and Itanium. This doesn&#8217;t affect most uses of volatile, although Joe Duffy correctly explains in that article and in his blog that there are situations where it can change the expected meaning of code. I consider this a weakness, and am working with the CLR team to make .NET volatiles be SC in a future release post-VS2010 as part of my Prism memory model work. Note that the above does not apply to Java volatiles, which have been guaranteed to be SC since JSR-133 / Java 5.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1424">
+		<div id="div-comment-1424">
+		<div class="cmtinfo"><em> on <a href="#comment-1424" title="">2009-08-09 at 3:46 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/e17a97a879e919ebc943bfb9d3fec409?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.mit.edu/~y_z/' rel='external nofollow' class='url'>Yang</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1424"></div><p>Your article states that for .NET, `volatile` operations cannot be reordered (implies a memory barrier) . However, according to the following article (and various other resources I&#8217;ve encountered on the web):</p>
+<p><a href="http://msdn.microsoft.com/en-us/magazine/cc817398.aspx" rel="nofollow">http://msdn.microsoft.com/en-us/magazine/cc817398.aspx</a></p>
+<p>operations are allowed be reordered. Any memory barrier must be explicitly created.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1374">
+		<div id="div-comment-1374">
+		<div class="cmtinfo"><em> on <a href="#comment-1374" title="">2009-07-19 at 5:15 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/9ca8853825f37993dbec533c52178410?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.google.com/profiles/pphaneuf' rel='external nofollow' class='url'>Pierre Phaneuf</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1374"></div><p>I wonder why there is so much &#8220;volatile&#8221; peppered all over the atomic functions on Windows and Mac OS X (the GCC built-ins do not, as I would expect)?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1118">
+		<div id="div-comment-1118">
+		<div class="cmtinfo"><em> on <a href="#comment-1118" title="">2009-03-02 at 11:23 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1118"></div><p>Norbert asked:</p>
+<blockquote><p>
+in your article you mention “volatile atomic” as a way to make a variable of being both, of unusual type (volatile) and to guarantee its atomicity.<br />
+What would be the difference to “atomic”?
+</p></blockquote>
+<p>A variable declared C++0x &#8220;volatile atomic&#8221; will have the union of the guarantees (and restrictions) of &#8220;C/C++ volatile&#8221; andstd:: &#8220;atomic&#8221;. It will be suitable for both inter-thread communication and communication with threads or hardware that don&#8217;t follow the memory model. It&#8217;s unusual to need that in practice, as you usually use one control variable to synchronize among your own threads, where atomic is the right tool, and another kind of variable to talk to hardware or otherwise unusual memory, where volatile is the right tool. Still, they&#8217;re orthogonal concepts and if you do want both C++0x will let you express it.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1084">
+		<div id="div-comment-1084">
+		<div class="cmtinfo"><em> on <a href="#comment-1084" title="">2009-02-09 at 2:50 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7ac54dd1f64876196b262bd7689f2000?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Norbert Riedlin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1084"></div><p>Hm, seem as if I have to type &#8220;&lt;&#8221; when I need a &#8220;less than&#8221; character. So I&#8217;ll try again:<br />
+“What would be the difference to “atomic &lt;volatile T&gt;”?”</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1078">
+		<div id="div-comment-1078">
+		<div class="cmtinfo"><em> on <a href="#comment-1078" title="">2009-02-06 at 3:18 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7ac54dd1f64876196b262bd7689f2000?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Norbert Riedlin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1078"></div><p>Sorry, hit the submit button too early. The question should read:<br />
+&#8220;What would be the difference to “atomic”?&#8221;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1077">
+		<div id="div-comment-1077">
+		<div class="cmtinfo"><em> on <a href="#comment-1077" title="">2009-02-06 at 12:23 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7ac54dd1f64876196b262bd7689f2000?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Norbert Riedlin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1077"></div><p>Hi Herb,</p>
+<p>in your article you mention &#8220;volatile atomic&#8221; as a way to make a variable of being both, of unusual type (volatile) and to guarantee its atomicity.<br />
+What would be the difference to &#8220;atomic&#8221;?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1051">
+		<div id="div-comment-1051">
+		<div class="cmtinfo"><em> on <a href="#comment-1051" title="">2009-01-21 at 6:58 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/30e500ecabe1ba098137138ba02eb517?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Marco Dalla Gasperina</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1051"></div><p>&#8220;volatile&#8221; doesn&#8217;t require hardware registers or address multiplexing to be necessary.  Common APIs like shared memory between processes can fit the bill as well.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1041">
+		<div id="div-comment-1041">
+		<div class="cmtinfo"><em> on <a href="#comment-1041" title="">2009-01-17 at 9:49 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/eeed033c8e73ef1941361a9061a7663a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Kimo Crossman</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1041"></div><p>Herb</p>
+<p>Will you be commenting on the multicores advantages stop at about 8 study from US Gov. Sandia and Oak Ridge labs:</p>
+<p><a href="http://www.theregister.co.uk/2009/01/15/sandia_boffins_multicore_dropoff/" rel="nofollow">http://www.theregister.co.uk/2009/01/15/sandia_boffins_multicore_dropoff/</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1022">
+		<div id="div-comment-1022">
+		<div class="cmtinfo"><em> on <a href="#comment-1022" title="">2009-01-13 at 9:41 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1022"></div><p>Nick: Yes, the issues apply in principle to uniprocessor systems too. Think of it this way: Any level of the execution chain, from compiler to processor to cache (to future transactional memory in SW or HW to anything else) can transform reads and writes and must play nice with the memory model. On a uniproc system, you eliminate only processor and probably cache from that list, but the remaining parts (e.g., the compiler) can still perform unwanted transformations.</p>
+<p>Roger: Yes, that&#8217;s another valid example. The list wasn&#8217;t meant to be exhaustive, just to give a few common examples to motivate why this is a legitimate issue. Another one I mentioned in the table but not in the text is setjmp-safety; there are more.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1021">
+		<div id="div-comment-1021">
+		<div class="cmtinfo"><em> on <a href="#comment-1021" title="">2009-01-13 at 4:59 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/700528242a0d59c786e666958b93e298?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Roger Gammans</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1021"></div><p>Re C++ style, volatile.</p>
+<p>When I was doing a lot of hardware engineering once of the classic hardware semantics was reading from a register to trigger an event.<br />
+You don&#8217;t mention this in your classic examples list , is this because it is not safe to assume the compiler won&#8217;t add additional reads of a volatile register to the code?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1020">
+		<div id="div-comment-1020">
+		<div class="cmtinfo"><em> on <a href="#comment-1020" title="">2009-01-12 at 10:53 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/2d057840e182715fd0e7f2def1fbb57a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://2dprogrammer.blogspot.com' rel='external nofollow' class='url'>Nick Terry</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1020"></div><p>The articles on Lock-free programming have been immensely useful even from the lock based concurrency perspective.</p>
+<p>I have a question hoping you have some insight.  Do these issues you&#8217;ve described with lock-free programming exist on uniprocessor systems?</p>
+<p>In particular I am interested problems arising from processor or cache memory reordering.  The assembly can always  be inspected to verify that compiler hasn&#8217;t produced non-thread-safe code.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2009/01/12/effective-concurrency-volatile-vs-volatile/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-e17a97a879e919ebc943bfb9d3fec409">
+	</div>
+	<div class="grofile-hash-map-9ca8853825f37993dbec533c52178410">
+	</div>
+	<div class="grofile-hash-map-7ac54dd1f64876196b262bd7689f2000">
+	</div>
+	<div class="grofile-hash-map-30e500ecabe1ba098137138ba02eb517">
+	</div>
+	<div class="grofile-hash-map-eeed033c8e73ef1941361a9061a7663a">
+	</div>
+	<div class="grofile-hash-map-700528242a0d59c786e666958b93e298">
+	</div>
+	<div class="grofile-hash-map-2d057840e182715fd0e7f2def1fbb57a">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_1431={"id":468178,"unique_id":"wp-comment-1431","title":"%40Yang%3A%20That%26%23039%3Bs%20not%20quite%20true.%20In%20.NET%20today%2C%20%26%23039%3Bvolatile%26%23039%3B%20operations%20are%20sequentially%20consistent%20%28SC%2C%20fully%20ordered%29%20except%20only%20that%20a%20volatile%20store%20followed%20by%20a%20volatile%20load%20can%20be%20reordered.%20...","permalink":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/#comment-1431","item_id":"_comm_1431"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1431 == 'undefined' ){PDRTJS_468178_comm_1431 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1431 );}}PDRTJS_settings_468178_comm_1424={"id":468178,"unique_id":"wp-comment-1424","title":"Your%20article%20states%20that%20for%20.NET%2C%20%60volatile%60%20operations%20cannot%20be%20reordered%20%28implies%20a%20memory%20barrier%29%20.%20However%2C%20according%20to%20the%20following%20article%20%28and%20various%20other%20resources%20I%26%23039%3Bve%20encountered...","permalink":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/#comment-1424","item_id":"_comm_1424"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1424 == 'undefined' ){PDRTJS_468178_comm_1424 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1424 );}}PDRTJS_settings_468178_comm_1374={"id":468178,"unique_id":"wp-comment-1374","title":"I%20wonder%20why%20there%20is%20so%20much%20%26quot%3Bvolatile%26quot%3B%20peppered%20all%20over%20the%20atomic%20functions%20on%20Windows%20and%20Mac%20OS%20X%20%28the%20GCC%20built-ins%20do%20not%2C%20as%20I%20would%20expect%29%3F...","permalink":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/#comment-1374","item_id":"_comm_1374"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1374 == 'undefined' ){PDRTJS_468178_comm_1374 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1374 );}}PDRTJS_settings_468178_comm_1118={"id":468178,"unique_id":"wp-comment-1118","title":"Norbert%20asked%3A%26lt%3Bblockquote%26gt%3Bin%20your%20article%20you%20mention%20volatile%20atomic%20as%20a%20way%20to%20make%20a%20variable%20of%20being%20both%2C%20of%20unusual%20type%20%28volatile%29%20and%20to%20guarantee%20its%20atomicity.What%20would%20be%20the%20differ...","permalink":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/#comment-1118","item_id":"_comm_1118"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1118 == 'undefined' ){PDRTJS_468178_comm_1118 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1118 );}}PDRTJS_settings_468178_comm_1084={"id":468178,"unique_id":"wp-comment-1084","title":"Hm%2C%20seem%20as%20if%20I%20have%20to%20type%20%26quot%3B%26lt%3B%26quot%3B%20when%20I%20need%20a%20%26quot%3Bless%20than%26quot%3B%20character.%20So%20I%26%23039%3Bll%20try%20again%3AWhat%20would%20be%20the%20difference%20to%20atomic%20%26lt%3Bvolatile%20T%26gt%3B%3F...","permalink":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/#comment-1084","item_id":"_comm_1084"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1084 == 'undefined' ){PDRTJS_468178_comm_1084 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1084 );}}PDRTJS_settings_468178_comm_1078={"id":468178,"unique_id":"wp-comment-1078","title":"Sorry%2C%20hit%20the%20submit%20button%20too%20early.%20The%20question%20should%20read%3A%26quot%3BWhat%20would%20be%20the%20difference%20to%20atomic%3F%26quot%3B...","permalink":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/#comment-1078","item_id":"_comm_1078"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1078 == 'undefined' ){PDRTJS_468178_comm_1078 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1078 );}}PDRTJS_settings_468178_comm_1077={"id":468178,"unique_id":"wp-comment-1077","title":"Hi%20Herb%2Cin%20your%20article%20you%20mention%20%26quot%3Bvolatile%20atomic%26quot%3B%20as%20a%20way%20to%20make%20a%20variable%20of%20being%20both%2C%20of%20unusual%20type%20%28volatile%29%20and%20to%20guarantee%20its%20atomicity.What%20would%20be%20the%20difference%20to%20%26quot%3Batomic%26quot%3B...","permalink":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/#comment-1077","item_id":"_comm_1077"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1077 == 'undefined' ){PDRTJS_468178_comm_1077 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1077 );}}PDRTJS_settings_468178_comm_1051={"id":468178,"unique_id":"wp-comment-1051","title":"%26quot%3Bvolatile%26quot%3B%20doesn%26%23039%3Bt%20require%20hardware%20registers%20or%20address%20multiplexing%20to%20be%20necessary.%20%20Common%20APIs%20like%20shared%20memory%20between%20processes%20can%20fit%20the%20bill%20as%20well....","permalink":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/#comment-1051","item_id":"_comm_1051"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1051 == 'undefined' ){PDRTJS_468178_comm_1051 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1051 );}}PDRTJS_settings_468178_comm_1041={"id":468178,"unique_id":"wp-comment-1041","title":"HerbWill%20you%20be%20commenting%20on%20the%20multicores%20advantages%20stop%20at%20about%208%20study%20from%20US%20Gov.%20Sandia%20and%20Oak%20Ridge%20labs%3Ahttp%3A%2F%2Fwww.theregister.co.uk%2F2009%2F01%2F15%2Fsandia_boffins_multicore_dropoff%2F...","permalink":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/#comment-1041","item_id":"_comm_1041"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1041 == 'undefined' ){PDRTJS_468178_comm_1041 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1041 );}}PDRTJS_settings_468178_comm_1022={"id":468178,"unique_id":"wp-comment-1022","title":"Nick%3A%20Yes%2C%20the%20issues%20apply%20in%20principle%20to%20uniprocessor%20systems%20too.%20Think%20of%20it%20this%20way%3A%20Any%20level%20of%20the%20execution%20chain%2C%20from%20compiler%20to%20processor%20to%20cache%20%28to%20future%20transactional%20memory%20i...","permalink":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/#comment-1022","item_id":"_comm_1022"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1022 == 'undefined' ){PDRTJS_468178_comm_1022 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1022 );}}PDRTJS_settings_468178_comm_1021={"id":468178,"unique_id":"wp-comment-1021","title":"Re%20C%2B%2B%20style%2C%20volatile.When%20I%20was%20doing%20a%20lot%20of%20hardware%20engineering%20once%20of%20the%20classic%20hardware%20semantics%20was%20reading%20from%20a%20register%20to%20trigger%20an%20event.%20You%20don%26%23039%3Bt%20mention%20this%20in%20your%20classi...","permalink":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/#comment-1021","item_id":"_comm_1021"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1021 == 'undefined' ){PDRTJS_468178_comm_1021 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1021 );}}PDRTJS_settings_468178_comm_1020={"id":468178,"unique_id":"wp-comment-1020","title":"The%20articles%20on%20Lock-free%20programming%20have%20been%20immensely%20useful%20even%20from%20the%20lock%20based%20concurrency%20perspective.I%20have%20a%20question%20hoping%20you%20have%20some%20insight.%20%20Do%20these%20issues%20you%26%23039%3Bve%20described...","permalink":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/#comment-1020","item_id":"_comm_1020"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1020 == 'undefined' ){PDRTJS_468178_comm_1020 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1020 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2009%2F01%2F12%2Feffective-concurrency-volatile-vs-volatile%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2009\/01\/12\/effective-concurrency-volatile-vs-volatile\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2009%2F01%2F12%2Feffective-concurrency-volatile-vs-volatile%2F","postID":"205","shortlink":"https:\/\/wp.me\/peb5Y-3j","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/205","statsLink":"https:\/\/wordpress.com\/stats\/post\/205\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2009%2F01%2F12%2Feffective-concurrency-volatile-vs-volatile%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'205','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sJjZwfjVPOXd0MXRdUmJDYn54WlVLT0RuOVBZZTZsU2JSPV16TGlJPUgvOWFaOEd1cFpzaUZ0WFVQSC01dXYld214Nk0uZmpTZzlQVEJoMTB8UUMtMTFHUXNoNG1SZG5ETXF2K1RMaz9oLW94OVs4cn5iWHRqU0FOLTclfl01P3JOP2JfcHZ+ZVdMLG8/NU1pYXgzVkkza2ItVStnMUt4TD1qNmdxNVAtW3RKbTJ8ZHM/bCxaLXRhbkVRQkRXZHpONn55OThh'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '205' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

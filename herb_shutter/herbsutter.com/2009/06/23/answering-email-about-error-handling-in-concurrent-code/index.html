@@ -1,0 +1,493 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Answering email about error handling in concurrent code | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542966345&amp;back=https%3A%2F%2Fherbsutter.com%2F2009%2F06%2F23%2Fanswering-email-about-error-handling-in-concurrent-code%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Answering email about error handling in concurrent&nbsp;code Comments Feed" href="https://herbsutter.com/2009/06/23/answering-email-about-error-handling-in-concurrent-code/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Effective Concurrency: Break Up and Interleave Work to Keep Threads&nbsp;Responsive' href='https://herbsutter.com/2009/06/16/effective-concurrency-break-up-and-interleave-work-to-keep-threads-responsive/' />
+<link rel='next' title='Effective Concurrency: The Power of &ldquo;In&nbsp;Progress&rdquo;' href='https://herbsutter.com/2009/07/15/effective-concurrency/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2009/06/23/answering-email-about-error-handling-in-concurrent-code/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-4a' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2009%2F06%2F23%2Fanswering-email-about-error-handling-in-concurrent-code%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2009%2F06%2F23%2Fanswering-email-about-error-handling-in-concurrent-code%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Answering email about error handling in concurrent code" />
+<meta property="og:url" content="https://herbsutter.com/2009/06/23/answering-email-about-error-handling-in-concurrent-code/" />
+<meta property="og:description" content="Someone emailed me today asking: I&#8217;m writing because I&#8217;m somewhat conscious of what I would consider a rather large hole in the parallel programming literature. … What if one or more of…" />
+<meta property="article:published_time" content="2009-06-24T00:27:47+00:00" />
+<meta property="article:modified_time" content="2009-06-24T00:27:47+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542966345" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Answering email about error handling in concurrent&nbsp;code" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Someone emailed me today asking: I&#039;m writing because I&#039;m somewhat conscious of what I would consider a rather large hole in the parallel programming literature. … What if one or more of your tasks throws an exception? Should the thread that runs the task swallow it? Should the caught exceptions get stashed somewhere so that&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2009/06/23/answering-email-about-error-handling-in-concurrent-code/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-258 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2009/06/16/effective-concurrency-break-up-and-interleave-work-to-keep-threads-responsive/" rel="prev">Effective Concurrency: Break Up and Interleave Work to Keep Threads&nbsp;Responsive</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2009/07/15/effective-concurrency/" rel="next">Effective Concurrency: The Power of &ldquo;In&nbsp;Progress&rdquo;</a> &raquo;</div>
+			</div>
+			
+			<div class="post-258 post type-post status-publish format-standard hentry category-c category-concurrency" id="post-258">
+				<div class="posttitle">
+					<h2>Answering email about error handling in concurrent&nbsp;code</h2>
+					<p class="post-info">2009-06-23 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>Someone emailed me today asking:</p>
+<blockquote>
+<p>I&#8217;m writing because I&#8217;m somewhat conscious of what I would consider a rather large hole in the parallel programming literature.</p>
+<p>… What if one or more of your tasks throws an exception? Should the thread that runs the task swallow it? Should the caught exceptions get stashed somewhere so that the &quot;parent&quot; thread can deal with them once the tasks are complete? (This is somewhat tricky currently in a language such as C++(98) where one cannot store an exception caught with the &quot;catch(&#8230;)&quot; construct). Perhaps all tasks should have a no-throw guarantee? Perhaps some kind of asynchronous error handlers might be installed, somewhat like POSIX signals? The options are many, but choosing a strategy is hard for those of us with little parallel programming experience.</p>
+</blockquote>
+<p>I thought I’d share my response here:</p>
+<p>That&#8217;s an excellent question. Someone asked that very question in Stockholm last month at my Effective Concurrency course, and my answer started out somewhat dismissive: &quot;Well, it&#8217;s about the same as you do in sequential code, and all the same guarantees apply; nothrow/nofail is only for a few key functions used for commit/rollback operations, and you’d usually target the basic guarantee unless adding the strong guarantee comes along naturally for near-free. So it’s pretty much the same as always. Although, well, of course futures may transport exceptions across threads, but that&#8217;s still the same because they manifest on .get(). And of course for parallel loops you may get multiple concurrent exceptions from multiple concurrent loop bodies that get aggregated into a single exception; and then there&#8217;s the question of whether you start new loop bodies that haven’t started yet (usually no) but do you interrupt loop bodies that are in progress (probably not), and&#8230; oh, hmm, yeah, I guess it would be good to write an article about that.&quot;</p>
+<p>So the above is now adding to my notes of things to write about. :-) Maybe some of that stream-of-consciousness may be helpful until I can get to writing it up in more detail.</p>
+<p>I pointed him to Doug Lea&#8217;s <a href="http://www.amazon.com/Concurrent-Programming-Java-TM-Principles/dp/0201310090">Concurrent Programming in Java</a> pages 161-176, &quot;Dealing with Failure&quot;, adding that I haven&#8217;t read it in detail but the subtopics look right. Also Joe Duffy’s <a href="http://www.amazon.com/Concurrent-Programming-Windows-Microsoft-Development/dp/032143482X">Concurrent Programming on Windows</a>, pages 721-733.</p>
+<p>If you know of a good standalone treatise focused on error handling in concurrent code, please mention it in the comments.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a> | 											9 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">9 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-1368">
+		<div id="div-comment-1368">
+		<div class="cmtinfo"><em> on <a href="#comment-1368" title="">2009-07-14 at 7:13 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f3ada405ce890b6f8204094deb12d8a8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Frank</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1368"></div><p>The same issue already arises if using asynchronous operations via the Command pattern (which doesn&#8217;t require multithreading if you&#8217;re using an event-based framework like glib or Qt). What I did in a project is passing the error objects as part of the Command&#8217;s reply.</p>
+<p>About catch(&#8230;): With an exception caught via &#8230; one can&#8217;t do much anyway, no matter if in the same thread or not, so my idea would be to just create some UnknownException object and pass that over to the other thread(s).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1336">
+		<div id="div-comment-1336">
+		<div class="cmtinfo"><em> on <a href="#comment-1336" title="">2009-06-27 at 4:15 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6a437456ce4873b32aaee945d6035867?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.mr-edd.co.uk' rel='external nofollow' class='url'>Edd</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1336"></div><p>Just a quick note to say thank you to Herb for posting this and all of you that have responded.</p>
+<p>It was my email mentioned in the post. I now have a lot more to go on, thanks to you all!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1335">
+		<div id="div-comment-1335">
+		<div class="cmtinfo"><em> on <a href="#comment-1335" title="">2009-06-27 at 1:36 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f0f627e5593455d62ae1cef1196b00fb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alex Fabijanic</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1335"></div><p>Maybe it won&#8217;t qualify as a &#8220;treatise&#8221;, but it could be worth mentioning &#8211; see POCO Thread Error Handling:</p>
+<p><a href="http://pocoproject.org/wiki/index.php/Thread_Error_Handling" rel="nofollow">http://pocoproject.org/wiki/index.php/Thread_Error_Handling</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1334">
+		<div id="div-comment-1334">
+		<div class="cmtinfo"><em> on <a href="#comment-1334" title="">2009-06-26 at 10:14 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/5e47b899b5b3a6ad5e06914f17745dfa?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.cs.kuleuven.be/~bartj/' rel='external nofollow' class='url'>Bart Jacobs</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1334"></div><p>Mr. Sutter/Herb: The issue you explain in your &#8220;Interrupt politely&#8221; article is exactly the one addressed in my paper: the property that I call dependency safety. Dependency safety means that if an operation B depends for its safety and correctness on the successful completion of an operation A, and A fails then B is not executed. Async exceptions generally violate dependency safety. However, my failboxes proposal addresses this, as follows: if an operation B depends on an operation A, then A and B should be executed in the same failbox. That way, if A fails, the failbox is marked as failed. The language extension enforces the property that once a failbox is marked as failed, no code executes in that failbox afterwards. So B doesn&#8217;t get executed.</p>
+<p>So if you Thread.stop a thread, and you have correctly applied failboxes, then all code that depends on the invariants that were broken by the Thread.stop, will be prevented from executing by the failbox mechanism. (But what you really want to do is cancel a failbox, not a thread. That way, if a thread running a mathematical computation is temporarily accessing a shared system resource, which is in its own failbox, the resource is left alone and the thread is stopped only when the thread resumes the mathematical computation.)</p>
+<p>I admit that the assumption that the whole program (including platform DLLs) uses failboxes correctly, is a heavy assumption. However, I believe this is probably not much harder than using locks correctly. (Which perhaps doesn&#8217;t say much, but given that locks are already present, that problem has already been solved at least in the platform DLLs.) Specifically, you probably want to associate a failbox with each lock, so that if one lock block fails, the next thread that attempts to acquire the lock gets a FailboxException and doesn&#8217;t see the corrupted state.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-1333">
+		<div id="div-comment-1333">
+		<div class="cmtinfo"><em> on <a href="#comment-1333" title="">2009-06-26 at 12:43 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1333"></div><p>Aaron: Actually, Joe posted that a day after I posted this. :-) The 2006 date is because it was an internal email he wrote 2.5 years ago, it is not &#8216;an article from Fall 2006&#8217;. A number of us were thinking about this back then, but then working out the rules and implementing them and then writing them up and teaching them does take time. Doug did a great job of it for Java, and Joe for Windows/.NET.</p>
+<p>Bart: Without having read your paper, I&#8217;m troubled because you said, &#8220;all other threads&#8230; get an asynchronous exception.&#8221; Did you really mean asynchronous, where the exception is externally injected into the target thread wherever it happens to be? That&#8217;s a model known to be flawed, despite that .NET and other environments support them; nobody can reliably write code in the face of async exceptions. Perhaps you meant something else? For example, if the exception can only arise in the target thread at well-known points where the thread is blocked (formally, WaitSleepJoin points), then that&#8217;s fine, but that&#8217;s not an asynchronous exception.</p>
+<p>See my previous Effective Concurrency article <a href="https://herbsutter.wordpress.com/2008/04/10/effective-concurrency-interrupt-politely/" rel="nofollow">&#8220;Interrupt Politely&#8221;</a> for the reasons why Thread.Abort (and equivalently Thread.kill in Java and pthread_kill in Posix), which interrupts a thread whatever it happens to be in the middle of doing, is fundamentally broken (unless you were intending to kill the whole process or whole machine anyway; see article for details). Asynchronous exceptions, which inject an exception into a thread whatever it happens to be in the middle of doing, are fundamentally broken for the same reasons.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1332">
+		<div id="div-comment-1332">
+		<div class="cmtinfo"><em> on <a href="#comment-1332" title="">2009-06-26 at 4:48 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/5e47b899b5b3a6ad5e06914f17745dfa?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.cs.kuleuven.be/~bartj/' rel='external nofollow' class='url'>Bart Jacobs</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1332"></div><p>I have a paper on similar exception handling issues at ECOOP 2009. See <a href="http://www.cs.kuleuven.be/~bartj/failboxes/failboxes-ecoop09.pdf" rel="nofollow">http://www.cs.kuleuven.be/~bartj/failboxes/failboxes-ecoop09.pdf</a>. It&#8217;s about a language extension, called failboxes, that&#8217;s intended to fix some issues with exception handling in the presence of non-exception-safe objects and try-catch, threads and locks, Thread.stop/Abort, and try-finally. However, it may provide some inspiration even if you do not adopt the language extension.</p>
+<p>The general idea is that each thread has a current failbox. When an exception occurs in a thread, its current failbox is marked as failed. All other threads running in that failbox then get an asynchronous exception. If you don&#8217;t care to split your application up into multiple units of failure, run all threads in the root failbox; in that case, any exception anywhere simply shuts down the process. If you do want fine-grained units of failure, you can build a hierarchy of failboxes.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1331">
+		<div id="div-comment-1331">
+		<div class="cmtinfo"><em> on <a href="#comment-1331" title="">2009-06-25 at 9:22 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/80dade8a6e4fa68b48b4a63dc16ab433?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://ra3s.com/wordpress/dysfunctional-programming/' rel='external nofollow' class='url'>Aaron</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1331"></div><p>And don&#8217;t forget Joe Duffy:<br />
+<a href="http://www.bluebytesoftware.com/blog/PermaLink,guid,652962f1-5073-49a4-b233-9ca24b494742.aspx" rel="nofollow">http://www.bluebytesoftware.com/blog/PermaLink,guid,652962f1-5073-49a4-b233-9ca24b494742.aspx</a></p>
+<p>(like my previous comment, this article too is from Fall 2006.  Apparently everyone was thinking about this problem back then)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1330">
+		<div id="div-comment-1330">
+		<div class="cmtinfo"><em> on <a href="#comment-1330" title="">2009-06-25 at 9:17 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/80dade8a6e4fa68b48b4a63dc16ab433?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://ra3s.com/wordpress/dysfunctional-programming/' rel='external nofollow' class='url'>Aaron</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1330"></div><p>Not sure if this might help, but it was the first hit on LtU:</p>
+<p>&#8220;Handling multiple concurrent exceptions in C++ using futures&#8221;<br />
+<a href="http://lambda-the-ultimate.org/node/1737" rel="nofollow">http://lambda-the-ultimate.org/node/1737</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1328">
+		<div id="div-comment-1328">
+		<div class="cmtinfo"><em> on <a href="#comment-1328" title="">2009-06-23 at 10:17 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/0e79e5f8c35f63dc8ef86e0cedf40f70?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Aleksey</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1328"></div><p>Yeah, really good question.</p>
+<p>I like how MT exceptions handling is done in Erlang. Its really elegant. When Actor fails and have nothing to do with the failure it just dies and reports back failure to the &#8220;parent&#8221;. Parent may be waiting for the failure or not, Actor doesn&#8217;t care.<br />
+Such approach really allows to process many errors just in right place in the right way. The same error in parallel threads (Actors) doing the same work its just the same failure message but with different sources. Don&#8217;t think &#8220;joining&#8221; this failure messages/exceptions is something useful in all  cases.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2009/06/23/answering-email-about-error-handling-in-concurrent-code/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-f3ada405ce890b6f8204094deb12d8a8">
+	</div>
+	<div class="grofile-hash-map-6a437456ce4873b32aaee945d6035867">
+	</div>
+	<div class="grofile-hash-map-f0f627e5593455d62ae1cef1196b00fb">
+	</div>
+	<div class="grofile-hash-map-5e47b899b5b3a6ad5e06914f17745dfa">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-80dade8a6e4fa68b48b4a63dc16ab433">
+	</div>
+	<div class="grofile-hash-map-0e79e5f8c35f63dc8ef86e0cedf40f70">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_1368={"id":468178,"unique_id":"wp-comment-1368","title":"The%20same%20issue%20already%20arises%20if%20using%20asynchronous%20operations%20via%20the%20Command%20pattern%20%28which%20doesn%26%23039%3Bt%20require%20multithreading%20if%20you%26%23039%3Bre%20using%20an%20event-based%20framework%20like%20glib%20or%20Qt%29.%20What%20I%20did%20...","permalink":"https:\/\/herbsutter.com\/2009\/06\/23\/answering-email-about-error-handling-in-concurrent-code\/#comment-1368","item_id":"_comm_1368"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1368 == 'undefined' ){PDRTJS_468178_comm_1368 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1368 );}}PDRTJS_settings_468178_comm_1336={"id":468178,"unique_id":"wp-comment-1336","title":"Just%20a%20quick%20note%20to%20say%20thank%20you%20to%20Herb%20for%20posting%20this%20and%20all%20of%20you%20that%20have%20responded.It%20was%20my%20email%20mentioned%20in%20the%20post.%20I%20now%20have%20a%20lot%20more%20to%20go%20on%2C%20thanks%20to%20you%20all%21...","permalink":"https:\/\/herbsutter.com\/2009\/06\/23\/answering-email-about-error-handling-in-concurrent-code\/#comment-1336","item_id":"_comm_1336"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1336 == 'undefined' ){PDRTJS_468178_comm_1336 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1336 );}}PDRTJS_settings_468178_comm_1335={"id":468178,"unique_id":"wp-comment-1335","title":"Maybe%20it%20won%26%23039%3Bt%20qualify%20as%20a%20%26quot%3Btreatise%26quot%3B%2C%20but%20it%20could%20be%20worth%20mentioning%20-%20see%20POCO%20Thread%20Error%20Handling%3Ahttp%3A%2F%2Fpocoproject.org%2Fwiki%2Findex.php%2FThread_Error_Handling...","permalink":"https:\/\/herbsutter.com\/2009\/06\/23\/answering-email-about-error-handling-in-concurrent-code\/#comment-1335","item_id":"_comm_1335"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1335 == 'undefined' ){PDRTJS_468178_comm_1335 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1335 );}}PDRTJS_settings_468178_comm_1334={"id":468178,"unique_id":"wp-comment-1334","title":"Mr.%20Sutter%2FHerb%3A%20The%20issue%20you%20explain%20in%20your%20%26quot%3BInterrupt%20politely%26quot%3B%20article%20is%20exactly%20the%20one%20addressed%20in%20my%20paper%3A%20the%20property%20that%20I%20call%20dependency%20safety.%20Dependency%20safety%20means%20that%20if%20a...","permalink":"https:\/\/herbsutter.com\/2009\/06\/23\/answering-email-about-error-handling-in-concurrent-code\/#comment-1334","item_id":"_comm_1334"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1334 == 'undefined' ){PDRTJS_468178_comm_1334 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1334 );}}PDRTJS_settings_468178_comm_1333={"id":468178,"unique_id":"wp-comment-1333","title":"Aaron%3A%20Actually%2C%20Joe%20posted%20that%20a%20day%20after%20I%20posted%20this.%20%3A-%29%20The%202006%20date%20is%20because%20it%20was%20an%20internal%20email%20he%20wrote%202.5%20years%20ago%2C%20it%20is%20not%20%26%23039%3Ban%20article%20from%20Fall%202006%26%23039%3B.%20A%20number%20of%20us%20wer...","permalink":"https:\/\/herbsutter.com\/2009\/06\/23\/answering-email-about-error-handling-in-concurrent-code\/#comment-1333","item_id":"_comm_1333"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1333 == 'undefined' ){PDRTJS_468178_comm_1333 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1333 );}}PDRTJS_settings_468178_comm_1332={"id":468178,"unique_id":"wp-comment-1332","title":"I%20have%20a%20paper%20on%20similar%20exception%20handling%20issues%20at%20ECOOP%202009.%20See%20http%3A%2F%2Fwww.cs.kuleuven.be%2F~bartj%2Ffailboxes%2Ffailboxes-ecoop09.pdf.%20It%26%23039%3Bs%20about%20a%20language%20extension%2C%20called%20failboxes%2C%20that%26%23039%3Bs%20...","permalink":"https:\/\/herbsutter.com\/2009\/06\/23\/answering-email-about-error-handling-in-concurrent-code\/#comment-1332","item_id":"_comm_1332"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1332 == 'undefined' ){PDRTJS_468178_comm_1332 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1332 );}}PDRTJS_settings_468178_comm_1331={"id":468178,"unique_id":"wp-comment-1331","title":"And%20don%26%23039%3Bt%20forget%20Joe%20Duffy%3Ahttp%3A%2F%2Fwww.bluebytesoftware.com%2Fblog%2FPermaLink%2Cguid%2C652962f1-5073-49a4-b233-9ca24b494742.aspx%28like%20my%20previous%20comment%2C%20this%20article%20too%20is%20from%20Fall%202006.%20%20Apparently%20...","permalink":"https:\/\/herbsutter.com\/2009\/06\/23\/answering-email-about-error-handling-in-concurrent-code\/#comment-1331","item_id":"_comm_1331"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1331 == 'undefined' ){PDRTJS_468178_comm_1331 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1331 );}}PDRTJS_settings_468178_comm_1330={"id":468178,"unique_id":"wp-comment-1330","title":"Not%20sure%20if%20this%20might%20help%2C%20but%20it%20was%20the%20first%20hit%20on%20LtU%3A%26quot%3BHandling%20multiple%20concurrent%20exceptions%20in%20C%2B%2B%20using%20futures%26quot%3Bhttp%3A%2F%2Flambda-the-ultimate.org%2Fnode%2F1737...","permalink":"https:\/\/herbsutter.com\/2009\/06\/23\/answering-email-about-error-handling-in-concurrent-code\/#comment-1330","item_id":"_comm_1330"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1330 == 'undefined' ){PDRTJS_468178_comm_1330 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1330 );}}PDRTJS_settings_468178_comm_1328={"id":468178,"unique_id":"wp-comment-1328","title":"Yeah%2C%20really%20good%20question.I%20like%20how%20MT%20exceptions%20handling%20is%20done%20in%20Erlang.%20Its%20really%20elegant.%20When%20Actor%20fails%20and%20have%20nothing%20to%20do%20with%20the%20failure%20it%20just%20dies%20and%20reports%20back%20failure%20...","permalink":"https:\/\/herbsutter.com\/2009\/06\/23\/answering-email-about-error-handling-in-concurrent-code\/#comment-1328","item_id":"_comm_1328"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1328 == 'undefined' ){PDRTJS_468178_comm_1328 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1328 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2009%2F06%2F23%2Fanswering-email-about-error-handling-in-concurrent-code%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2009\/06\/23\/answering-email-about-error-handling-in-concurrent-code\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2009%2F06%2F23%2Fanswering-email-about-error-handling-in-concurrent-code%2F","postID":"258","shortlink":"https:\/\/wp.me\/peb5Y-4a","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/258","statsLink":"https:\/\/wordpress.com\/stats\/post\/258\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2009%2F06%2F23%2Fanswering-email-about-error-handling-in-concurrent-code%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'258','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNFUsWXdaVVYsJVRvWTBMR0d3Sks5W3ZvU1FFaltLd0c4RE5BVUVlQnNpZXRHSmJ1c2NDN2xNa1syaFQwTGlPaFRseThHY1dUclNZc2gyZlJ0ZGx3Rkl4XyUvcDF8MTU4blVaWUg/LyVTRjMxY2VaanpTJXVyMTdvLS5HaVJkeFVEK2xhMHJzUWV5dGNXd1BQRkhSNzBSeUpZQXQ2c2FFekNUblMtfkFBZ2d4TWJFdi52R0FFbTU3XUlLelFud2gvT1F3SkJaLg=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '258' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

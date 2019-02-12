@@ -1,0 +1,702 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Elements of Modern C++ Style | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965298&amp;back=https%3A%2F%2Fherbsutter.com%2Felements-of-modern-c-style%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/elements-of-modern-c-style/" />
+<link rel='shortlink' href='https://wp.me/Peb5Y-ch' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2Felements-of-modern-c-style%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2Felements-of-modern-c-style%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Elements of Modern C++ Style" />
+<meta property="og:url" content="https://herbsutter.com/elements-of-modern-c-style/" />
+<meta property="og:description" content="“C++11 feels like a new language.” – Bjarne Stroustrup The C++11 standard offers many useful new features. This page focuses specifically and only on those features that make C++11 really feel like…" />
+<meta property="article:published_time" content="2011-10-28T22:58:56+00:00" />
+<meta property="article:modified_time" content="2011-12-30T01:44:36+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965298" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Elements of Modern C++&nbsp;Style" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="“C++11 feels like a new language.” – Bjarne Stroustrup The C++11 standard offers many useful new features. This page focuses specifically and only on those features that make C++11 really feel like a new language compared to C++98, because: They change the styles and idioms you’ll use when writing C++ code, often including the way&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="page-template-default page page-id-761 mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761 current_page_item"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+			<div class="post post-761 page type-page status-publish hentry" id="post-761">
+				<div class="posttitle">
+				<h2><a href="https://herbsutter.com/elements-of-modern-c-style/" rel="bookmark">Elements of Modern C++&nbsp;Style</a></h2>
+							</div>
+
+				<div class="entry">
+					<h3 align="center"><strong>“C++11 feels like a new language.” – Bjarne Stroustrup</strong></h3>
+<p>The C++11 standard offers <a href="http://www2.research.att.com/~bs/C++0xFAQ.html">many useful new features</a>. This page focuses specifically and only on those features that make C++11 really feel like a new language compared to C++98, because:</p>
+<ul>
+<li>They change the styles and idioms you’ll use when writing C++ code, often including the way you’ll design C++ libraries. For example, you’ll see more smart pointer parameters and return values, and functions that return big objects by value.</li>
+<li>They will be used so pervasively that you’ll probably see them in most code examples. For example, virtually every five-line modern C++ code example will say “auto” somewhere.</li>
+</ul>
+<p>Use the other great C++11 features too. But get used to these ones first, because these are the pervasive ones that show why C++11 code is clean, safe, and fast – just as clean and safe as code written in any other modern mainstream language, and with C++’s traditional to-the-metal performance as strong as ever.</p>
+<p>Notes:</p>
+<ul>
+<li>Like Strunk &amp; White, this page is deliberately focused on brief summary guidance. It is not intended to provide exhaustive rationale and pro/con analysis; that will go into other articles.</li>
+<li>This is a living document. See the end for a list of the main changes and additions over time.</li>
+</ul>
+<h3>auto</h3>
+<p>Use auto wherever possible. It is useful for two reasons. First, most obviously it’s a convenience that lets us avoid repeating a type name that we already stated and the compiler already knows.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:71dc1bb7-3814-4da6-9e43-aab549c19c9a" class="class" style="display:inline;float:none;margin:0;padding:0;">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:ca4d5fec-7c15-47c6-bd02-7eb5d3859e5c" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; gutter: false; highlight: [1,6]; pad-line-numbers: true; title: ; notranslate" title="">
+// C++98
+map&lt;int,string&gt;::iterator i = m.begin();
+double const xlimit = config[&quot;xlimit&quot;];
+singleton&amp; s = singleton::instance();
+
+// C++11
+auto i = begin(m);
+auto const xlimit = config[&quot;xlimit&quot;];
+auto&amp; s = singleton::instance();
+</pre>
+</div>
+</div>
+<p>Second, it’s more than just a convenience when a type has an unknown or unutterable name, such as the type of most lambda functions, that you couldn’t otherwise spell easily or at all.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:dc128282-8257-4892-98a9-5b12d49c47a2" class="class" style="display:inline;float:none;margin:0;padding:0;">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:4ac6bba2-c4a2-4f02-b33c-55e53d527c38" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; gutter: false; highlight: [1,4]; title: ; notranslate" title="">
+// C++98
+binder2nd&lt; greater &gt; x = bind2nd( greater(), 42 );
+
+// C++11
+auto x = [](int i) { return i &gt; 42; };
+</pre>
+</div>
+</div>
+<p>Note that using auto doesn’t change the code’s meaning. The code is still statically typed, and the type of every expression is already crisp and clear; the language just no longer forces us to redundantly restate the type’s name.</p>
+<p>Some people are initially afraid of using auto here, because it may feel like not (re)stating the type we want could mean we’ll get a different type by accident. If you want to explicitly <em>enforce a type conversion</em>, that’s okay; state the target type. The vast majority of the time, however, just use auto; it will rarely be the case that you get a different type by mistake, and even in those cases the language’s strong static typing means the compiler will usually let you know because you’ll be trying to call a member function the variable doesn’t have or otherwise use it as something that it isn’t.</p>
+<h3>Smart pointers: No delete</h3>
+<p>Always use the standard smart pointers, and non-owning raw pointers. Never use owning raw pointers and delete, except in rare cases when implementing your own low-level data structure (and even then keep that well encapsulated inside a class boundary).</p>
+<p>If you know you’re the only owner of another object, use unique_ptr to express unique ownership. A “new T” expression should immediately initialize another object that owns it, typically a unique_ptr. A classic example is the Pimpl Idiom (see <a href="https://herbsutter.com/gotw/_100/">GotW #100</a>):</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:0f6fe1c5-950f-4155-914b-c23b4fbc6ede">
+<pre class="brush: cpp; first-line: 1; gutter: false; highlight: [1,11]; title: ; notranslate" title="">
+// C++11 Pimpl idiom: header file
+class widget {
+public:
+    widget();
+    // ... (see GotW #100) ...
+private:
+    class impl;
+    unique_ptr&lt;impl&gt; pimpl;
+};
+
+// implementation file
+class widget::impl { /*...*/ };
+
+widget::widget() : pimpl{ new impl{ /*...*/ } } { }
+// ...
+</pre>
+</div>
+<p>Use shared_ptr to express shared ownership. Prefer to use make_shared to create shared objects efficiently.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:c74fe9b5-8ab7-400f-8276-97c174f38537">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:ba72a7ac-f6ec-4efd-96bd-a262da265b13">
+<pre class="brush: cpp; gutter: false; highlight: [1,6]; title: ; notranslate" title="">
+// C++98
+widget* pw = new widget();
+:::
+delete pw;
+
+// C++11
+auto pw = make_shared&lt;widget&gt;();
+</pre>
+</div>
+</div>
+<p>Use weak_ptr to break cycles and express optionality (e.g., implementing an object cache).</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:b0d2eb88-8a4b-46ab-a949-7529a373244c">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:6608980a-ee8b-490c-bd58-07d6ffc2d12c">
+<pre class="brush: cpp; gutter: false; highlight: [1]; title: ; notranslate" title="">
+// C++11
+class gadget;
+
+class widget {
+private:
+    shared_ptr&lt;gadget&gt; g; // if shared ownership
+};
+
+class gadget {
+private:
+    weak_ptr&lt;widget&gt; w;
+};
+</pre>
+</div>
+</div>
+<p>If you know another object is going to outlive you and you want to observe it, use a (non-owning) raw pointer.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:b608a515-6cd2-49c2-84de-a1a7b9365e24" class="class" style="display:inline;float:none;margin:0;padding:0;">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:c729d70a-3337-45eb-adbb-6372f2ec5fe3" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; gutter: false; highlight: [1]; title: ; notranslate" title="">
+// C++11
+class node {
+ vector&lt;unique_ptr&lt;node&gt;&gt; children;
+ node* parent;
+public:
+ :::
+};
+</pre>
+</div>
+</div>
+<h3>nullptr</h3>
+<p>Always use nullptr for a null pointer value, never the literal 0 or the macro NULL which are ambiguous because they could be either an integer or a pointer.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:e9f05dba-7c09-436e-8989-e52020a411ab" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; gutter: false; highlight: [1,4]; title: ; notranslate" title="">
+// C++98
+int* p = 0;
+
+// C++11
+int* p = nullptr;
+</pre>
+</div>
+<h3>Range for</h3>
+<p>The range-based for loop is a much more convenient way to visit every element of a range in order.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:42d46d4a-4d6f-47f0-8bd5-9b855bddfcbb" class="class" style="display:inline;float:none;margin:0;padding:0;">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:985897da-8f78-4ead-840a-a6a46f148d55" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; gutter: false; highlight: [1,6]; title: ; notranslate" title="">
+// C++98
+for( vector&lt;int&gt;::iterator i = v.begin(); i != v.end(); ++i ) {
+    total += *i;
+}
+
+// C++11
+for( auto d : v ) {
+    total += d;
+}
+</pre>
+</div>
+</div>
+<h3>Nonmember begin and end</h3>
+<p>Always use nonmember begin(x) and end(x) (not x.begin() and x.end()), because begin(x) and end(x) are extensible and can be adapted to work with all container types – even arrays – not just containers that follow the STL style of providing x.begin() and x.end() member functions.</p>
+<p>If you’re using a non-STL collection type that provides iteration but not STL-style x.begin() and x.end(), you can often write your own non-member begin(x) and end(x) overloads for that type and then you can traverse collections of that type using the same coding style above as for STL containers. The standard has set the example: C arrays are such a type, and the standard provides begin and end for arrays.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:34e1aecb-d8af-4e0b-8311-54d0198268ca" class="class" style="display:inline;float:none;margin:0;padding:0;">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:8fd4a25b-09ed-4cc7-badb-3c51e15f12c6" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; gutter: false; highlight: [4,8]; title: ; notranslate" title="">
+vector&lt;int&gt; v;
+int a[100];
+
+// C++98
+sort( v.begin(), v.end() );
+sort( &amp;a[0], &amp;a[0] + sizeof(a)/sizeof(a[0]) );
+
+// C++11
+sort( begin(v), end(v) );
+sort( begin(a), end(a) );
+</pre>
+</div>
+</div>
+<h3>Lambda Functions and Algorithms</h3>
+<p>Lambdas are a game-changer and will frequently change the way you write code to make it more elegant and faster. Lambdas make the existing STL algorithms roughly 100x more usable. Newer C++ libraries increasingly are designed assuming lambdas as available (e.g., PPL), and some even require you to write lambdas to use the library at all (e.g., C++ AMP).</p>
+<p>Here’s one quick example: Find the first element in v that’s &gt;x and &lt;y. In C+11, the simplest and cleanest code is to use a standard algorithm.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:c626b294-4fad-4db3-9db7-567fcca29773" class="class" style="display:inline;float:none;margin:0;padding:0;">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:36141c90-a0f8-4d5d-9875-426d7e2e06ca" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; gutter: false; highlight: [1,7]; title: ; notranslate" title="">
+// C++98: write a naked loop (using std::find_if is impractically difficult)
+vector&lt;int&gt;::iterator i = v.begin(); // because we need to use i later
+for( ; i != v.end(); ++i ) {
+    if( *i &gt; x &amp;&amp; *i &lt; y ) break;
+}
+
+// C++11: use std::find_if
+auto i = find_if( begin(v), end(v), [=](int i) { return i &gt; x &amp;&amp; i &lt; y; } );
+</pre>
+</div>
+</div>
+<p>Want a loop or similar language feature that&#8217;s not actually in the language? No sweat; just write it as a template function (library algorithm), and thanks to lambdas you can use it with <em>almost</em> the same convenience as if it were a language feature, but with more flexibility because it really is a library and not a hardwired language feature.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:c626b294-4fad-4db3-9db7-567fcca29773">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:36141c90-a0f8-4d5d-9875-426d7e2e06ca">
+<pre class="brush: cpp; gutter: false; highlight: [1,6,12]; title: ; notranslate" title="">
+// C#
+lock( mut_x ) {
+    ... use x ...
+}
+
+// C++11 without lambdas: already nice, and more flexible (e.g., can use timeouts, other options)
+{
+    lock_guard&lt;mutex&gt; hold { mut_x };
+    ... use x ...
+}
+
+// C++11 with lambdas, and a helper algorithm: C# syntax in C++
+// Algorithm: template&lt;typename T&gt; void lock( T&amp; t, F f ) { lock_guard hold(t); f(); }
+lock( mut_x, [&amp;]{
+    ... use x ...
+});
+</pre>
+</div>
+</div>
+<p>Get familiar with lambdas. You’ll use them a lot, and not just in C++ – they are already widely available and pervasively used in several popular mainstream languages. A good place to start is my talk <a href="https://herbsutter.com/2010/10/30/pdc-languages-panel-andshortened-lambdas-talk/">Lambdas, Lambdas Everywhere</a> at PDC 2010.</p>
+<h3>Move / &amp;&amp;</h3>
+<p>Move is best thought of as an optimization of copy, though it also enables other things like perfect forwarding.</p>
+<p>Move semantics change the way we design our APIs. We’ll be designing for return by value a lot more often.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:43de6ab6-f124-4a24-937d-63ab2d61f2ea" class="class" style="display:inline;float:none;margin:0;padding:0;">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:6493ecdc-c725-4a7b-8378-594fdfee72dd" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; gutter: false; highlight: [1,11]; title: ; notranslate" title="">
+// C++98: alternatives to avoid copying
+vector&lt;int&gt;* make_big_vector(); // option 1: return by pointer: no copy, but don't forget to delete
+:::
+vector&lt;int&gt;* result = make_big_vector();
+
+void make_big_vector( vector&lt;int&gt;&amp; out ); // option 2: pass out by reference: no copy, but caller needs a named object
+:::
+vector&lt;int&gt; result;
+make_big_vector( result );
+
+// C++11: move
+vector&lt;int&gt; make_big_vector(); // usually sufficient for 'callee-allocated out' situations
+:::
+auto result = make_big_vector(); // guaranteed not to copy the vector
+</pre>
+</div>
+</div>
+<p>Enable move semantics for your type when you can do something more efficient than copy.</p>
+<h3>Uniform Initialization and Initializer Lists</h3>
+<p>What hasn’t changed: When initializing a local variable whose type is non-POD or auto, continue using the familiar = syntax without extra { } braces.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:43de6ab6-f124-4a24-937d-63ab2d61f2ea">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:6493ecdc-c725-4a7b-8378-594fdfee72dd">
+<pre class="brush: cpp; gutter: false; highlight: [1,4]; title: ; notranslate" title="">
+// C++98 or C++11
+int a = 42;        // still fine, as always
+
+// C++ 11
+auto x = begin(v); // no narrowing or non-initialization is possible
+</pre>
+</div>
+</div>
+<p>In other cases, including especially everywhere that you would have used ( ) parentheses when constructing an object, prefer using { } braces instead. Using braces avoids several potential problems: you can&#8217;t accidentally get narrowing conversions (e.g., float to int), you won&#8217;t occasionally accidentally have uninitialized POD member variables or arrays, and you&#8217;ll avoid the occasional C++98 surprise that your code compiles but actually declares a function rather than a variable because of a declaration ambiguity in C++’s grammar – what Scott Meyers famously calls “C++’s most vexing parse.” There’s nothing vexing about the new style.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:43de6ab6-f124-4a24-937d-63ab2d61f2ea">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:6493ecdc-c725-4a7b-8378-594fdfee72dd">
+<pre class="brush: cpp; gutter: false; highlight: [1,8]; title: ; notranslate" title="">
+// C++98
+rectangle       w( origin(), extents() );   // oops, declares a function, if origin and extents are types
+complex&lt;double&gt; c( 2.71828, 3.14159 );
+int             a[] = { 1, 2, 3, 4 };
+vector&lt;int&gt;     v;
+for( int i = 1; i &lt;= 4; ++i ) v.push_back(i);
+
+// C++11
+rectangle       w   { origin(), extents() };
+complex&lt;double&gt; c   { 2.71828, 3.14159 };
+int             a[] { 1, 2, 3, 4 };
+vector&lt;int&gt;     v   { 1, 2, 3, 4 };
+</pre>
+</div>
+</div>
+<p>The new { } syntax works pretty much everywhere:</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:43de6ab6-f124-4a24-937d-63ab2d61f2ea">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:6493ecdc-c725-4a7b-8378-594fdfee72dd">
+<pre class="brush: cpp; gutter: false; highlight: [1,4]; title: ; notranslate" title="">
+// C++98
+X::X( /*...*/ ) : mem1(init1), mem2(init2, init3) { /*...*/ }
+
+// C++11
+X::X( /*...*/ ) : mem1{init1}, mem2{init2, init3} { /*...*/ }
+</pre>
+</div>
+</div>
+<p>Finally, sometimes it’s just convenient to pass function arguments without a type-named temporary:</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:43de6ab6-f124-4a24-937d-63ab2d61f2ea">
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:6493ecdc-c725-4a7b-8378-594fdfee72dd">
+<pre class="brush: cpp; gutter: false; highlight: [3,6]; title: ; notranslate" title="">
+void draw_rect( rectangle );
+
+// C++98
+draw_rect( rectangle( myobj.origin, selection.extents ) );
+
+// C++11
+draw_rect( { myobj.origin, selection.extents } );
+</pre>
+</div>
+</div>
+<p>The only place where I prefer not to write the braces is on simple initialization of a non-POD variable, like <em>auto x = begin(v);</em> , where it would make the code needlessly ugly because I know it&#8217;s a class type, so I know I don&#8217;t need to worry about accidental narrowing conversions, and modern compilers already routinely perform the optimization to elide the extra copy (or the extra move, if the type is move-enabled).</p>
+<h3>And More</h3>
+<p>There&#8217;s more to modern C++. <a href="http://www2.research.att.com/~bs/C++0xFAQ.html">Much more.</a> And in the future I plan to write more in-depth pieces about these and other features of C++11 we&#8217;ll get to know and love.</p>
+<p>But for now, this is the list of must-know features. These features form the core that defines modern C++ style, that make C++ code look and perform the way it does, that you&#8217;ll see used pervasively in nearly every piece of modern code you&#8217;ll see or write&#8230; and that make modern C++ the clean, and safe, and fast language that our industry will continue relying on heavily for years to come.</p>
+<h3>Major Change History</h3>
+<p>2011-10-30: Added C# lock example to lambdas. Reordered smart pointers to introduce unique_ptr first.</p>
+<p>2011-11-01: Added uniform initialization.</p>
+																			</div>
+
+				
+				
+<!-- You can start editing here. -->
+
+<div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/elements-of-modern-c-style/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	</div>
+<script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKioFmldQADTOPtfW0MTIyNjEyNDYJAsAjsE/mg=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2Felements-of-modern-c-style%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/elements-of-modern-c-style\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2Felements-of-modern-c-style%2F","postID":"761","shortlink":"https:\/\/wp.me\/Peb5Y-ch","canEditPost":"","editLink":"https:\/\/wordpress.com\/page\/herbsutter.com\/761","statsLink":"https:\/\/wordpress.com\/stats\/post\/761\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2Felements-of-modern-c-style%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'761','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNE9Ycy9deTl3OERpNWt3bCYsZ0dCaDdRaVNuVzNYcnlyQlh3ZGpPdmkvRkVJRkNZTS5OXUtaMjQzci09fk0uNkROMTJSSEhCM011bXc2JXpwVXx4amw2cSVhZmstQkh6PW9qdGdyRnljelFoYy1hM1BTP2k0MVc9d1tZaTl6NVp0L1h3bS9OfFpKQ2JXYStEUyVvOGxHQ29XMlJqWmdORCVFfEFoRTZabT8rbUM9N3U='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '761' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

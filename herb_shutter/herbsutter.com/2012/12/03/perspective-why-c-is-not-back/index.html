@@ -1,0 +1,912 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Perspective: &ldquo;Why C++ Is Not &lsquo;Back&rsquo;&rdquo; | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965445&amp;back=https%3A%2F%2Fherbsutter.com%2F2012%2F12%2F03%2Fperspective-why-c-is-not-back%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Perspective: &ldquo;Why C++ Is Not &lsquo;Back&rsquo;&rdquo; Comments Feed" href="https://herbsutter.com/2012/12/03/perspective-why-c-is-not-back/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='&ldquo;256 cores by&nbsp;2013&rdquo;?' href='https://herbsutter.com/2012/11/30/256-cores-by-2013/' />
+<link rel='next' title='Compatibility' href='https://herbsutter.com/2012/12/04/compatibility/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2012/12/03/perspective-why-c-is-not-back/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-ra' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2012%2F12%2F03%2Fperspective-why-c-is-not-back%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2012%2F12%2F03%2Fperspective-why-c-is-not-back%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Perspective: &ldquo;Why C++ Is Not &lsquo;Back&rsquo;&rdquo;" />
+<meta property="og:url" content="https://herbsutter.com/2012/12/03/perspective-why-c-is-not-back/" />
+<meta property="og:description" content="John Sonmez wrote a nice article on the weekend – both the article and the comments are worth reading. “Why C++ Is Not ‘Back’” by John Sonmez I love C++. […] There are plenty of excellent developer…" />
+<meta property="article:published_time" content="2012-12-03T21:34:30+00:00" />
+<meta property="article:modified_time" content="2012-12-03T22:21:01+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="http://complextosimple.files.wordpress.com/2012/12/announcer_thumb.jpg" />
+<meta property="og:image:width" content="229" />
+<meta property="og:image:height" content="240" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Perspective: &ldquo;Why C++ Is Not &lsquo;Back&rsquo;&rdquo;" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="John Sonmez wrote a nice article on the weekend – both the article and the comments are worth reading. “Why C++ Is Not ‘Back’” by John Sonmez I love C++. […] There are plenty of excellent developers I know today that still use C++ and teach others how to use it and there is nothing&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2012/12/03/perspective-why-c-is-not-back/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-1684 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2012/11/30/256-cores-by-2013/" rel="prev">&ldquo;256 cores by&nbsp;2013&rdquo;?</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2012/12/04/compatibility/" rel="next">Compatibility</a> &raquo;</div>
+			</div>
+			
+			<div class="post-1684 post type-post status-publish format-standard hentry category-c-net category-c" id="post-1684">
+				<div class="posttitle">
+					<h2>Perspective: &ldquo;Why C++ Is Not &lsquo;Back&rsquo;&rdquo;</h2>
+					<p class="post-info">2012-12-03 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><a href="http://simpleprogrammer.com/2012/12/01/why-c-is-not-back/"><img style="float:right;margin:0 0 10px 10px;display:inline;" alt="" src="https://complextosimple.files.wordpress.com/2012/12/announcer_thumb.jpg?w=229&#038;h=240" height="240" width="229" /></a>John Sonmez wrote a nice article on the weekend – both the article and the comments are worth reading.</p>
+<blockquote>
+<h3><a href="http://simpleprogrammer.com/2012/12/01/why-c-is-not-back/">“Why C++ Is Not ‘Back’”</a></h3>
+<p><em>by John Sonmez</em></p>
+<p>I love C++. […] There are plenty of excellent developers I know today that still use C++ and teach others how to use it and there is nothing at all wrong with that.</p>
+<p>So what is the problem then?</p>
+<p>[…] Everyone keeps asking me if they need to learn C++, but just like my answer was a few years ago, it is the same today—NO!</p>
+<p>Ok, so “NO” in caps is a bit harsh.  A better answer is “why?”</p>
+<p>[…]</p></blockquote>
+<p>Although I don’t agree with everything John says, he presents something quite valuable, and unfortunately rare: a <em>thoughtful hype-free opinion</em>. This is valuable especially when (not just “even when”) it differs from your own opinion, because combining different thoughtful views of the same thing gives something exceedingly important and precious: <em>perspective</em>.</p>
+<p>By definition, depth perception is something you get from seeing and combining more than one point of view. This is why one of my favorite parts of any conference or group interview is discussions between experts on points where they disagree – because experts do regularly disagree, and when they each present their thoughtful reasons and qualifications and specific cases (not just hype), you get to see <em>why</em> a point is valid, <em>when</em> it is valid and not valid, <em>how</em> it applies to a specific situation or doesn’t, and so on.</p>
+<p>I encourage you to read the article and the comments. This quote isn’t the only thing I don’t fully agree with, but it’s the one thing I’ll respond to a little from the article:</p>
+<blockquote><p>There are only about three sensible reasons to learn C++ today that I can think of.</p></blockquote>
+<p>There are other major reasons in addition to those, such as:</p>
+<ul>
+<li><em>Servicing</em>, which is harder when you depend on a runtime.</li>
+<li><em>Testing</em>, since you lose the ability to test your entire application (compare doing all-static or mostly-static linking with having your application often be compiled/jitted for the first time on an end user’s machine).</li>
+</ul>
+<p>These aren’t bad things in themselves, just tradeoffs and reasons to prefer native code vs managed code depending on your application’s needs.</p>
+<p>But even the three points John does mention are very broad reasons that apply often, especially the issue of control over memory layouts, to the point where I would say: <strong>In any language, if you are serious about performance you will be using arrays a lot (not “always,” just “a lot”). </strong>Some languages make that easier and give you much better control over layout in general and arrays in particular, while other languages/environments make it harder (possible! but harder) and you have to “opt out” or &#8220;work against&#8221; the language’s/runtime’s strong preference for pointer-chasing node-based data structures.</p>
+<p>For more, please see also my April 2012 Lang.NEXT talk <strong><a href="http://channel9.msdn.com/Events/Lang-NEXT/Lang-NEXT-2012/-Not-Your-Father-s-C-">“(Not Your Father’s) C++”</a></strong>, especially the second half:</p>
+<ul>
+<li>From <strong>19:20</strong>, I try to contrast the <strong>value and tenets of C++ and of managed language/environments</strong>, including that each is making a legitimate and useful design choice.</li>
+<li>From <strong>36:00</strong>, I try to address the question of: “<strong>can managed languages do essentially everything</strong> that’s interesting, so native C/C++ code should be really just for things like device drivers?”</li>
+<li>From <strong>39:00</strong>, I talk about <strong>when each one is valuable and should be used</strong>, especially that if programmer time is your biggest cost, that’s what you should optimize for and it’s exactly what managed languages/environments are designed for.</li>
+</ul>
+<p>But again, I encourage you to read John’s article – <em>and the comments</em> – yourself. There’s an unusually high signal-to-noise ratio here.</p>
+<p>It’s always nice to encounter a thoughtful balanced piece of writing, whether or not we agree with every detail. Thanks, John!</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c-net/" rel="category tag">C# / .NET</a>, <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a> | 											42 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">42 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-13906">
+		<div id="div-comment-13906">
+		<div class="cmtinfo"><em> on <a href="#comment-13906" title="">2013-12-23 at 8:02 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/ca39c5051977565c2917a05a1f4e3e6e?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>gast128</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13906"></div><p>I have a love-hate relationship with c++. I like the plain abstraction, its syntax and its value semantics. On the other hand I cannot appreciate the following things:<br />
+&#8211; compilation speed. In my work we have a 100 project solution, which takes 1 hour to build. We already use pch and all the compilation tricks. Other people here use c# and that compiles in minutes. Is it related to all the Boost template stuff, or is MS deliberately holding back c++ compilation?<br />
+&#8211; templates. They are very handy but there are many dark corners. When we upgraded to vstudio 2008 we encountered a problem which took us days. It turned out to be a non obvious issue which was correctly rejected.<br />
+&#8211; c++ tendency to allow redefinition of variables in various scopes. Also with overloads there are many pitfalls.<br />
+&#8211; universal references. I am not sure who voted the current syntax in. The rules of turning a rvalue into a lvalue are not obvious.<br />
+&#8211; backward compatibility is good for the short term (everything stays compilable) but blocks long term evolution. I wouldn&#8217;t mind if a proposal break old code if that would improve build speeds (e.g. in the template syntax). Ofc there is many c++ code written, but can&#8217;t this be solved by compiler flags? K&amp;R C has also died.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12977">
+		<div id="div-comment-12977">
+		<div class="cmtinfo"><em> on <a href="#comment-12977" title="">2013-10-18 at 1:41 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d2c24bd2850c92cd1a2a82bd74f4afea?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Craig</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12977"></div><p>Managed languages are the right choice for the large majority of use cases. C is usually the most pragmatic choice for use cases that call for a lower level of abstraction and/or higher level of control.</p>
+<p>C++ just doesn&#8217;t have enough to offer to justify it&#8217;s horrifying complexity, internal inconsistency and glacial compilation speed. Ensuring the job security of and dependence upon the sadists willing to learn it is just about the only thing it has going for it.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12286">
+		<div id="div-comment-12286">
+		<div class="cmtinfo"><em> on <a href="#comment-12286" title="">2013-08-22 at 9:37 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/8074d916b1c9c5f752f751c2123360a0?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>dhina</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12286"></div><p>@Bob<br />
+&#8221; 9 out of every 10 job postings do not require knowledge of c++ or c&#8221;<br />
+9 out of every 10 programmer in the world knows gc’d language like c#/java/python etc.  More demand, more supply.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12207">
+		<div id="div-comment-12207">
+		<div class="cmtinfo"><em> on <a href="#comment-12207" title="">2013-08-16 at 6:36 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/834ecf25ebbc609dd2dc4e0aaff099bb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Bob</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12207"></div><p>There is currently a higher demand for programmers than can be filled.  I am guessing 9 out of every 10 job postings do not require knowledge of c++ or c and only expect training in a gc&#8217;d language like c#/java/python etc.  So given this metric I&#8217;d agree with John that you don&#8217;t &#8220;need&#8221; it unless you really<br />
+want to pursue a field that demands it&#8217;s<br />
+low evel/latency.  Secondly with Moores law approaching an end a low energy intensity language like c++ only becomes more valuable as embedded devices become more and more ubiquitous in our daily lives.  I hope the c++ standards committee considers this and supports additions that are &#8216;light&#8217; and most importantly safe as lives will depend on code correctness.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7467">
+		<div id="div-comment-7467">
+		<div class="cmtinfo"><em> on <a href="#comment-7467" title="">2012-12-15 at 1:57 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/8074d916b1c9c5f752f751c2123360a0?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Dhina</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7467"></div><p>It is waste of time fighting over languages because one language does not suit all industries.  I worked mainly in the financial industry where C++ is used extensively.  I have seen good C++ developers quitting jobs for better opportunities/pay and non-C++ developers getting fired.  It many be different in other industries.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7436">
+		<div id="div-comment-7436">
+		<div class="cmtinfo"><em> on <a href="#comment-7436" title="">2012-12-13 at 8:52 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/142f1d9a41432af07ba4110ebcadea50?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>KCs</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7436"></div><p>For me the biggest problem with C++ is code readability, and maintainability. When you read C++ code (especially written by someone else) you can never be sure what it means, and what path it will follow. The many examples on GotW just reinforces this feeling, that I have to do a small research when I read a single line of code because it could mean 7 things.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-7354">
+		<div id="div-comment-7354">
+		<div class="cmtinfo"><em> on <a href="#comment-7354" title="">2012-12-10 at 12:23 pm</a></em>  <cite><a href='http://www.jupiterbroadcasting.com/28651/html4-cr-27/' rel='external nofollow' class='url'>HTML4++ | Coder Radio | Jupiter Broadcasting</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7354"></div><p>[&#8230;] Perspective: Why C++ is not back [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7343">
+		<div id="div-comment-7343">
+		<div class="cmtinfo"><em> on <a href="#comment-7343" title="">2012-12-10 at 6:49 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/528e2cea8b547f9c8ece2361781d3d82?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/tonyci' rel='external nofollow' class='url'>tonyk</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7343"></div><p>Thank you for your reply, Herb!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7303">
+		<div id="div-comment-7303">
+		<div class="cmtinfo"><em> on <a href="#comment-7303" title="">2012-12-07 at 12:04 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/e00198c96f3a1c446a68072957200bea?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>John</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7303"></div><p>@Joe: Please keep in mind that Dalvik VM is not the best implementation of Java. In fact XobotOS (Android ported to C#) is much faster than Dalvik (<a href="http://www.infoq.com/news/2012/05/XobotOS" rel="nofollow">http://www.infoq.com/news/2012/05/XobotOS</a>).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7288">
+		<div id="div-comment-7288">
+		<div class="cmtinfo"><em> on <a href="#comment-7288" title="">2012-12-07 at 5:39 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/78bb20f59ae1afe937d252c4a02436c6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Joe</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7288"></div><p>@earwicker: I do agree that brittleness in general is bad, and one of the limitations of C++ that I will readily admit is that it is unforgiving of sloppiness. Unfortunately, with C++ it can lead to the introduction of subtle bugs if there isn&#8217;t pretty strong code review catching such things.</p>
+<p>That said, I also believe that sloppy programmers cost you time and money no matter what language you are using. They tend to create unmaintainable software that requires refactoring. I don&#8217;t really believe that C++ is any less conducive to refactoring than C#, however, aside from that the tools for doing so are well behind what&#8217;s available in C#.</p>
+<p>As for the getting X right from the beginning stuff, that is advice meant to tell you that if you don&#8217;t include such considerations from the start then you can be ready for completely overhauling your architecture &#8211; to the point of basically starting from scratch &#8211; when you finally realize that what you have is fundamentally unable to support  what you need to do. There is no language that makes such things easy, and I haven&#8217;t really found the care you have to exercise in C++ in avoiding undefined behavior to be the real limiting factor there.</p>
+<p>I&#8217;m not going to defend how easy it is to trash memory in C or C++, but on the other hand it&#8217;s a problem I rarely encounter simply because I don&#8217;t do much pointer arithmetic, and I don&#8217;t allow developers working on my projects to do so, either.</p>
+<p>Also, while the sky may not have fallen with Android requiring applications to be written in Java, and despite the fact that I prefer Android to iOS, I can also admit that I have seen even high-end Android phones get laggy in a way I haven&#8217;t really experienced on iOS. It&#8217;s not sky-falling bad, but it is noticeable, and it&#8217;s something I wish wouldn&#8217;t happen. Now, whether that&#8217;s the fact that everything is running in the Dalvik VM I can&#8217;t say, but it is a real phenomenon.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-smellegantcode even thread-even depth-1 highlander-comment" id="comment-7232">
+		<div id="div-comment-7232">
+		<div class="cmtinfo"><em> on <a href="#comment-7232" title="">2012-12-06 at 2:47 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ef36b899789c5ab264fd4b26d5a91a35?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>earwicker</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7232"></div><p>@Joe &#8211; &#8220;I also don’t find the “resources don’t matter” argument particularly convincing.&#8221;</p>
+<p>You&#8217;re absolutely right there &#8211; we have yet to reach the far-off horizon where computation is free. In particular, when your software is running in the cloud you are typically charged in real money for every CPU cycle you waste! So it is possible to put a dollar value on the ability to save cycles and for a very heavily used application it will quickly add up to something worthwhile.</p>
+<p>Same goes for mobile devices and battery life, of course.</p>
+<p>But what of the assumption that C++ (or any other language that inherits C&#8217;s memory-trashing undefined behaviour foundations, such as Objective C) is the solution to this problem? </p>
+<p>Almost all Android apps are written in Java and run in a virtual machine, and the sky hasn&#8217;t fallen in yet. Why is that? C++ offers the power of micro-optimisation, but we all know that the big savings come from choosing the right algorithms.</p>
+<p>The most widely abused phrase in software advice is &#8220;You have to get X right from the beginning, it can&#8217;t be bolted on as an afterthought&#8221;. The problem here is that X can be practically anything about your software (security, thread-safety, usability, performant algorithms), and we can&#8217;t do it all from the beginning and get it right, because they are all choices that affect each other! Something&#8217;s got to give. What we need is the ability to change our minds as we go along. i.e. we need software that is malleable, not brittle: easy to modify while preserving correctness, etc.</p>
+<p>This, ultimately, is why C&#8217;s memory-trashing undefined behaviour foundations are a problem: because they contribute to brittleness. A working C/C++/Objective C program is balanced on a tightrope halfway across the Grand Canyon, and the best thing to do is try not to shake the tightrope. Acrobatics are out of the question at that point.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7221">
+		<div id="div-comment-7221">
+		<div class="cmtinfo"><em> on <a href="#comment-7221" title="">2012-12-05 at 3:05 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/78bb20f59ae1afe937d252c4a02436c6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Joe</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7221"></div><p>I find it interesting that someone mentions WPF as a highly productive tool for GUIs when I have found it to be the opposite. It&#8217;s quite quick when you want to do flashy things, but if you need standard Windows behavior, you frequently have to reimplement it yourself, because the framework doesn&#8217;t provide it out of the box (for example, something as simple as graying out a button with an icon when it&#8217;s disabled requires writing your own image filter &#8211; but it just happens in the C API).</p>
+<p>The result is an army of developers reinventing the square wheel as they poorly approximate the behavior of every normal application. Windows Forms is better about this, since it&#8217;s a thin wrapper around the Windows API, but it&#8217;s far from perfect. The number of C# developers who understand even the basics of window relationships and whether a window should or should not appear on the taskbar, how to put a window on top of its owner without putting it on top of every window in the system, etc., is shockingly small. But then if speed is your main goal and not correctness or making good use of system resources, C# is a great choice. Right tool for the job and all that.</p>
+<p>Don&#8217;t get me wrong. I actually like C# quite a bit. But I think the benefits are oversold (though not to the absurd hype degree they were with Java).</p>
+<p>As for the portability argument, having actually written portable code in both C# and C++ that ran on both Windows and Android, I can say I vastly prefer C++ for the task. Mono is nice, but it isn&#8217;t a panacea. New versions of the framework have required me to change my code to keep it compiling. Once I ported my support libraries &#8211; which took time, but not a lot in the grand scheme of things &#8211; I never touch my C++ code. And the C++ code is noticeably faster to start up.</p>
+<p>I would also throw in for the benefits of RAII over anything that the managed languages offer. C++ / CLI is the only exception, because it has the right idea with allowing you to treat managed objects as though they were scope-bound. Really, the managed languages could have this if they allowed you to attach an implicit finally to every instance of an object, but they don&#8217;t. The using and try-with-resources statements are very poor approximations of RAII, and the amount of code in C# I have seen where developers fail to release resources properly makes any arguments that these languages let you concentrate on more important things than that ring hollow. Garbage collection is nice, but I haven&#8217;t found myself spending all that much time worrying about memory management in C++, either.</p>
+<p>I also don&#8217;t find the &#8220;resources don&#8217;t matter&#8221; argument particularly convincing. While it&#8217;s not uncommon anymore for even cheap machines to have 4 to 8 GB of RAM, if the user has to run a number of these resource-hungry programs, or if they are using other programs that legitimately use a lot of RAM, it&#8217;s not as much RAM as it sounds like. Also, my experience with WPF-based programs in particular is that they are shamefully slow to start up &#8211; for example, I can click the icon for Visual Studio 2010, let the splash screen display for 10-15 seconds, then click the icon for Visual Studio 2008 and 2008 will still finish loading well before 2010.</p>
+<p>That said, I do appreciate when someone can talk about the limitations of C++, which are unarguably there, without resorting to the Linus Torvalds or C++ FQA methods.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7219">
+		<div id="div-comment-7219">
+		<div class="cmtinfo"><em> on <a href="#comment-7219" title="">2012-12-05 at 12:21 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d7aaf766b7091c5583ee189b116ecd6a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Glen</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7219"></div><p>@Jason Bilmez</p>
+<p>You&#8217;re far too hard on John, calling him &#8220;full of hot air&#8221;. It&#8217;s as if you don&#8217;t think people are entitled to opinions unless they are drenched in facts and figures to support them. John was quite reasonable in this thoughts on C++ and I don&#8217;t think you gave him fair credit for that.</p>
+<p>The fact is, if John presented facts and figures, you&#8217;d just argue about those and so would I and everyone else, but It wouldn&#8217;t change a thing.</p>
+<p>You&#8217;re missing the point: John relayed his life experience with C++ and C#, not some theoretical opinion or language analysis of them. No amount of facts can undo or re-live his experience as it is what he experienced and what he was relaying. It doesn&#8217;t neccessarily make him wrong or full of hot air just because his experience doesn&#8217;t match yours.</p>
+<p>In other words, just because John &#8220;can&#8217;t handle&#8221; C++ and maybe you (Jason) can; that doesn&#8217;t mean C++ is not high maintenance. Give John a break.</p>
+<p>It&#8217;s like trying to advise the guy reading all this who&#8217;s thinking &#8220;C# or C++? &#8211; which is right for me?&#8221;. The answer is &#8220;whichever one you can handle best!&#8221;. That probably isn&#8217;t the answer they want to hear, but it&#8217;s probably the only honest answer anyone can simply offer in this case.</p>
+<p>What  else do you say:  &#8220;Do you like an easy life?&#8221;, &#8220;Do you like catching tigers by the tail?&#8221;.</p>
+<p>People are different, hence all the debate and differences. Some catch tigers better than others. Some get bitten. Who are the smarter ones, those avoiding the risks of getting bitten or those catching tigers tails?</p>
+<p>For myself, I too find C++ less productive than C#, but I choose to blame it on the tools more than the language. </p>
+<p>John has taken his a side. I personally find C++ more enjoyable than C# and have the opinion that if the tooling for C++ catches up to C# (and it almost has), I&#8217;ll be as productive in C++ as C# if not more so and hopefully that&#8217;ll mean people will let me keep using C++. But will they?</p>
+<p>Not everyone will catch tigers by the tail even with better tools and maybe the world will go with with them. So the jury is far from in on that and so asking is C++ back, will it stay, did it ever leave, will C++ &#8220;beat&#8221; C#, these are all fair questions to wonder. I don&#8217;t know, &#8220;I hope so&#8221; is my answer.</p>
+<p>I hope Herb gets C++ VS2013 out the door with all the features we could ever need, if he does that, maybe John will come back to C++ and prove himself wrong, who knows. It&#8217;s open to go either way IMO.</p>
+<p>What I can say is that John definitely is not &#8220;full of hot air&#8221; for wondering these quesitons out loud. That much I do know. I think that was Herb&#8217;s basic point too. We can be C++ fans, but we should not be zealots.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7216">
+		<div id="div-comment-7216">
+		<div class="cmtinfo"><em> on <a href="#comment-7216" title="">2012-12-05 at 11:04 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/47db13b8ce89bdb2dcec9d0405a75ed8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Chris Carpenter</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7216"></div><p>@earwicker</p>
+<p>You are right, why would we use a language that supports something we don&#8217;t want to do? Going back to your knife analogy, why use a knife when we could use a slicer specific to what we are trying to cut? I mean, with a knife you can cut all kinds of things, including things you will never want to cut! Plus, you might cut your finger, or accidentally stab someone else! Using a slicer with hand guards that is specific to the object being cut is much safer, and more efficient.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-smellegantcode even thread-even depth-1 highlander-comment" id="comment-7215">
+		<div id="div-comment-7215">
+		<div class="cmtinfo"><em> on <a href="#comment-7215" title="">2012-12-05 at 9:18 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ef36b899789c5ab264fd4b26d5a91a35?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>earwicker</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7215"></div><p>@Rob G &#8211; &#8220;I’ve been programming in C++ for around 20 years, and have never found that I have to treat memory as a flat space.&#8221;</p>
+<p>Yes, me too. But about five years ago, I realised: why use a language that supports something you&#8217;d never want to do? Which allows you so easily to do it by accident?</p>
+<p>&#8220;In modern C++, you can use standard collection classes and – and this is an area I’ve yet to see in most mainstream languages – algorithms. This allows programming at a very high level of abstraction with effectively no cost.&#8221;</p>
+<p>Are you entirely happy with back_inserter and the way it has to be used when writing to the end of a vector (and what happens if you don&#8217;t)? If so, I have to ask you the same question you asked me: are you serious? :)</p>
+<p>It should also be well known that C++ is not unique in having a library of reusable algorithms that work over sequences.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7206">
+		<div id="div-comment-7206">
+		<div class="cmtinfo"><em> on <a href="#comment-7206" title="">2012-12-05 at 6:04 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9805f4a2be4e3be4c489773f4e52b2e6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Rob G</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7206"></div><p>@Michael said &#8220;The only reason that makes C++ syntax ugly, and tools difficult to write for, is that C++ syntax is not LR(1).&#8221;,</p>
+<p>Fortunately, the CLang project exposes the parser. Hopefully, this will lead to a number of tools that help in this direction. I&#8217;m hoping other compilers will follow suit.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7205">
+		<div id="div-comment-7205">
+		<div class="cmtinfo"><em> on <a href="#comment-7205" title="">2012-12-05 at 6:01 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9805f4a2be4e3be4c489773f4e52b2e6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Rob G</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7205"></div><p>@earwicker &#8211; Are you serious? I&#8217;ve been programming in C++ for around 20 years, and have never found that I have to treat memory as a flat space. Indeed, the language, more than any other I&#8217;ve used, allows the developer to design to take the constraints of memory architectures into consideration.</p>
+<p>In modern C++, you can use standard collection classes and &#8211; and this is an area I&#8217;ve yet to see in most mainstream languages &#8211; algorithms. This allows programming at a very high level of abstraction with effectively no cost.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-smellegantcode odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7198">
+		<div id="div-comment-7198">
+		<div class="cmtinfo"><em> on <a href="#comment-7198" title="">2012-12-05 at 3:06 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ef36b899789c5ab264fd4b26d5a91a35?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>earwicker</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7198"></div><p>There are many great similarities between C++ and the other languages being discussed here. With C++11 (and even Java 8) the gap shrinks further. But there is one fundamental difference that will never be usefully eliminated and that is the way that C++ assumes that memory is a uniform array of randomly accessible bunches of bits of fixed size. (Of course the C++ standard is written in such a way as to disguise this assumption but there is no practical way to implement C++ without assuming a flat address space of raw numbers that can be reinterpreted by the code however it wishes).</p>
+<p>But it has to be recognised that the flat address space is itself an *abstraction*. It is not the lowest-level representation. The OS has to go to some effort to trick each user process into believing that it has access to a flat address space. Access is definitely NOT uniformly fast across all memory: any C++ expert on performance will tell you about the importance of understanding all the layers of caching: the CPU levels, main memory, virtual memory, and that each of these can be hundreds or thousands of times faster than the next.</p>
+<p>What is the purpose of this abstraction? It obscures the performance characteristics, hiding them behind an illusion &#8211; I&#8217;d go further and call it a lie! That&#8217;s how misleading it is, from a performance perspective. To write fast code in C++ you have to know that memory isn&#8217;t really a flat space.</p>
+<p>So perhaps the purpose of the flat memory abstraction is ease-of-use: &#8220;Okay, your program may be slow, but it will easy to get right!&#8221; But no one could seriously defend it on that basis when comparing it with the most popular alternative: the managed memory abstraction, in which we allocate objects such that it is simply not possible to read (or write) &#8220;before&#8221; or &#8220;after&#8221; the object &#8211; such locations don&#8217;t exist, there being no operations provided for accessing them, the notion of a type is fundamental so a given memory unit always stores an object of a known concrete type (seems kind of sensible, doesn&#8217;t it?) and as an added bonus we tend to get practically perfect (non-conservative, compacting, very fast to allocate) GC under this abstraction.</p>
+<p>Of course, as Mr Sutter has demonstrated, it is possible to create a new language (lets call it C++/CLI /clr:safe!) in which we provide new features that assume the managed memory abstraction, and simultaneously eliminate all the features of the language that assume the flat address space abstraction. But there are various obstacles to the user community of that language ever becoming as large as those of C++, Java or C#. It requires you to completely rewrite your existing C++ code, and given that hurdle, most people will look at easier-to-learn languages instead.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-spmisra even thread-even depth-1 highlander-comment" id="comment-7188">
+		<div id="div-comment-7188">
+		<div class="cmtinfo"><em> on <a href="#comment-7188" title="">2012-12-04 at 9:20 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/bd612de0aa352674c2e26203dd16c88d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://spmisra.wordpress.com' rel='external nofollow' class='url'>spmisra</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7188"></div><p>I think the fundamental principle that people do not understand is we have to be productive. Language is just a means to talk to the computer, and all languages are built on some usage specs. Every body have to choose the language based on the specs they have at hand, time line for development, and their current skills. Rather than trying hard to adapt a particular language to job at hand, we have to delve into our skill sets and think what can make the things easier. </p>
+<p>We can always use a Sword to cut vegetables, but why use knife? Just so that we do the work easily, be safe, save our head, and hand, and also spend time with our friends and family. So I do not think C++ was gone or will go away or rule the world. These debates are getting converted to religious discussions.</p>
+<p>* Although I love C++ I do not wish to write web pages in C++. Why? Simple I do not want brain surgery.<br />
+* Although I love C++ I talk to my &#8220;Human&#8221; friends in plain English or my native language. I do not wish &#8220;Happy birth day&#8221; like &#8220;std::cout&lt;&lt;Happy Birthday&lt;&lt;std::endl&quot; to my friend. rather I use plain English. Why? Because English is the right tool to use there (Human to Human talk).<br />
+* Although I love C++ I am writing these comments in English rather than C++, though I know most of the people here are far more knowledgeable in C++ than I am.<br />
+* Although I love C++ I have I use gmail or yahoo mail, rather than get my hands dirty with a e-mail api, create a mail server, compose my email, build it and execute it to send it. Because I know of better tools to send mail. I don&#039;t give damn about the language they use to send my mail.</p>
+<p>So in simple terms, be productive, and most importantly happy. Always use the right tool. Do not shape your foot as per your shoes, always buy the right shoes. </p>
+<p>And regarding C++, I do not think it is complicated. Learning is a gradual process, regardless of any language you use, you have to learn. The main thing is keep on learning, and improve your skills and the programs you write. Just tell me any one here who always write code that is never modified or improved?<br />
+C++ provides you different tools, you have to use the best one/ones. Its not like you can&#039;t compile a program if you do not write templates or don&#039;t use r-value or blah blah features. You can compile a simple loop, which has the same structure in all languages.</p>
+<p>Languages are like rivers, always small stream of libraries or features will be added to them. It happens with all languages, natural language too. The new features in C++ are not bogus, it adds expressiveness to them. Lets you type less, care about memory less.</p>
+<p>So start from specs, reflect on your skill sets, and see what can be best for you. If you choose C++ do not be afraid. But remember, C++ can&#039;t heal a wound, medicine and doctors are the right tools.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7187">
+		<div id="div-comment-7187">
+		<div class="cmtinfo"><em> on <a href="#comment-7187" title="">2012-12-04 at 8:45 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/b82aac385b0450085205a23e6a41ddce?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Michael</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7187"></div><p>&gt; You will find this to be true, for example, with the new uniform initialization syntax. Once enough people have migrated to the new syntax, which is better in virtually every way, sometime in the future we could contemplate removing the old and shearing off complexity. In the meantime, the old complexity and several Effective C++ Items can be ignored (such as a infamous vexing parse), as you simply won’t encounter those issues if you use only the new initialization syntax.</p>
+<p>If the new way is better in virtually every way but we need to keep backwards-compatibility anyway, a recommendation to compiler writers to spit out a warning when the old way is used, would be very welcome &#8211; unless something is *actively nudging* users into doing things *only* the new way, the &#8220;language is bigger&#8221; issue would still exist because newcomers need to learn the old way, the new way, *and* why the new way is better.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7184">
+		<div id="div-comment-7184">
+		<div class="cmtinfo"><em> on <a href="#comment-7184" title="">2012-12-04 at 8:03 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/b82aac385b0450085205a23e6a41ddce?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Michael</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7184"></div><p>The only reason that makes C++ syntax ugly, and tools difficult to write for, is that C++ syntax is not LR(1).  Take a look at the managed languages and notice that their tool support is vastly superior to C++.  Cut the backwards compatibility and make the language easy to parse.  Too bad this will never happen.</p>
+<p>Another reason is, there&#8217;s no one standard ubiquitous library that provides a way for people to work in an &#8220;I just want this done and will care about performance later&#8221; manner.  Not everyone wants to waste time selecting a library when a standard one is available.  Contrast Java&#8217;s standard library, Microsoft&#8217;s BCL with the standard C++11 library&#8230;libraries are what make people productive, I&#8217;d say waaaay more frequently than a new language feature does unless the old language was so deficient, which I never felt C++ was (well, the new use of the auto keyword is good, but it&#8217;s icing on the cake)</p>
+<p>Well, maybe Boost is, but it&#8217;s still not standard.  The day the entire Boost library is incorporated as part of standard C++ will be the day of its resurgence.  Regex, and Threading are in the right direction but not enough.  Most applications can use a few more features in , built-in HTTP support, UTF-8 without adding ICS, etc.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7175">
+		<div id="div-comment-7175">
+		<div class="cmtinfo"><em> on <a href="#comment-7175" title="">2012-12-04 at 11:57 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/525dac0c4812e8e8753935590b40ddb6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Rob K</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7175"></div><p>&#8220;C++ *does not allow them to do that* – there’s just too much that can go wrong; until you’re a C++ expert you will be writing code that is fundamentally unsound. That’s not something to be proud of. That’s a failure!&#8221;</p>
+<p>This is absolutely NOT true. If an non-expert isn&#8217;t writing fundamentally sound code in C++, he won&#8217;t be writing it in any other language either. You don&#8217;t have to know the language inside and out to write robust code that does the job. In my 20 years of programming mostly in C++, 90% of the code I&#8217;ve written has used probably only the core 30% to 40% of the language. </p>
+<p>You can spell spaghetti in any language. I&#8217;ve seen a lot of C++ code written by idiots, and lot of C#, Basic, Java, and Delphi code written by idiots. It&#8217;s every bit of it crap, and it&#8217;s not the fault of the languages. It&#8217;s the fault of the idiots who code without understanding. The same people who code without understanding in C++, code without understanding in C# or Basic or Java or whatever language you care to name.</p>
+<p>On the notion that C#, etc. is somehow faster to write in&#8230; I have not found this to be the case. In fact, the lack of RAII in the language, and the crap that&#8217;s been added to get around that, for me, make it slower to write good code. And why does everyone hate on multiple inheritance all the time? If you don&#8217;t need it, don&#8217;t use it. It will cost you nothing if you don&#8217;t use it. You should prefer composition to inheritance anyway, regardless of the language you&#8217;re writing in. And guess what? The managed languages have a weak form of multiple inheritance kludged in anyway. It&#8217;s called interfaces. Going back to my earlier point, the programmers who would misuse multiple inheritance are going to misuse the features of whatever language they&#8217;re programming in.</p>
+<p>The problem is not the language, the problem is the programmers. I&#8217;ve had far too many coworkers who have no clue that blogs like this exist, or that these sorts of discussion occur. They know what they learned in school. They know what they might learn in any training their employers put them through. But that&#8217;s all they know. They have no curiosity or desire to improve their craft. They don&#8217;t unit test, let alone write code that&#8217;s unit testable.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7174">
+		<div id="div-comment-7174">
+		<div class="cmtinfo"><em> on <a href="#comment-7174" title="">2012-12-04 at 11:51 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a74264111797dd5ab38cbf98d1e99539?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>David</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7174"></div><p>Some really strange comments here.   The idea that C++ is extremely difficult is garbage.   You can make it that way but it is very possible to write clear and well organized programs in C++ without getting bogged down in esoterica.   If you focus on using the more advanced concepts then of course you will have a longer learning curve.  </p>
+<p>Mind you I&#8217;m far from being a professional programmer yet have code that was written by me running production for years.   Sadly one reason I&#8217;ve switched to Python, for some things, has little to do with code complexity of C++ but rather the excellent libraries that are more or less standard and available for Python.   The standard library and boost simply aren&#8217;t enough in comparison.   </p>
+<p>So if I might suggest to those in the standards making process, we don&#8217;t need continuous revisions to C++ that deny the importance of standard libraries.   In fact beyond modules I can&#8217;t think of anything more important for C++15 than a significantly improved standard library.   The idea that a language can exist alone without a well thought out and standardized  library is just asinine these days.   At the end of the day it isn&#8217;t that Python is &#8220;&#8221;simpler&#8221;&#8221; as it isn&#8217;t really, it is the library support that makes a difference.   </p>
+<p>One other thing which may be hard to do with C++ right now, but C++ could be vastly improved readability wise by moving away from ASCII limited character sets.    Maybe that would require a new language, &#8220;E&#8221; maybe, but having an expanded character set, if used wisely could lead to far more readable C++ code.   I still find it funny that at this point in time languages still insist on 8(7) bit character sets.   In the end reading C++ often isn&#8217;t difficult from the comprehension stand point but rather is difficult from the mental parsing that has to go on.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7169">
+		<div id="div-comment-7169">
+		<div class="cmtinfo"><em> on <a href="#comment-7169" title="">2012-12-04 at 10:26 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ec022a99fb38206ba66b414c2dbc350d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://coreliuminc.com' rel='external nofollow' class='url'>Damien</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7169"></div><p>As an engineer, and not a computer scientist, I think a lot of the language warriors are missing an important point.  The days of &#8220;One Language To Rule Them All&#8221; are over, dead and gone.  I think we&#8217;re entering an era of using the right tool and the right skillset for the job.  The Engineering disciplines have been doing that for a long time, whereas in programming that approach is still pretty immature (but growing fast).  The right tool for the job is why other languages and platforms are growing alongside C++.  C++ isn&#8217;t dropping off much though.  </p>
+<p>High-performance parallel math code is still mostly written in Fortran, because it&#8217;s the best tool for the job.  Some is in C.  A high-performance cache-aware BLAS library in C#?  Yeah, right.  It&#8217;s the wrong tool.  So is C++ for that matter.  C++ is the tool for fine-grained application parallelism though (Intel TBB &amp; friends), and multi/manycore is everywhere.  Need a GUI and higher-level business logic?  C#/WPF, Java, and/or JS/HTML5.  On average, you&#8217;ll deliver that faster with those technologies than you will with C++.  Yeah , I know there&#8217;s QT for C++ GUIs, I like it a lot, but even as a C++ expert I&#8217;m still faster and more efficient with C#/WPF doing GUI development.</p>
+<p>Along with One Language To Rule Them All going the way of the dinosaurs, so is only having one major skillset (if all you have is a hammer, everything looks like a nail&#8230;.)  If you&#8217;re only good at one thing, your career is going to be pretty limited anyway.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7168">
+		<div id="div-comment-7168">
+		<div class="cmtinfo"><em> on <a href="#comment-7168" title="">2012-12-04 at 10:25 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e159f83d2918e4e015e870d3077c8328?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Burp</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7168"></div><p>C++ is only complicated because certain old &#8220;features&#8221; still have to be used, once new modern variants of these things are in, the language will be a great deal more enjoyable</p>
+<p>header files + slow compilation -&gt;  modules<br />
+monomorphic lambda -&gt; polymorphic lambda with hopefully less syntax<br />
+complex pure functional language used for compile time manipulation -&gt; better compile time evaluation(static_if, better CTFE)<br />
+no reflection, forcing idiotic custom &#8220;solutions&#8221; -&gt; compile time reflection</p>
+<p>But anyway, C# is no solution, its abstraction and reuse capabilities are worse then C++ as it stands today!  Generic are a joke compared to templates.  D gets many things right, which C++ (currently) gets wrong, although it missed the target on a few key things(GC, classes).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7166">
+		<div id="div-comment-7166">
+		<div class="cmtinfo"><em> on <a href="#comment-7166" title="">2012-12-04 at 10:04 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7166"></div><p>General: Thanks for the generally high level of comments, especially nearer the start. I was hoping this would continue as a balanced discussion instead of degenerating into barbs. :)</p>
+<p>A few thoughts:</p>
+<p>Paraphrasing Bjarne, I usually summarize C++&#8217;s three top (but not only) strengths as: (a) efficient abstraction (abstractions often compile away, don&#8217;t pay for what you don&#8217;t use, leave no room for a language lower, etc.); (b) flexibility (you can always express what you want, opt out of guard rails, etc.); and (c) portability (you get the efficiently on all platforms, programs you can largely take anywhere as long as you put any platform-specific code in a particular module and just port that and the rest comes along).</p>
+<p>In that context:</p>
+<p>@Zenju: Yes, C++ always lets you &#8220;open the hood&#8221; and take control. I would always add, though, that you don&#8217;t always need to open the hood. It&#8217;s just that you can whenever you need to.</p>
+<p>@Magnum: Actually, I do hear a lot from people who find themselves enormously more productive when they switch to C#. And that&#8217;s fine &#8212; I know others feel the other way, but it depends very much on what you&#8217;re doing. As Andrei Alexandrescu put it in a talk last year, &#8216;developing code in C++ is generally slower than in other languages, but paradoxically developing efficient code is faster in C++.&#8217; The reason is that that&#8217;s what it&#8217;s geared for &#8212; efficiently by default, efficiency as a first-order concern, with the ability to opt out. If you&#8217;re not targeting the three (a)/(b)/(c) C++ design values above, you&#8217;ll have a worse experience in C++, not because C++ sucks or because you suck :) but just because of &#8220;fit&#8221; &#8212; not using an appropriate tool, one designed for the job you want to do. If you are targeting those design values, then you&#8217;ll have a worse experience in Java and C#, not because they suck or because you suck :) but just because you should be using a different tool. So much of these debates come down to using the right tool for the job..</p>
+<p>@Jon: Yes, C++ is complex and the complexity is largely because of C compatibility. I agree with Bjarne that there&#8217;s a small language struggling to get out &#8212; I&#8217;ve participated in private experiments to specify such a language, and you can do it in well under half the complexity of C++ without losing the expressivity and flexibility of C++. However, it does require changes to syntax (mainly) and semantics (secondarily) that amount to making it a new language, which makes it a massive breaking change for programs (where existing code doesn&#8217;t compile and would need to be rewritten manually or with a tool) and programmers (where existing developers need retraining). That&#8217;s a very big tradeoff. So just as C++ &#8216;won&#8217; in the 90s because of its own strengths plus its C compatibility, C++11 is being adopted because of its own strengths plus its C++98 compatibility. At the end of the day compatibility continues to be a very strong force and advantage that isn&#8217;t lightly tossed aside to &#8220;improve&#8221; things. However, it&#8217;s still worthwhile and some interesting things may come of it. Stay tuned, but expect (possible) news in years rather than months.</p>
+<p>@tonyk; Actually, no, a good C++ programmer doesn&#8217;t need to know all those things. That&#8217;s a common misconception though. And &#8220;ADDING&#8221; features can make a language simpler, because it migrates people to using the new simpler alternatives instead of the old ones. You will find this to be true, for example, with the new uniform initialization syntax. Once enough people have migrated to the new syntax, which is better in virtually every way, sometime in the future we could contemplate removing the old and shearing off complexity. In the meantime, the old complexity and several Effective C++ Items can be ignored (such as a infamous vexing parse), as you simply won&#8217;t encounter those issues if you use only the new initialization syntax.</p>
+<p>General philosophical question: &#8220;When does adding a feature make a language simpler?&#8221; When it lets you express your intent more directly, notably by adding direct support for an important abstraction (e.g., virtual functions), or to express your intent more consistently, such as by adding a simpler facility that lets you ignore multiple older complex options.</p>
+<p>@bittermanandy @LoupValiant: I agree that what Don Box calls &#8220;reveling in complexity&#8221; is generally a bad thing regardless of language. C++ has complexity, and some do revel in it. But &#8220;just because you can doesn&#8217;t mean you should&#8221; &#8212; that&#8217;s a knock against them (IMO) rather than against C++.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7160">
+		<div id="div-comment-7160">
+		<div class="cmtinfo"><em> on <a href="#comment-7160" title="">2012-12-04 at 8:14 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e00198c96f3a1c446a68072957200bea?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>John</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7160"></div><p>From Joe Duffy’s Weblog; <a href="http://www.bluebytesoftware.com/blog/2012/10/31/BewareTheString.aspx" rel="nofollow">http://www.bluebytesoftware.com/blog/2012/10/31/BewareTheString.aspx</a></p>
+<p>.NET holds an enormous advantage over C++.<br />
+That might sound like an oxymoron, but our system can in fact beat the pants off all the popular native programming environments. The key to success? Thought and discipline.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7153">
+		<div id="div-comment-7153">
+		<div class="cmtinfo"><em> on <a href="#comment-7153" title="">2012-12-04 at 5:59 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c1fe20f3f481ff9b33e290c8dd3cafa8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://loup-vaillant.fr' rel='external nofollow' class='url'>Loup Vaillant</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7153"></div><p>&#8220;If (as it may be reasonable to argue) you need to be a C++ expert to use it “properly”, that is a point against it! Stop bragging about how good you personally are at C++ and how anyone who’d rather use a different language is just too uneducated to understand it.&#8221;</p>
+<p>Good luck with that one. People mostly don&#8217;t want to solve problems, they want to show how smart they are (that would include me to some extent). That&#8217;s how some people do Template Meta-programming with a straight face, instead of fixing the compiler, or writing a real macro system —that&#8217;s how C++ itself started out for Church&#8217;s sake!— or just choose a simpler language.</p>
+<p>Think of this a big status game for a minute. Simple solutions are hard to reward because they don&#8217;t do justice to the difficulty of the original problem. Complicated solutions on the other hand are much better at making the programmer look smart. Add some &#8220;industrial strength&#8221; in the sales speech, and you get one of the reasons for C++ success.</p>
+<p>I don&#8217;t know how to solve this. Ideally, we would have miracle tools that both yield simple solutions *and* make their users look smart. I&#8217;m afraid the two are at odds.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7150">
+		<div id="div-comment-7150">
+		<div class="cmtinfo"><em> on <a href="#comment-7150" title="">2012-12-04 at 4:07 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/dcafbba93dc637c513c6cf8ae3d5ea2a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/bittermanandy' rel='external nofollow' class='url'>bittermanandy</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7150"></div><p>Nothing frustrates me more (and it&#8217;s been seen among these very comments right here!) than the attitude that &#8220;if you don&#8217;t think C++ is best, you just don&#8217;t know it well enough&#8221;. The commenter is sometimes, but not always, honest enough to add the epithet &#8220;&#8230;n00b&#8221;.</p>
+<p>I actually know C++ pretty damn well. Not as well as, say&#8230; Herb Sutter&#8230; but I&#8217;ve read a lot of his books, and others, and have a decade or so of hands-on professional C++ experience. I know the language, I know its uses, I&#8217;m not a guru but I am an expert. And the problem domains in which it is appropriate to use C++ are dwindling fast.</p>
+<p>If (as it may be reasonable to argue) you need to be a C++ expert to use it &#8220;properly&#8221;, that is a point against it! Stop bragging about how good you personally are at C++ and how anyone who&#8217;d rather use a different language is just too uneducated to understand it. Consider instead whether the vanishingly small number of C++ gurus in the world can write enough code on their own to keep the whole world going. Of course they can&#8217;t.</p>
+<p>An educated, intelligent programmer who has not achieved expert or guru status should be able to use a language that allows them to be productive and, notwithstanding the fact that all code has some bugs, write software that basically works&#8230; and write that code quickly and efficiently. C++ *does not allow them to do that* &#8211; there&#8217;s just too much that can go wrong; until you&#8217;re a C++ expert you will be writing code that is fundamentally unsound. That&#8217;s not something to be proud of. That&#8217;s a failure!</p>
+<p>There are, *absolutely*, cases where C++ is still a valid choice or even the optimal choice. (I would be worried about my own future employment prospects if this were not the case). There are far more cases &#8211; the 90% case &#8211; where you just need to quickly write code that works. CPU efficiency? It&#8217;d be nice, but Herb&#8217;s promised us 256 processors next year. Memory efficiency? It&#8217;d be nice, but my phone has more RAM than my Windows PC ever actually seems to use. Let&#8217;s get the software done fast and use it. C++ is not a language that supports that priority&#8230; not even in C++11.</p>
+<p>The 10% case (where performance and optimisation matters) still exists and C++ is still useful for it. But the &#8220;resurgence&#8221; of C++ really is a falsehood because that 10% case isn&#8217;t growing &#8211; we don&#8217;t suddenly have a need to write more highly-efficient code than was necessary ten years ago. And for those among us who look down on 90% of programmers who don&#8217;t know C++ as well as they do but are writing code for the 90% case in other languages&#8230; I imagine COBOL programmers once looked down on people too.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7149">
+		<div id="div-comment-7149">
+		<div class="cmtinfo"><em> on <a href="#comment-7149" title="">2012-12-04 at 2:16 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/528e2cea8b547f9c8ece2361781d3d82?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/tonyci' rel='external nofollow' class='url'>tonyk</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7149"></div><p>100% agree with John Sonmez. New C++ 0x11 is really very BAD,BAD,BAD language. As a John himself, i am total C++ fan. The main problem of C++ 0x11 is that it is very big and difficult to learn.</p>
+<p>Good C++ programmer must know:<br />
+1) lowlevel things like what &#8220;register&#8221; / &#8220;restrict&#8221; / &#8220;auto&#8221; (old one) keywords stand for&#8230;<br />
+2) templates &#8230; Oh, crap. Int2Type/ StaticFactorial? I never used that stuff in production, but i have to learn that too!<br />
+3) good style: explicit/ virtual destructors/ exception-safety etc.<br />
+4) whole bunch of STANDARD libraries and classes: what was the last &#8220;you must use it&#8221; autoptr class?<br />
+4) new features like move semantics, initializers&#8230; Most of them are really &#8220;syntatic-shit&#8221; (as opposed to syntatic-sugar). </p>
+<p>Why do we use copy-constructors? Why C++ has copy-constructors and other languages DON&#8217;T? Because of pointers. Most C++ programmers don&#8217;t understand that! You see? My class has about 80% of garbage-wrap-around-code and 20% of payload now. C++ 0x is not as clear as C++ was before. But &#8220;to-learn&#8221; stuff grows!</p>
+<p>I really can&#8217;t understand why you folks don&#8217;t stop ADDING and ADDING new features. Yes we need new features, but main idea of your additions is &#8220;backward compatibility&#8221;. My opinion: you can never do something good without cutting off unneeded stuf! As long as old stuff is kept FOR TOO LONG TIME (for example 15 years) -&gt; you are in big trouble. Stop doing things Microsoft way, remove features and stop supporting old stuff like Apple does.</p>
+<p>For example:<br />
+What null_ptr is used for? Is it a real entity like functional langs has? I am sure -&gt; no one will ever see that null_ptr would have other value than ZERO. Because of backward-compatibility&#8230;</p>
+<p>&#8220;Old-C++&#8221; was a bad language too ), but it had something C++ 0x doesn&#8217;t &#8230; It was WELL balanced language. I used to learn to code Haskell and that language is perfect: it has clarity and is very expressive. Haskell&#8217;s grammar is about 1/10th of C++ grammar in size. Maybe that is the cause? </p>
+<p>I would never suggest my kids to learn C++ nowadays. Let it be Python, C# or something else.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7148">
+		<div id="div-comment-7148">
+		<div class="cmtinfo"><em> on <a href="#comment-7148" title="">2012-12-04 at 2:12 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c1fe20f3f481ff9b33e290c8dd3cafa8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://loup-vaillant.fr' rel='external nofollow' class='url'>Loup Vaillant</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7148"></div><p>Beware the false dichotomy between &#8220;native code&#8221; and &#8220;managed code&#8221;. Sure the currently most used languages (C, C++, Java, C#, JavaScript) tend to make it true. It certainly is if you&#8217;re a manager who deals with C-syntax only programmers. But a more polyglot team can use Go, Lisp, or Haskell, all of which can compile to native code. In this case, your argument is quite weakened.</p>
+<p>One can compile Haskell code and ship the binaries. It can therefore be tested as thoroughly as C++ compiled code.</p>
+<p>Native code based runtimes tend to be much smaller, and much faster to start than a VM that must warm up (or even a simpler interpreter such as Lua). If your service consists of many short lived requests, a native garbage collected language is probably a good option. Your point stands when you need long-lived processes though.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-spmisra odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7147">
+		<div id="div-comment-7147">
+		<div class="cmtinfo"><em> on <a href="#comment-7147" title="">2012-12-04 at 1:33 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/bd612de0aa352674c2e26203dd16c88d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://spmisra.wordpress.com' rel='external nofollow' class='url'>spmisra</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7147"></div><p>Talking about cross platform usages of C++ i think Boost library, standard library and llvm based frontend CLang is doing a great work. It would be interesting to jit C++ also using llvm.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7146">
+		<div id="div-comment-7146">
+		<div class="cmtinfo"><em> on <a href="#comment-7146" title="">2012-12-04 at 1:12 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a79df09f1a33afcf65306fe23bf4aadd?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/pjmlp' rel='external nofollow' class='url'>pjmlp</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7146"></div><p>I do like C++ a lot, using it lately for some of my private projects (at work I use mainly Java/C#), after my employer started moving their projects from C++ to Java/C# in 2006.</p>
+<p>Although I am quite enthusiastic with C++11 and the C++ renaissance, what I keep on noticed in all these discussions is that people continuously mix the languages with their implementations. There are native code compilers for Java and C#, but they tend to not be known by many developers. </p>
+<p>If the language caretakers would start offering nice native optimized compilers for their languages du jour, the need for C++ would decrease in some scenarios where a VM based solution is not possible.</p>
+<p>But of course, many of us C++ fans tend to ignore this possibility, as it would decrease the publicity for C++.</p>
+<p>I am still looking forward to see C++ pick up speed so that I can convince my boss to allow some of the new stuff to get coded in C++ again, I just don&#8217;t want to wait 5 years to get some form of modules.</p>
+<p>Does anyone remember how the computing world was 5 years ago and how the language landscape has changed meanwhile?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7143">
+		<div id="div-comment-7143">
+		<div class="cmtinfo"><em> on <a href="#comment-7143" title="">2012-12-03 at 11:18 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/64bac8a460e971008177b8e4ee6393a2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Magnum</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7143"></div><p>Whenever I code in C# I feel my brain cells die, and my productivity plummets.  The language makes me feel stupid.  Must be because it&#8217;s been designed as a lowest-common-denominator (corporate) language.</p>
+<p>C++ on the other hand is a joy to code in.  It makes me feel like an artist.  I can produce quality code (ahem &#8211; my humble opinion of course) that is easy to extend and reuse.  There are tricks you can do in C++ (for debugging, experimenting &#8212; using templates, inline code, dreaded macros) that aren&#8217;t possible without really struggling in other languages.</p>
+<p>Yes it takes a long time to learn, longer to become skillful, but hey we&#8217;re fulltime pros here; it -should- take a long time to master your art.  It feels great to wield skills that I&#8217;ve had to put a lot of effort into to learn.</p>
+<p>I really would not like to code in an environment that is &#8220;upgraded&#8221; every couple of years.  You&#8217;re continually chasing the &#8220;feature football&#8221;:  Microsoft adds some spiffy new feature to .Net/C# which programmers then have to pursue like a pack of footballers chasing a ball around a park.  In C++ it will take years for new, fantastic techniques we haven&#8217;t dreamt of to come out using C++11&#8217;s great new features.  This can&#8217;t happen in C#/.Net&#8217;s continual upgrade spiral of obsolescence.</p>
+<p>If some C++ code of mine isn&#8217;t doing what I want it to do, the question I need to answer is &#8220;What am I making the computer do?&#8221;  There is a direct relationship between your source code and what the CPU(s) does to raw memory that represents your data structures.  This doesn&#8217;t exist in managed languages, there&#8217;s a whole runtime that second-guesses your intentions and helpfully protects you from yourself.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-spmisra even thread-even depth-1 highlander-comment" id="comment-7140">
+		<div id="div-comment-7140">
+		<div class="cmtinfo"><em> on <a href="#comment-7140" title="">2012-12-03 at 9:19 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/bd612de0aa352674c2e26203dd16c88d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://spmisra.wordpress.com' rel='external nofollow' class='url'>spmisra</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7140"></div><p>Here is a bit of my thoughts on the post:<br />
+In general I believe,<br />
+1. C++ gives people(experts) opportunity to better optimize. So if you do not want the optimizations, please do not use C++.<br />
+2. I have always seen many people blame the language for bugs. It is not, with power there always comes better responsibility. So if people think they cannot take those responsibility, or control the raw power, then use other languages. Please do not use C++.<br />
+3. It may or may not be a general preference language. If you want to learn using a language in short term and start writing nice GUIs then please do not learn C++ or use it. They application written by impatient C++ programers is always used to abuse C++ in public forums.<br />
+4. Also in most projects I have worked (by the way i work on C a lot in beginning of career, C++ mostly, JAVA frequently, python occasionally) I have always seen few developers getting lazy and working without thinking of long term bottle necks. This always happens due to various reasons. So if you do not want to think the difference between List and Vectors, or you do not care about it, please use some other language, not C++. Still if you choose to learn C++ do not complain about the learning curve.<br />
+6. This may be my personal view, but i have always noticed that out of 10 people working in a very high level language, at least 3-4 gradually think only of short term results. They do not worry about the performance hogs. For example we have been using C++ in server side for last 8-10 years, but in the same time changed the front end language twice. Major reason is performance hogs. Its not the language that brings this hogs, its just the lazy thinking that “I will code as per will, let the language take care of everything”. This is the mentality that brings these hogs. C++ shows early failure symptoms when you code like this, other languages just forgive you till the customer becomes unforgiving.<br />
+5. You cannot write nice GUIs with C++ in a week, do not try to learn it to write GUIs.<br />
+6. C does not solve all the problems, nor is template meta programming or overloading complex. It just takes a little bit time, patience and effort to learn it and appreciate it. It does not come over night. In C you can write fast code, but in C++ you can write fast code that can be maintained better, and extended easily. If you do not want to think in OO or Functional terms do not use C++, use C.<br />
+7. If you learn C++ as a big brother of C, there is always chance you will suffer. Please learn C++ as C++, this will set the proper learning context in your mind.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7139">
+		<div id="div-comment-7139">
+		<div class="cmtinfo"><em> on <a href="#comment-7139" title="">2012-12-03 at 8:03 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/8bcbc5519492da9cafc3a8162c830427?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mike</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7139"></div><p>That smaller, cleaner language you&#8217;re looking for is the one that is based on modules (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3347.pdf" rel="nofollow">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3347.pdf</a>), not 50-year-old compiler technology.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7138">
+		<div id="div-comment-7138">
+		<div class="cmtinfo"><em> on <a href="#comment-7138" title="">2012-12-03 at 5:14 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/2f91e7ffad34f35c3d035838acf156ac?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jon</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7138"></div><p>@Herb,</p>
+<p>It seems to me that some of the dislike of C++ stems from its backwards compatibility constraints.<br />
+Bjarne said: &#8220;Within C++, there is a much smaller and cleaner language struggling to get out.&#8221;</p>
+<p>Has there been any effort trying to define that smaller language in standard C++?<br />
+For example, say we wanted to deprecate C-style casts. Could we make them warn/error by default, and when using old headers or libraries, you need something like &#8220;#pragma allow_old_school_c++&#8221;?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7137">
+		<div id="div-comment-7137">
+		<div class="cmtinfo"><em> on <a href="#comment-7137" title="">2012-12-03 at 4:54 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/eae9bed34d640b7dc87a8d9496e22d54?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jason Bilmez</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7137"></div><p>A review of Jason&#8217;s work history on SO and linkedin, the lack of any publicly reviewable code or concrete examples of his work are all indicators that his commentary on the subject of C++ to be nothing more than hot air.</p>
+<p>His biggest argument: Not being as productive in C++ when compared to other languages (C#, Java etc). Blaming the tool when not used properly, blaming the technology for not allowing you to reach guru status within 6-12months of trivial use, blaming the presence of complexity, when not fully understanding its existence &#8211; are all signs of a novice, inadequate developer.</p>
+<p>Further more to preface each argument, with &#8220;I really love C++, but&#8230;&#8221; Is like saying &#8220;You&#8217;re a really nice person but&#8230;&#8221; Any technical debate that attempts to inject emotion or personal preference in lieu of properly thought through technical arguments and merits is also indicative of a lack of competence in said area of debate and more an indicator for a lust of self promotion and hot-air.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-7136">
+		<div id="div-comment-7136">
+		<div class="cmtinfo"><em> on <a href="#comment-7136" title="">2012-12-03 at 4:16 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/7ff60bd79632cdb98a2eb2fda9f895d2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Zenju</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7136"></div><p>&gt; There are other major reasons in addition to those, such as:</p>
+<p>He forgot the most important one:  Design without compromise. </p>
+<p>As much as C++&#8217;s complexity may be seen as a disadvantage for newbies, it is giving the expert all the design tools at hand to express everything he wants directly, unlike any other &#8220;simpler&#8221; language.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7135">
+		<div id="div-comment-7135">
+		<div class="cmtinfo"><em> on <a href="#comment-7135" title="">2012-12-03 at 4:04 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/390105a4ab80cde30259b6c6bd055be4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Andrew</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7135"></div><p>C++ being good or not vs other languages&#8230; how many articles have been written about it?<br />
+I worked as a C++ developer for several years, now only C#</p>
+<p>I wish there was a similar language to the C++(no intermediate language like in .net), having similar simplicity of the C# as a language(no OOP multi class inheritance language quirks) and being able to use the same framework awesomeness of .NET.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jsonmez even thread-even depth-1 highlander-comment" id="comment-7132">
+		<div id="div-comment-7132">
+		<div class="cmtinfo"><em> on <a href="#comment-7132" title="">2012-12-03 at 2:21 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f756977fcd58260852b0bfd578dd6575?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://complextosimple.wordpress.com' rel='external nofollow' class='url'>jsonmez</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7132"></div><p>Thanks Herb.  Good point about perspective.  And I appreciate you attitude on the subject.  We may not agree, but we can discus our different views in a productive way.</p>
+<p>I learned a large amount about C++ from your excellent books and articles on C++.</p>
+<p>@mrmcgibby great point! Rarely does any managed developer drop into the appropriate language like C or C++, myself included.  We all need to be better polyglot programmers, using the right tool for the right job.  :)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mrmcgibby odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-7131">
+		<div id="div-comment-7131">
+		<div class="cmtinfo"><em> on <a href="#comment-7131" title="">2012-12-03 at 2:00 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/128b7d2b61160b90b0b4a8d2dca0c6d2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mrmcgibby</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_7131"></div><p>Decent article.  I don&#8217;t think it&#8217;s *that* good.  He makes some good points about the failings of C++, but he doesn&#8217;t really explain how some other language does it better.  It really comes off as yet another post by someone who needs to prioritize development speed over execution speed, which is where all these &#8220;simpler&#8221; languages tend to shine.  In my experience, these other languages execute fast enough on smaller projects, but start to break down on larger ones.  The response is that you should write the fast parts in C when needed.  However, this isn&#8217;t a trivial barrier and may seriously break the design of the system.  These guys throw that approach around, but I don&#8217;t generally see many of them actually *doing* it because really, the barrier is pretty large.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2012/12/03/perspective-why-c-is-not-back/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-ca39c5051977565c2917a05a1f4e3e6e">
+	</div>
+	<div class="grofile-hash-map-d2c24bd2850c92cd1a2a82bd74f4afea">
+	</div>
+	<div class="grofile-hash-map-8074d916b1c9c5f752f751c2123360a0">
+	</div>
+	<div class="grofile-hash-map-834ecf25ebbc609dd2dc4e0aaff099bb">
+	</div>
+	<div class="grofile-hash-map-142f1d9a41432af07ba4110ebcadea50">
+	</div>
+	<div class="grofile-hash-map-528e2cea8b547f9c8ece2361781d3d82">
+	</div>
+	<div class="grofile-hash-map-e00198c96f3a1c446a68072957200bea">
+	</div>
+	<div class="grofile-hash-map-78bb20f59ae1afe937d252c4a02436c6">
+	</div>
+	<div class="grofile-hash-map-ef36b899789c5ab264fd4b26d5a91a35">
+	</div>
+	<div class="grofile-hash-map-d7aaf766b7091c5583ee189b116ecd6a">
+	</div>
+	<div class="grofile-hash-map-47db13b8ce89bdb2dcec9d0405a75ed8">
+	</div>
+	<div class="grofile-hash-map-9805f4a2be4e3be4c489773f4e52b2e6">
+	</div>
+	<div class="grofile-hash-map-bd612de0aa352674c2e26203dd16c88d">
+	</div>
+	<div class="grofile-hash-map-b82aac385b0450085205a23e6a41ddce">
+	</div>
+	<div class="grofile-hash-map-525dac0c4812e8e8753935590b40ddb6">
+	</div>
+	<div class="grofile-hash-map-a74264111797dd5ab38cbf98d1e99539">
+	</div>
+	<div class="grofile-hash-map-ec022a99fb38206ba66b414c2dbc350d">
+	</div>
+	<div class="grofile-hash-map-e159f83d2918e4e015e870d3077c8328">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-c1fe20f3f481ff9b33e290c8dd3cafa8">
+	</div>
+	<div class="grofile-hash-map-dcafbba93dc637c513c6cf8ae3d5ea2a">
+	</div>
+	<div class="grofile-hash-map-a79df09f1a33afcf65306fe23bf4aadd">
+	</div>
+	<div class="grofile-hash-map-64bac8a460e971008177b8e4ee6393a2">
+	</div>
+	<div class="grofile-hash-map-8bcbc5519492da9cafc3a8162c830427">
+	</div>
+	<div class="grofile-hash-map-2f91e7ffad34f35c3d035838acf156ac">
+	</div>
+	<div class="grofile-hash-map-eae9bed34d640b7dc87a8d9496e22d54">
+	</div>
+	<div class="grofile-hash-map-7ff60bd79632cdb98a2eb2fda9f895d2">
+	</div>
+	<div class="grofile-hash-map-390105a4ab80cde30259b6c6bd055be4">
+	</div>
+	<div class="grofile-hash-map-f756977fcd58260852b0bfd578dd6575">
+	</div>
+	<div class="grofile-hash-map-128b7d2b61160b90b0b4a8d2dca0c6d2">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_13906={"id":468178,"unique_id":"wp-comment-13906","title":"I%20have%20a%20love-hate%20relationship%20with%20c%2B%2B.%20I%20like%20the%20plain%20abstraction%2C%20its%20syntax%20and%20its%20value%20semantics.%20On%20the%20other%20hand%20I%20cannot%20appreciate%20the%20following%20things%3A-%20compilation%20speed.%20In%20my%20w...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-13906","item_id":"_comm_13906"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13906 == 'undefined' ){PDRTJS_468178_comm_13906 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13906 );}}PDRTJS_settings_468178_comm_12977={"id":468178,"unique_id":"wp-comment-12977","title":"Managed%20languages%20are%20the%20right%20choice%20for%20the%20large%20majority%20of%20use%20cases.%20C%20is%20usually%20the%20most%20pragmatic%20choice%20for%20use%20cases%20that%20call%20for%20a%20lower%20level%20of%20abstraction%20and%2For%20higher%20level%20of%20...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-12977","item_id":"_comm_12977"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12977 == 'undefined' ){PDRTJS_468178_comm_12977 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12977 );}}PDRTJS_settings_468178_comm_12286={"id":468178,"unique_id":"wp-comment-12286","title":"%40Bob%26quot%3B%209%20out%20of%20every%2010%20job%20postings%20do%20not%20require%20knowledge%20of%20c%2B%2B%20or%20c%26quot%3B9%20out%20of%20every%2010%20programmer%20in%20the%20world%20knows%20gcd%20language%20like%20c%23%2Fjava%2Fpython%20etc.%20%20More%20demand%2C%20more%20supply....","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-12286","item_id":"_comm_12286"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12286 == 'undefined' ){PDRTJS_468178_comm_12286 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12286 );}}PDRTJS_settings_468178_comm_12207={"id":468178,"unique_id":"wp-comment-12207","title":"There%20is%20currently%20a%20higher%20demand%20for%20programmers%20than%20can%20be%20filled.%20%20I%20am%20guessing%209%20out%20of%20every%2010%20job%20postings%20do%20not%20require%20knowledge%20of%20c%2B%2B%20or%20c%20and%20only%20expect%20training%20in%20a%20gc%26%23039%3Bd%20langua...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-12207","item_id":"_comm_12207"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12207 == 'undefined' ){PDRTJS_468178_comm_12207 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12207 );}}PDRTJS_settings_468178_comm_7467={"id":468178,"unique_id":"wp-comment-7467","title":"It%20is%20waste%20of%20time%20fighting%20over%20languages%20because%20one%20language%20does%20not%20suit%20all%20industries.%20%20I%20worked%20mainly%20in%20the%20financial%20industry%20where%20C%2B%2B%20is%20used%20extensively.%20%20I%20have%20seen%20good%20C%2B%2B%20deve...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7467","item_id":"_comm_7467"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7467 == 'undefined' ){PDRTJS_468178_comm_7467 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7467 );}}PDRTJS_settings_468178_comm_7436={"id":468178,"unique_id":"wp-comment-7436","title":"For%20me%20the%20biggest%20problem%20with%20C%2B%2B%20is%20code%20readability%2C%20and%20maintainability.%20When%20you%20read%20C%2B%2B%20code%20%28especially%20written%20by%20someone%20else%29%20you%20can%20never%20be%20sure%20what%20it%20means%2C%20and%20what%20path%20it%20wil...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7436","item_id":"_comm_7436"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7436 == 'undefined' ){PDRTJS_468178_comm_7436 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7436 );}}PDRTJS_settings_468178_comm_7354={"id":468178,"unique_id":"wp-comment-7354","title":"%26%23091%3B...%26%23093%3B%20Perspective%3A%20Why%20C%2B%2B%20is%20not%20back%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7354","item_id":"_comm_7354"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7354 == 'undefined' ){PDRTJS_468178_comm_7354 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7354 );}}PDRTJS_settings_468178_comm_7343={"id":468178,"unique_id":"wp-comment-7343","title":"Thank%20you%20for%20your%20reply%2C%20Herb%21...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7343","item_id":"_comm_7343"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7343 == 'undefined' ){PDRTJS_468178_comm_7343 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7343 );}}PDRTJS_settings_468178_comm_7303={"id":468178,"unique_id":"wp-comment-7303","title":"%40Joe%3A%20Please%20keep%20in%20mind%20that%20Dalvik%20VM%20is%20not%20the%20best%20implementation%20of%20Java.%20In%20fact%20XobotOS%20%28Android%20ported%20to%20C%23%29%20is%20much%20faster%20than%20Dalvik%20%28http%3A%2F%2Fwww.infoq.com%2Fnews%2F2012%2F05%2FXobotOS%29....","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7303","item_id":"_comm_7303"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7303 == 'undefined' ){PDRTJS_468178_comm_7303 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7303 );}}PDRTJS_settings_468178_comm_7288={"id":468178,"unique_id":"wp-comment-7288","title":"%40earwicker%3A%20I%20do%20agree%20that%20brittleness%20in%20general%20is%20bad%2C%20and%20one%20of%20the%20limitations%20of%20C%2B%2B%20that%20I%20will%20readily%20admit%20is%20that%20it%20is%20unforgiving%20of%20sloppiness.%20Unfortunately%2C%20with%20C%2B%2B%20it%20can%20lead...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7288","item_id":"_comm_7288"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7288 == 'undefined' ){PDRTJS_468178_comm_7288 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7288 );}}PDRTJS_settings_468178_comm_7232={"id":468178,"unique_id":"wp-comment-7232","title":"%40Joe%20-%20%26quot%3BI%20also%20dont%20find%20the%20resources%20dont%20matter%20argument%20particularly%20convincing.%26quot%3BYou%26%23039%3Bre%20absolutely%20right%20there%20-%20we%20have%20yet%20to%20reach%20the%20far-off%20horizon%20where%20computation%20is%20free.%20In%20particu...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7232","item_id":"_comm_7232"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7232 == 'undefined' ){PDRTJS_468178_comm_7232 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7232 );}}PDRTJS_settings_468178_comm_7221={"id":468178,"unique_id":"wp-comment-7221","title":"I%20find%20it%20interesting%20that%20someone%20mentions%20WPF%20as%20a%20highly%20productive%20tool%20for%20GUIs%20when%20I%20have%20found%20it%20to%20be%20the%20opposite.%20It%26%23039%3Bs%20quite%20quick%20when%20you%20want%20to%20do%20flashy%20things%2C%20but%20if%20you%20need%20s...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7221","item_id":"_comm_7221"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7221 == 'undefined' ){PDRTJS_468178_comm_7221 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7221 );}}PDRTJS_settings_468178_comm_7219={"id":468178,"unique_id":"wp-comment-7219","title":"%40Jason%20BilmezYou%26%23039%3Bre%20far%20too%20hard%20on%20John%2C%20calling%20him%20%26quot%3Bfull%20of%20hot%20air%26quot%3B.%20It%26%23039%3Bs%20as%20if%20you%20don%26%23039%3Bt%20think%20people%20are%20entitled%20to%20opinions%20unless%20they%20are%20drenched%20in%20facts%20and%20figures%20to%20support%20them.%20...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7219","item_id":"_comm_7219"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7219 == 'undefined' ){PDRTJS_468178_comm_7219 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7219 );}}PDRTJS_settings_468178_comm_7216={"id":468178,"unique_id":"wp-comment-7216","title":"%40earwickerYou%20are%20right%2C%20why%20would%20we%20use%20a%20language%20that%20supports%20something%20we%20don%26%23039%3Bt%20want%20to%20do%3F%20Going%20back%20to%20your%20knife%20analogy%2C%20why%20use%20a%20knife%20when%20we%20could%20use%20a%20slicer%20specific%20to%20what%20we%20...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7216","item_id":"_comm_7216"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7216 == 'undefined' ){PDRTJS_468178_comm_7216 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7216 );}}PDRTJS_settings_468178_comm_7215={"id":468178,"unique_id":"wp-comment-7215","title":"%40Rob%20G%20-%20%26quot%3BIve%20been%20programming%20in%20C%2B%2B%20for%20around%2020%20years%2C%20and%20have%20never%20found%20that%20I%20have%20to%20treat%20memory%20as%20a%20flat%20space.%26quot%3BYes%2C%20me%20too.%20But%20about%20five%20years%20ago%2C%20I%20realised%3A%20why%20use%20a%20language%20...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7215","item_id":"_comm_7215"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7215 == 'undefined' ){PDRTJS_468178_comm_7215 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7215 );}}PDRTJS_settings_468178_comm_7206={"id":468178,"unique_id":"wp-comment-7206","title":"%40Michael%20said%20%26quot%3BThe%20only%20reason%20that%20makes%20C%2B%2B%20syntax%20ugly%2C%20and%20tools%20difficult%20to%20write%20for%2C%20is%20that%20C%2B%2B%20syntax%20is%20not%20LR%281%29.%26quot%3B%2CFortunately%2C%20the%20CLang%20project%20exposes%20the%20parser.%20Hopefully%2C%20this%20w...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7206","item_id":"_comm_7206"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7206 == 'undefined' ){PDRTJS_468178_comm_7206 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7206 );}}PDRTJS_settings_468178_comm_7205={"id":468178,"unique_id":"wp-comment-7205","title":"%40earwicker%20-%20Are%20you%20serious%3F%20I%26%23039%3Bve%20been%20programming%20in%20C%2B%2B%20for%20around%2020%20years%2C%20and%20have%20never%20found%20that%20I%20have%20to%20treat%20memory%20as%20a%20flat%20space.%20Indeed%2C%20the%20language%2C%20more%20than%20any%20other%20I%26%23039%3Bve%20us...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7205","item_id":"_comm_7205"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7205 == 'undefined' ){PDRTJS_468178_comm_7205 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7205 );}}PDRTJS_settings_468178_comm_7198={"id":468178,"unique_id":"wp-comment-7198","title":"There%20are%20many%20great%20similarities%20between%20C%2B%2B%20and%20the%20other%20languages%20being%20discussed%20here.%20With%20C%2B%2B11%20%28and%20even%20Java%208%29%20the%20gap%20shrinks%20further.%20But%20there%20is%20one%20fundamental%20difference%20that%20will...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7198","item_id":"_comm_7198"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7198 == 'undefined' ){PDRTJS_468178_comm_7198 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7198 );}}PDRTJS_settings_468178_comm_7188={"id":468178,"unique_id":"wp-comment-7188","title":"I%20think%20the%20fundamental%20principle%20that%20people%20do%20not%20understand%20is%20we%20have%20to%20be%20productive.%20Language%20is%20just%20a%20means%20to%20talk%20to%20the%20computer%2C%20and%20all%20languages%20are%20built%20on%20some%20usage%20specs.%20Eve...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7188","item_id":"_comm_7188"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7188 == 'undefined' ){PDRTJS_468178_comm_7188 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7188 );}}PDRTJS_settings_468178_comm_7187={"id":468178,"unique_id":"wp-comment-7187","title":"%26gt%3B%20You%20will%20find%20this%20to%20be%20true%2C%20for%20example%2C%20with%20the%20new%20uniform%20initialization%20syntax.%20Once%20enough%20people%20have%20migrated%20to%20the%20new%20syntax%2C%20which%20is%20better%20in%20virtually%20every%20way%2C%20sometime%20i...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7187","item_id":"_comm_7187"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7187 == 'undefined' ){PDRTJS_468178_comm_7187 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7187 );}}PDRTJS_settings_468178_comm_7184={"id":468178,"unique_id":"wp-comment-7184","title":"The%20only%20reason%20that%20makes%20C%2B%2B%20syntax%20ugly%2C%20and%20tools%20difficult%20to%20write%20for%2C%20is%20that%20C%2B%2B%20syntax%20is%20not%20LR%281%29.%20%20Take%20a%20look%20at%20the%20managed%20languages%20and%20notice%20that%20their%20tool%20support%20is%20vastly%20s...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7184","item_id":"_comm_7184"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7184 == 'undefined' ){PDRTJS_468178_comm_7184 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7184 );}}PDRTJS_settings_468178_comm_7175={"id":468178,"unique_id":"wp-comment-7175","title":"%26quot%3BC%2B%2B%20%2Adoes%20not%20allow%20them%20to%20do%20that%2A%20%20theres%20just%20too%20much%20that%20can%20go%20wrong%3B%20until%20youre%20a%20C%2B%2B%20expert%20you%20will%20be%20writing%20code%20that%20is%20fundamentally%20unsound.%20Thats%20not%20something%20to%20be%20proud%20of....","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7175","item_id":"_comm_7175"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7175 == 'undefined' ){PDRTJS_468178_comm_7175 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7175 );}}PDRTJS_settings_468178_comm_7174={"id":468178,"unique_id":"wp-comment-7174","title":"Some%20really%20strange%20comments%20here.%20%20%20The%20idea%20that%20C%2B%2B%20is%20extremely%20difficult%20is%20garbage.%20%20%20You%20can%20make%20it%20that%20way%20but%20it%20is%20very%20possible%20to%20write%20clear%20and%20well%20organized%20programs%20in%20C%2B%2B%20with...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7174","item_id":"_comm_7174"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7174 == 'undefined' ){PDRTJS_468178_comm_7174 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7174 );}}PDRTJS_settings_468178_comm_7169={"id":468178,"unique_id":"wp-comment-7169","title":"As%20an%20engineer%2C%20and%20not%20a%20computer%20scientist%2C%20I%20think%20a%20lot%20of%20the%20language%20warriors%20are%20missing%20an%20important%20point.%20%20The%20days%20of%20%26quot%3BOne%20Language%20To%20Rule%20Them%20All%26quot%3B%20are%20over%2C%20dead%20and%20gone.%20%20I%20think...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7169","item_id":"_comm_7169"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7169 == 'undefined' ){PDRTJS_468178_comm_7169 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7169 );}}PDRTJS_settings_468178_comm_7168={"id":468178,"unique_id":"wp-comment-7168","title":"C%2B%2B%20is%20only%20complicated%20because%20certain%20old%20%26quot%3Bfeatures%26quot%3B%20still%20have%20to%20be%20used%2C%20once%20new%20modern%20variants%20of%20these%20things%20are%20in%2C%20the%20language%20will%20be%20a%20great%20deal%20more%20enjoyableheader%20files%20%2B%20slow%20...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7168","item_id":"_comm_7168"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7168 == 'undefined' ){PDRTJS_468178_comm_7168 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7168 );}}PDRTJS_settings_468178_comm_7166={"id":468178,"unique_id":"wp-comment-7166","title":"General%3A%20Thanks%20for%20the%20generally%20high%20level%20of%20comments%2C%20especially%20nearer%20the%20start.%20I%20was%20hoping%20this%20would%20continue%20as%20a%20balanced%20discussion%20instead%20of%20degenerating%20into%20barbs.%20%3A%29A%20few%20though...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7166","item_id":"_comm_7166"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7166 == 'undefined' ){PDRTJS_468178_comm_7166 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7166 );}}PDRTJS_settings_468178_comm_7160={"id":468178,"unique_id":"wp-comment-7160","title":"From%20Joe%20Duffys%20Weblog%3B%20http%3A%2F%2Fwww.bluebytesoftware.com%2Fblog%2F2012%2F10%2F31%2FBewareTheString.aspx.NET%20holds%20an%20enormous%20advantage%20over%20C%2B%2B.That%20might%20sound%20like%20an%20oxymoron%2C%20but%20our%20system%20can%20in%20fact...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7160","item_id":"_comm_7160"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7160 == 'undefined' ){PDRTJS_468178_comm_7160 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7160 );}}PDRTJS_settings_468178_comm_7153={"id":468178,"unique_id":"wp-comment-7153","title":"%26quot%3BIf%20%28as%20it%20may%20be%20reasonable%20to%20argue%29%20you%20need%20to%20be%20a%20C%2B%2B%20expert%20to%20use%20it%20properly%2C%20that%20is%20a%20point%20against%20it%21%20Stop%20bragging%20about%20how%20good%20you%20personally%20are%20at%20C%2B%2B%20and%20how%20anyone%20whod%20rathe...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7153","item_id":"_comm_7153"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7153 == 'undefined' ){PDRTJS_468178_comm_7153 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7153 );}}PDRTJS_settings_468178_comm_7150={"id":468178,"unique_id":"wp-comment-7150","title":"Nothing%20frustrates%20me%20more%20%28and%20it%26%23039%3Bs%20been%20seen%20among%20these%20very%20comments%20right%20here%21%29%20than%20the%20attitude%20that%20%26quot%3Bif%20you%20don%26%23039%3Bt%20think%20C%2B%2B%20is%20best%2C%20you%20just%20don%26%23039%3Bt%20know%20it%20well%20enough%26quot%3B.%20The%20commenter%20is...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7150","item_id":"_comm_7150"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7150 == 'undefined' ){PDRTJS_468178_comm_7150 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7150 );}}PDRTJS_settings_468178_comm_7149={"id":468178,"unique_id":"wp-comment-7149","title":"100%25%20agree%20with%20John%20Sonmez.%20New%20C%2B%2B%200x11%20is%20really%20very%20BAD%2CBAD%2CBAD%20language.%20As%20a%20John%20himself%2C%20i%20am%20total%20C%2B%2B%20fan.%20The%20main%20problem%20of%20C%2B%2B%200x11%20is%20that%20it%20is%20very%20big%20and%20difficult%20to%20learn.Go...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7149","item_id":"_comm_7149"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7149 == 'undefined' ){PDRTJS_468178_comm_7149 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7149 );}}PDRTJS_settings_468178_comm_7148={"id":468178,"unique_id":"wp-comment-7148","title":"Beware%20the%20false%20dichotomy%20between%20%26quot%3Bnative%20code%26quot%3B%20and%20%26quot%3Bmanaged%20code%26quot%3B.%20Sure%20the%20currently%20most%20used%20languages%20%28C%2C%20C%2B%2B%2C%20Java%2C%20C%23%2C%20JavaScript%29%20tend%20to%20make%20it%20true.%20It%20certainly%20is%20if%20you%26%23039%3Bre%20a%20manage...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7148","item_id":"_comm_7148"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7148 == 'undefined' ){PDRTJS_468178_comm_7148 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7148 );}}PDRTJS_settings_468178_comm_7147={"id":468178,"unique_id":"wp-comment-7147","title":"Talking%20about%20cross%20platform%20usages%20of%20C%2B%2B%20i%20think%20Boost%20library%2C%20standard%20library%20and%20llvm%20based%20frontend%20CLang%20is%20doing%20a%20great%20work.%20It%20would%20be%20interesting%20to%20jit%20C%2B%2B%20also%20using%20llvm....","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7147","item_id":"_comm_7147"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7147 == 'undefined' ){PDRTJS_468178_comm_7147 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7147 );}}PDRTJS_settings_468178_comm_7146={"id":468178,"unique_id":"wp-comment-7146","title":"I%20do%20like%20C%2B%2B%20a%20lot%2C%20using%20it%20lately%20for%20some%20of%20my%20private%20projects%20%28at%20work%20I%20use%20mainly%20Java%2FC%23%29%2C%20after%20my%20employer%20started%20moving%20their%20projects%20from%20C%2B%2B%20to%20Java%2FC%23%20in%202006.Although%20I%20am%20quit...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7146","item_id":"_comm_7146"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7146 == 'undefined' ){PDRTJS_468178_comm_7146 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7146 );}}PDRTJS_settings_468178_comm_7143={"id":468178,"unique_id":"wp-comment-7143","title":"Whenever%20I%20code%20in%20C%23%20I%20feel%20my%20brain%20cells%20die%2C%20and%20my%20productivity%20plummets.%20%20The%20language%20makes%20me%20feel%20stupid.%20%20Must%20be%20because%20it%26%23039%3Bs%20been%20designed%20as%20a%20lowest-common-denominator%20%28corporate%29%20l...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7143","item_id":"_comm_7143"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7143 == 'undefined' ){PDRTJS_468178_comm_7143 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7143 );}}PDRTJS_settings_468178_comm_7140={"id":468178,"unique_id":"wp-comment-7140","title":"Here%20is%20a%20bit%20of%20my%20thoughts%20on%20the%20post%3AIn%20general%20I%20believe%2C1.%20C%2B%2B%20gives%20people%28experts%29%20opportunity%20to%20better%20optimize.%20So%20if%20you%20do%20not%20want%20the%20optimizations%2C%20please%20do%20not%20use%20C%2B%2B.2.%20I%20have...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7140","item_id":"_comm_7140"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7140 == 'undefined' ){PDRTJS_468178_comm_7140 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7140 );}}PDRTJS_settings_468178_comm_7139={"id":468178,"unique_id":"wp-comment-7139","title":"That%20smaller%2C%20cleaner%20language%20you%26%23039%3Bre%20looking%20for%20is%20the%20one%20that%20is%20based%20on%20modules%20%28http%3A%2F%2Fwww.open-std.org%2Fjtc1%2Fsc22%2Fwg21%2Fdocs%2Fpapers%2F2012%2Fn3347.pdf%29%2C%20not%2050-year-old%20compiler%20technology....","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7139","item_id":"_comm_7139"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7139 == 'undefined' ){PDRTJS_468178_comm_7139 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7139 );}}PDRTJS_settings_468178_comm_7138={"id":468178,"unique_id":"wp-comment-7138","title":"%40Herb%2CIt%20seems%20to%20me%20that%20some%20of%20the%20dislike%20of%20C%2B%2B%20stems%20from%20its%20backwards%20compatibility%20constraints.%20Bjarne%20said%3A%20%26quot%3BWithin%20C%2B%2B%2C%20there%20is%20a%20much%20smaller%20and%20cleaner%20language%20struggling%20to%20get%20o...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7138","item_id":"_comm_7138"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7138 == 'undefined' ){PDRTJS_468178_comm_7138 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7138 );}}PDRTJS_settings_468178_comm_7137={"id":468178,"unique_id":"wp-comment-7137","title":"A%20review%20of%20Jason%26%23039%3Bs%20work%20history%20on%20SO%20and%20linkedin%2C%20the%20lack%20of%20any%20publicly%20reviewable%20code%20or%20concrete%20examples%20of%20his%20work%20are%20all%20indicators%20that%20his%20commentary%20on%20the%20subject%20of%20C%2B%2B%20to%20be%20n...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7137","item_id":"_comm_7137"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7137 == 'undefined' ){PDRTJS_468178_comm_7137 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7137 );}}PDRTJS_settings_468178_comm_7136={"id":468178,"unique_id":"wp-comment-7136","title":"%26gt%3B%20There%20are%20other%20major%20reasons%20in%20addition%20to%20those%2C%20such%20as%3AHe%20forgot%20the%20most%20important%20one%3A%20%20Design%20without%20compromise.%20As%20much%20as%20C%2B%2B%26%23039%3Bs%20complexity%20may%20be%20seen%20as%20a%20disadvantage%20for%20newbie...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7136","item_id":"_comm_7136"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7136 == 'undefined' ){PDRTJS_468178_comm_7136 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7136 );}}PDRTJS_settings_468178_comm_7135={"id":468178,"unique_id":"wp-comment-7135","title":"C%2B%2B%20being%20good%20or%20not%20vs%20other%20languages...%20how%20many%20articles%20have%20been%20written%20about%20it%3FI%20worked%20as%20a%20C%2B%2B%20developer%20for%20several%20years%2C%20now%20only%20C%23I%20wish%20there%20was%20a%20similar%20language%20to%20the%20C%2B%2B%28n...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7135","item_id":"_comm_7135"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7135 == 'undefined' ){PDRTJS_468178_comm_7135 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7135 );}}PDRTJS_settings_468178_comm_7132={"id":468178,"unique_id":"wp-comment-7132","title":"Thanks%20Herb.%20%20Good%20point%20about%20perspective.%20%20And%20I%20appreciate%20you%20attitude%20on%20the%20subject.%20%20We%20may%20not%20agree%2C%20but%20we%20can%20discus%20our%20different%20views%20in%20a%20productive%20way.I%20learned%20a%20large%20amount%20ab...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7132","item_id":"_comm_7132"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7132 == 'undefined' ){PDRTJS_468178_comm_7132 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7132 );}}PDRTJS_settings_468178_comm_7131={"id":468178,"unique_id":"wp-comment-7131","title":"Decent%20article.%20%20I%20don%26%23039%3Bt%20think%20it%26%23039%3Bs%20%2Athat%2A%20good.%20%20He%20makes%20some%20good%20points%20about%20the%20failings%20of%20C%2B%2B%2C%20but%20he%20doesn%26%23039%3Bt%20really%20explain%20how%20some%20other%20language%20does%20it%20better.%20%20It%20really%20comes%20off%20a...","permalink":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/#comment-7131","item_id":"_comm_7131"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_7131 == 'undefined' ){PDRTJS_468178_comm_7131 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_7131 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F12%2F03%2Fperspective-why-c-is-not-back%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2012\/12\/03\/perspective-why-c-is-not-back\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2012%2F12%2F03%2Fperspective-why-c-is-not-back%2F","postID":"1684","shortlink":"https:\/\/wp.me\/peb5Y-ra","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/1684","statsLink":"https:\/\/wordpress.com\/stats\/post\/1684\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F12%2F03%2Fperspective-why-c-is-not-back%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'1684','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLnxdWkYuKz1XUnVaX0lsJmh3L2xxcHNhKzVFcDhfWklkZkImNjl5OFdzKy5CNHlwT1QvQmduQ2xKY1Z0Ty02ck02W2lPd1k5Vy9KUSszWDZSdiYvP0d8XVprOERHYllRL0laLS93d2xMRDd3WnJmZnhYbGVQbzMxaW00NkJFVTJDMV9OYy00cFl3aHZLLjlvTzMldmI2JUNzP11hP3klW3dILG4mZWc5TGVPc3JkSURLWDN2K2pnLnAtaTcudlZmQnxLbEtB'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '1684' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

@@ -1,0 +1,584 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #6b: Const-Correctness, Part 2 | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965400&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F24%2Fgotw-6b-const-correctness-part-2%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #6b: Const-Correctness, Part&nbsp;2 Comments Feed" href="https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #6a Solution: Const-Correctness, Part&nbsp;1' href='https://herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/' />
+<link rel='next' title='Lost two comments' href='https://herbsutter.com/2013/05/24/lost-two-comments/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-wi' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F24%2Fgotw-6b-const-correctness-part-2%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F24%2Fgotw-6b-const-correctness-part-2%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #6b: Const-Correctness, Part 2" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/" />
+<meta property="og:description" content="const and mutable are powerful tools for writing safer code. Use them consistently. Problem Guru Question In the following code, add or remove const (including minor variants and related keywords) …" />
+<meta property="article:published_time" content="2013-05-24T15:43:05+00:00" />
+<meta property="article:modified_time" content="2013-05-24T15:43:05+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965400" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #6b: Const-Correctness, Part&nbsp;2" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="const and mutable are powerful tools for writing safer code. Use them consistently. Problem Guru Question In the following code, add or remove const (including minor variants and related keywords) wherever appropriate. Note: Don&#039;t comment on or change the structure of this program. It&#039;s contrived and condensed for illustration only. For bonus points: In what&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2002 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/" rel="prev">GotW #6a Solution: Const-Correctness, Part&nbsp;1</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/05/24/lost-two-comments/" rel="next">Lost two comments</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2002 post type-post status-publish format-standard hentry category-gotw" id="post-2002">
+				<div class="posttitle">
+					<h2>GotW #6b: Const-Correctness, Part&nbsp;2</h2>
+					<p class="post-info">2013-05-24 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>const and mutable are powerful tools for writing safer code. Use them consistently.</em></span>
+	</p>
+<h1>Problem<br />
+</h1>
+<h2>Guru Question<br />
+</h2>
+<p>In the following code, add or remove <span style="color:#2e74b5;">const</span> (including minor variants and related keywords) wherever appropriate. Note: Don&#8217;t comment on or change the structure of this program. It&#8217;s contrived and condensed for illustration only.
+</p>
+<p>For bonus points: In what places are the program&#8217;s results undefined or uncompilable due to <span style="color:#2e74b5;">const</span> errors?
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>class polygon {<br />public:<br />    polygon() : area{-1} {}<br /><br />    void add_point( const point pt ) { area = -1;<br />                                       points.push_back(pt); }<br /><br />    point get_point( const int i ) { return points[i]; }<br /><br />    int get_num_points() { return points.size(); }<br /><br />    double get_area() {<br />        if( area &lt; 0 )   // if not yet calculated and cached<br />            calc_area();     // calculate now<br />        return area;<br />    }<br /><br />private:<br />    void calc_area() {<br />        area = 0;<br />        vector&lt;point&gt;::iterator i;<br />        for( i = begin(points); i != end(points); ++i )<br />            area += /* some work using *i */;<br />    }<br /><br />    vector&lt;point&gt; points;<br />    double        area;<br />};<br /><br />polygon operator+( polygon&amp; lhs, polygon&amp; rhs ) {<br />    auto ret = lhs;<br />    auto last = rhs.get_num_points();<br />    for( auto i = 0; i &lt; last; ++i ) // concatenate<br />        ret.add_point( rhs.get_point(i) );<br />    return ret;<br />}<br /><br />void f( const polygon&amp; poly ) {<br />    const_cast&lt;polygon&amp;&gt;(poly).add_point( {0,0} );<br />}<br /><br />void g( polygon&amp; const poly ) { poly.add_point( {1,1} ); }<br /><br />void h( polygon* const poly ) { poly-&gt;add_point( {2,2} ); }<br /><br />int main() {<br />    polygon poly;<br />    const polygon cpoly;<br /><br />    f(poly);<br />    f(cpoly);<br />    g(poly);<br />    h(&amp;poly);<br />}
+</code></pre></p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											8 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">8 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-10519">
+		<div id="div-comment-10519">
+		<div class="cmtinfo"><em> on <a href="#comment-10519" title="">2013-05-27 at 3:23 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/efbb5c6fa84a2bf7f6a89f0945186a40?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Amali</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10519"></div><p>As mentioned in GotW#4 Class Mechanics solution, operator + can be changed to:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+// add const&amp; to rhs, remove  const&amp; from lhs
+polygon operator+( polygon lhs, const polygon&amp; rhs ) {
+    auto last = rhs.get_num_points();
+    for( auto i = 0; i &lt; last; ++i ) // concatenate
+        lhs.add_point( rhs.get_point(i) );
+    return lhs;
+}
+</pre>
+<p>to avoid unnecessary copy auto ret = lhs;, if you&#8217;re going to do the copy anyway.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10518">
+		<div id="div-comment-10518">
+		<div class="cmtinfo"><em> on <a href="#comment-10518" title="">2013-05-27 at 2:04 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/8dcd1b3ae0e41e0d8e4198697f20d0d8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://insooth.i365.pl/insooth/' rel='external nofollow' class='url'>Chris</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10518"></div><pre class="brush: plain; title: ; notranslate" title="">polygon() : area{-1} {}</pre>
+<p>I would rather initialise area with 0 or, even better, completely remove the area member from the class since its usefulness is discussable. Constructors may be left to be synthesised by the compiler (and they probably will be synthesised due to non-trivial constructors of the points member). This will save sizeof(double) of memory per object as well.</p>
+<pre class="brush: plain; title: ; notranslate" title="">void add_point( const point pt ) { area = -1;
+                                       points.push_back(pt); }
+</pre>
+<p>Function argument is passed by copy anyway, moreover it may be copied to the vector once again. I think that constness of pt will not affect the push_back behaviour. I would suggest to pass const point&amp; pt or use pt&#8217;s move constructor to &#8220;move&#8221; the pt&#8217;s memory to the vector (please correct me if it is not really possible).</p>
+<pre class="brush: plain; title: ; notranslate" title="">point get_point( const int i ) { return points[i]; }</pre>
+<p>The value of the i may be out of bounds, this should be checked first. Const on fundamental type does nothing I suppose, it may be removed freely. Getter in general should be non-modifying, so with const modifier on a member function. Having getter in const context the points member needs to be mutable and guarded with a mutex. I wonder what is really returned from this member function, is this a &#8220;moved&#8221; item from the points vector (destructive read?) or a real copy of the points[i] item. I would try to return a const&amp; rather than an object, but it may be pre-C++11 way of doing things&#8230;</p>
+<pre class="brush: plain; title: ; notranslate" title="">int get_num_points() { return points.size(); }</pre>
+<p>I would suggest to change return type to size_t, make above getter const modified and protect the points vector with a mutex (c.f. my comment on get_point and mutable).</p>
+<pre class="brush: plain; title: ; notranslate" title="">double get_area() {</pre>
+<p>I wonder how caching of a value calculated at some time is valid when multiple threads operates on the same object. I think it is not a good idea to do caching. It may break function &#8220;re-entrancy&#8221; since now such function does not depend on the actual state of the points vector solely.</p>
+<p>By the way, public member function calls private member function &#8211; this recalls me the rule to make virtuals private and call them through non-virtual public interface, unfortunately calc_area is not a virtual function.</p>
+<pre class="brush: plain; title: ; notranslate" title="">void calc_area() {</pre>
+<p>This member function has read-only access to the points vector, so it should be const modified and the points member access should be protected with a mutex. Anyway, I would use std::accumulate (or custom functor) with const iterators and return the calculated value to the caller.</p>
+<pre class="brush: plain; title: ; notranslate" title="">polygon operator+( polygon&amp; lhs, polygon&amp; rhs ) {
+    auto ret = lhs;
+</pre>
+<p>I suppose we don&#8217;t want to modify lhs, so let&#8217;s make it const&amp;. It may be quite good to add a check that will prevent from adding to itself. I would define operator+= as well. I wonder what is really stored under the auto type for ret. Is this simply a polygon type (without &amp;)?</p>
+<pre class="brush: plain; title: ; notranslate" title="">    const_cast&lt;polygon&amp;&gt;(poly).add_point( {0,0} );</pre>
+<p>This code will not pass a code review round :-)</p>
+<pre class="brush: plain; title: ; notranslate" title="">void g( polygon&amp; const poly ) { poly.add_point( {1,1} ); }</pre>
+<p>I think that &amp;const is redundant here since reference by definition is const &#8220;pointer&#8221; already.</p>
+<p>The g() looks like a better way to write h().</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10487">
+		<div id="div-comment-10487">
+		<div class="cmtinfo"><em> on <a href="#comment-10487" title="">2013-05-26 at 11:29 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/a75c1d9d194d060d36b44d417a8893fa?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Justin Simon</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10487"></div><p>muxecoid: ret is a copy of, not a reference to, lhs. When you&#8217;re using auto you still need to specify a reference qualifier (&amp;) if that&#8217;s what you want</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-muxecoid odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10456">
+		<div id="div-comment-10456">
+		<div class="cmtinfo"><em> on <a href="#comment-10456" title="">2013-05-26 at 4:37 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/18afd5485cf7f169a22cb51d64531c54?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>muxecoid</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10456"></div><p>At first glance:<br />
+Apparently operator+ modifies lhs which is not good. Adding const to lhs in function definition should cause it to fail to compile.<br />
+area should be mutable. calc_area can become const (and gets a lock at start of function body).<br />
+The overload of f that accepts const reference should not exist.<br />
+get_point obviously needs const.<br />
+In h it is the value of the pointer which is const, not the actual poly.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10434">
+		<div id="div-comment-10434">
+		<div class="cmtinfo"><em> on <a href="#comment-10434" title="">2013-05-25 at 7:29 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/fe8a5d0ee91f9db7f5b82b8fd4a4e1e6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>JL</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10434"></div><p>&#8211; change add_point() signature to add_point(const point &amp;pt)<br />
+&#8211; change get_point(), get_num_points() and get_area() to be const members functions<br />
+&#8211; change calc_area() to const member function and change area member variable to be mutable since it&#8217;s cached value<br />
+&#8211; in calc_area() change i to be const_iterator<br />
+&#8211; change parameters to operator+() to be passed by const reference<br />
+&#8211; change polygon to be passed to f() by non-const reference and remove const_cast from impl. since passing by const violates the contract of non-mutable argument<br />
+&#8211; change g(polygon&amp; const poly) to g(polygon&amp;)<br />
+&#8211; change polygon to h() be passed by non-const reference since impl. expect non-null pointer<br />
+&#8211; f(cpoly); behavior is undefined since cpoly may be allocated from immutable protected const store that can&#8217;t be modified.</p>
+<p>additional notes:<br />
+&#8211; depending on the expected usage pattern, it might be good idea to calculate area in add_point() function instead of using the lazy caching mechanism. this would make access to get_area() faster since there is no if() branching required and then area variable wouldn&#8217;t need to be mutable (it&#8217;s only changed in non-const add_point() function). e.g. if add_point() for a polygon is expected to be called only ~10 times while get_area() is expected to be called ~100000 times, it&#8217;s better not to use the lazy area caching mechanism. Furthermore, it would be good idea in this case to add add_points() which takes multiple points in one go and updates the area only once to enable client side optimizations.<br />
+&#8211; calc_area() could just return the calculated area and not update the area member variable. the update of the variable could be done in get_area() instead. this keeps calc_area() truly const and limits the mutability of the object only to get_area() function.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10420">
+		<div id="div-comment-10420">
+		<div class="cmtinfo"><em> on <a href="#comment-10420" title="">2013-05-24 at 8:35 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/e7f75fdf1b6cd974fcc64a64958f95f9?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Nathan Ridge</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10420"></div><p>add_point() should take a point by nonconst value, and move it into the vector.</p>
+<p>get_point() should be const. Its parameter needn&#8217;t be const.</p>
+<p>get_num_points() should be const and should return size_t.</p>
+<p>get_area() should be const. area should be mutable.</p>
+<p>calc_area() should be const and should use const iterators into the vector.</p>
+<p>operator+ should take lhs by nonconst value (and then not copy it again into &#8216;ret&#8217;), and rhs by reference-to-const.</p>
+<p>f should take its argument by reference-to-nonconst, since it modifies it. Of course there&#8217;s no need for the const_cast then.</p>
+<p>g has a const in a place where it&#8217;s implied (and not allowed explicitly) &#8211; after a reference. That should be removed. Otherwise it&#8217;s fine.</p>
+<p>h is fine, the toplevel const just means h promises not to change its argument poly to point to a different object. However, as with get_point(), there is little point (no pun intended) to making a parameter toplevel const.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10405">
+		<div id="div-comment-10405">
+		<div class="cmtinfo"><em> on <a href="#comment-10405" title="">2013-05-24 at 9:51 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7ff60bd79632cdb98a2eb2fda9f895d2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/zhnmju123' rel='external nofollow' class='url'>Zenju</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10405"></div><p>Buffering &#8220;area&#8221; looks like premature optimization. One could &#8220;fix&#8221; the code, make it mutable, add a mutable mutex, but &#8211; without further demand &#8211; the cleaner solution would be to get rid of it and offer a non-member &#8220;double calc_area(const polygon&amp;)&#8221; function to keep the polygon interface &#8220;minimal and complete&#8221;. Interface design would be improved and thread-safety comes as an additional &#8220;present&#8221;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mttpd odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10398">
+		<div id="div-comment-10398">
+		<div class="cmtinfo"><em> on <a href="#comment-10398" title="">2013-05-24 at 8:03 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1cc4a77a8256c3049728728c6c45625b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mttpd</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10398"></div><p>This is definitely uncompilable (always, regardless of the function&#8217;s body), since there&#8217;s no such thing as a const-reference (only a reference-to-const), as the reference-referee binding is always invariant:</p>
+<pre class="brush: plain; title: ; notranslate" title="">void g( polygon&amp; const poly )</pre>
+<p>This would also be uncompilable, but this time solely due to the actual body of the function &#8220;g&#8221; being in violation of the const-contract (which we&#8217;ve promised by using the reference-to-const):</p>
+<pre class="brush: plain; title: ; notranslate" title="">void g( polygon const &amp; poly ) { poly.add_point( {1,1} ); }</pre>
+<p>Hence, to fix the uncompilable aspect (not commenting on the other aspects here), we can start with:</p>
+<pre class="brush: plain; title: ; notranslate" title="">void g( polygon &amp; poly ) { poly.add_point( {1,1} ); }</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-efbb5c6fa84a2bf7f6a89f0945186a40">
+	</div>
+	<div class="grofile-hash-map-8dcd1b3ae0e41e0d8e4198697f20d0d8">
+	</div>
+	<div class="grofile-hash-map-a75c1d9d194d060d36b44d417a8893fa">
+	</div>
+	<div class="grofile-hash-map-18afd5485cf7f169a22cb51d64531c54">
+	</div>
+	<div class="grofile-hash-map-fe8a5d0ee91f9db7f5b82b8fd4a4e1e6">
+	</div>
+	<div class="grofile-hash-map-e7f75fdf1b6cd974fcc64a64958f95f9">
+	</div>
+	<div class="grofile-hash-map-7ff60bd79632cdb98a2eb2fda9f895d2">
+	</div>
+	<div class="grofile-hash-map-1cc4a77a8256c3049728728c6c45625b">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_10519={"id":468178,"unique_id":"wp-comment-10519","title":"As%20mentioned%20in%20GotW%234%20Class%20Mechanics%20solution%2C%20operator%20%2B%20can%20be%20changed%20to%3A%26%23091%3Bcode%26%23093%3B%2F%2F%20add%20const%26amp%3B%20to%20rhs%2C%20remove%20%20const%26amp%3B%20from%20lhspolygon%20operator%2B%28%20polygon%20lhs%2C%20const%20polygon%26amp%3B%20rhs%20%29%20%7B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6b-const-correctness-part-2\/#comment-10519","item_id":"_comm_10519"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10519 == 'undefined' ){PDRTJS_468178_comm_10519 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10519 );}}PDRTJS_settings_468178_comm_10518={"id":468178,"unique_id":"wp-comment-10518","title":"%26%23091%3Bcode%26%23093%3Bpolygon%28%29%20%3A%20area%7B-1%7D%20%7B%7D%26%23091%3B%2Fcode%26%23093%3BI%20would%20rather%20initialise%20area%20with%200%20or%2C%20even%20better%2C%20completely%20remove%20the%20area%20member%20from%20the%20class%20since%20its%20usefulness%20is%20discussable.%20Constructors%20may%20b...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6b-const-correctness-part-2\/#comment-10518","item_id":"_comm_10518"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10518 == 'undefined' ){PDRTJS_468178_comm_10518 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10518 );}}PDRTJS_settings_468178_comm_10487={"id":468178,"unique_id":"wp-comment-10487","title":"muxecoid%3A%20ret%20is%20a%20copy%20of%2C%20not%20a%20reference%20to%2C%20lhs.%20When%20you%26%23039%3Bre%20using%20auto%20you%20still%20need%20to%20specify%20a%20reference%20qualifier%20%28%26amp%3B%29%20if%20that%26%23039%3Bs%20what%20you%20want...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6b-const-correctness-part-2\/#comment-10487","item_id":"_comm_10487"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10487 == 'undefined' ){PDRTJS_468178_comm_10487 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10487 );}}PDRTJS_settings_468178_comm_10456={"id":468178,"unique_id":"wp-comment-10456","title":"At%20first%20glance%3AApparently%20operator%2B%20modifies%20lhs%20which%20is%20not%20good.%20Adding%20const%20to%20lhs%20in%20function%20definition%20should%20cause%20it%20to%20fail%20to%20compile.area%20should%20be%20mutable.%20calc_area%20can%20become%20con...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6b-const-correctness-part-2\/#comment-10456","item_id":"_comm_10456"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10456 == 'undefined' ){PDRTJS_468178_comm_10456 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10456 );}}PDRTJS_settings_468178_comm_10434={"id":468178,"unique_id":"wp-comment-10434","title":"-%20change%20add_point%28%29%20signature%20to%20add_point%28const%20point%20%26amp%3Bpt%29-%20change%20get_point%28%29%2C%20get_num_points%28%29%20and%20get_area%28%29%20to%20be%20const%20members%20functions-%20change%20calc_area%28%29%20to%20const%20member%20function%20an...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6b-const-correctness-part-2\/#comment-10434","item_id":"_comm_10434"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10434 == 'undefined' ){PDRTJS_468178_comm_10434 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10434 );}}PDRTJS_settings_468178_comm_10420={"id":468178,"unique_id":"wp-comment-10420","title":"add_point%28%29%20should%20take%20a%20point%20by%20nonconst%20value%2C%20and%20move%20it%20into%20the%20vector.get_point%28%29%20should%20be%20const.%20Its%20parameter%20needn%26%23039%3Bt%20be%20const.get_num_points%28%29%20should%20be%20const%20and%20should%20return%20size_...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6b-const-correctness-part-2\/#comment-10420","item_id":"_comm_10420"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10420 == 'undefined' ){PDRTJS_468178_comm_10420 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10420 );}}PDRTJS_settings_468178_comm_10405={"id":468178,"unique_id":"wp-comment-10405","title":"Buffering%20%26quot%3Barea%26quot%3B%20looks%20like%20premature%20optimization.%20One%20could%20%26quot%3Bfix%26quot%3B%20the%20code%2C%20make%20it%20mutable%2C%20add%20a%20mutable%20mutex%2C%20but%20-%20without%20further%20demand%20-%20the%20cleaner%20solution%20would%20be%20to%20get%20rid%20of%20it%20a...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6b-const-correctness-part-2\/#comment-10405","item_id":"_comm_10405"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10405 == 'undefined' ){PDRTJS_468178_comm_10405 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10405 );}}PDRTJS_settings_468178_comm_10398={"id":468178,"unique_id":"wp-comment-10398","title":"This%20is%20definitely%20uncompilable%20%28always%2C%20regardless%20of%20the%20function%26%23039%3Bs%20body%29%2C%20since%20there%26%23039%3Bs%20no%20such%20thing%20as%20a%20const-reference%20%28only%20a%20reference-to-const%29%2C%20as%20the%20reference-referee%20binding%20is%20alwa...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6b-const-correctness-part-2\/#comment-10398","item_id":"_comm_10398"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10398 == 'undefined' ){PDRTJS_468178_comm_10398 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10398 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F24%2Fgotw-6b-const-correctness-part-2%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6b-const-correctness-part-2\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F05%2F24%2Fgotw-6b-const-correctness-part-2%2F","postID":"2002","shortlink":"https:\/\/wp.me\/peb5Y-wi","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2002","statsLink":"https:\/\/wordpress.com\/stats\/post\/2002\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F24%2Fgotw-6b-const-correctness-part-2%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2002','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sJjdnQ344LEgyQmdMdjdOQThqOTQ0NWdKZ2N1LkFQLV1hR0h4ZX5qeWFHN1tQa2xBOWpdfkx3QjBpZ2RTYzUlazF1VnIwMGdJRlFFME1kMlZNL24wfFNCOH58MU15R3xSNz9femQ3X0VQQXpKUCtLbmdWUm02Nk9YQ3pzJjh4NEVrTkpmP2ZDTzlsT2Y0OUdaNlBoWVtlOSVZd0tNZythanxyTnYzUVhlaDlKSVN4fkNDS0VRVEEyej1GLW0zL3pRNHhML0s='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2002' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

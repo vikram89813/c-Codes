@@ -1,0 +1,781 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Reader Q&amp;A: Is std::atomic_compare_exchange_* implementable? | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965761&amp;back=https%3A%2F%2Fherbsutter.com%2F2014%2F02%2F19%2Freader-qa-is-stdatomic_compare_exchange_-implementable%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Reader Q&amp;A: Is std::atomic_compare_exchange_* implementable? Comments Feed" href="https://herbsutter.com/2014/02/19/reader-qa-is-stdatomic_compare_exchange_-implementable/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Trip report: Winter ISO C++&nbsp;meeting' href='https://herbsutter.com/2014/02/17/trip-report-winter-iso-c-meeting/' />
+<link rel='next' title='Stroustrup &amp; Sutter on C++: Mar 31 – Apr 1, San Jose,&nbsp;CA' href='https://herbsutter.com/2014/03/17/stroustrup-sutter-on-c-mar-31-apr-1-san-jose-ca/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2014/02/19/reader-qa-is-stdatomic_compare_exchange_-implementable/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-Db' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2014%2F02%2F19%2Freader-qa-is-stdatomic_compare_exchange_-implementable%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2014%2F02%2F19%2Freader-qa-is-stdatomic_compare_exchange_-implementable%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Reader Q&amp;A: Is std::atomic_compare_exchange_* implementable?" />
+<meta property="og:url" content="https://herbsutter.com/2014/02/19/reader-qa-is-stdatomic_compare_exchange_-implementable/" />
+<meta property="og:description" content="Updated 8/26: Duncan&#8217;s question is actually correct and compare_exchange should have the semantics he asks for. However, the answer to &#8216;is it implementable&#8217; is I think still Yes. …" />
+<meta property="article:published_time" content="2014-02-19T18:31:51+00:00" />
+<meta property="article:modified_time" content="2014-08-26T19:15:07+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965761" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Reader Q&amp;A: Is std::atomic_compare_exchange_* implementable?" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Updated 8/26: Duncan&#039;s question is actually correct and compare_exchange should have the semantics he asks for. However, the answer to &#039;is it implementable&#039; is I think still Yes. Quick answer: Yes. I see there was also a thread about this on StackOverflow, so I&#039;ll echo this Q&amp;A publicly for others&#039; benefit and hopefully to dispel&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2014/02/19/reader-qa-is-stdatomic_compare_exchange_-implementable/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2429 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2014/02/17/trip-report-winter-iso-c-meeting/" rel="prev">Trip report: Winter ISO C++&nbsp;meeting</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2014/03/17/stroustrup-sutter-on-c-mar-31-apr-1-san-jose-ca/" rel="next">Stroustrup &amp; Sutter on C++: Mar 31 – Apr 1, San Jose,&nbsp;CA</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2429 post type-post status-publish format-standard hentry category-c" id="post-2429">
+				<div class="posttitle">
+					<h2>Reader Q&amp;A: Is std::atomic_compare_exchange_* implementable?</h2>
+					<p class="post-info">2014-02-19 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><em><strong>Updated 8/26:</strong> Duncan&#8217;s question is actually correct and compare_exchange should have the semantics he asks for. However, the answer to &#8216;is it implementable&#8217; is I think still Yes.</em></p>
+<p>Quick answer: Yes.</p>
+<p>I see there was also a thread about this on StackOverflow, so I&#8217;ll echo this Q&amp;A publicly for others&#8217; benefit and hopefully to dispel confusion.</p>
+<p>Duncan Forster asked:</p>
+<blockquote><p>I&#8217;m quite alarmed the C++ committee chose such a bad interface for std::atomic compare_exchange, i.e.:</p>
+<p><span style="font-family:Courier New;font-size:10pt;">    bool compare_exchange_???(T&amp; expected, T desired, &#8230;);<br />
+</span><br />
+I notice you have mentioned (here <a href="https://herbsutter.com/2012/08/31/reader-qa-how-to-write-a-cas-loop-using-stdatomics/">reader-qa-how-to-write-a-cas-loop-using-stdatomics</a>) that the committee had doubts whether it was a good idea.<br />
+Your quote below:</p>
+<blockquote>
+<ul>
+<li><em>Usage note: In the code at top we save an explicit reload from &#8216;a&#8217; in the loop because compare_exchange helpfully (or &#8220;helpfully&#8221; – this took me a while to discover and remember) stores the actual value in the &#8216;expected&#8217; value slot on failure. This actually makes loops simpler, though some of us are still have different feelings on different days about whether this subtlety was a good idea… anyway, it&#8217;s in the standard.<br />
+</em></li>
+</ul>
+</blockquote>
+</blockquote>
+<blockquote><p>The reason I think it&#8217;s not only bad but also dangerous is that we now have a race condition baked into the standard. Race condition you say? All hardware CAS implementations that I know of only return 1 value (the old value). Yet the C++ version has 2 returns (success/failure as a boolean return and the old value by reference). So how can an atomic class which is suppose to implement atomic methods do this? Answer is it can&#8217;t, the boolean result is calculated after the atomic exchange has occurred. That leaves us with a method which is only partially atomic and with the bonus of a built-in race condition!</p>
+<p>Perhaps I haven&#8217;t convinced you, so here&#8217;s some code to help. I have simulated the hardware CAS with simple C++ code to help demonstrate the problem. The crux of the problem is this statement: <span style="font-family:Courier New;font-size:10pt;">while(!atomic_bool_compare_and_swap(&amp;head, new_node-&gt;next, new_node))</span><br />
+By creating a 1-line while loop and passing <span style="font-family:Courier New;font-size:10pt;">new_node-&gt;next</span> as the expected value, if someone is also consuming data the new_node will temporarily be visible by 2 threads. The other thread may process and delete the node before <span style="font-family:Courier New;font-size:10pt;">atomic_bool_compare_and_swap</span> has calculated success/failure. This would result in a spurious failure and the new_node actually being pushed twice onto the queue. As you can image this should lead to double delete and possibly the process aborting.</p></blockquote>
+<blockquote><p>template&lt;typename _T&gt;<br />
+bool atomic_bool_compare_and_swap(_T *value, _T&amp; expected, _T new_value)<br />
+{<br />
+_T old_value;</p>
+<p>// Here be atomic<br />
+{<br />
+old_value = *value;<br />
+if(old_value == expected)<br />
+*value = new_value;<br />
+}</p>
+<p>// Here be race conditions<br />
+return (old_value == expected);<br />
+}</p>
+<p>[&#8230; more code that exercises this function &#8230;]</p></blockquote>
+<p>I don&#8217;t believe there is an implementability bug in the standard. <em><del>Rather, your code is incorrect.</del></em></p>
+<p><em>[Update: &#8230;off-point stuff omitted&#8230;]</em></p>
+<p>Let&#8217;s say you have a CAS that returns only the old value, but doesn&#8217;t set &#8220;expected,&#8221; as you describe below. Then you should just be able to implement the standard one in terms of that – quick sketch (untested code):</p>
+<pre><code>    template&lt;typename _T&gt;
+    bool atomic_compare_exchange(_T *value, _T&amp; expected, _T new_value)
+    {
+        _T old_value;
+        <strong>_T old_expected = expected;</strong>
+
+        // If all you have is a CAS that returns the old value, use that:
+        old_value = CAS(value, expected, new_value);
+
+        bool result = old_value == <strong>old_</strong>expected;
+        expected = old_value;
+        return result;
+    }
+</code></pre>
+<p>Now that there&#8217;s no use of &#8220;expected&#8221; after the CAS and so no timing window.</p>
+<p>If I&#8217;m misunderstanding the question, or have a bug in my thinking, please let me know in the comments. <em>[Update: Thanks to Duncan in particular for pointing out my original answer did have a bug in my thinking.]</em></p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a> | 											23 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">23 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-34980">
+		<div id="div-comment-34980">
+		<div class="cmtinfo"><em> on <a href="#comment-34980" title="">2015-01-07 at 3:34 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/20acd315d15c46c3939e77206f51d404?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://cpptutorials.com' rel='external nofollow' class='url'>cpp tutorials</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_34980"></div><p>Smart pointers implementation has been explained well here. Thank you for posting the useful information and please keep sharing in future. You can also find more information on smart pointers here in the below link.</p>
+<p><a href="http://www.cpptutorials.com/2014/11/smart-pointers-implementation-in-c-with.html" rel="nofollow"> Smart pointers implementation in  Cpp with examples </a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-25407">
+		<div id="div-comment-25407">
+		<div class="cmtinfo"><em> on <a href="#comment-25407" title="">2014-08-27 at 11:56 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/888b455376473927b8f271ba7970ca0f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://plus.google.com/116081441770153189228' rel='external nofollow' class='url'>Anthony Williams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_25407"></div><p>No, I haven&#8217;t reported a bug in ICC &#8212; I haven&#8217;t checked their generated code, as I don&#8217;t use ICC regularly.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-ricardoglc even thread-even depth-1 highlander-comment" id="comment-25396">
+		<div id="div-comment-25396">
+		<div class="cmtinfo"><em> on <a href="#comment-25396" title="">2014-08-27 at 9:50 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/466d72deba2523c861323a956cd51a8f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ricardo Costa</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_25396"></div><p>@Anthony Williams have you also reported the bug to ICC? Didn&#8217;t see that being mentioned.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-25295">
+		<div id="div-comment-25295">
+		<div class="cmtinfo"><em> on <a href="#comment-25295" title="">2014-08-26 at 11:23 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_25295"></div><p>Update: Duncan and Anthony are quite correct, and now that I understand the issue I&#8217;ve discovered this affects code I&#8217;ve already written. So thank you again, Duncan!</p>
+<p>This post: Updated.</p>
+<p>Implementations: Fixed or being fixed. I believe the GCC libstd++, Clang libc++, and VC++ implementations already have fixed this in their current or next releases. (The good news is that I think the problem implementations inject a potential race but only in a <em>very</em> tiny window, so hopefully actual code won&#8217;t notice it while we get the fixes out, except that heavy stress does expose windows this small.)</p>
+<p>The standard: Being fixed. This will also be reviewed for the standard in WG21, possibly as soon as our SG1 meeting next week, and I believe everyone agrees we need to tighten the wording in the standard.</p>
+<p>Thanks again.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-15914">
+		<div id="div-comment-15914">
+		<div class="cmtinfo"><em> on <a href="#comment-15914" title="">2014-02-26 at 3:41 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/ba8b5883766279b80291549336c53c67?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>nosenseetal</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15914"></div><p>He was free to raise his concerns during development of C11 and C++11. so I suggest skipping his rants.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-15774">
+		<div id="div-comment-15774">
+		<div class="cmtinfo"><em> on <a href="#comment-15774" title="">2014-02-24 at 1:19 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1860830843d0deaadad80f94ad26eac3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://tringi.mx-3.cz' rel='external nofollow' class='url'>Jan Ringoš</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15774"></div><p>You might also want to check the thread on GCC mailing list where Linus is raising hell about atomics wording in C11 (and all the things around).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-15614">
+		<div id="div-comment-15614">
+		<div class="cmtinfo"><em> on <a href="#comment-15614" title="">2014-02-21 at 1:50 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1397eae94e7fe715f040459c988c40b1?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bames</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15614"></div><p>Herb,</p>
+<p>Has a defect report been filed on this (or do you know of one in the works)? The actual language of the spec does seem to imply much stronger guarantees than you are suggesting here. (In fact the actual language of the spec appears to guarantee behavior even stronger than Anthony&#8217;s library provides.)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-15607">
+		<div id="div-comment-15607">
+		<div class="cmtinfo"><em> on <a href="#comment-15607" title="">2014-02-21 at 10:25 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15607"></div><p>BTW, I&#8217;ve started an email thread with the designers of the feature and Duncan and Anthony.</p>
+<p>Short update: I still think my answer is correct, but we&#8217;re checking on the intent of the feature and the standardese probably needs improving in any event.</p>
+<p>Longer update:</p>
+<p>I understood that the design of having compare_exchange_* take the &#8220;expected&#8221; value by reference, and update &#8220;expected&#8221; on failure to expose the old value, was only intended for convenience to simplify the calling loops which would otherwise always have to write an extra &#8220;reload&#8221; line of code.</p>
+<p>Now that &#8220;expected&#8221; is an lvalue, folks like Duncan are trying to use the success of compare_exchange_* to hand off ownership **of &#8220;expected&#8221; itself** to another thread. For that to be safe, if the compare_exchange_* succeeds then the thread that performed it must no longer read or write from &#8220;expected&#8221; else his technique contains a race.</p>
+<p>I don&#8217;t think this usage was ever intended to be supported, but I could be wrong (waiting to hear back from the feature&#8217;s designer), even if it wasn&#8217;t we may want to extend and add support for it now, and in any event I think we need to improve the standardese wording which is apparently unclear today.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-15605">
+		<div id="div-comment-15605">
+		<div class="cmtinfo"><em> on <a href="#comment-15605" title="">2014-02-21 at 9:12 am</a></em> <img alt='' src='https://i0.wp.com/lh3.googleusercontent.com/-kSvaMnQ5LbQ/AAAAAAAAAAI/AAAAAAAAADk/Ay2TgR2rjwU/photo.jpg?resize=48%2C48&#038;ssl=1' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://plus.google.com/116081441770153189228' rel='external nofollow' class='url'>Anthony Williams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15605"></div><p>The write to expected does not need to be atomic. It should only be written to on failure, so if the compare-exchange succeeds, then other threads can touch the value passed as the &#8220;expected&#8221; parameter, because the compare-exchange will not do so (in a correct implementation).</p>
+<p>This is important when doing things like lock-free data structures, where the &#8220;expected&#8221; value may often be part of a node being added to the data structure by the compare-exchange. If the compare-exchange fails then the node is still not part of the data structure, so modifying expected is not a problem. If the compare-exchange succeeds then the node is now part of the data structure and may be accessed by other threads.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-15601">
+		<div id="div-comment-15601">
+		<div class="cmtinfo"><em> on <a href="#comment-15601" title="">2014-02-21 at 8:28 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/44d4f2cf760030f31323777992225e42?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Noob Learner</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15601"></div><p>My opinion on the issue is that the problem is not about race/unconditional write but more of sharing the &#8216;expected&#8217; variable across thread. I would say there was never a guarantee in atomic write to &#8216;expected&#8217;. Thus I think trying to assume atomicity for &#8216;expected&#8217; isn&#8217;t an appropriate thing. If there was never a guarantee to atomic write for &#8216;expected&#8217; then we should not attempt to pass a variable to &#8216;expected&#8217; which spans multiple thread.</p>
+<p>Think of it as a simple function:<br />
+void foo(int* arg);</p>
+<p>In the above case, passing a variable to the function &#8216;arg&#8217; which is shared across multiple thread is just asking for trouble.</p>
+<p>Whether function foo write arg unconditionally or does anything to it is beside the point. It doesn&#8217;t change the problem that passing in a variable used by multiple thread into arg is creating a problem of attempting atomicity/synchronisation on a variable/type not meant to do that.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-15600">
+		<div id="div-comment-15600">
+		<div class="cmtinfo"><em> on <a href="#comment-15600" title="">2014-02-21 at 7:50 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1397eae94e7fe715f040459c988c40b1?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bames</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15600"></div><p>I don&#8217;t think the issue is that implementations are failing to make the assignment to expected atomic with the compare/exchange. The problem is that the spec guarantees that, if the exchange occurs, then expected is _not_ written to. Thus if the exchange occurs then another thread which was waiting on the exchange can go ahead and access expected, knowing that the compare_exchange will not write to it and there will therefore be no race.</p>
+<p>But since actual implementations write to expected unconditionally real implementations introduce a race.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-15569">
+		<div id="div-comment-15569">
+		<div class="cmtinfo"><em> on <a href="#comment-15569" title="">2014-02-20 at 7:29 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/44d4f2cf760030f31323777992225e42?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Noob Learner</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15569"></div><p>In fact, I think Ducan is stretching the guarantee of atomicity to its function parameter which I don&#8217;t think was intended.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-15568">
+		<div id="div-comment-15568">
+		<div class="cmtinfo"><em> on <a href="#comment-15568" title="">2014-02-20 at 7:25 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/44d4f2cf760030f31323777992225e42?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Noob Learner</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15568"></div><p>After reading both the SO as well as the above post. My initial reaction was that indeed Duncan and Anthony are both correct.</p>
+<p>However on second thoughts, I think Herb is also right. In this case for compare_exchange, I would rather say the atomicity was for the head node not for the node-next. Think of it this way suppose we have the following code which store the new value into the atomic_var and put the original value in the old_value.</p>
+<p>template<br />
+void SuperStore(std::atomic&amp; atmoic_var, const Ty1* new_value, Ty1* old_value); </p>
+<p>Obviously from the function signature, we safely say the the store to the atomic_var would be atomically safe, but to assume the write to old_value is safe would be a big no no. If it was atomic, old_value should have been std::atomic* old_value.</p>
+<p>I think to make the whole issue of compare_exchange better, &#8216;expected&#8217; should have been an atomic variable.</p>
+<p>Or maybe the standard committee was referring to the atomicity of the calling object of compare_exchange_weak, rather than the atomicity of the compare_exchange_weak function parameters. It is just a guess and maybe I am wrong.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-15562">
+		<div id="div-comment-15562">
+		<div class="cmtinfo"><em> on <a href="#comment-15562" title="">2014-02-20 at 4:09 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1007b5aac9c67cd5e52480d0735a385c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Matthew Elvey Price</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15562"></div><p>Or rather&#8230; you guarantee it will NOT unexpectedly modified/invalidated. Whoops.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-15561">
+		<div id="div-comment-15561">
+		<div class="cmtinfo"><em> on <a href="#comment-15561" title="">2014-02-20 at 4:06 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1007b5aac9c67cd5e52480d0735a385c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Matthew Elvey Price</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15561"></div><p>My reading of the standard is:</p>
+<p>part of 29.6.5/2:<br />
+In the following operation definitions:<br />
+— an A refers to one of the atomic types.<br />
+— a C refers to its corresponding non-atomic type. (&#8230;)</p>
+<p>An example function definition from just before 29.6.5/20:</p>
+<pre class="brush: plain; title: ; notranslate" title="">bool atomic_compare_exchange_weak(A* object,C* expected,C desired) noexcept</pre>
+<p>Expected is type C so is NOT atomic.</p>
+<p>If we assume what I&#8217;ve said above, the specific issue in your code is that by passing in a non-atomic variable (expected), you guarantee it will unexpectedly modified or invalidated during that call. Then you break that guarantee by deleting or modifying it in another thread. Ben&#8217;s code appears to account for this correctly. </p>
+<p>The compiler bugs listed only cover storing to expected in the success case where it would store the same value anyway.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-15556">
+		<div id="div-comment-15556">
+		<div class="cmtinfo"><em> on <a href="#comment-15556" title="">2014-02-20 at 2:42 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/ba8b5883766279b80291549336c53c67?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>nosenseeta;</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15556"></div><p>btw my apology, I thought it was just an another example of somebody not understanding some brainf**k atomic code, but it turns out to be about a serious bug. :D But since Herb said it is not I was like meh, boring&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-15554">
+		<div id="div-comment-15554">
+		<div class="cmtinfo"><em> on <a href="#comment-15554" title="">2014-02-20 at 2:11 pm</a></em> <img alt='' src='https://i0.wp.com/lh3.googleusercontent.com/-kSvaMnQ5LbQ/AAAAAAAAAAI/AAAAAAAAADk/Ay2TgR2rjwU/photo.jpg?resize=48%2C48&#038;ssl=1' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://plus.google.com/116081441770153189228' rel='external nofollow' class='url'>Anthony Williams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15554"></div><p>@nosenseetal It&#8217;s an implementation bug</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-15548">
+		<div id="div-comment-15548">
+		<div class="cmtinfo"><em> on <a href="#comment-15548" title="">2014-02-20 at 11:38 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ba8b5883766279b80291549336c53c67?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>nosenseetal</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15548"></div><p>@Anthony Williams<br />
+is it a implementation or ISO bug?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-15506">
+		<div id="div-comment-15506">
+		<div class="cmtinfo"><em> on <a href="#comment-15506" title="">2014-02-20 at 1:56 am</a></em> <img alt='' src='https://i0.wp.com/lh3.googleusercontent.com/-kSvaMnQ5LbQ/AAAAAAAAAAI/AAAAAAAAADk/Ay2TgR2rjwU/photo.jpg?resize=48%2C48&#038;ssl=1' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://plus.google.com/116081441770153189228' rel='external nofollow' class='url'>Anthony Williams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15506"></div><p>Duncan is unfortunately correct: there are bugs in at least gcc 4.8, clang 3.4 and Visual Studio 2013, all of which do an unconditional store to the &#8220;expected&#8221; parameter, even on successful exchanges, which can cause a race.</p>
+<p>The bugs have now been reported:</p>
+<p>MSVC: <a href="https://connect.microsoft.com/VisualStudio/feedback/details/819819/std-atomic-compare-exchange-weak-has-spurious-write-which-can-cause-race-conditions" rel="nofollow">https://connect.microsoft.com/VisualStudio/feedback/details/819819/std-atomic-compare-exchange-weak-has-spurious-write-which-can-cause-race-conditions</a></p>
+<p>GCC: <a href="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=60272" rel="nofollow">http://gcc.gnu.org/bugzilla/show_bug.cgi?id=60272</a></p>
+<p>Clang: <a href="http://llvm.org/bugs/show_bug.cgi?id=18899" rel="nofollow">http://llvm.org/bugs/show_bug.cgi?id=18899</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-15476">
+		<div id="div-comment-15476">
+		<div class="cmtinfo"><em> on <a href="#comment-15476" title="">2014-02-19 at 4:11 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c35bdfd14bcda12440d48030de71ca3b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Duncan Forster</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15476"></div><p>I think you have misunderstood my example. The example function atomic_bool_compare_and_swap is not real code but used to illustrate how CAS works in hardware. So the block with comment &#8216;Here be atomic&#8217; above for this example should be considered atomic. This serves the discussion well, except I made a mistake. In fact CMPXCHG does return success/failure in the ZF flag (on x86, thanks Anthony for correcting me). I overlooked this because every time I have used CMPXCHG (or seen it used) the result has always been calculated by another compare. This seems innocuous but is racy.</p>
+<p>I&#8217;m not talking about an issue in theory, this has caused serious production issues. So to recap the C++ interface (it turns) out is implementable with CMPXCHG (on x86) and in some cases is rather nice. Wait a second the interface is correct, CAS is correct, this doesn&#8217;t compute in regards to my real-world issue. I have a test case, I can prove this doesn&#8217;t work. Ah, the penny drops, this is actually a bug in the implementation (in my case GCC 4.8).</p>
+<p>Take this simple example:</p>
+<p>    #include<br />
+    struct Node { Node* next; };<br />
+    void Push(std::atomic head, Node* node)<br />
+    {<br />
+        node-&gt;next = head.load();<br />
+        while(!head.compare_exchange_weak(node-&gt;next, node))<br />
+            ;<br />
+    }</p>
+<p>This is completely correct C++ and should work always in any situation (with the assumption nodes are unique and never re-used).</p>
+<p>I like to think of this example as the Push thread creating a private object. The compare_exchange_weak operation is an attempt by the Push thread to relinquish ownership and pass it to another thread. If the operation succeeds the object is no longer owned by the Push thread and it shouldn&#8217;t touch the object ever (otherwise you have a race and all bets are off). If the operation fails<br />
+the Push thread still owns the object (still private), thus it may be modified race free.  </p>
+<p>As I have discussed with Anthony Williams and also mentioned on SO, no current compiler implements this correctly. The only know correct implementation is the Just::Thread library. I won&#8217;t go thru the assembly for all the compilers but I will mention VC++:</p>
+<p>   inline int _Compare_exchange_seq_cst_4(volatile _Uint4_t *_Tgt, _Uint4_t *_Exp, _Uint4_t _Value)<br />
+   {    /* compare and exchange values atomically with<br />
+       sequentially consistent memory order */<br />
+       int _Res;<br />
+       _Uint4_t _Prev = _InterlockedCompareExchange((volatile long<br />
+*)_Tgt, _Value, *_Exp);<br />
+       if (_Prev == *_Exp) !!!!!!!!!!!!!!!!!!!!!!!<br />
+           _Res = 1;<br />
+       else<br />
+       { /* copy old value */<br />
+           _Res = 0;<br />
+           *_Exp = _Prev;<br />
+       }<br />
+       return (_Res);<br />
+   }</p>
+<p>This is not correct, it has a race condition which means it&#8217;s reading a value it shouldn&#8217;t after the CAS. Since it&#8217;s a race it may calculate the wrong return code. If that happens it will also invent a write when in fact the CAS succeeded. This is very bad when you consider object ownership (from above).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-15469">
+		<div id="div-comment-15469">
+		<div class="cmtinfo"><em> on <a href="#comment-15469" title="">2014-02-19 at 2:31 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/344b20b16cdf7607bfca3d9b130a5876?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ben Hutchings</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15469"></div><p>Herb, I think Duncan&#8217;s &#8216;Here be atomic&#8217; comment means that the following block is pseudo-code for the hardware CAS instruction. And I think he&#8217;s concerned that the use of the the &#8216;expected&#8217; variable is not atomic. (Actually, it could be on some architectures.) But you&#8217;re right that that isn&#8217;t normally required.</p>
+<p>Norbert, your code is backwards. You have to set the &#8216;next&#8217; pointer of the new node before swapping the list head. So you would do something like:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+MyPointer temp = head;
+do
+    new_node-&gt;next = temp;
+while(!atomic_compare_exchange(&amp;head, temp, new_node));
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-15463">
+		<div id="div-comment-15463">
+		<div class="cmtinfo"><em> on <a href="#comment-15463" title="">2014-02-19 at 12:18 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/826cd67c8ac888339564884343afbafb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Norbert Lange</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15463"></div><p>I believe the issue is the while loop:<br />
+while(!atomic_bool_compare_and_swap(&amp;head, new_node-&gt;next, new_node)).</p>
+<p>First its been noted that 2 threads could try to add the &#8220;new_node&#8221;, so I expect this to be an existing node and a reachable next pointer, The problem then is that you should never update the existing pointer unless the cmpexchange suceeded.</p>
+<p>Instead you would need something like this:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+MyPointer temp = new_node-&gt;next;
+while(!atomic_bool_compare_and_swap(&amp;head, temp, new_node))
+   ;
+new_node-&gt;next = temp;
+</pre>
+<p>(might use the compare_exchange_*_strong variant instead of a loop).</p>
+<p>In short, the expected variable must not be reachable from anywhere except the calling thread.</p>
+<p>The rest about CAs and compare_echange is covered already, I will just add that the  boolean return value is bloody necessary when you implement the compare_exchange with loadlinked/storelinked. Look at a implementation with only the old value returned:</p>
+<pre class="brush: plain; title: ; notranslate" title="">    template&lt;typename _T&gt;
+    _T atomic_compare_exchange(_T *value, _T expected, _T new_value)
+    {
+        _T old_value = loadlnked(value);
+        if (old_value == expected &amp;&amp; storelinked(value, new_value))
+          return new_value;
+        else
+        {
+          return atomic_load(value);
+        }
+    }</pre>
+<p>Lets assume _T=int and the value in question is 5, and wants to change it to 42.</p>
+<p>Thread A:<br />
+1) _T old_value = loadlnked(value);<br />
+2) another Thread interrupts and changes the value (or atleast causes the linked sequence to fail)<br />
+3) storelinked fails<br />
+4) another thread interrupts and changes the value to 42<br />
+5) atomic_load(value) returns 5</p>
+<p>The caller of atomic_compare_exchange gets the expected value as return value, and thus would assume he changed the value, when in thruth the value got set from somewhere else. This might not be a problem for some uses, but for example reference-counting would mean the counter got incremented once instead of twice.</p>
+<p>So a usefull atomic_compare_exchange needs an indication of the operation failed, the write-back of expected is the only thing that could have been left out.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-15460">
+		<div id="div-comment-15460">
+		<div class="cmtinfo"><em> on <a href="#comment-15460" title="">2014-02-19 at 11:37 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ba8b5883766279b80291549336c53c67?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>nosenseetal</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15460"></div><p>this is all cool and interesting, but I wish people would pay attention a bit to the boring stuff also, like serialization(preferably to make class serializable automatically in a sense that it can be serialized automatically if all its members can be serialized automatically&#8230; and if you have serialization for all built in ntypes then you have default serialization for any type :D ), for each for enums, to_string for enums&#8230;</p>
+<p>atomics are for small perchentage of the people, other just need to know here be danger except in simple cases like counter, bool flag&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2014/02/19/reader-qa-is-stdatomic_compare_exchange_-implementable/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-20acd315d15c46c3939e77206f51d404">
+	</div>
+	<div class="grofile-hash-map-888b455376473927b8f271ba7970ca0f">
+	</div>
+	<div class="grofile-hash-map-466d72deba2523c861323a956cd51a8f">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-ba8b5883766279b80291549336c53c67">
+	</div>
+	<div class="grofile-hash-map-1860830843d0deaadad80f94ad26eac3">
+	</div>
+	<div class="grofile-hash-map-1397eae94e7fe715f040459c988c40b1">
+	</div>
+	<div class="grofile-hash-map-44d4f2cf760030f31323777992225e42">
+	</div>
+	<div class="grofile-hash-map-1007b5aac9c67cd5e52480d0735a385c">
+	</div>
+	<div class="grofile-hash-map-c35bdfd14bcda12440d48030de71ca3b">
+	</div>
+	<div class="grofile-hash-map-344b20b16cdf7607bfca3d9b130a5876">
+	</div>
+	<div class="grofile-hash-map-826cd67c8ac888339564884343afbafb">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_34980={"id":468178,"unique_id":"wp-comment-34980","title":"Smart%20pointers%20implementation%20has%20been%20explained%20well%20here.%20Thank%20you%20for%20posting%20the%20useful%20information%20and%20please%20keep%20sharing%20in%20future.%20You%20can%20also%20find%20more%20information%20on%20smart%20pointers%20he...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-34980","item_id":"_comm_34980"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_34980 == 'undefined' ){PDRTJS_468178_comm_34980 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_34980 );}}PDRTJS_settings_468178_comm_25407={"id":468178,"unique_id":"wp-comment-25407","title":"No%2C%20I%20haven%26%23039%3Bt%20reported%20a%20bug%20in%20ICC%20---%20I%20haven%26%23039%3Bt%20checked%20their%20generated%20code%2C%20as%20I%20don%26%23039%3Bt%20use%20ICC%20regularly....","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-25407","item_id":"_comm_25407"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_25407 == 'undefined' ){PDRTJS_468178_comm_25407 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_25407 );}}PDRTJS_settings_468178_comm_25396={"id":468178,"unique_id":"wp-comment-25396","title":"%40Anthony%20Williams%20have%20you%20also%20reported%20the%20bug%20to%20ICC%3F%20Didn%26%23039%3Bt%20see%20that%20being%20mentioned....","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-25396","item_id":"_comm_25396"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_25396 == 'undefined' ){PDRTJS_468178_comm_25396 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_25396 );}}PDRTJS_settings_468178_comm_25295={"id":468178,"unique_id":"wp-comment-25295","title":"Update%3A%20Duncan%20and%20Anthony%20are%20quite%20correct%2C%20and%20now%20that%20I%20understand%20the%20issue%20I%26%23039%3Bve%20discovered%20this%20affects%20code%20I%26%23039%3Bve%20already%20written.%20So%20thank%20you%20again%2C%20Duncan%21This%20post%3A%20Updated.Implementat...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-25295","item_id":"_comm_25295"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_25295 == 'undefined' ){PDRTJS_468178_comm_25295 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_25295 );}}PDRTJS_settings_468178_comm_15914={"id":468178,"unique_id":"wp-comment-15914","title":"He%20was%20free%20to%20raise%20his%20concerns%20during%20development%20of%20C11%20and%20C%2B%2B11.%20so%20I%20suggest%20skipping%20his%20rants....","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15914","item_id":"_comm_15914"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15914 == 'undefined' ){PDRTJS_468178_comm_15914 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15914 );}}PDRTJS_settings_468178_comm_15774={"id":468178,"unique_id":"wp-comment-15774","title":"You%20might%20also%20want%20to%20check%20the%20thread%20on%20GCC%20mailing%20list%20where%20Linus%20is%20raising%20hell%20about%20atomics%20wording%20in%20C11%20%28and%20all%20the%20things%20around%29....","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15774","item_id":"_comm_15774"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15774 == 'undefined' ){PDRTJS_468178_comm_15774 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15774 );}}PDRTJS_settings_468178_comm_15614={"id":468178,"unique_id":"wp-comment-15614","title":"Herb%2CHas%20a%20defect%20report%20been%20filed%20on%20this%20%28or%20do%20you%20know%20of%20one%20in%20the%20works%29%3F%20The%20actual%20language%20of%20the%20spec%20does%20seem%20to%20imply%20much%20stronger%20guarantees%20than%20you%20are%20suggesting%20here.%20%28In%20fac...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15614","item_id":"_comm_15614"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15614 == 'undefined' ){PDRTJS_468178_comm_15614 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15614 );}}PDRTJS_settings_468178_comm_15607={"id":468178,"unique_id":"wp-comment-15607","title":"BTW%2C%20I%26%23039%3Bve%20started%20an%20email%20thread%20with%20the%20designers%20of%20the%20feature%20and%20Duncan%20and%20Anthony.Short%20update%3A%20I%20still%20think%20my%20answer%20is%20correct%2C%20but%20we%26%23039%3Bre%20checking%20on%20the%20intent%20of%20the%20feature%20and%20th...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15607","item_id":"_comm_15607"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15607 == 'undefined' ){PDRTJS_468178_comm_15607 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15607 );}}PDRTJS_settings_468178_comm_15605={"id":468178,"unique_id":"wp-comment-15605","title":"The%20write%20to%20expected%20does%20not%20need%20to%20be%20atomic.%20It%20should%20only%20be%20written%20to%20on%20failure%2C%20so%20if%20the%20compare-exchange%20succeeds%2C%20then%20other%20threads%20can%20touch%20the%20value%20passed%20as%20the%20%26quot%3Bexpected%26quot%3B%20par...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15605","item_id":"_comm_15605"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15605 == 'undefined' ){PDRTJS_468178_comm_15605 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15605 );}}PDRTJS_settings_468178_comm_15601={"id":468178,"unique_id":"wp-comment-15601","title":"My%20opinion%20on%20the%20issue%20is%20that%20the%20problem%20is%20not%20about%20race%2Funconditional%20write%20but%20more%20of%20sharing%20the%20%26%23039%3Bexpected%26%23039%3B%20variable%20across%20thread.%20I%20would%20say%20there%20was%20never%20a%20guarantee%20in%20atomic%20writ...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15601","item_id":"_comm_15601"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15601 == 'undefined' ){PDRTJS_468178_comm_15601 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15601 );}}PDRTJS_settings_468178_comm_15600={"id":468178,"unique_id":"wp-comment-15600","title":"I%20don%26%23039%3Bt%20think%20the%20issue%20is%20that%20implementations%20are%20failing%20to%20make%20the%20assignment%20to%20expected%20atomic%20with%20the%20compare%2Fexchange.%20The%20problem%20is%20that%20the%20spec%20guarantees%20that%2C%20if%20the%20exchange%20occu...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15600","item_id":"_comm_15600"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15600 == 'undefined' ){PDRTJS_468178_comm_15600 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15600 );}}PDRTJS_settings_468178_comm_15569={"id":468178,"unique_id":"wp-comment-15569","title":"In%20fact%2C%20I%20think%20Ducan%20is%20stretching%20the%20guarantee%20of%20atomicity%20to%20its%20function%20parameter%20which%20I%20don%26%23039%3Bt%20think%20was%20intended....","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15569","item_id":"_comm_15569"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15569 == 'undefined' ){PDRTJS_468178_comm_15569 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15569 );}}PDRTJS_settings_468178_comm_15568={"id":468178,"unique_id":"wp-comment-15568","title":"After%20reading%20both%20the%20SO%20as%20well%20as%20the%20above%20post.%20My%20initial%20reaction%20was%20that%20indeed%20Duncan%20and%20Anthony%20are%20both%20correct.However%20on%20second%20thoughts%2C%20I%20think%20Herb%20is%20also%20right.%20In%20this%20case%20f...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15568","item_id":"_comm_15568"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15568 == 'undefined' ){PDRTJS_468178_comm_15568 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15568 );}}PDRTJS_settings_468178_comm_15562={"id":468178,"unique_id":"wp-comment-15562","title":"Or%20rather...%20you%20guarantee%20it%20will%20NOT%20unexpectedly%20modified%2Finvalidated.%20Whoops....","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15562","item_id":"_comm_15562"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15562 == 'undefined' ){PDRTJS_468178_comm_15562 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15562 );}}PDRTJS_settings_468178_comm_15561={"id":468178,"unique_id":"wp-comment-15561","title":"My%20reading%20of%20the%20standard%20is%3Apart%20of%2029.6.5%2F2%3AIn%20the%20following%20operation%20definitions%3A%20an%20A%20refers%20to%20one%20of%20the%20atomic%20types.%20a%20C%20refers%20to%20its%20corresponding%20non-atomic%20type.%20%28...%29An%20example%20fun...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15561","item_id":"_comm_15561"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15561 == 'undefined' ){PDRTJS_468178_comm_15561 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15561 );}}PDRTJS_settings_468178_comm_15556={"id":468178,"unique_id":"wp-comment-15556","title":"btw%20my%20apology%2C%20I%20thought%20it%20was%20just%20an%20another%20example%20of%20somebody%20not%20understanding%20some%20brainf%2A%2Ak%20atomic%20code%2C%20but%20it%20turns%20out%20to%20be%20about%20a%20serious%20bug.%20%3AD%20But%20since%20Herb%20said%20it%20is%20not%20I%20w...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15556","item_id":"_comm_15556"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15556 == 'undefined' ){PDRTJS_468178_comm_15556 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15556 );}}PDRTJS_settings_468178_comm_15554={"id":468178,"unique_id":"wp-comment-15554","title":"%40nosenseetal%20It%26%23039%3Bs%20an%20implementation%20bug...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15554","item_id":"_comm_15554"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15554 == 'undefined' ){PDRTJS_468178_comm_15554 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15554 );}}PDRTJS_settings_468178_comm_15548={"id":468178,"unique_id":"wp-comment-15548","title":"%40Anthony%20Williamsis%20it%20a%20implementation%20or%20ISO%20bug%3F...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15548","item_id":"_comm_15548"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15548 == 'undefined' ){PDRTJS_468178_comm_15548 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15548 );}}PDRTJS_settings_468178_comm_15506={"id":468178,"unique_id":"wp-comment-15506","title":"Duncan%20is%20unfortunately%20correct%3A%20there%20are%20bugs%20in%20at%20least%20gcc%204.8%2C%20clang%203.4%20and%20Visual%20Studio%202013%2C%20all%20of%20which%20do%20an%20unconditional%20store%20to%20the%20%26quot%3Bexpected%26quot%3B%20parameter%2C%20even%20on%20successful%20excha...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15506","item_id":"_comm_15506"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15506 == 'undefined' ){PDRTJS_468178_comm_15506 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15506 );}}PDRTJS_settings_468178_comm_15476={"id":468178,"unique_id":"wp-comment-15476","title":"I%20think%20you%20have%20misunderstood%20my%20example.%20The%20example%20function%20atomic_bool_compare_and_swap%20is%20not%20real%20code%20but%20used%20to%20illustrate%20how%20CAS%20works%20in%20hardware.%20So%20the%20block%20with%20comment%20%26%23039%3BHere%20be%20...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15476","item_id":"_comm_15476"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15476 == 'undefined' ){PDRTJS_468178_comm_15476 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15476 );}}PDRTJS_settings_468178_comm_15469={"id":468178,"unique_id":"wp-comment-15469","title":"Herb%2C%20I%20think%20Duncan%26%23039%3Bs%20%26%23039%3BHere%20be%20atomic%26%23039%3B%20comment%20means%20that%20the%20following%20block%20is%20pseudo-code%20for%20the%20hardware%20CAS%20instruction.%20And%20I%20think%20he%26%23039%3Bs%20concerned%20that%20the%20use%20of%20the%20the%20%26%23039%3Bexpected%26%23039%3B%20varia...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15469","item_id":"_comm_15469"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15469 == 'undefined' ){PDRTJS_468178_comm_15469 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15469 );}}PDRTJS_settings_468178_comm_15463={"id":468178,"unique_id":"wp-comment-15463","title":"I%20believe%20the%20issue%20is%20the%20while%20loop%3Awhile%28%21atomic_bool_compare_and_swap%28%26amp%3Bhead%2C%20new_node-%26gt%3Bnext%2C%20new_node%29%29.First%20its%20been%20noted%20that%202%20threads%20could%20try%20to%20add%20the%20%26quot%3Bnew_node%26quot%3B%2C%20so%20I%20expect...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15463","item_id":"_comm_15463"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15463 == 'undefined' ){PDRTJS_468178_comm_15463 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15463 );}}PDRTJS_settings_468178_comm_15460={"id":468178,"unique_id":"wp-comment-15460","title":"this%20is%20all%20cool%20and%20interesting%2C%20but%20I%20wish%20people%20would%20pay%20attention%20a%20bit%20to%20the%20boring%20stuff%20also%2C%20like%20serialization%28preferably%20to%20make%20class%20serializable%20automatically%20in%20a%20sense%20that%20it%20c...","permalink":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/#comment-15460","item_id":"_comm_15460"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15460 == 'undefined' ){PDRTJS_468178_comm_15460 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15460 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2014%2F02%2F19%2Freader-qa-is-stdatomic_compare_exchange_-implementable%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2014\/02\/19\/reader-qa-is-stdatomic_compare_exchange_-implementable\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2014%2F02%2F19%2Freader-qa-is-stdatomic_compare_exchange_-implementable%2F","postID":"2429","shortlink":"https:\/\/wp.me\/peb5Y-Db","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2429","statsLink":"https:\/\/wordpress.com\/stats\/post\/2429\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2014%2F02%2F19%2Freader-qa-is-stdatomic_compare_exchange_-implementable%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2429','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sfFU4bWVqN2ZlfC5WbGQ/MTY9dmIxVytZNy5qYUxVXWRxMml5PURScmNEN1BzfnFKV1FEVEpPS2JwRU1GUEQweHNmMi1qQWVNLlpwb0Q9YmhOL1hUej8mRG84fml5fC5zb3wtbVY0TEcyUVo9Qmg2ODJfeVlFRH5xL11ycmlQcXcmenFYWURmYWc0NDlsSCtWZTBBK2RrNHlacS01enx+MGZZJVdObnRWMFluLXdYeStseXItbWM1ZU9TVC1hbDN1STNFUyV1'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2429' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

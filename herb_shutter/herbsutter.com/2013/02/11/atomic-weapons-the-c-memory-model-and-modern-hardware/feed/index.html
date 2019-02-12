@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: atomic Weapons: The C++ Memory Model and Modern Hardware	</title>
+	<atom:link href="https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Pedro Dominguez				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-23916</link>
+		<dc:creator><![CDATA[Pedro Dominguez]]></dc:creator>
+		<pubDate>Fri, 01 Aug 2014 15:20:04 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-23916</guid>
+					<description><![CDATA[Hi Herb,
+First of all, thank you for the great talk and for making it available online.
+A section of the slides that you couldn&#039;t cover in the talk was that on the Double-Checked locking pattern (pages 53-56). More specifically, I have a question on page 54, where you propose to use: 
+if (!create.exchange_explicit(true, memory_order_relaxed)) {...}
+In my opionion, this should be fine based on the standard&#039;s 29.3/12 (&quot;Atomic RMW operations shall always read the last value (in the modification order) written before the write associated with the RMW operation&quot;).
+But you wrote on the second slide, as the answer to the initial question: &quot;No; e.g. could do some widget creation even if CAS fails - and worse&quot;.
+This doesn&#039;t look accurate to me, as you are using a plain exchange() and not a compare_exchange_weak(); note the standard allows only the latter to fail.
+Am I misinterpreting your proposed implementation?
+PS I&#039;m assuming this code should be able to run in either a weak or strong hardware memory model]]></description>
+		<content:encoded><![CDATA[<p>Hi Herb,<br />
+First of all, thank you for the great talk and for making it available online.<br />
+A section of the slides that you couldn&#8217;t cover in the talk was that on the Double-Checked locking pattern (pages 53-56). More specifically, I have a question on page 54, where you propose to use:<br />
+if (!create.exchange_explicit(true, memory_order_relaxed)) {&#8230;}<br />
+In my opionion, this should be fine based on the standard&#8217;s 29.3/12 (&#8220;Atomic RMW operations shall always read the last value (in the modification order) written before the write associated with the RMW operation&#8221;).<br />
+But you wrote on the second slide, as the answer to the initial question: &#8220;No; e.g. could do some widget creation even if CAS fails &#8211; and worse&#8221;.<br />
+This doesn&#8217;t look accurate to me, as you are using a plain exchange() and not a compare_exchange_weak(); note the standard allows only the latter to fail.<br />
+Am I misinterpreting your proposed implementation?<br />
+PS I&#8217;m assuming this code should be able to run in either a weak or strong hardware memory model</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-22258</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 03 Jul 2014 21:14:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-22258</guid>
+					<description><![CDATA[@Jim: See my atomic weapons talk at http://channel9.msdn.com/Shows/Going+Deep/Cpp-and-Beyond-2012-Herb-Sutter-atomic-Weapons-1-of-2, where on the slides page 41 mentions the code generation on ARM v8. Note that the C/C++ code looks the same, it just generates more direct code and in some cases allows more processor instruction reordering (examples of reordering appear throughout the presentation).]]></description>
+		<content:encoded><![CDATA[<p>@Jim: See my atomic weapons talk at <a href="http://channel9.msdn.com/Shows/Going+Deep/Cpp-and-Beyond-2012-Herb-Sutter-atomic-Weapons-1-of-2" rel="nofollow">http://channel9.msdn.com/Shows/Going+Deep/Cpp-and-Beyond-2012-Herb-Sutter-atomic-Weapons-1-of-2</a>, where on the slides page 41 mentions the code generation on ARM v8. Note that the C/C++ code looks the same, it just generates more direct code and in some cases allows more processor instruction reordering (examples of reordering appear throughout the presentation).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jim Ballingall				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-22253</link>
+		<dc:creator><![CDATA[Jim Ballingall]]></dc:creator>
+		<pubDate>Thu, 03 Jul 2014 19:21:42 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-22253</guid>
+					<description><![CDATA[Hi Herb, do you have any C/C++ code examples that illustrate how the new lrda and strl in ARMv8 are advantageous over x86? I am looking for a few practical illustrations /exercises for students who might run code on an ARMv8 simulator or board vs their x86 laptop. Thank you, Jim]]></description>
+		<content:encoded><![CDATA[<p>Hi Herb, do you have any C/C++ code examples that illustrate how the new lrda and strl in ARMv8 are advantageous over x86? I am looking for a few practical illustrations /exercises for students who might run code on an ARMv8 simulator or board vs their x86 laptop. Thank you, Jim</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: C++ Memory Model and Low-level Atomic Operations &#124; Alan Tatourian				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-18975</link>
+		<dc:creator><![CDATA[C++ Memory Model and Low-level Atomic Operations &#124; Alan Tatourian]]></dc:creator>
+		<pubDate>Thu, 24 Apr 2014 22:32:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-18975</guid>
+					<description><![CDATA[[&#8230;] atomic Weapons: The C++ Memory Model and Modern Hardware; Herb Sutter [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] atomic Weapons: The C++ Memory Model and Modern Hardware; Herb Sutter [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: KerrekSB				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-13021</link>
+		<dc:creator><![CDATA[KerrekSB]]></dc:creator>
+		<pubDate>Sat, 26 Oct 2013 17:33:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-13021</guid>
+					<description><![CDATA[Could I ask for some clarification? In the &quot;relaxed&quot; section of the talk, you have a &quot;stop&quot; variable and a relaxed load from it to check whether a thread should end, paired with an SC store &quot;stop = true;&quot; in the main thread. Is it actually guaranteed that the store operation propagates and becomes visible eventually? Would such a guarantee depend on the existence of an acquire-release-pair? (I appreciate that actual synchronization isn&#039;t required in the example and that we don&#039;t need a release sequence, but I don&#039;t see how eventual propagation is guaranteed.)
+
+Thanks!]]></description>
+		<content:encoded><![CDATA[<p>Could I ask for some clarification? In the &#8220;relaxed&#8221; section of the talk, you have a &#8220;stop&#8221; variable and a relaxed load from it to check whether a thread should end, paired with an SC store &#8220;stop = true;&#8221; in the main thread. Is it actually guaranteed that the store operation propagates and becomes visible eventually? Would such a guarantee depend on the existence of an acquire-release-pair? (I appreciate that actual synchronization isn&#8217;t required in the example and that we don&#8217;t need a release sequence, but I don&#8217;t see how eventual propagation is guaranteed.)</p>
+<p>Thanks!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Twisted Oak Studios &#124; Unity3D Consulting &#124; Technical Magic				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-12072</link>
+		<dc:creator><![CDATA[Twisted Oak Studios &#124; Unity3D Consulting &#124; Technical Magic]]></dc:creator>
+		<pubDate>Tue, 30 Jul 2013 08:49:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-12072</guid>
+					<description><![CDATA[[&#8230;] months ago, I watched a talk by Herb Stutter called Atomic Weapons: The C++ Memory Model and Modern Hardware (Part 1, Part 2). One of the lessons from the talk is: if you want sequential consistency, then [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] months ago, I watched a talk by Herb Stutter called Atomic Weapons: The C++ Memory Model and Modern Hardware (Part 1, Part 2). One of the lessons from the talk is: if you want sequential consistency, then [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Martin Codes &#8211; Cool Link Stash, February 2013				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-8637</link>
+		<dc:creator><![CDATA[Martin Codes &#8211; Cool Link Stash, February 2013]]></dc:creator>
+		<pubDate>Fri, 01 Mar 2013 16:49:58 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-8637</guid>
+					<description><![CDATA[[...] one of Herb Sutter&#039;s talks at C++ and Beyond 2012 got released on Channel 9. atomic Weapons: The C++ Memory Model and Modern Hardware is a two-part talk on the new C++11 memory model. This is a must-watch if you&#039;re doing any work on [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] one of Herb Sutter&#039;s talks at C++ and Beyond 2012 got released on Channel 9. atomic Weapons: The C++ Memory Model and Modern Hardware is a two-part talk on the new C++11 memory model. This is a must-watch if you&#039;re doing any work on [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Olaf van der Spek				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-8634</link>
+		<dc:creator><![CDATA[Olaf van der Spek]]></dc:creator>
+		<pubDate>Thu, 28 Feb 2013 19:00:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-8634</guid>
+					<description><![CDATA[What if in the example where you&#039;re talking about benign races, reading x could generate a hardware error (page fault or so) due to being in an unmapped page. Wouldn&#039;t reading x speculatively (by the compiler) wrongly cause the page fault?]]></description>
+		<content:encoded><![CDATA[<p>What if in the example where you&#8217;re talking about benign races, reading x could generate a hardware error (page fault or so) due to being in an unmapped page. Wouldn&#8217;t reading x speculatively (by the compiler) wrongly cause the page fault?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Johannes Gustafsson (@johannesgu)				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-8612</link>
+		<dc:creator><![CDATA[Johannes Gustafsson (@johannesgu)]]></dc:creator>
+		<pubDate>Mon, 25 Feb 2013 09:06:48 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-8612</guid>
+					<description><![CDATA[Very interesting talk! You mention that .net is not fully SC. Do you know if that is still true or did they fix it in .net 4.5? You also mention this in your &quot;volatile vs volatile&quot; paper and that they would fix it in VS2010 but I take it that didn&#039;t happen?]]></description>
+		<content:encoded><![CDATA[<p>Very interesting talk! You mention that .net is not fully SC. Do you know if that is still true or did they fix it in .net 4.5? You also mention this in your &#8220;volatile vs volatile&#8221; paper and that they would fix it in VS2010 but I take it that didn&#8217;t happen?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-8610</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sun, 24 Feb 2013 19:37:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-8610</guid>
+					<description><![CDATA[@peeterjoot: Yes, the instruction sequences shown are for directly mapping each atomic operation in the source in isolation conservatively, so that it&#039;s correct no matter what else is going on nearby. That&#039;s a correct baseline code generation strategy, and often sufficient. If your optimizer can see more of what&#039;s going on in the surrounding context, however, it can further refine the code generation. The example you give is one such case. See also the POWER code gen slide on page 37 of the handouts, where it notes &quot;you can almost get away with an lwsync here&quot; (you can indeed get away with it if you little more about other nearby atomic loads and stores in the same thread).]]></description>
+		<content:encoded><![CDATA[<p>@peeterjoot: Yes, the instruction sequences shown are for directly mapping each atomic operation in the source in isolation conservatively, so that it&#8217;s correct no matter what else is going on nearby. That&#8217;s a correct baseline code generation strategy, and often sufficient. If your optimizer can see more of what&#8217;s going on in the surrounding context, however, it can further refine the code generation. The example you give is one such case. See also the POWER code gen slide on page 37 of the handouts, where it notes &#8220;you can almost get away with an lwsync here&#8221; (you can indeed get away with it if you little more about other nearby atomic loads and stores in the same thread).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: peeterjoot				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-8597</link>
+		<dc:creator><![CDATA[peeterjoot]]></dc:creator>
+		<pubDate>Thu, 21 Feb 2013 23:03:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-8597</guid>
+					<description><![CDATA[First off.  Excellent presentation(s)!  I&#039;d loved to have had this available ten years ago when I was first blundering through these concepts.  I&#039;ve done similar ones for our internal developers, but liked what you did much better!
+
+In the second presentation, you aren&#039;t using lwsync for PowerPc, instead are using the heavyweight sync, which is what we&#039;ve used in our code (for example mutex implementation) since it was available.  Is this because you want the MM to default to not allowing a rel/acq to be reordered?]]></description>
+		<content:encoded><![CDATA[<p>First off.  Excellent presentation(s)!  I&#8217;d loved to have had this available ten years ago when I was first blundering through these concepts.  I&#8217;ve done similar ones for our internal developers, but liked what you did much better!</p>
+<p>In the second presentation, you aren&#8217;t using lwsync for PowerPc, instead are using the heavyweight sync, which is what we&#8217;ve used in our code (for example mutex implementation) since it was available.  Is this because you want the MM to default to not allowing a rel/acq to be reordered?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michael K				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-8572</link>
+		<dc:creator><![CDATA[Michael K]]></dc:creator>
+		<pubDate>Tue, 19 Feb 2013 05:32:32 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-8572</guid>
+					<description><![CDATA[Herb, congratulations on pretty good attempt to push arcane knowledge into mainstream. It has been around for at least 17 years (I am referring to wonderful but hard to read paper &#039;Memory Consistency
+Models for Shared-Memory Multiprocessors&#039; which could be found in many places, e.g. www.hpl.hp.com/techreports/Compaq-DEC/WRL-95-9.pdf)
+Soon &#039;masters of arcane&#039; will have to invent something even more twisted (to maintain their status). :-)]]></description>
+		<content:encoded><![CDATA[<p>Herb, congratulations on pretty good attempt to push arcane knowledge into mainstream. It has been around for at least 17 years (I am referring to wonderful but hard to read paper &#8216;Memory Consistency<br />
+Models for Shared-Memory Multiprocessors&#8217; which could be found in many places, e.g. <a href="http://www.hpl.hp.com/techreports/Compaq-DEC/WRL-95-9.pdf" rel="nofollow">http://www.hpl.hp.com/techreports/Compaq-DEC/WRL-95-9.pdf</a>)<br />
+Soon &#8216;masters of arcane&#8217; will have to invent something even more twisted (to maintain their status). :-)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-8557</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sun, 17 Feb 2013 19:49:04 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-8557</guid>
+					<description><![CDATA[@Michael: The slides are now linked from the video page. Here&#039;s the link for convenience: https://1drv.ms/b/s!Aq0V7yDPsIZOgcI0y2P8R-VifbnTtw
+
+@Andrea: See the part where I mentioned two kinds of acquire-release: &quot;plain acq/rel&quot; and &quot;sequentially consistent acq/rel.&quot; The only difference is that the latter forbids reordering a release followed by an acquire. The standard&#039;s memory_order_seq_cst default means &quot;sequentially consistent acquire/release&quot; -- loads are by default &quot;SC acquire&quot; and stores are by default &quot;SC release.&quot; See the slide &quot;Enter the memory_order_*&quot; (page 45 of the handout link) which summarizes these rules.]]></description>
+		<content:encoded><![CDATA[<p>@Michael: The slides are now linked from the video page. Here&#8217;s the link for convenience: <a href="https://1drv.ms/b/s!Aq0V7yDPsIZOgcI0y2P8R-VifbnTtw" rel="nofollow">https://1drv.ms/b/s!Aq0V7yDPsIZOgcI0y2P8R-VifbnTtw</a></p>
+<p>@Andrea: See the part where I mentioned two kinds of acquire-release: &#8220;plain acq/rel&#8221; and &#8220;sequentially consistent acq/rel.&#8221; The only difference is that the latter forbids reordering a release followed by an acquire. The standard&#8217;s memory_order_seq_cst default means &#8220;sequentially consistent acquire/release&#8221; &#8212; loads are by default &#8220;SC acquire&#8221; and stores are by default &#8220;SC release.&#8221; See the slide &#8220;Enter the memory_order_*&#8221; (page 45 of the handout link) which summarizes these rules.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Andrea Bigagli				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-8556</link>
+		<dc:creator><![CDATA[Andrea Bigagli]]></dc:creator>
+		<pubDate>Sun, 17 Feb 2013 09:10:59 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-8556</guid>
+					<description><![CDATA[Really liked the talk Herb, I think I get pretty much everything a lot better than before, but I&#039;m a bit confused about this now: 
+all the positive ordering effects of atomics are introduced in part 1 in terms of how Acquire/Release form the packaged deal that guarantees the induction of a &quot;happens-before&quot; relationship. 
+But the default memory ordering for atomic operation is std::memory_order_seq_cst (as further explained in part 2), right? So, aren&#039;t all things introduced in part 1 (related to Acquire/Release) more specific for the cases where you request a std::memory_order_acquire, std::memory_order_release or std::memory_order_acq_rel? 
+IOW: if using default memory order for atomics, aren&#039;t all the things explained in part 1 &quot;over-guaranteed&quot; because the default std::memory_order_seq_cst is the strongest and hence does all that Acquire/Release do and more? I&#039;m asking this because after looking at part 1, I got the idea that I reading atomics would use std::memory_order_acquire and writing them would use std::memory_order_release, which I knew wasn&#039;t true and which you confirm it&#039;s not true in part 2, the default being std::memory_order_seq_cst... 
+Hope I was able to explain my doubt... 
+
+Thanks,
+Andrea.]]></description>
+		<content:encoded><![CDATA[<p>Really liked the talk Herb, I think I get pretty much everything a lot better than before, but I&#8217;m a bit confused about this now:<br />
+all the positive ordering effects of atomics are introduced in part 1 in terms of how Acquire/Release form the packaged deal that guarantees the induction of a &#8220;happens-before&#8221; relationship.<br />
+But the default memory ordering for atomic operation is std::memory_order_seq_cst (as further explained in part 2), right? So, aren&#8217;t all things introduced in part 1 (related to Acquire/Release) more specific for the cases where you request a std::memory_order_acquire, std::memory_order_release or std::memory_order_acq_rel?<br />
+IOW: if using default memory order for atomics, aren&#8217;t all the things explained in part 1 &#8220;over-guaranteed&#8221; because the default std::memory_order_seq_cst is the strongest and hence does all that Acquire/Release do and more? I&#8217;m asking this because after looking at part 1, I got the idea that I reading atomics would use std::memory_order_acquire and writing them would use std::memory_order_release, which I knew wasn&#8217;t true and which you confirm it&#8217;s not true in part 2, the default being std::memory_order_seq_cst&#8230;<br />
+Hope I was able to explain my doubt&#8230; </p>
+<p>Thanks,<br />
+Andrea.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michael Marcin				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-8532</link>
+		<dc:creator><![CDATA[Michael Marcin]]></dc:creator>
+		<pubDate>Wed, 13 Feb 2013 07:09:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-8532</guid>
+					<description><![CDATA[Incredibly good talk, especially part 2. Any chance the slides will be released?]]></description>
+		<content:encoded><![CDATA[<p>Incredibly good talk, especially part 2. Any chance the slides will be released?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michael Tsai - Blog - Atomic Weapons: The C++ Memory Model and Modern Hardware				</title>
+				<link>https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comment-8526</link>
+		<dc:creator><![CDATA[Michael Tsai - Blog - Atomic Weapons: The C++ Memory Model and Modern Hardware]]></dc:creator>
+		<pubDate>Mon, 11 Feb 2013 23:05:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1784#comment-8526</guid>
+					<description><![CDATA[[...] Herb Sutter (via Jean-Francois Roy): [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Herb Sutter (via Jean-Francois Roy): [&#8230;]</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

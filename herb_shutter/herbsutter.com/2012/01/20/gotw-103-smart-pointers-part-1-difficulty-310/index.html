@@ -1,0 +1,569 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #103: Smart Pointers, Part 1 (Difficulty: 3/10) | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965643&amp;back=https%3A%2F%2Fherbsutter.com%2F2012%2F01%2F20%2Fgotw-103-smart-pointers-part-1-difficulty-310%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #103: Smart Pointers, Part 1 (Difficulty:&nbsp;3/10) Comments Feed" href="https://herbsutter.com/2012/01/20/gotw-103-smart-pointers-part-1-difficulty-310/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #102: Solution' href='https://herbsutter.com/2012/01/20/gotw-102-solution/' />
+<link rel='next' title='GoingNative 2012: Minus One&nbsp;Week' href='https://herbsutter.com/2012/01/26/goingnative-2012-minus-one-week/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2012/01/20/gotw-103-smart-pointers-part-1-difficulty-310/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-lI' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2012%2F01%2F20%2Fgotw-103-smart-pointers-part-1-difficulty-310%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2012%2F01%2F20%2Fgotw-103-smart-pointers-part-1-difficulty-310%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #103: Smart Pointers, Part 1 (Difficulty: 3/10)" />
+<meta property="og:url" content="https://herbsutter.com/2012/01/20/gotw-103-smart-pointers-part-1-difficulty-310/" />
+<meta property="og:description" content="JG Question 1. When should you use shared_ptr vs. unique_ptr? List as many considerations as you can. &nbsp; Guru Questions 2. Why should you always use make_shared to allocate objects whose lifeti…" />
+<meta property="article:published_time" content="2012-01-20T20:46:53+00:00" />
+<meta property="article:modified_time" content="2012-04-21T22:23:27+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965643" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #103: Smart Pointers, Part 1 (Difficulty:&nbsp;3/10)" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="JG Question 1. When should you use shared_ptr vs. unique_ptr? List as many considerations as you can. &nbsp; Guru Questions 2. Why should you always use make_shared to allocate objects whose lifetimes will be managed by shared_ptr? Explain. 3. What’s the deal with auto_ptr?" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2012/01/20/gotw-103-smart-pointers-part-1-difficulty-310/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-1346 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2012/01/20/gotw-102-solution/" rel="prev">GotW #102: Solution</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2012/01/26/goingnative-2012-minus-one-week/" rel="next">GoingNative 2012: Minus One&nbsp;Week</a> &raquo;</div>
+			</div>
+			
+			<div class="post-1346 post type-post status-publish format-standard hentry category-c category-gotw" id="post-1346">
+				<div class="posttitle">
+					<h2>GotW #103: Smart Pointers, Part 1 (Difficulty:&nbsp;3/10)</h2>
+					<p class="post-info">2012-01-20 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<h3>JG Question</h3>
+<p>1. When should you use <em>shared_ptr</em> vs. <em>unique_ptr</em>? List as many considerations as you can.</p>
+<p>&nbsp;</p>
+<h3>Guru Questions</h3>
+<p>2. Why should you always use <em>make_shared</em> to allocate objects whose lifetimes will be managed by <em>shared_ptr</em>? Explain.</p>
+<p>3. What’s the deal with <em>auto_ptr</em>?</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											12 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">12 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="pingback even thread-even depth-1 highlander-comment" id="comment-12105">
+		<div id="div-comment-12105">
+		<div class="cmtinfo"><em> on <a href="#comment-12105" title="">2013-08-06 at 2:02 am</a></em>  <cite><a href='http://www.blogosfera.co.uk/2013/08/on-what-platform-is-funcshared_ptr-shared_ptr-really-dangerous/' rel='external nofollow' class='url'>On what platform is func(shared_ptr(...), shared_ptr(...)) really dangerous? | BlogoSfera</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12105"></div><p>[&#8230;] is some discussion about it, [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4782">
+		<div id="div-comment-4782">
+		<div class="cmtinfo"><em> on <a href="#comment-4782" title="">2012-02-08 at 1:31 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/78a2116ba3a0b3c5a69ff2a71c77c88c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Hal Pratt</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4782"></div><p>The solution to Waldemar&#8217;s first problem is to use allocate_shared &amp; make the allocator a friend, or, anyway, it will be once LWG open issue #2070 is resolved (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-active.html#2070" rel="nofollow">http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-active.html#2070</a>). In the meantime, I suppose you can just peek inside your vendor&#8217;s allocate_shared implementation to see who to friend.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4780">
+		<div id="div-comment-4780">
+		<div class="cmtinfo"><em> on <a href="#comment-4780" title="">2012-02-07 at 8:21 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/886c9946a5dd9887a33d237ddcc9b7e7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://phresnel.org' rel='external nofollow' class='url'>Sebastian Mach (phresnel)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4780"></div><p>(Xeo gave the purist auto_ptr answer. So here my purist answer on shared_ptr vs. unique_ptr)</p>
+<p>Use shared_ptr to allow for multiple isochronal owners, none of which shall have exclusive right to delete.</p>
+<p>Use unique_ptr to allow for exactly one isochronal owner.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4740">
+		<div id="div-comment-4740">
+		<div class="cmtinfo"><em> on <a href="#comment-4740" title="">2012-01-28 at 1:55 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6453f5f3a5e350f3414774e10c9c9b32?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Paul Michalik</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4740"></div><p>I can&#8217;t add anything more that has been said above to the answers regarding the actual question. One point though, as an addition to Waldemar Pawlaszek&#8217;s comment. There are situations when you can&#8217;t use the full power of currently standardized smart pointers: When you need to pass resources between independently compiled components. &#8220;Independent&#8221; means possibly compiled with different versions of std implementations (with different implementation of std::shared_ptr &amp; friends) and/or linked against different run-time libraries. From such a component, you typically do not export the definition of T at all, so there is no way to construct with the aid of make_shared. That&#8217;s when (at least to some extent) boost::intrusive_ptr jumps in, leaving the resource lifetime management completely up to the implementation.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4725">
+		<div id="div-comment-4725">
+		<div class="cmtinfo"><em> on <a href="#comment-4725" title="">2012-01-24 at 2:46 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/256c9d534302a138d5d1fe3ed833e217?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Martin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4725"></div><p>3. What’s the deal with auto_ptr? &#8212; Apart from it&#8217;s standard set of problems, auto_ptr is completely broken in VC8 / VS2005, which unfortunately is still my compiler at work. </p>
+<p>In VC8 the statement:  auto_ptr(T) = new T();  // will compile and crash at runtime. Note that I&#8217;ve replaced the angle brackets for posting purposes.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4714">
+		<div id="div-comment-4714">
+		<div class="cmtinfo"><em> on <a href="#comment-4714" title="">2012-01-23 at 12:15 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/05bce2c773e6d92ef6015ba5da3ede2c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Waldemar Pawlaszek</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4714"></div><p>@Kerrek SB: The question was not about constructing shared pointer but about allocating a memory for and constructing an object that is to be managed by shared_ptr. When the object is already constructed there is no use for the make_shared utility.</p>
+<p>On the other hand in my work I&#8217;ve recognized two problems with make_shared:<br />
+1. You cannot use make_shared with classes that have protected constructor. It is essential when the class have it&#8217;s own &#8220;create&#8221; factory performing some additional work and we want to disallow the means for creating the object outside of the factory. Standard does not specify with who to be befriended (and even if, it would create a loophole) and there is no base class to inherit from that would do the work effectively.<br />
+2. When weak_ptr outlives shared_ptr the memory that have been occupied by the object can&#8217;t be freed until all weak pointers will be destroyed.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4711">
+		<div id="div-comment-4711">
+		<div class="cmtinfo"><em> on <a href="#comment-4711" title="">2012-01-22 at 6:13 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/246f8736f1633614b57136f1fe4571df?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://stackoverflow.com/users/596781/kerrek-sb' rel='external nofollow' class='url'>Kerrek SB</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4711"></div><p>To add to the much belaboured point 2:</p>
+<p>One further situation in which you don&#8217;t use `make_shared` is when constructing a shared pointer *from* an existing unique pointer, possibly with a non-default deleter. The resulting shared pointer will have to be one of the type with separate refcontrol block (including the deleter information) and distinct dynamic resource (which already comes fully furnished from the unique pointer).</p>
+<p>Interestingly enough, the construction-from-unique&amp;&amp; doesn&#8217;t appear to allow you to specify an allocator.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-bartoszmilewski odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4702">
+		<div id="div-comment-4702">
+		<div class="cmtinfo"><em> on <a href="#comment-4702" title="">2012-01-21 at 2:30 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c018f213204496b4bbf481e7c8e6c15c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.relisoft.com' rel='external nofollow' class='url'>Bartosz Milewski</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4702"></div><p>I&#8217;d like to clarify one point: the distinction between strong and weak pointers. </p>
+<p>When using unique_ptr, there is only one owner of the resource at a time. However, unique_ptr may grant non-owning access to its resource. This is very important when, e.g., you want to call a library function that takes a pointer to your resource:</p>
+<pre>libFun(Foo *);
+unique_ptr foo(new Foo);
+libFun(foo.get());</pre>
+<p>By &#8220;library&#8221; I mean any reusable code. It makes very little sense to have a library function that operates of Foo, but has no interest in the ownership of Foo, to have this signature:</p>
+<pre>libFun(unique_ptr &amp; foo);</pre>
+<p>The pointer passed to libFun(Foo*) is a transient alias, or a &#8220;weak pointer&#8221; to the resource. It&#8217;s a bad idea to let the function or a data structure store such a transient alias for two reasons: (1) The alias might become invalid when the owner is destroyed, (2) such aliases might appear in a different thread than the owner&#8217;s. In the latter case, thread safety of a unique_ptr is compromised. A unique_ptr is thread-safe only if there are no aliases to it or to its contents (transitively), and there are no aliases inside its contents to data that&#8217;s accessible from the outside. In general, a unique_ptr defines its own cluster of interlinked objects that have no connection to the outside (incoming or outgoing references). </p>
+<p>When using shared_ptr, many copies of it might coexist in the program at the same time. It&#8217;s still not a good idea to store aliases to the resource it&#8217;s protecting or to its transitive contents. </p>
+<p>shared_ptr implements a simple form of garbage collection &#8212; reference counting. The problem with reference counting is that it doesn&#8217;t deal well with cycles. If you have a graph data structure that contains back pointers, you can&#8217;t turn them into shared_ptrs without risking cycles. The semi-safe way to implement back pointers in a shared_ptr-based data structure is to use weak_ptr. A weak_ptr doesn&#8217;t take part in reference counting, so it doesn&#8217;t create non-collectible cycles, but it can be (temporarily) converted into a shared_ptr to gain access to the resource. (Of course, if the resource has already been collected, this conversion will not work and it will result in an exception.) weak_ptrs are used, for instance, in shareable doubly-linked lists or trees with parent pointers.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4695">
+		<div id="div-comment-4695">
+		<div class="cmtinfo"><em> on <a href="#comment-4695" title="">2012-01-20 at 7:45 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1540df4cbe6c3cece83fa9cdba4334b6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alfonse</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4695"></div><p>1: When should you use shared_ptr vs. unique_ptr? List as many considerations as you can.</p>
+<p>unique_ptr should be used for situations where a function or object needs to allocate something, but does not need to share ownership of that allocated object with some other object or function. The object/function will directly control the lifetime of the object.</p>
+<p>unique_ptr should be used in situations where ownership can be *given* to another object/function. That is, after the function call, the current owner no longer has access to it anymore.</p>
+<p>shared_ptr should be used in situations where multiple functions/objects can *simultaneously* claim ownership to the same allocated resource.</p>
+<p>shared_ptr should also be used in situations where other functions/objects may want to weakly reference an object. This is useful for objects that need to monitor other objects, but don&#8217;t fully claim ownership over the lifetime of that object. The object with the weak reference can check to see if the object still exists, but it does not prevent it from being destroyed.</p>
+<p>2: Why should you always use make_shared to allocate objects whose lifetimes will be managed by shared_ptr? Explain.</p>
+<p>shared_ptr offers a number of features. The main one is the ability for multiple copies of the shared_ptr to all claim ownership of the same object. In order to do this, shared_ptr requires a special control block of memory that stores a count of references to the managed pointer. This block is separate from the actual pointer being owned.</p>
+<p>Consider the following.</p>
+<p>auto variable = shared_ptr(new Typename);</p>
+<p>Two memory allocations happen. `new Typename` allocates the object that will be owned. But the constructor of the shared_ptr also allocates the control block which contains the reference count. That is two separate allocations.</p>
+<p>Since memory allocation is not exactly a lightweight activity, it is best to minimize it. Because make_shared does the construction of the type, it has the ability to combine the memory for the object and the control block into one allocation.</p>
+<p>Therefore, where *possible*, it is best to use make_shared. However, it is not always possible. It cannot be used for managing memory from a source that is not a C++ object, such as an opaque pointer returned from a C-style API.</p>
+<p>allocate_shared should be used in circumstances where a special memory allocator is needed.</p>
+<p>So the question itself presupposes a conclusion that is incorrect, since make_shared cannot replace *all* uses of shared_ptr creation.</p>
+<p>3: What’s the deal with auto_ptr?</p>
+<p>auto_ptr was an attempt to replicate the effective functionality of unique_ptr using a language that couldn&#8217;t express true move semantics. Its copy constructor actually *moved* the ownership rather than copying it.</p>
+<p>One can make reasonably safe use of auto_ptr if one is careful. However, it cannot be used in a standard libary container due to its &#8220;copying&#8221; semantics. Standard containers that copy their elements at any time could easily break any stored auto_ptr. Something similar can happen for storing auto_ptr in an object without a specialized copy constructor/assignment operator.</p>
+<p>Since unique_ptr uses C++11 features to explicitly disallow copying, and C++11 standard containers can store non-copyable objects via use of move constructors, auto_ptr is effectiveless useless. It was therefore deprecated in C++11.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4693">
+		<div id="div-comment-4693">
+		<div class="cmtinfo"><em> on <a href="#comment-4693" title="">2012-01-20 at 3:09 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c018f213204496b4bbf481e7c8e6c15c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/bartoszmilewski' rel='external nofollow' class='url'>Bartosz Milewski</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4693"></div><p>1. Whenever the ownership of a resource (including heap-allocated memory) is well defined during the whole lifetime of the object, you should use unique_ptr. Ownership means responsibility for releasing the resource. Ownership may be passed by _moving_ unique_ptr.</p>
+<p>Only if you can&#8217;t clearly assign the owner to the resource should you use shared_ptr. This happens when access to a resource is shared between objects whose lifetimes cannot be predicted. shared_ptr implements the policy of &#8220;last to leave the room turns off the lights&#8221; (releases the resource).</p>
+<p>In a multithreaded context, unique_ptr is the fastest and safest way of moving data between threads, as long as there are no stray aliases left behind. Uniqueness means that only one thread at a time has access to the resource and no additional synchronization is required. This is not true with shared_ptr, which facilitates sharing of resources between threads. The object in shared_ptr must implement its own synchronization. What shared_ptr provides is thread-safe reference counting, but at a non-trivial cost. </p>
+<p>2. make_shared is a substantial optimization. Normally a shared_ptr needs a separate heap object for storing the reference count. When shared_ptr is created using make_shared, the memory for the object and the reference count are allocated together. Besides saving one allocation, this also improves locality.</p>
+<p>3. auto_ptr was a hack that is now deprecated. Move semantics and rvalue references allow clean and efficient implementation of unique_ptr. The major danger with auto_ptr is that it could be quietly passed using its copy constructor, which would invalidate the source auto_ptr. If that source auto_ptr was subsequently accessed, it would result in a fault. unique_ptr, on the other hand, cannot be passed quietly, unless it&#8217;s an rvalue. The programmer has to explicitly call std::move to pass an lvalue unique_ptr. That makes for a safer code.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4692">
+		<div id="div-comment-4692">
+		<div class="cmtinfo"><em> on <a href="#comment-4692" title="">2012-01-20 at 3:01 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/37aa3ec65ec47c5a3f9e2a80534837f3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/stackedcrooked' rel='external nofollow' class='url'>stackedcrooked</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4692"></div><p>The `unique_ptr`:<br />
+&#8211; Ownership transfer. Factories should ideally return `unique_ptr` instead of raw pointers.<br />
+&#8211; Safely pass an object between threads (only one thread can access it at a time).<br />
+&#8211; Can be used as a holder for the impl object in the pimpl idiom.<br />
+&#8211; Can be used in containers thanks to move semantics. But it&#8217;s not very flexible.<br />
+&#8211; Can be used for the similar purposes as `boost::scoped_ptr`.</p>
+<p>The `shared_ptr`:<br />
+&#8211; Shared ownership. I usually prefer single ownership though.<br />
+&#8211; Safely store pointers in a container. More flexible than `unique_ptr` in this regard.<br />
+&#8211; parent-child relations can be modeled using `shared_ptr` and `weak_ptr`.<br />
+&#8211; Accepts a `free`-function as a second constructor argument.<br />
+&#8211; It generates a &#8216;free&#8217;-function based on the type provided in the constructor. So `shared_ptr ptr(new SubClass());` is safe even if `Base` does not have a virtual destructor.</p>
+<p>Concerning `make_shared`:<br />
+&#8211; Safe alternative to unnamed `shared_ptr` temporaries (see [documentation of boost::shared_ptr](<a href="http://www.boost.org/doc/libs/1_48_0/libs/smart_ptr/shared_ptr.htm#BestPractices" rel="nofollow">http://www.boost.org/doc/libs/1_48_0/libs/smart_ptr/shared_ptr.htm#BestPractices</a>) ).<br />
+&#8211; It&#8217;s a nicer and compacter syntax.</p>
+<p>Concerning `auto_ptr`:<br />
+&#8211; Has similar use as `unique_ptr` (ownership transfer, passing between threads) or `boost::scoped_ptr`.<br />
+&#8211; Not safe to use in containers.<br />
+&#8211; Dangerous to use for member variables in classes do not have a user-defined copy constructor and assignment operator. Even though the class obeys the rule-of-three, it is not safe to copy because it leaves the original invalidated.</p>
+<p>With `auto_ptr` it&#8217;s easy to shoot yourself in the foot by passing it to a function and then still try to use it:</p>
+<p>    std::auto_ptr r = foo();<br />
+    bar(r); // This looks like a regular function call.<br />
+    std::cout &lt;value(); // Ouch! I forgot the object is no longer accessible!</p>
+<p>With `unique_ptr` you must explicitly move the pointer by calling `std::move`. This makes me less likely to forget that I can no longer access it:</p>
+<p>    std::unique_ptr ptr = foo();<br />
+    bar(std::move(ptr)); // alerts me that the object is no longer accessible</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4691">
+		<div id="div-comment-4691">
+		<div class="cmtinfo"><em> on <a href="#comment-4691" title="">2012-01-20 at 1:16 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/eb538603c2b80ea703e92abf5b45c791?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://stackoverflow.com/users/500104/xeo' rel='external nofollow' class='url'>Xeo</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4691"></div><p>1) <a href="http://stackoverflow.com/q/8706192/500104" rel="nofollow">StackOverflow: Which kind of pointer do I use when?</a> :)</p>
+<p>2) Not always. <em>make_shared</em> doesn&#8217;t allow to specify your own deleter. However, if there is no need for one, then there are indeed good reasons to use it. For one, <em>make_shared</em> compresses the allocations into a single one, where a <em>shared_ptr&lt;X&amp;rt; p(new X);</em> would need two allocations: one for the <em>X</em> object, one for the reference-count block used by the <em>shared_ptr</em>.</p>
+<p>3) <em>auto_ptr</em> has broken copy semantics. The copies actually <em>moves</em> the <em>auto_ptr</em>, meaning it transfers the ownership on copy. As such, it&#8217;s unusable in standard containers and even deprecated by the C++11 standard.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2012/01/20/gotw-103-smart-pointers-part-1-difficulty-310/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-78a2116ba3a0b3c5a69ff2a71c77c88c">
+	</div>
+	<div class="grofile-hash-map-886c9946a5dd9887a33d237ddcc9b7e7">
+	</div>
+	<div class="grofile-hash-map-6453f5f3a5e350f3414774e10c9c9b32">
+	</div>
+	<div class="grofile-hash-map-256c9d534302a138d5d1fe3ed833e217">
+	</div>
+	<div class="grofile-hash-map-05bce2c773e6d92ef6015ba5da3ede2c">
+	</div>
+	<div class="grofile-hash-map-246f8736f1633614b57136f1fe4571df">
+	</div>
+	<div class="grofile-hash-map-c018f213204496b4bbf481e7c8e6c15c">
+	</div>
+	<div class="grofile-hash-map-1540df4cbe6c3cece83fa9cdba4334b6">
+	</div>
+	<div class="grofile-hash-map-c018f213204496b4bbf481e7c8e6c15c">
+	</div>
+	<div class="grofile-hash-map-37aa3ec65ec47c5a3f9e2a80534837f3">
+	</div>
+	<div class="grofile-hash-map-eb538603c2b80ea703e92abf5b45c791">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_12105={"id":468178,"unique_id":"wp-comment-12105","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20is%20some%20discussion%20about%20it%2C%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/#comment-12105","item_id":"_comm_12105"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12105 == 'undefined' ){PDRTJS_468178_comm_12105 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12105 );}}PDRTJS_settings_468178_comm_4782={"id":468178,"unique_id":"wp-comment-4782","title":"The%20solution%20to%20Waldemar%26%23039%3Bs%20first%20problem%20is%20to%20use%20allocate_shared%20%26amp%3B%20make%20the%20allocator%20a%20friend%2C%20or%2C%20anyway%2C%20it%20will%20be%20once%20LWG%20open%20issue%20%232070%20is%20resolved%20%28http%3A%2F%2Fwww.open-std.org%2Fjtc1%2Fsc...","permalink":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/#comment-4782","item_id":"_comm_4782"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4782 == 'undefined' ){PDRTJS_468178_comm_4782 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4782 );}}PDRTJS_settings_468178_comm_4780={"id":468178,"unique_id":"wp-comment-4780","title":"%28Xeo%20gave%20the%20purist%20auto_ptr%20answer.%20So%20here%20my%20purist%20answer%20on%20shared_ptr%20vs.%20unique_ptr%29Use%20shared_ptr%20to%20allow%20for%20multiple%20isochronal%20owners%2C%20none%20of%20which%20shall%20have%20exclusive%20right%20to%20del...","permalink":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/#comment-4780","item_id":"_comm_4780"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4780 == 'undefined' ){PDRTJS_468178_comm_4780 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4780 );}}PDRTJS_settings_468178_comm_4740={"id":468178,"unique_id":"wp-comment-4740","title":"I%20can%26%23039%3Bt%20add%20anything%20more%20that%20has%20been%20said%20above%20to%20the%20answers%20regarding%20the%20actual%20question.%20One%20point%20though%2C%20as%20an%20addition%20to%20Waldemar%20Pawlaszek%26%23039%3Bs%20comment.%20There%20are%20situations%20when%20you%20ca...","permalink":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/#comment-4740","item_id":"_comm_4740"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4740 == 'undefined' ){PDRTJS_468178_comm_4740 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4740 );}}PDRTJS_settings_468178_comm_4725={"id":468178,"unique_id":"wp-comment-4725","title":"3.%20Whats%20the%20deal%20with%20auto_ptr%3F%20--%20Apart%20from%20it%26%23039%3Bs%20standard%20set%20of%20problems%2C%20auto_ptr%20is%20completely%20broken%20in%20VC8%20%2F%20VS2005%2C%20which%20unfortunately%20is%20still%20my%20compiler%20at%20work.%20In%20VC8%20the%20statement...","permalink":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/#comment-4725","item_id":"_comm_4725"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4725 == 'undefined' ){PDRTJS_468178_comm_4725 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4725 );}}PDRTJS_settings_468178_comm_4714={"id":468178,"unique_id":"wp-comment-4714","title":"%40Kerrek%20SB%3A%20The%20question%20was%20not%20about%20constructing%20shared%20pointer%20but%20about%20allocating%20a%20memory%20for%20and%20constructing%20an%20object%20that%20is%20to%20be%20managed%20by%20shared_ptr.%20When%20the%20object%20is%20already%20con...","permalink":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/#comment-4714","item_id":"_comm_4714"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4714 == 'undefined' ){PDRTJS_468178_comm_4714 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4714 );}}PDRTJS_settings_468178_comm_4711={"id":468178,"unique_id":"wp-comment-4711","title":"To%20add%20to%20the%20much%20belaboured%20point%202%3AOne%20further%20situation%20in%20which%20you%20don%26%23039%3Bt%20use%20%60make_shared%60%20is%20when%20constructing%20a%20shared%20pointer%20%2Afrom%2A%20an%20existing%20unique%20pointer%2C%20possibly%20with%20a%20non-defau...","permalink":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/#comment-4711","item_id":"_comm_4711"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4711 == 'undefined' ){PDRTJS_468178_comm_4711 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4711 );}}PDRTJS_settings_468178_comm_4702={"id":468178,"unique_id":"wp-comment-4702","title":"I%26%23039%3Bd%20like%20to%20clarify%20one%20point%3A%20the%20distinction%20between%20strong%20and%20weak%20pointers.%20When%20using%20unique_ptr%2C%20there%20is%20only%20one%20owner%20of%20the%20resource%20at%20a%20time.%20However%2C%20unique_ptr%20may%20grant%20non-owning...","permalink":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/#comment-4702","item_id":"_comm_4702"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4702 == 'undefined' ){PDRTJS_468178_comm_4702 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4702 );}}PDRTJS_settings_468178_comm_4695={"id":468178,"unique_id":"wp-comment-4695","title":"1%3A%20When%20should%20you%20use%20shared_ptr%20vs.%20unique_ptr%3F%20List%20as%20many%20considerations%20as%20you%20can.unique_ptr%20should%20be%20used%20for%20situations%20where%20a%20function%20or%20object%20needs%20to%20allocate%20something%2C%20but%20does%20...","permalink":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/#comment-4695","item_id":"_comm_4695"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4695 == 'undefined' ){PDRTJS_468178_comm_4695 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4695 );}}PDRTJS_settings_468178_comm_4693={"id":468178,"unique_id":"wp-comment-4693","title":"1.%20Whenever%20the%20ownership%20of%20a%20resource%20%28including%20heap-allocated%20memory%29%20is%20well%20defined%20during%20the%20whole%20lifetime%20of%20the%20object%2C%20you%20should%20use%20unique_ptr.%20Ownership%20means%20responsibility%20for%20re...","permalink":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/#comment-4693","item_id":"_comm_4693"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4693 == 'undefined' ){PDRTJS_468178_comm_4693 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4693 );}}PDRTJS_settings_468178_comm_4692={"id":468178,"unique_id":"wp-comment-4692","title":"The%20%60unique_ptr%60%3A-%20Ownership%20transfer.%20Factories%20should%20ideally%20return%20%60unique_ptr%60%20instead%20of%20raw%20pointers.-%20Safely%20pass%20an%20object%20between%20threads%20%28only%20one%20thread%20can%20access%20it%20at%20a%20time%29.-%20Can...","permalink":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/#comment-4692","item_id":"_comm_4692"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4692 == 'undefined' ){PDRTJS_468178_comm_4692 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4692 );}}PDRTJS_settings_468178_comm_4691={"id":468178,"unique_id":"wp-comment-4691","title":"1%29%20%26lt%3Ba%20href%3D%26quot%3Bhttp%3A%2F%2Fstackoverflow.com%2Fq%2F8706192%2F500104%26quot%3B%20rel%3D%26quot%3Bnofollow%26quot%3B%26gt%3BStackOverflow%3A%20Which%20kind%20of%20pointer%20do%20I%20use%20when%3F%26lt%3B%2Fa%26gt%3B%20%3A%292%29%20Not%20always.%20%26lt%3Bem%26gt%3Bmake_shared%26lt%3B%2Fem%26gt%3B%20doesn%26%23039%3Bt%20allow%20to%20specify%20your%20o...","permalink":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/#comment-4691","item_id":"_comm_4691"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4691 == 'undefined' ){PDRTJS_468178_comm_4691 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4691 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F01%2F20%2Fgotw-103-smart-pointers-part-1-difficulty-310%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2012\/01\/20\/gotw-103-smart-pointers-part-1-difficulty-310\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2012%2F01%2F20%2Fgotw-103-smart-pointers-part-1-difficulty-310%2F","postID":"1346","shortlink":"https:\/\/wp.me\/peb5Y-lI","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/1346","statsLink":"https:\/\/wordpress.com\/stats\/post\/1346\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F01%2F20%2Fgotw-103-smart-pointers-part-1-difficulty-310%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'1346','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLk9FdTJWSXY4eHZWRXg0Umw4al9dZlFCN1pwSkxVeHEyTXpbUld0Wm05LmcxV3lIXXQmUyZpPXgsa11+ay1qM3Z8XzR5RWMrNi9ILXI4M1hFUnE9SHpmJmZddFVsX1k2ZXlpY3Qmdj0rLjhHWVktSEl2dzUlYlpWc3V5N19DJWRUaXo1PWZRLWp6V3RZJUZlV09OVDN5ZGFhZll3XUZlPzErRS92OD0lSEUsb3lQWnVTUjZ0Vi5Ec0sxMVpZQTY9LnpmPWdFMQ=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '1346' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

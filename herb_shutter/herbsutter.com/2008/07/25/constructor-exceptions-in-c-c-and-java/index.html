@@ -1,0 +1,1055 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Constructor Exceptions in C++, C#, and Java | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965851&amp;back=https%3A%2F%2Fherbsutter.com%2F2008%2F07%2F25%2Fconstructor-exceptions-in-c-c-and-java%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Constructor Exceptions in C++, C#, and&nbsp;Java Comments Feed" href="https://herbsutter.com/2008/07/25/constructor-exceptions-in-c-c-and-java/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Research Firms Are Good At Research, Not Technology&nbsp;Predictions' href='https://herbsutter.com/2008/07/21/research-firms-are-good-at-research-not-technology-predictions/' />
+<link rel='next' title='Effective Concurrency: The Many Faces of&nbsp;Deadlock' href='https://herbsutter.com/2008/07/31/effective-concurrency-the-many-faces-of-deadlock/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2008/07/25/constructor-exceptions-in-c-c-and-java/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-1M' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2008%2F07%2F25%2Fconstructor-exceptions-in-c-c-and-java%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2008%2F07%2F25%2Fconstructor-exceptions-in-c-c-and-java%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Constructor Exceptions in C++, C#, and Java" />
+<meta property="og:url" content="https://herbsutter.com/2008/07/25/constructor-exceptions-in-c-c-and-java/" />
+<meta property="og:description" content="I just received the following question, whose answer is the same in C++, C#, and Java. Question: In the following code, why isn&#8217;t the destructor/disposer ever called to clean up the Widget wh…" />
+<meta property="article:published_time" content="2008-07-25T19:43:04+00:00" />
+<meta property="article:modified_time" content="2008-07-27T14:34:47+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965851" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Constructor Exceptions in C++, C#, and&nbsp;Java" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="I just received the following question, whose answer is the same in C++, C#, and Java. Question: In the following code, why isn&#039;t the destructor/disposer ever called to clean up the Widget when the constructor emits an exception? You can entertain this question in your mainstream language of choice: // C++ (an edited version of&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2008/07/25/constructor-exceptions-in-c-c-and-java/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-110 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2008/07/21/research-firms-are-good-at-research-not-technology-predictions/" rel="prev">Research Firms Are Good At Research, Not Technology&nbsp;Predictions</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2008/07/31/effective-concurrency-the-many-faces-of-deadlock/" rel="next">Effective Concurrency: The Many Faces of&nbsp;Deadlock</a> &raquo;</div>
+			</div>
+			
+			<div class="post-110 post type-post status-publish format-standard hentry category-c-net category-c category-java category-software-development" id="post-110">
+				<div class="posttitle">
+					<h2>Constructor Exceptions in C++, C#, and&nbsp;Java</h2>
+					<p class="post-info">2008-07-25 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>I just received the following question, whose answer is the same in C++, C#, and Java.</p>
+<p>Question: In the following code, why isn&#8217;t the destructor/disposer ever called to clean up the Widget when the constructor emits an exception? You can entertain this question in your mainstream language of choice:</p>
+<table border="0" cellspacing="1" cellpadding="15" width="400">
+<tbody>
+<tr>
+<td width="400" valign="top">// C++ (an edited version of the original code<br />
+// that the reader emailed me)<br />
+class Gadget {<br />
+   Widget* w;</p>
+<p>public:<br />
+   Gadget() {<br />
+     w = new Widget();<br />
+     throw new exception();<br />
+     // &#8230; or some API call might throw<br />
+   };</p>
+<p>   <strong>~Gadget()</strong> {<br />
+<strong>      if( w != nullptr ) delete w;<br />
+</strong>   }<br />
+};</td>
+</tr>
+<tr>
+<td width="400" valign="top">// C# (equivalent)<br />
+class Gadget <strong>: IDisposable</strong> {<br />
+   private Widget w;</p>
+<p>   public Gadget() {<br />
+     w = new Widget();<br />
+     throw new Exception();<br />
+     // &#8230; or some API call might throw<br />
+   };</p>
+<p><strong>   public void Dispose()</strong> {<br />
+     // &#8230; eliding other mechanics, eventually calls:<br />
+<strong>     if( w != null ) w.Dispose();<br />
+     // or just &#8220;w = null;&#8221; if Widget isn&#8217;t IDisposable<br />
+</strong>   }<br />
+};</td>
+</tr>
+<tr>
+<td width="400" valign="top">// Java (equivalent)<br />
+class Gadget {<br />
+   private Widget w;</p>
+<p>   public Gadget() {<br />
+     w = new Widget();<br />
+     throw new Exception();<br />
+     // &#8230; or some API call might throw<br />
+   };</p>
+<p><strong>   public void dispose()</strong> {<br />
+<strong>     if( w != null ) w.dispose();<br />
+     // or just &#8220;w = null;&#8221; if Widget isn&#8217;t disposable</strong><br />
+   }<br />
+};</td>
+</tr>
+</tbody>
+</table>
+<p>Interestingly, we can answer this even without knowing the calling code&#8230; but there is typical calling code that is similar in all three languages that reinforces the answer.</p>
+<h3>Construction and Lifetime</h3>
+<p>The fundamental principles behind the answer is the same in C++, C#, and Java:</p>
+<ol>
+<li>A constructor conceptually turns a suitably sized chunk of raw memory into an object that obeys its invariants. <strong>An object&#8217;s lifetime doesn&#8217;t begin until its constructor completes successfully. </strong>If a constructor ends by throwing an exception, that means it never finished creating the object and setting up its invariants &#8212; and at the point the exceptional constructor exits, the object not only doesn&#8217;t exist, but never existed.</li>
+<li>A destructor/disposer conceptually turns an object back into raw memory. Therefore, just like all other nonprivate methods, destructors/disposers assume as a precondition that &#8220;this&#8221; object is actually a valid object and that its invariants hold. Hence, <strong>destructors/disposers only run on successfully constructed objects.</strong></li>
+</ol>
+<p>I&#8217;ve covered some of these concepts and consequences before in <a href="http://www.gotw.ca/gotw/066.htm">GotW #66, &#8220;Constructor Failures,&#8221;</a> which appeared in updated and expanded form as Items 17 and 18 of <em><a href="http://www.amazon.com/exec/obidos/ASIN/020170434X/gotwca-20">More Exceptional C++</a></em>.</p>
+<p>In particular, if Gadget&#8217;s constructor throws, it means that the Gadget object wasn&#8217;t created and never existed. So there&#8217;s nothing to destroy or dispose: The destructor/disposer not only isn&#8217;t needed to run, but it can&#8217;t run because it doesn&#8217;t have a valid object to run against.</p>
+<p>Incidentally, it also means that the Gadget constructor isn&#8217;t exception-safe, because it and only it can clean up resources it might leak. In the C++ version, the usual simple way to write the code correctly is to change the w member&#8217;s type from Widget* to shared_ptr&lt;Widget&gt; or an equivalent smart pointer type that owns the object. But let&#8217;s leave that aside for now to explore the more general issue.</p>
+<h3>A Look At the Calling Code</h3>
+<p>Next, let&#8217;s see how these semantics are actually enforced, whether by language rules or by convention, on the calling side in each language. Here are the major idiomatic ways in each language to use an Gadget object in an exception-safe way:</p>
+<table border="0" cellspacing="1" cellpadding="15" width="400">
+<tbody>
+<tr>
+<td width="400" valign="top">// C++ caller</p>
+<p>{<br />
+<strong>  Gadget myGadget;<br />
+</strong>  // do something with myGadget<br />
+}</td>
+</tr>
+<tr>
+<td width="400" valign="top">// C# caller</p>
+<p><strong>using( Gadget myGadget = new Gadget() )<br />
+</strong>{<br />
+  // do something with myGadget<br />
+}</td>
+</tr>
+<tr>
+<td width="400" valign="top">// Java caller</p>
+<p>Gadget myGadget = new Gadget();</p>
+<p><strong>try {<br />
+</strong>  // do something with myGadget<br />
+<strong>}<br />
+finally {<br />
+  myGadget.dispose();<br />
+}</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Consider the two cases where an exception can occur:</p>
+<ul>
+<li>What if an exception is thrown <strong>while using myGadget </strong>&#8212; that is, during &#8220;do something with myGadget&#8221;? In all cases, we know that myGadget&#8217;s destructor/dispose method is guaranteed to be called.</li>
+<li>But what if an exception is thrown <strong>while constructing myGadget</strong>? Now in all cases the answer is that the destructor/dispose method is guaranteed <strong>not </strong>to be called.</li>
+</ul>
+<p>Put another way, we can say for all cases: The destructor/dispose is guaranteed to be run if and only if the constructor completed successfully.</p>
+<h3>Another Look At the Destructor/Dispose Code</h3>
+<p>Finally, let&#8217;s return to each key line of code one more time:</p>
+<table border="0" cellspacing="1" cellpadding="15" width="404">
+<tbody>
+<tr>
+<td width="400" valign="top">// C++<br />
+<strong>      if( w != nullptr ) delete w;</strong></td>
+</tr>
+<tr>
+<td width="400" valign="top">// C#<br />
+<strong>     if( w != null ) w.Dispose();</strong></td>
+</tr>
+<tr>
+<td width="400" valign="top">// Java<br />
+<strong>     if( w != null ) w.dispose();</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The motivation for the nullness tests in the original example was to clean up partly-constructed objects. That motivation is suspect in principle &#8212; it means the constructors aren&#8217;t exception-safe because only they can clean up after themselves &#8212; and as we&#8217;ve seen it&#8217;s flawed in practice because the destructors/disposers won&#8217;t ever run on the code paths that the original motivation cared about. So we don&#8217;t need the nullness tests for that reason, although you might still have nullness tests in destructors/disposers to handle &#8216;optional&#8217; parts of an object where a valid object might hold a null pointer or reference member during its lifetime.</p>
+<p>In this particular example, we can observe that the nullness tests are actually unnecessary, because w will always be non-null if the object was constructed successfully. There is no (legitimate) way that you can call the destructor/disposer (Furthermore, C++ developers will know that the test is unnecessary for a second reason: Delete is a no-op if the pointer passed to it is null, so there&#8217;s never a need to check for that special case.)</p>
+<h3>Conclusion</h3>
+<p>When it comes to object lifetimes, all OO languages are more alike than different. Object and resource lifetime matters, whether or not you have a managed language, garbage collection (finalizers are not destructors/disposers!), templates, generics, or any other fancy bell or whistle layered on top of the basic humble class.</p>
+<p>The same basic issues arise everywhere&#8230; the code you write to deal with them is just spelled using different language features and/or idioms in the different languages, that&#8217;s all. We can have lively discussions about which language offers the easiest/best/greenest/lowest-carbon-footprint way to express how we want to deal with a particular aspect of object construction, lifetime, and teardown, but those concerns are general and fundamental no matter which favorite language you&#8217;re using to write your code this week.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c-net/" rel="category tag">C# / .NET</a>, <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/java/" rel="category tag">Java</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a> | 											35 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">35 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-1640">
+		<div id="div-comment-1640">
+		<div class="cmtinfo"><em> on <a href="#comment-1640" title="">2009-12-31 at 4:12 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/0fe9245586451abfd3c6cc5c487e05bf?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://codediaries.blogspot.com' rel='external nofollow' class='url'>iresha</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1640"></div><p>This is really good to know as I can see this as an interview question. Thanks!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1475">
+		<div id="div-comment-1475">
+		<div class="cmtinfo"><em> on <a href="#comment-1475" title="">2009-09-14 at 4:10 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/68a2d662fc4f3816348b15bd834cb434?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>David</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1475"></div><p>Whoa, there. For Java it seems that finalizers do run if the constructor throws an exception.</p>
+<p>The wording in the JLS for object creation says that, after allocation, the initialization either &#8220;completes abruptly&#8221; or &#8220;completes normally&#8221;. Then the section on finalization says:</p>
+<p>&#8220;The completion of an object&#8217;s constructor happens-before (§17.4.5) the execution of its finalize method (in the formal sense of happens-before).&#8221;</p>
+<p>And that&#8217;s all it says. The word &#8220;completion&#8221; is not qualified, so I could infer that finalizers always run after any completion, including the &#8220;abrupt completion&#8221; when a constructor throws an exception.</p>
+<p>It&#8217;s a little sloppy because the section on creation makes a careful distinction between field initialization and the constructors. (Because of that I could also infer that if a field initialization fails then maybe the finalizer isn&#8217;t run?)</p>
+<p>References: Java Language Specification (3rd ed), sections 12.5 and 12.6</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1468">
+		<div id="div-comment-1468">
+		<div class="cmtinfo"><em> on <a href="#comment-1468" title="">2009-09-10 at 9:04 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f8100068bcb1ba278805cd6f36e01e6b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jared</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1468"></div><p>This article is incorrect. Finalizers in C# WILL be called even if an exception is thrown in the constructor.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1108">
+		<div id="div-comment-1108">
+		<div class="cmtinfo"><em> on <a href="#comment-1108" title="">2009-02-25 at 2:33 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6a1ddc8491688843fc01f1a3719f506b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Patrice Roy</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1108"></div><p>A colleague of mine uses C# these days and thought along the same lines you (and I) do. The problem he has is that something like this, in C#, prints out «Dead!» (same effect with IDisposable and Dispose(), BTW). Maybe I&#8217;m missing something, but my understanding was that C#&#8217;s finalizer (~X() in this case) would not be called, X&#8217;s constructor having never completed normally, but the fact is: it is called and it does print&#8230; Any thoughts?</p>
+<p>using System;</p>
+<p>namespace Whatever<br />
+{<br />
+   class Program<br />
+   {<br />
+      public class X<br />
+      {<br />
+         public X()<br />
+         {<br />
+            throw new Exception();<br />
+         }<br />
+         ~X()<br />
+         {<br />
+            Console.WriteLine(&#8220;Dead!&#8221;);<br />
+         }<br />
+      }<br />
+      static void Main(string[] args)<br />
+      {<br />
+         try<br />
+         {<br />
+            X x = new X();<br />
+         }<br />
+         catch (Exception)<br />
+         {<br />
+         }<br />
+      }<br />
+   }<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-932">
+		<div id="div-comment-932">
+		<div class="cmtinfo"><em> on <a href="#comment-932" title="">2008-12-17 at 5:25 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d47ae3ed01125eba695b31321baec7e0?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://shahzadafzal.blogspot.com' rel='external nofollow' class='url'>Shahzad Afzal</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_932"></div><p>Hmmm very interesting post and lot of healthy information.<br />
+I was looking for what to do in we got exception in constructor or destructor?</p>
+<p>;) actually this questions was asked in my today interview that time i didn&#8217;t know at all.</p>
+<p>Now after reading the post&#8230;&#8230;&#8230; i got good info.<br />
+Thanks you all&#8230;&#8230;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-914">
+		<div id="div-comment-914">
+		<div class="cmtinfo"><em> on <a href="#comment-914" title="">2008-11-18 at 1:41 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/320c89c842df53ff8954144255f1238b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.intel-assembler.it' rel='external nofollow' class='url'>Julian</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_914"></div><p>Very interesting post!</p>
+<p>I was actually searching for something else but i stopped a moment to read your point.</p>
+<p>Julian</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-801">
+		<div id="div-comment-801">
+		<div class="cmtinfo"><em> on <a href="#comment-801" title="">2008-09-21 at 1:50 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/277a8928aee655b655b621ca37aa5121?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.devhints.blogspot.com' rel='external nofollow' class='url'>Thiago Delgado Pinto</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_801"></div><p>In C++, the delete operator already checks for null pointer.</p>
+<p>So,</p>
+<p>if ( ptr != NULL ) delete ptr;</p>
+<p>is redundant.</p>
+<p>Use</p>
+<p>delete ptr;</p>
+<p>directly instead.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-800">
+		<div id="div-comment-800">
+		<div class="cmtinfo"><em> on <a href="#comment-800" title="">2008-09-11 at 3:17 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/e5cedb4c41cc2c7e2933d66f79cd8e79?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>oleg</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_800"></div><p>If call the constructor which has an exception handling, how would I inform the caller about the exception? Should I then include try catch in caller? And what type of exceptions I should be prepared to deal with?</p>
+<p>The intention is to create an Object which will analyze on its own whether data source exists and if it is not, fails and informs caller about this.</p>
+<p>Lets say:<br />
+class FileProcessing{<br />
+ public FileProcessing(string fName)<br />
+ {<br />
+   try{<br />
+      StreamReader sr = new StreamReader(fName);<br />
+    }<br />
+    catch(FileNotFoundException fnfex)<br />
+    {<br />
+    }</p>
+<p> }<br />
+ public ReplaceOldNames()<br />
+ {<br />
+ }<br />
+}</p>
+<p>Should I generate custom exception? Or it is a way to pass FileNotFoundException ?</p>
+<p>Thank you</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-797">
+		<div id="div-comment-797">
+		<div class="cmtinfo"><em> on <a href="#comment-797" title="">2008-09-05 at 3:11 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/2dbe5981a9f49651ec169932fc3a8e70?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Marko</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_797"></div><p>what&#8217;s with using dispose for C#? Dispose is not the destructor (C# has the same ~ syntax as C++ for destructors). The dispose method will never get called by the GC. user code has to explicitly call it like you did with the using syntax. GC calls the C# destructor (aka finalizer) when cleaning up the object which DOES get called even when the constructor throws an exception.</p>
+<p>dispose was meant for unmanaged resources which have to be manually released as the GC does not know about them.</p>
+<p>i thought i had a pretty good handle on finalize/dispose but i&#8217;m confused now&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-790">
+		<div id="div-comment-790">
+		<div class="cmtinfo"><em> on <a href="#comment-790" title="">2008-08-24 at 3:24 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/56329c84c501a7817bf5eb7763da2052?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jonas</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_790"></div><p>One differense that has bitten me in C# here is that in C++ all member and base object whose constructor has run will have its destructor run . But that will not be the case for a C# using statement.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-789">
+		<div id="div-comment-789">
+		<div class="cmtinfo"><em> on <a href="#comment-789" title="">2008-08-22 at 11:03 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/8dbfbbc4e48afe0caa43412a8c03ef07?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://mateusz.loskot.net' rel='external nofollow' class='url'>Mateusz Loskot</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_789"></div><p>Herb,</p>
+<p>Thanks for the great article, especially comparison to C# and Java. I&#8217;ve learned a lot.</p>
+<p>However, it&#8217;s still unclear to me what consequences are expected in C# and Java from not calling disposer on Widget when Gadgets construction does not complete. </p>
+<p>In C++, the situation is clear: memory allocated for Widget leaks. What happen with Widget in C# and Java? Isn&#8217;t it collected at some point?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-776">
+		<div id="div-comment-776">
+		<div class="cmtinfo"><em> on <a href="#comment-776" title="">2008-08-12 at 5:14 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/8904c805981429bb8e5140f9577eea36?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://oleksii-skidan.blogspot.com/' rel='external nofollow' class='url'>Oleksii Skidan</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_776"></div><p>Beg your pardon, the dele operator in the catch block shall look like this of course: delete [] foo_; -)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-774">
+		<div id="div-comment-774">
+		<div class="cmtinfo"><em> on <a href="#comment-774" title="">2008-08-12 at 12:45 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/8904c805981429bb8e5140f9577eea36?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://oleksii-skidan.blogspot.com/' rel='external nofollow' class='url'>Oleksii Skidan</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_774"></div><p>Oops, the HTML tags seems to eat up my include directive :-) It&#8217;s iostream.</p>
+<p>Cheers,<br />
+Oleksii Skidan</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-773">
+		<div id="div-comment-773">
+		<div class="cmtinfo"><em> on <a href="#comment-773" title="">2008-08-12 at 12:44 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/8904c805981429bb8e5140f9577eea36?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://oleksii-skidan.blogspot.com/' rel='external nofollow' class='url'>Oleksii Skidan</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_773"></div><p>Hi Herb,</p>
+<p>There&#8217;s a little exception to the rule. It&#8217;s the operator new [] ;-) For example, let&#8217;s take into consideration the following code:</p>
+<p>#include    </p>
+<p>template void unused(const T) {}</p>
+<p>class Foo<br />
+{<br />
+public:<br />
+    static int nctors;<br />
+    static int ndtors;</p>
+<p>    Foo()<br />
+    {<br />
+        if(maxn &lt;= Foo::n++)<br />
+        {<br />
+            throw 3;<br />
+        }</p>
+<p>        std::cout&lt;&lt;__PRETTY_FUNCTION__&lt;&lt;&#8220;: Succeeded\n&#8221;;</p>
+<p>        ++Foo::nctors;<br />
+    }</p>
+<p>    ~Foo()<br />
+    {<br />
+        std::cout&lt;&lt;__PRETTY_FUNCTION__&lt;&lt;&#8220;: Called\n&#8221;;</p>
+<p>        ++Foo::ndtors;<br />
+    }<br />
+private:<br />
+    static int n;<br />
+    static const int maxn = 210;<br />
+};</p>
+<p>int Foo::n      = 0;<br />
+int Foo::nctors = 0;<br />
+int Foo::ndtors = 0;</p>
+<p>class Bar<br />
+{<br />
+public:<br />
+    // We&#8217;ll certanly call destructors for constructed objects&#8230;<br />
+    Bar()<br />
+        : foo_(new Foo[300])<br />
+    {<br />
+        std::cout&lt;&lt;__PRETTY_FUNCTION__&lt;&lt;&#8220;: Succeeded\n&#8221;;<br />
+    }</p>
+<p>    ~Bar()<br />
+    {<br />
+        std::cout&lt;&lt;__PRETTY_FUNCTION__&lt;&lt;&#8220;: Called\n&#8221;;<br />
+    }<br />
+private:<br />
+    Foo* foo_;<br />
+};</p>
+<p>int main()<br />
+{<br />
+    try<br />
+    {<br />
+        Bar bar;</p>
+<p>        unused(bar);<br />
+    }<br />
+    catch(&#8230;) {}</p>
+<p>    std::cout&lt;&lt;&#8220;Foo constructors called: &#8220;&lt;&lt;Foo::nctors&lt;&lt;std::endl;<br />
+    std::cout&lt;&lt;&#8220;Foo destructors  called: &#8220;&lt;&lt;Foo::ndtors&lt;&lt;std::endl;<br />
+}</p>
+<p>I&#8217;ll throw away all the blah succeeded/called and leave only the output of the last two lines of main():</p>
+<p>Foo constructors called: 210<br />
+Foo destructors  called: 210</p>
+<p>Let&#8217;s examine the code. The Bar did never exist just like poor Parrot ;-) But Foo::~Foo was called (a bit like paradox). I guess you should point this out in your Exceptional C++ books. It&#8217;s quite possible that a novice programmer will try to write something like that:</p>
+<p>Bar()<br />
+try<br />
+    : foo_(new Foo[300])<br />
+{<br />
+    std::cout&lt;&lt;__PRETTY_FUNCTION__&lt;&lt;&#8220;: Succeeded\n&#8221;;<br />
+}<br />
+catch(&#8230;)<br />
+{<br />
+    delete foo_;    ///&lt; Oh no! Gush, my compiler gone crazy 8-)<br />
+}</p>
+<p>Regards,<br />
+Oleksii Skidan</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-746">
+		<div id="div-comment-746">
+		<div class="cmtinfo"><em> on <a href="#comment-746" title="">2008-08-01 at 5:44 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/06ab738ea652c7575beac54255f05ea5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>augustinus</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_746"></div><p>Hi ActionMan,</p>
+<p>   Thank you, I&#8217;ll double check my poor memo.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-742">
+		<div id="div-comment-742">
+		<div class="cmtinfo"><em> on <a href="#comment-742" title="">2008-07-28 at 4:14 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1f64f9b0a9296bafcc7d3bb0012cffe4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>ActionMan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_742"></div><p>Augustinus,<br />
+deleting a null pointer should only cause an access violation in VS6.</p>
+<p>VS7/8/9 all perform the correct behaviour as Herb stated.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-741">
+		<div id="div-comment-741">
+		<div class="cmtinfo"><em> on <a href="#comment-741" title="">2008-07-28 at 9:35 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0c14c66dac93440043a871819b386ad6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>#aaron</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_741"></div><p>Note:  in previous post, &#8220;auto_ptr w;&#8221; should have read &#8220;auto_ptr LT Widget GT w;&#8221;, where LT and GT are the less-than and greater-than symbols respectively (comment form bug).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-740">
+		<div id="div-comment-740">
+		<div class="cmtinfo"><em> on <a href="#comment-740" title="">2008-07-28 at 9:34 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0c14c66dac93440043a871819b386ad6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>#aaron</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_740"></div><p>Herb, </p>
+<p>The deck was stacked for the C++ example.  A smart pointer would solve this problem (performing the cleanup that the original author intended):</p>
+<p>// C++ w RAII<br />
+class Gadget {<br />
+   std::auto_ptr w;</p>
+<p>public:<br />
+   Gadget() {<br />
+     w.reset(new Widget());<br />
+     throw new exception();<br />
+     // … or some API call might throw<br />
+   };</p>
+<p>   ~Gadget() {<br />
+     // nothing to do, auto_ptr will always delete<br />
+     // the widget, even if the destructor isn&#8217;t invoked.<br />
+   }<br />
+};</p>
+<p>// C# (equivalent)<br />
+class Gadget : IDisposable {<br />
+   private Widget w;</p>
+<p>   public Gadget() {<br />
+     bool complete = false;<br />
+     try{<br />
+       w = new Widget();<br />
+       throw new Exception();<br />
+       // … or some API call might throw<br />
+       complete=true;<br />
+     }finally{</p>
+<p>       if(!complete)<br />
+       {<br />
+         // manually invoke cleanup on base class<br />
+         // and on each member object<br />
+         if(w != null) w.Dispose();<br />
+       }<br />
+     }<br />
+   };</p>
+<p>   public void Dispose() {<br />
+     // … eliding other mechanics, eventually calls:<br />
+     if( w != null ) w.Dispose();<br />
+     // or just “w = null;” if Widget isn’t IDisposable<br />
+   }<br />
+};</p>
+<p>#aaron</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-739">
+		<div id="div-comment-739">
+		<div class="cmtinfo"><em> on <a href="#comment-739" title="">2008-07-28 at 3:12 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/06ab738ea652c7575beac54255f05ea5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>augustinus</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_739"></div><p>Hi Herb,</p>
+<p>    Sorry for bothering, please %s/quiet/quite/g in my recent comments, thank you</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-738">
+		<div id="div-comment-738">
+		<div class="cmtinfo"><em> on <a href="#comment-738" title="">2008-07-28 at 3:09 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/06ab738ea652c7575beac54255f05ea5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>augustinus</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_738"></div><p>Hi Herb,</p>
+<p>    Or I suspect that access violation is actually coming from deleting a null memory address of the pointer itself, not a null pointer?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-737">
+		<div id="div-comment-737">
+		<div class="cmtinfo"><em> on <a href="#comment-737" title="">2008-07-28 at 3:04 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/06ab738ea652c7575beac54255f05ea5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>augustinus</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_737"></div><p>Hi Herb,</p>
+<p>    I&#8217;m not quiet sure that it&#8217;s always true to say &#8220;Delete is a no-op if the pointer passed to it is null,&#8221; isn&#8217;t it usually getting access violation with VS2005/VC8 ?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-736">
+		<div id="div-comment-736">
+		<div class="cmtinfo"><em> on <a href="#comment-736" title="">2008-07-27 at 6:39 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3c76327838ebb6f7ea07f783e862d863?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://tombarta.wordpress.com/' rel='external nofollow' class='url'>Tom</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_736"></div><p>I think it&#8217;s useful to point out that in C++, a common solution automatic destruction of members is to introduce a new base class, and then let the base manage object lifetimes.  This is done in several parts of the GNU STL implementation (such as std::vector).  I&#8217;m pretty sure there&#8217;s an example of this in &#8220;[More] Exceptional C++&#8221; as well.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-731">
+		<div id="div-comment-731">
+		<div class="cmtinfo"><em> on <a href="#comment-731" title="">2008-07-27 at 8:34 am</a></em>  <cite><a href='http://ianreay.com/blog/?p=19' rel='external nofollow' class='url'>Ian Reay &raquo; Blog Archive &raquo; Interesting Items (1)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_731"></div><p>[&#8230;] Constructor Exceptions in C++, C#, and Java  [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-730">
+		<div id="div-comment-730">
+		<div class="cmtinfo"><em> on <a href="#comment-730" title="">2008-07-27 at 8:12 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c5c65fedeafbeb174dd2ed28721b70e8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>jr</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_730"></div><p>Laurentiu: your destructor in Base is not virtual. Thus the delete call will call Base::~Base() instead of Derived::~Derived()</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-729">
+		<div id="div-comment-729">
+		<div class="cmtinfo"><em> on <a href="#comment-729" title="">2008-07-27 at 7:52 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/cbfbaab0245323f5405540dd889b5d9d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Simon</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_729"></div><p>&gt; C++ [&#8230;]<br />
+&gt; throw new exception();</p>
+<p>You didn&#8217;t really mean to throw a pointer here, did you? ;)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-728">
+		<div id="div-comment-728">
+		<div class="cmtinfo"><em> on <a href="#comment-728" title="">2008-07-27 at 5:43 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/ca899d69c9a3bcab4e0ba3c85561dd6c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Laurentiu B.</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_728"></div><p>15.2.2 in the C++ Language Specification says it clear: an object that is partially constructed will have destructors executed for all of its fully constructed subobjects.</p>
+<p>But what about this example, which is like the OO &#8220;Hello, world!&#8221; escorted by the Goodbye message:</p>
+<p>// &#8230;</p>
+<p>class Base {<br />
+public:<br />
+  Base()  { cout &lt;&lt; &#8220;Hello from Base()&#8221;  &lt;&lt; endl; }<br />
+  ~Base() { cout &lt;&lt; &#8220;Goodbye from ~Base()&#8221; &lt;&lt; endl; }<br />
+};</p>
+<p>class Derived : public Base {<br />
+public:<br />
+  Derived()  { cout &lt;&lt; &#8220;Hello from Derived()&#8221;  &lt;&lt; endl; }<br />
+  ~Derived() { cout &lt;&lt; &#8220;Nobody loves me&#8221; &lt;&lt; endl; }<br />
+};</p>
+<p>int main()<br />
+{<br />
+  Base *pbase = new Derived();<br />
+  delete pbase;<br />
+}</p>
+<p>After the execution we&#8217;ll have:</p>
+<p>Hello from Base2()<br />
+Hello from Derived2()<br />
+Goodbye from ~Base2()</p>
+<p>Don&#8217;t we have a fully constructed object of type Derived? </p>
+<p>In the last paragraph of the section &#8220;A Look At the Calling Code&#8221; Mr. Sutter said (at a general level): &#8220;[&#8230;] we can say for all cases: The destructor/dispose is guaranteed to be run if and only if the constructor completed successfully.&#8221;<br />
+What if the Widget is derived from Gadget?<br />
+Then in the first case from the quoted section, if myGadget is dynamically allocated by new Widget(), the ~Widget() will not be called if the ~Gadget() isn&#8217;t virtual.<br />
+In the second case, if the exception is thrown from Widget(), the destructor for Gadget is still called.</p>
+<p>So, the successfully completeness of an object should be completed (mmm) with the storage location type (stack or heap) &#8211; considering that the storage is allocated before the object construction start &#8211; and with the proper use of the polymorphism rules.</p>
+<p>Excuse my language. My English language.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-727">
+		<div id="div-comment-727">
+		<div class="cmtinfo"><em> on <a href="#comment-727" title="">2008-07-27 at 4:51 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1a3677ea2e960e8de9c30ff00d7f26c4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Val</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_727"></div><p>&#8220;I’ve covered some of these concepts and consequences before in GotW #66, “Constructor Failures,” which appeared in updated and expanded form as Items 17 and 18 of More Exceptional C++.&#8221; Herb Sutter</p>
+<p>It&#8217;s also covered in The C++ Programming Language/Special Edition/ by Stroustrup par 14.4.1</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-726">
+		<div id="div-comment-726">
+		<div class="cmtinfo"><em> on <a href="#comment-726" title="">2008-07-26 at 11:46 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6183c6f9d621a125cd3aa0f7ae324285?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Motti</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_726"></div><p>Talking about differences between C++/Java/C# could you find the time to discuss the motivation for virtual function calls to behave differently in these languages?<br />
+I found C++&#8217;s way to be confusing at first glance but after a second thought it makes much more sense and I can&#8217;t really understand Java/C#s&#8217; choice.<br />
+(<a href="http://en.wikipedia.org/wiki/Virtual_functions#Behavior_During_Construction" rel="nofollow">http://en.wikipedia.org/wiki/Virtual_functions#Behavior_During_Construction</a>)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-725">
+		<div id="div-comment-725">
+		<div class="cmtinfo"><em> on <a href="#comment-725" title="">2008-07-26 at 5:51 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/37c970aebf05ba70985ed65b148907c9?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jagan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_725"></div><p>Hi   ugasoft!<br />
+In that case Base is destructed no matter if the Derived object is a normal object or a pointer.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-722">
+		<div id="div-comment-722">
+		<div class="cmtinfo"><em> on <a href="#comment-722" title="">2008-07-26 at 6:04 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/3c0aac2191718ef0309dbc034d9b9961?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>David Heffernan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_722"></div><p>Jack:</p>
+<p>You probably forgot to include override on your destructor (which has to be called Destroy).  Since it&#8217;s called by the framework then you need this for it to be called.  But exceptions raised in a Delphi constructor do indeed result in the Destroy running.</p>
+<p>The documentation say:</p>
+<p>&#8220;If an exception is raised during execution of a constructor that was invoked on a class reference, the Destroy destructor is automatically called to destroy the unfinished object.&#8221;</p>
+<p>You can also take look at the implementation of _ClassCreate in System.pas if you really don&#8217;t believe that Delphi behaves in this way.</p>
+<p>Actually this behaviour is great for the majority of resources that are created.  You have to be a little careful with non-native resources (e.g. system handles, windows etc.) but otherwise it means that exceptions in constructors can be dealt with easily.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-721">
+		<div id="div-comment-721">
+		<div class="cmtinfo"><em> on <a href="#comment-721" title="">2008-07-26 at 2:47 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c260b236f086ab00e054fded2255b661?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>ugasoft</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_721"></div><p>Thank you Herb.<br />
+Can you explain what happen if the constructor of a derived class throw an exception, after the base subobject has been constructed?<br />
+Does the Berived object never exist? (probably it doesn&#8217;t)<br />
+And what about the Base? (probably it does)</p>
+<p>(I&#8217;m a C++ programmer)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-720">
+		<div id="div-comment-720">
+		<div class="cmtinfo"><em> on <a href="#comment-720" title="">2008-07-25 at 11:04 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/9ab299361a0f810ef88cd4cef9001873?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jack smith</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_720"></div><p>Thanks Barry because I was just exploring the varying same topic in Delphi.W32. Not sure if I have done something wrong. When I deliberately throw an exception in the constructor, the class&#8217; destructor does not seem to be called. My trace never fired!</p>
+<p>With respect to the acceptable practice of calling embedded object&#8217;s Free() in the destructor, in C++ all fully constructor embedded objects are automatically destroyed; only partially constructed aren&#8217;t.</p>
+<p>Hence, as far as destruction is concerned, there isn&#8217;t much difference between Delphi and C++.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-719">
+		<div id="div-comment-719">
+		<div class="cmtinfo"><em> on <a href="#comment-719" title="">2008-07-25 at 5:25 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d3c4cdb15c832cfc746367a033b0d356?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://orcmid.com/BlunderDome/clueless' rel='external nofollow' class='url'>orcmid</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_719"></div><p>Yes, nice one, and Barry&#8217;s comparison with Delphi is informative too.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-718">
+		<div id="div-comment-718">
+		<div class="cmtinfo"><em> on <a href="#comment-718" title="">2008-07-25 at 1:25 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c09c01d623253b9fa0e4e5473cfd2e09?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://peter.jansson.net/' rel='external nofollow' class='url'>Peter Jansson</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_718"></div><p>Hi, I just wanted to say thank you for this post. It has been of great value for me. Regards, Peter.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-716">
+		<div id="div-comment-716">
+		<div class="cmtinfo"><em> on <a href="#comment-716" title="">2008-07-25 at 12:59 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/2facd380c5bdfbaa1a1e9c657578f135?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://barrkel.blogspot.com/' rel='external nofollow' class='url'>Barry Kelly</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_716"></div><p>Here&#8217;s an &#8220;exception&#8221; for you: Delphi.</p>
+<p>When an exception is thrown in a Delphi constructor, the destructor is automatically called and the exception rethrown.</p>
+<p>This works especially well in Delphi because of two object construction conventions:</p>
+<p>* The memory for an object&#8217;s fields is always zeroed out before the constructor is entered (TObject.InitInstance)<br />
+* The normal way to free an object in Delphi is to call the nonvirtual instance method TObject.Free, which will only invoke the destructor /if &#8220;Self&#8221; is not *nil*/.</p>
+<p>Thus, it is safe to have a destructor that is a list of calls to &#8216;.Free&#8217; on fields referring to owned objects, even though many of those objects might not have been created yet when and if an exception gets thrown in the constructor.</p>
+<p>Getting the same semantic behaviour in other languages that are less like Delphi can be somewhat painful, because exceptions thrown in constructors need special handling &#8211; you can&#8217;t rely on destructor cleanup.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2008/07/25/constructor-exceptions-in-c-c-and-java/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-0fe9245586451abfd3c6cc5c487e05bf">
+	</div>
+	<div class="grofile-hash-map-68a2d662fc4f3816348b15bd834cb434">
+	</div>
+	<div class="grofile-hash-map-f8100068bcb1ba278805cd6f36e01e6b">
+	</div>
+	<div class="grofile-hash-map-6a1ddc8491688843fc01f1a3719f506b">
+	</div>
+	<div class="grofile-hash-map-d47ae3ed01125eba695b31321baec7e0">
+	</div>
+	<div class="grofile-hash-map-320c89c842df53ff8954144255f1238b">
+	</div>
+	<div class="grofile-hash-map-277a8928aee655b655b621ca37aa5121">
+	</div>
+	<div class="grofile-hash-map-e5cedb4c41cc2c7e2933d66f79cd8e79">
+	</div>
+	<div class="grofile-hash-map-2dbe5981a9f49651ec169932fc3a8e70">
+	</div>
+	<div class="grofile-hash-map-56329c84c501a7817bf5eb7763da2052">
+	</div>
+	<div class="grofile-hash-map-8dbfbbc4e48afe0caa43412a8c03ef07">
+	</div>
+	<div class="grofile-hash-map-8904c805981429bb8e5140f9577eea36">
+	</div>
+	<div class="grofile-hash-map-06ab738ea652c7575beac54255f05ea5">
+	</div>
+	<div class="grofile-hash-map-1f64f9b0a9296bafcc7d3bb0012cffe4">
+	</div>
+	<div class="grofile-hash-map-0c14c66dac93440043a871819b386ad6">
+	</div>
+	<div class="grofile-hash-map-3c76327838ebb6f7ea07f783e862d863">
+	</div>
+	<div class="grofile-hash-map-c5c65fedeafbeb174dd2ed28721b70e8">
+	</div>
+	<div class="grofile-hash-map-cbfbaab0245323f5405540dd889b5d9d">
+	</div>
+	<div class="grofile-hash-map-ca899d69c9a3bcab4e0ba3c85561dd6c">
+	</div>
+	<div class="grofile-hash-map-1a3677ea2e960e8de9c30ff00d7f26c4">
+	</div>
+	<div class="grofile-hash-map-6183c6f9d621a125cd3aa0f7ae324285">
+	</div>
+	<div class="grofile-hash-map-37c970aebf05ba70985ed65b148907c9">
+	</div>
+	<div class="grofile-hash-map-3c0aac2191718ef0309dbc034d9b9961">
+	</div>
+	<div class="grofile-hash-map-c260b236f086ab00e054fded2255b661">
+	</div>
+	<div class="grofile-hash-map-9ab299361a0f810ef88cd4cef9001873">
+	</div>
+	<div class="grofile-hash-map-d3c4cdb15c832cfc746367a033b0d356">
+	</div>
+	<div class="grofile-hash-map-c09c01d623253b9fa0e4e5473cfd2e09">
+	</div>
+	<div class="grofile-hash-map-2facd380c5bdfbaa1a1e9c657578f135">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_1640={"id":468178,"unique_id":"wp-comment-1640","title":"This%20is%20really%20good%20to%20know%20as%20I%20can%20see%20this%20as%20an%20interview%20question.%20Thanks%21...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-1640","item_id":"_comm_1640"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1640 == 'undefined' ){PDRTJS_468178_comm_1640 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1640 );}}PDRTJS_settings_468178_comm_1475={"id":468178,"unique_id":"wp-comment-1475","title":"Whoa%2C%20there.%20For%20Java%20it%20seems%20that%20finalizers%20do%20run%20if%20the%20constructor%20throws%20an%20exception.The%20wording%20in%20the%20JLS%20for%20object%20creation%20says%20that%2C%20after%20allocation%2C%20the%20initialization%20either%20%26quot%3Bcom...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-1475","item_id":"_comm_1475"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1475 == 'undefined' ){PDRTJS_468178_comm_1475 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1475 );}}PDRTJS_settings_468178_comm_1468={"id":468178,"unique_id":"wp-comment-1468","title":"This%20article%20is%20incorrect.%20Finalizers%20in%20C%23%20WILL%20be%20called%20even%20if%20an%20exception%20is%20thrown%20in%20the%20constructor....","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-1468","item_id":"_comm_1468"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1468 == 'undefined' ){PDRTJS_468178_comm_1468 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1468 );}}PDRTJS_settings_468178_comm_1108={"id":468178,"unique_id":"wp-comment-1108","title":"A%20colleague%20of%20mine%20uses%20C%23%20these%20days%20and%20thought%20along%20the%20same%20lines%20you%20%28and%20I%29%20do.%20The%20problem%20he%20has%20is%20that%20something%20like%20this%2C%20in%20C%23%2C%20prints%20out%20Dead%21%20%28same%20effect%20with%20IDisposable%20and%20D...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-1108","item_id":"_comm_1108"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1108 == 'undefined' ){PDRTJS_468178_comm_1108 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1108 );}}PDRTJS_settings_468178_comm_932={"id":468178,"unique_id":"wp-comment-932","title":"Hmmm%20very%20interesting%20post%20and%20lot%20of%20healthy%20information.%20I%20was%20looking%20for%20what%20to%20do%20in%20we%20got%20exception%20in%20constructor%20or%20destructor%3F%3B%29%20actually%20this%20questions%20was%20asked%20in%20my%20today%20interview...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-932","item_id":"_comm_932"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_932 == 'undefined' ){PDRTJS_468178_comm_932 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_932 );}}PDRTJS_settings_468178_comm_914={"id":468178,"unique_id":"wp-comment-914","title":"Very%20interesting%20post%21I%20was%20actually%20searching%20for%20something%20else%20but%20i%20stopped%20a%20moment%20to%20read%20your%20point.Julian...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-914","item_id":"_comm_914"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_914 == 'undefined' ){PDRTJS_468178_comm_914 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_914 );}}PDRTJS_settings_468178_comm_801={"id":468178,"unique_id":"wp-comment-801","title":"In%20C%2B%2B%2C%20the%20delete%20operator%20already%20checks%20for%20null%20pointer.So%2Cif%20%28%20ptr%20%21%3D%20NULL%20%29%20delete%20ptr%3Bis%20redundant.Usedelete%20ptr%3Bdirectly%20instead....","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-801","item_id":"_comm_801"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_801 == 'undefined' ){PDRTJS_468178_comm_801 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_801 );}}PDRTJS_settings_468178_comm_800={"id":468178,"unique_id":"wp-comment-800","title":"If%20call%20the%20constructor%20which%20has%20an%20exception%20handling%2C%20how%20would%20I%20inform%20the%20caller%20about%20the%20exception%3F%20Should%20I%20then%20include%20try%20catch%20in%20caller%3F%20And%20what%20type%20of%20exceptions%20I%20should%20be%20prep...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-800","item_id":"_comm_800"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_800 == 'undefined' ){PDRTJS_468178_comm_800 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_800 );}}PDRTJS_settings_468178_comm_797={"id":468178,"unique_id":"wp-comment-797","title":"what%26%23039%3Bs%20with%20using%20dispose%20for%20C%23%3F%20Dispose%20is%20not%20the%20destructor%20%28C%23%20has%20the%20same%20~%20syntax%20as%20C%2B%2B%20for%20destructors%29.%20The%20dispose%20method%20will%20never%20get%20called%20by%20the%20GC.%20user%20code%20has%20to%20explicitly%20...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-797","item_id":"_comm_797"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_797 == 'undefined' ){PDRTJS_468178_comm_797 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_797 );}}PDRTJS_settings_468178_comm_790={"id":468178,"unique_id":"wp-comment-790","title":"One%20differense%20that%20has%20bitten%20me%20in%20C%23%20here%20is%20that%20in%20C%2B%2B%20all%20member%20and%20base%20object%20whose%20constructor%20has%20run%20will%20have%20its%20destructor%20run%20.%20But%20that%20will%20not%20be%20the%20case%20for%20a%20C%23%20using%20statem...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-790","item_id":"_comm_790"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_790 == 'undefined' ){PDRTJS_468178_comm_790 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_790 );}}PDRTJS_settings_468178_comm_789={"id":468178,"unique_id":"wp-comment-789","title":"Herb%2CThanks%20for%20the%20great%20article%2C%20especially%20comparison%20to%20C%23%20and%20Java.%20I%26%23039%3Bve%20learned%20a%20lot.However%2C%20it%26%23039%3Bs%20still%20unclear%20to%20me%20what%20consequences%20are%20expected%20in%20C%23%20and%20Java%20from%20not%20calling%20dispos...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-789","item_id":"_comm_789"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_789 == 'undefined' ){PDRTJS_468178_comm_789 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_789 );}}PDRTJS_settings_468178_comm_776={"id":468178,"unique_id":"wp-comment-776","title":"Beg%20your%20pardon%2C%20the%20dele%20operator%20in%20the%20catch%20block%20shall%20look%20like%20this%20of%20course%3A%20delete%20%26%23091%3B%26%23093%3B%20foo_%3B%20-%29...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-776","item_id":"_comm_776"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_776 == 'undefined' ){PDRTJS_468178_comm_776 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_776 );}}PDRTJS_settings_468178_comm_774={"id":468178,"unique_id":"wp-comment-774","title":"Oops%2C%20the%20HTML%20tags%20seems%20to%20eat%20up%20my%20include%20directive%20%3A-%29%20It%26%23039%3Bs%20iostream.Cheers%2COleksii%20Skidan...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-774","item_id":"_comm_774"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_774 == 'undefined' ){PDRTJS_468178_comm_774 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_774 );}}PDRTJS_settings_468178_comm_773={"id":468178,"unique_id":"wp-comment-773","title":"Hi%20Herb%2CThere%26%23039%3Bs%20a%20little%20exception%20to%20the%20rule.%20It%26%23039%3Bs%20the%20operator%20new%20%26%23091%3B%26%23093%3B%20%3B-%29%20For%20example%2C%20let%26%23039%3Bs%20take%20into%20consideration%20the%20following%20code%3A%23include%20%20%20%20template%20void%20unused%28const%20T%29%20%7B%7Dclass%20Foo%7Bpu...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-773","item_id":"_comm_773"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_773 == 'undefined' ){PDRTJS_468178_comm_773 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_773 );}}PDRTJS_settings_468178_comm_746={"id":468178,"unique_id":"wp-comment-746","title":"Hi%20ActionMan%2C%20%20%20Thank%20you%2C%20I%26%23039%3Bll%20double%20check%20my%20poor%20memo....","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-746","item_id":"_comm_746"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_746 == 'undefined' ){PDRTJS_468178_comm_746 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_746 );}}PDRTJS_settings_468178_comm_742={"id":468178,"unique_id":"wp-comment-742","title":"Augustinus%2C%20deleting%20a%20null%20pointer%20should%20only%20cause%20an%20access%20violation%20in%20VS6.VS7%2F8%2F9%20all%20perform%20the%20correct%20behaviour%20as%20Herb%20stated....","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-742","item_id":"_comm_742"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_742 == 'undefined' ){PDRTJS_468178_comm_742 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_742 );}}PDRTJS_settings_468178_comm_741={"id":468178,"unique_id":"wp-comment-741","title":"Note%3A%20%20in%20previous%20post%2C%20%26quot%3Bauto_ptr%20w%3B%26quot%3B%20should%20have%20read%20%26quot%3Bauto_ptr%20LT%20Widget%20GT%20w%3B%26quot%3B%2C%20where%20LT%20and%20GT%20are%20the%20less-than%20and%20greater-than%20symbols%20respectively%20%28comment%20form%20bug%29....","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-741","item_id":"_comm_741"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_741 == 'undefined' ){PDRTJS_468178_comm_741 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_741 );}}PDRTJS_settings_468178_comm_740={"id":468178,"unique_id":"wp-comment-740","title":"Herb%2C%20The%20deck%20was%20stacked%20for%20the%20C%2B%2B%20example.%20%20A%20smart%20pointer%20would%20solve%20this%20problem%20%28performing%20the%20cleanup%20that%20the%20original%20author%20intended%29%3A%2F%2F%20C%2B%2B%20w%20RAIIclass%20Gadget%20%7B%20%20%20std%3A%3Aauto_ptr%20w%3B...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-740","item_id":"_comm_740"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_740 == 'undefined' ){PDRTJS_468178_comm_740 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_740 );}}PDRTJS_settings_468178_comm_739={"id":468178,"unique_id":"wp-comment-739","title":"Hi%20Herb%2C%20%20%20%20Sorry%20for%20bothering%2C%20please%20%25s%2Fquiet%2Fquite%2Fg%20in%20my%20recent%20comments%2C%20thank%20you...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-739","item_id":"_comm_739"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_739 == 'undefined' ){PDRTJS_468178_comm_739 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_739 );}}PDRTJS_settings_468178_comm_738={"id":468178,"unique_id":"wp-comment-738","title":"Hi%20Herb%2C%20%20%20%20Or%20I%20suspect%20that%20access%20violation%20is%20actually%20coming%20from%20deleting%20a%20null%20memory%20address%20of%20the%20pointer%20itself%2C%20not%20a%20null%20pointer%3F...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-738","item_id":"_comm_738"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_738 == 'undefined' ){PDRTJS_468178_comm_738 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_738 );}}PDRTJS_settings_468178_comm_737={"id":468178,"unique_id":"wp-comment-737","title":"Hi%20Herb%2C%20%20%20%20I%26%23039%3Bm%20not%20quiet%20sure%20that%20it%26%23039%3Bs%20always%20true%20to%20say%20%26quot%3BDelete%20is%20a%20no-op%20if%20the%20pointer%20passed%20to%20it%20is%20null%2C%26quot%3B%20isn%26%23039%3Bt%20it%20usually%20getting%20access%20violation%20with%20VS2005%2FVC8%20%3F...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-737","item_id":"_comm_737"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_737 == 'undefined' ){PDRTJS_468178_comm_737 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_737 );}}PDRTJS_settings_468178_comm_736={"id":468178,"unique_id":"wp-comment-736","title":"I%20think%20it%26%23039%3Bs%20useful%20to%20point%20out%20that%20in%20C%2B%2B%2C%20a%20common%20solution%20automatic%20destruction%20of%20members%20is%20to%20introduce%20a%20new%20base%20class%2C%20and%20then%20let%20the%20base%20manage%20object%20lifetimes.%20%20This%20is%20done%20in%20...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-736","item_id":"_comm_736"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_736 == 'undefined' ){PDRTJS_468178_comm_736 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_736 );}}PDRTJS_settings_468178_comm_731={"id":468178,"unique_id":"wp-comment-731","title":"%26%23091%3B...%26%23093%3B%20Constructor%20Exceptions%20in%20C%2B%2B%2C%20C%23%2C%20andJava%20%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-731","item_id":"_comm_731"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_731 == 'undefined' ){PDRTJS_468178_comm_731 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_731 );}}PDRTJS_settings_468178_comm_730={"id":468178,"unique_id":"wp-comment-730","title":"Laurentiu%3A%20your%20destructor%20in%20Base%20is%20not%20virtual.%20Thus%20the%20delete%20call%20will%20call%20Base%3A%3A~Base%28%29%20instead%20of%20Derived%3A%3A~Derived%28%29...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-730","item_id":"_comm_730"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_730 == 'undefined' ){PDRTJS_468178_comm_730 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_730 );}}PDRTJS_settings_468178_comm_729={"id":468178,"unique_id":"wp-comment-729","title":"%26gt%3B%20C%2B%2B%20%26%23091%3B...%26%23093%3B%26gt%3B%20throw%20new%20exception%28%29%3BYou%20didn%26%23039%3Bt%20really%20mean%20to%20throw%20a%20pointer%20here%2C%20did%20you%3F%20%3B%29...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-729","item_id":"_comm_729"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_729 == 'undefined' ){PDRTJS_468178_comm_729 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_729 );}}PDRTJS_settings_468178_comm_728={"id":468178,"unique_id":"wp-comment-728","title":"15.2.2%20in%20the%20C%2B%2B%20Language%20Specification%20says%20it%20clear%3A%20an%20object%20that%20is%20partially%20constructed%20will%20have%20destructors%20executed%20for%20all%20of%20its%20fully%20constructed%20subobjects.But%20what%20about%20this%20exam...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-728","item_id":"_comm_728"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_728 == 'undefined' ){PDRTJS_468178_comm_728 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_728 );}}PDRTJS_settings_468178_comm_727={"id":468178,"unique_id":"wp-comment-727","title":"%26quot%3BIve%20covered%20some%20of%20these%20concepts%20and%20consequences%20before%20in%20GotW%20%2366%2C%20Constructor%20Failures%2C%20which%20appeared%20in%20updated%20and%20expanded%20form%20as%20Items%2017%20and%2018%20of%20More%20Exceptional%20C%2B%2B.%26quot%3B%20Herb%20Sutter...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-727","item_id":"_comm_727"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_727 == 'undefined' ){PDRTJS_468178_comm_727 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_727 );}}PDRTJS_settings_468178_comm_726={"id":468178,"unique_id":"wp-comment-726","title":"Talking%20about%20differences%20between%20C%2B%2B%2FJava%2FC%23%20could%20you%20find%20the%20time%20to%20discuss%20the%20motivation%20for%20virtual%20function%20calls%20to%20behave%20differently%20in%20these%20languages%3F%20I%20found%20C%2B%2B%26%23039%3Bs%20way%20to%20be%20confus...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-726","item_id":"_comm_726"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_726 == 'undefined' ){PDRTJS_468178_comm_726 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_726 );}}PDRTJS_settings_468178_comm_725={"id":468178,"unique_id":"wp-comment-725","title":"Hi%20%20%20ugasoft%21In%20that%20case%20Base%20is%20destructed%20no%20matter%20if%20the%20Derived%20object%20is%20a%20normal%20object%20or%20a%20pointer....","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-725","item_id":"_comm_725"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_725 == 'undefined' ){PDRTJS_468178_comm_725 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_725 );}}PDRTJS_settings_468178_comm_722={"id":468178,"unique_id":"wp-comment-722","title":"Jack%3AYou%20probably%20forgot%20to%20include%20override%20on%20your%20destructor%20%28which%20has%20to%20be%20called%20Destroy%29.%20%20Since%20it%26%23039%3Bs%20called%20by%20the%20framework%20then%20you%20need%20this%20for%20it%20to%20be%20called.%20%20But%20exceptions%20raise...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-722","item_id":"_comm_722"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_722 == 'undefined' ){PDRTJS_468178_comm_722 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_722 );}}PDRTJS_settings_468178_comm_721={"id":468178,"unique_id":"wp-comment-721","title":"Thank%20you%20Herb.Can%20you%20explain%20what%20happen%20if%20the%20constructor%20of%20a%20derived%20class%20throw%20an%20exception%2C%20after%20the%20base%20subobject%20has%20been%20constructed%3FDoes%20the%20Berived%20object%20never%20exist%3F%20%28probably%20i...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-721","item_id":"_comm_721"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_721 == 'undefined' ){PDRTJS_468178_comm_721 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_721 );}}PDRTJS_settings_468178_comm_720={"id":468178,"unique_id":"wp-comment-720","title":"Thanks%20Barry%20because%20I%20was%20just%20exploring%20the%20varying%20same%20topic%20in%20Delphi.W32.%20Not%20sure%20if%20I%20have%20done%20something%20wrong.%20When%20I%20deliberately%20throw%20an%20exception%20in%20the%20constructor%2C%20the%20class%26%23039%3B%20dest...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-720","item_id":"_comm_720"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_720 == 'undefined' ){PDRTJS_468178_comm_720 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_720 );}}PDRTJS_settings_468178_comm_719={"id":468178,"unique_id":"wp-comment-719","title":"Yes%2C%20nice%20one%2C%20and%20Barry%26%23039%3Bs%20comparison%20with%20Delphi%20is%20informative%20too....","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-719","item_id":"_comm_719"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_719 == 'undefined' ){PDRTJS_468178_comm_719 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_719 );}}PDRTJS_settings_468178_comm_718={"id":468178,"unique_id":"wp-comment-718","title":"Hi%2C%20I%20just%20wanted%20to%20say%20thank%20you%20for%20this%20post.%20It%20has%20been%20of%20great%20value%20for%20me.%20Regards%2C%20Peter....","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-718","item_id":"_comm_718"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_718 == 'undefined' ){PDRTJS_468178_comm_718 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_718 );}}PDRTJS_settings_468178_comm_716={"id":468178,"unique_id":"wp-comment-716","title":"Here%26%23039%3Bs%20an%20%26quot%3Bexception%26quot%3B%20for%20you%3A%20Delphi.When%20an%20exception%20is%20thrown%20in%20a%20Delphi%20constructor%2C%20the%20destructor%20is%20automatically%20called%20and%20the%20exception%20rethrown.This%20works%20especially%20well%20in%20Delphi%20b...","permalink":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/#comment-716","item_id":"_comm_716"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_716 == 'undefined' ){PDRTJS_468178_comm_716 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_716 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2008%2F07%2F25%2Fconstructor-exceptions-in-c-c-and-java%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2008\/07\/25\/constructor-exceptions-in-c-c-and-java\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2008%2F07%2F25%2Fconstructor-exceptions-in-c-c-and-java%2F","postID":"110","shortlink":"https:\/\/wp.me\/peb5Y-1M","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/110","statsLink":"https:\/\/wordpress.com\/stats\/post\/110\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2008%2F07%2F25%2Fconstructor-exceptions-in-c-c-and-java%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'110','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNGpFaC03SzdmaG9tYUwzS1VycGJ2d2laTVZ1YTImW0kwN2J+X0g1Ny9CdG5OdUs1UWV6b043LH5+MkI4eG81d29HS1tfSi5WW10uRExBfnxjWFJrdF9bZDZaUHp5R0glSkcvV0UxRHhtdTJSLm5RT3EvMmd3cWltVkhfUUNOZkNCQnlFJXhtTS58RWVFPWNuY2dfbVs/JjVnJWFBUXVhX0tWZ11pJXcscC4wbUtPb0hESzhKTWpdb0dfeVZQNDRGQUElbE8/Zg=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '110' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

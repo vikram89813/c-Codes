@@ -1,0 +1,545 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #100: Compilation Firewalls  (Difficulty: 6/10) | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965319&amp;back=https%3A%2F%2Fherbsutter.com%2Fgotw%2F_100%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/gotw/_100/" />
+<link rel='shortlink' href='https://wp.me/Peb5Y-eh' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2Fgotw%2F_100%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2Fgotw%2F_100%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #100: Compilation Firewalls  (Difficulty: 6/10)" />
+<meta property="og:url" content="https://herbsutter.com/gotw/_100/" />
+<meta property="og:description" content="[This is a C++11-updated version of the original GotW #24.] JG Questions 1. What is the Pimpl Idiom, and why is it useful? Guru Questions 2. What is the best way to express the basic Pimpl Idiom in…" />
+<meta property="article:published_time" content="2011-11-04T22:02:40+00:00" />
+<meta property="article:modified_time" content="2013-06-26T15:57:39+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://herbsutter.files.wordpress.com/2011/11/temp_thumb.png" />
+<meta property="og:image:width" content="404" />
+<meta property="og:image:height" content="334" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #100: Compilation Firewalls (Difficulty:&nbsp;6/10)" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="[This is a C++11-updated version of the original GotW #24.] JG Questions 1. What is the Pimpl Idiom, and why is it useful? Guru Questions 2. What is the best way to express the basic Pimpl Idiom in C++11? 3. What parts of the class should go into the impl object? Some potential options include:&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="page-template-default page page-id-885 page-child parent-pageid-864 mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children current_page_ancestor current_page_parent"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+			<div class="post post-885 page type-page status-publish hentry" id="post-885">
+				<div class="posttitle">
+				<h2><a href="https://herbsutter.com/gotw/_100/" rel="bookmark">GotW #100: Compilation Firewalls (Difficulty:&nbsp;6/10)</a></h2>
+							</div>
+
+				<div class="entry">
+					<p align="center"><em>[This is a C++11-updated version of the original </em><a href="http://www.gotw.ca/gotw/024.htm"><em>GotW #24</em></a><em>.]</em></p>
+<h3>JG Questions</h3>
+<p><span class="Apple-style-span" style="font-size:13px;font-weight:normal;">1. What is the Pimpl Idiom, and why is it useful?</span></p>
+<h3>Guru Questions</h3>
+<p>2. What is the best way to express the basic Pimpl Idiom in C++11?</p>
+<p>3. What parts of the class should go into the <em>impl</em> object? Some potential options include:</p>
+<ul>
+<li>put all private data (but not functions) into <em>impl</em>;</li>
+<li>put all private members into <em>impl</em>;</li>
+<li>put all private and protected members into <em>impl</em>;</li>
+<li>put all private nonvirtual members into <em>impl</em>;</li>
+<li>put everything into <em>impl</em>, and write the public class itself as only the public interface, each implemented as a simple forwarding function (a handle/body variant).</li>
+</ul>
+<p>What are the advantages/drawbacks of each? How would you choose among them?</p>
+<p>4. Does the <em>impl </em>require a back pointer to the public object? If yes, what is the best way to provide it? If not, why not?</p>
+<h3>Solution</h3>
+<p><span class="Apple-style-span" style="font-size:13px;font-weight:normal;"><strong>1. What is the Pimpl Idiom, and why is it useful?</strong></span></p>
+<p>In C++, when anything in a header file class definition changes, all users of that class must be recompiled – even if the only change was to the private class members that the users of the class cannot even access. This is because C++’s build model is based on textual inclusion, and because C++ assumes that callers know two main things about a class that can be affected by private members:</p>
+<ul>
+<li><strong>Size and Layout:</strong> The calling code must know the size and layout of the class, including private data members. This constraint of always being able to see implementations incurs the cost of more tightly coupling callers and callees, but is central to C++’s object model and philosophy because guaranteeing that the compiler has direct access to objects by default is an (perhaps “the”) essential ingredient in enabling C++ to achieve its famed heavily-optimizable efficiency.</li>
+<li><strong>Functions:</strong> The calling code must be able to resolve calls to member functions of the class, including inaccessible private functions that overload with nonprivate functions &#8212; if the private function is a better match, the calling code will fail to compile. (C++ took the deliberate design decision to perform overload resolution before accessibility checking for safety reasons. For example, it was felt that changing the accessibility of a function from p<em>rivate</em> to <em>public</em> shouldn’t change the meaning of legal calling code.)</li>
+</ul>
+<p>To reduce these compilation dependencies, a common technique is to use an opaque pointer to hide some of the implementation details. Here’s the basic idea:</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:40b131ec-1391-4677-9e53-cf9420beb623" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; gutter: false; highlight: [1]; pad-line-numbers: true; title: ; notranslate" title="">
+// Pimpl idiom - basic idea
+class widget {
+    // :::
+private:
+    struct impl;		// things to be hidden go here
+    impl* pimpl_;		// opaque pointer to forward-declared class
+};
+</pre>
+</div>
+<p>Class <em>widget</em> uses a variant of the handle/body idiom. As documented by Coplien [1], handle/body was described as being primarily useful for reference counting of a shared implementation, but it also has more general implementation-hiding uses. For convenience, from now on I’ll call <em>widget</em> the “visible class” and <em>impl</em> the “Pimpl class.” [2]</p>
+<p><a href="https://herbsutter.files.wordpress.com/2011/11/image22.png"><img style="background-image:none;padding-left:0;padding-right:0;display:inline;float:right;padding-top:0;border:0;margin:0 0 0 10px;" title="image" src="https://herbsutter.files.wordpress.com/2011/11/image_thumb16.png?w=364&#038;h=181" alt="image" width="364" height="181" align="right" border="0" /></a>One big advantage of this idiom is that it breaks compile-time dependencies. First, system builds run faster because using a Pimpl can eliminate extra <em>#include</em>s. I have worked on projects where converting just a few widely-visible classes to use Pimpls has halved the system’s build time. Second, it localizes the build impact of code changes because the parts of a class that reside in the Pimpl can be freely changed – that is, members can be freely added or removed – without recompiling client code. Because it’s so good at eliminating compilation cascades due to changes in only the now-hidden members, it’s often dubbed a “compilation firewall.”</p>
+<p>But this leaves some questions option: Should <em>pimpl</em> be a raw pointer? What should go into the Pimpl class, anyway? So let’s look at these and other important details.</p>
+<p><strong>2. What is the best way to express the basic Pimpl Idiom in C++11?</strong></p>
+<p>Avoid using raw pointers and explicit <em>delete</em>. To express Pimpl using only standard C++ facilities, the most appropriate choice is to hold the Pimpl object by <em>unique_ptr</em> since the Pimpl object is uniquely owned by the visible class. Using <em>unique_ptr</em> also leads to the simplest code. [3]</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:0f6fe1c5-950f-4155-914b-c23b4fbc6ede" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; first-line: 1; gutter: false; highlight: [1,11]; title: ; notranslate" title="">
+// in header file
+class widget {
+public:
+    widget();
+    ~widget();
+private:
+    class impl;
+    unique_ptr&lt;impl&gt; pimpl;
+};
+
+// in implementation file
+class widget::impl {
+    // :::
+};
+
+widget::widget() : pimpl{ new impl{ /*...*/ } } { }
+widget::~widget() { }					// or =default
+</pre>
+</div>
+<p><span class="Apple-style-span" style="font-size:13px;font-weight:normal;">Note some key parts of the pattern:</span></p>
+<ul>
+<li><span class="Apple-style-span" style="font-size:13px;font-weight:normal;">Prefer to hold the Pimpl using a <em>unique_ptr</em>. It’s more efficient than using a <em>shared_ptr</em>, and correctly expresses the intent that the Pimpl object should not be shared.</span></li>
+<li><span class="Apple-style-span" style="font-size:13px;font-weight:normal;">Define and use the Pimpl object in your own implementation file. This is what keeps its details hidden.</span></li>
+<li><span class="Apple-style-span" style="font-size:13px;font-weight:normal;">In the visible class’ out-of-line constructor, allocate the Pimpl object.</span></li>
+<li><span class="Apple-style-span" style="font-size:13px;font-weight:normal;">You still need to write the visible class’ destructor yourself and define it out of line in the implementation file, even if normally it’s the same as what the compiler would generate. This is because although both <em>unique_ptr</em> and <em>shared_ptr</em> can be instantiated with an incomplete type, <em>unique_ptr</em>’s destructor requires a complete type in order to invoke <em>delete</em> (unlike <em>shared_ptr </em>which captures more information when it’s constructed). By writing it yourself in the implementation file, you force it to be defined in a place where <em>impl</em> is already defined, and this successfully prevents the compiler from trying to automatically generate the destructor on demand in the caller’s code where <em>impl</em> is not defined.</span></li>
+<li><span class="Apple-style-span" style="font-size:13px;font-weight:normal;">The above pattern does not make the visible class either copyable or movable by default, because C++11 is less eager to have the compiler generate default copying and moving operations for you. Because we&#8217;ve had to write a user-defined destructor, that turns off the compiler-generated move constructor and move assignment operator. If you do decide to supply copy and/or move, note that the copy assignment and move assignment operator need to be defined out of line in the implementation class for the same reason as the destructor.</span></li>
+</ul>
+<p><span class="Apple-style-span" style="font-size:13px;font-weight:normal;">A new advantage to Pimpl in C++11 is that Pimpl’d types are very move-friendly types because they only have to copy a single pointer value. C’est tr</span>è<span class="Apple-style-span" style="font-size:13px;font-weight:normal;">s cool.</span></p>
+<p>Let’s consider some of the proposed options for what should go into the hidden Pimpl.</p>
+<h3 align="left">What’s in a Pimpl? [4]</h3>
+<p><strong>3. What parts of the class should go into the <em>impl</em> object? Some potential options include:</strong></p>
+<ul>
+<li><strong>put all private data (but not functions) into <em>impl</em>; </strong></li>
+</ul>
+<p><em>Option 1 (Score: 6 / 10): </em>This is a good start, because now we can forward-declare any class which only appears as a data member, rather than <em>#include</em> the class’ actual definition which would make calling code depend on that too.</p>
+<p>But there are drawbacks too: A slight annoyance is that in the implementation of the visible class we still need to write <em>pimpl-&gt;</em> all the time. A more important annoyance is that we still recompile the world when we add or remove private member functions, and in rare cases those can also still interfere with overload resolution if they overload with non-private functions.</p>
+<p>Can we do better?</p>
+<ul>
+<li><strong>put all private members into <em>impl</em>; </strong></li>
+</ul>
+<p><em>Option 2 </em><em>(Score: 9 / 10):</em> This is (almost) my usual practice these days. After all, in C++, the phrase “outside code shouldn’t and doesn’t care about these parts” is spelled <em>private</em>.</p>
+<p>There are three caveats, the first of which is the reason for my “almost” above:</p>
+<ol>
+<li>You can’t hide virtual member functions in the Pimpl, even if the virtual functions are private. If the virtual function overrides one inherited from a base class, then it must appear in the actual derived class; this is true even if it is <em>final</em>. If the virtual function is <em>new</em>, then it must still appear in the visible class in order to be available for overriding by further derived classes.</li>
+<li>Functions in the Pimpl may require a “back pointer” to the visible object if they need to in turn use visible functions, which adds another level of indirection.</li>
+<li>Often a good compromise is to use Option 2, and additionally put into the Pimpl only those non-private functions that need to be called by the private ones (see the “back pointer” comments below).</li>
+</ol>
+<ul>
+<li><strong>put all private and protected members into <em>impl</em>; </strong></li>
+</ul>
+<p><em>Option 3 (Score: 0 / 10):</em> Taking this extra step to include protected members is actually wrong. Like virtual members, protected members should never go into a Pimpl since putting them there makes them worthless. After all, protected members exist specifically to be seen and used by derived classes, and so aren’t nearly as useful if derived classes can’t see or use them; derived types would be forced to also know about and derive from the Pimpl type and maintain a parallel two-object hierarchy.</p>
+<p>However, note that there can be valid reasons to put virtuals into a Pimpl-like “body/implementation” class, but not for the same reasons as the motivation of the Pimpl idiom – that arises in the Bridge pattern [5] which is about splitting a class into two parts both of which may carry implementation and be independently extensible via virtual functions. But that’s a different pattern with a different motivation than Pimpl.</p>
+<ul>
+<li><strong><a href="https://herbsutter.files.wordpress.com/2011/11/temp1.png"><img style="background-image:none;padding-left:0;padding-right:0;display:inline;float:right;padding-top:0;border-width:0;margin:0 0 0 10px;" title="temp" src="https://herbsutter.files.wordpress.com/2011/11/temp_thumb.png?w=404&#038;h=334" alt="temp" width="404" height="334" align="right" border="0" /></a>put all private nonvirtual members into <em>impl</em>; </strong></li>
+</ul>
+<p><em>Option 4 (Score: 10 / 10):</em> This is the ideal. To reduce the need for storing or passing a back pointer, you may also put into the Pimpl any public functions that the private functions call, with passthroughs to them in the visible class. However, you won’t be able to move the protected or virtual functions into the Pimpl, as noted above.</p>
+<ul>
+<li><strong>put everything into <em>impl</em>, and write the public class itself as only the public interface, each implemented as a simple forwarding function (a handle/body variant). </strong></li>
+</ul>
+<p><em>Option 5 (Score: 8 / 10 in restricted cases):</em> This is useful in a few restricted cases, and has the benefit of avoiding a back pointer since all services are available within the Pimpl class. The chief drawbacks are that it requires an extra wrapper function call and normally makes the visible class useless for inheritance.</p>
+<p><strong>What are the advantages/drawbacks of each? How would you choose among them?</strong></p>
+<p>The complete answer is actually much simpler than all the discussion we just had above. Instead of empirically analyzing specific combinations, we need to back up and answer the question from first principles.</p>
+<p><em><span style="color:#666666;">Deep breath.</span></em></p>
+<p><em><span style="color:#666666;">Exhale.</span></em></p>
+<p>Okay.</p>
+<p>The key observation is that there are exactly three parts to a class in any OO language. [6] They are:</p>
+<ol>
+<li>The interface for callers = public members. This is all that outside callers can see and use.</li>
+<li>The interface for derivers = protected or virtual members. This is what only derived classes can see and use.</li>
+<li>Everything else = private and nonvirtual members. This is all the things that are just implementation details, by definition.</li>
+</ol>
+<p>Only #3, and all of #3, is what can and should be hidden in Pimpl. From this we can derive all the other results mentioned above; for example, we can’t put virtuals into the Pimpl because those are part of #2 and need to be visible to the derived classes.</p>
+<p>The accompanying table summarizes these design choices. Pimpl as described here covers the derivation interface too, which Coplien’s Handle/Body omits. And Bridge, while similar in some ways to Pimpl, has a very different motivation and structure.</p>
+<p><strong>4. Does the <em>impl </em>require a back pointer to the public object? If yes, what is the best way to provide it? If not, why not?</strong></p>
+<p>The answer is: Sometimes, unhappily, yes. After all, what we’re doing is (somewhat artificially) splitting each object into two halves for the purposes of hiding one part.</p>
+<p>Consider: Whenever a function in the visible class is called, usually some function or data in the hidden half is needed to complete the request. That’s fine and reasonable. But as discussed already, sometimes a function in the Pimpl must call a nonprivate or virtual function in the visible class. In that case, it needs a pointer to the visible class.</p>
+<p>There are two options:</p>
+<ul>
+<li>Store a back pointer in the Pimpl. This incurs slight overhead and stores the pointer all the time when it may not be needed all the time. Also, when you repeat yourself you can lie – the back pointer can get out of sync if you’re not careful to maintain it correctly to point at the right visible object, for example during move operations which then could no longer be correctly <em>=default</em>ed.</li>
+<li>(Recommended) Pass <em>this</em> as a parameter to the Pimpl functions (e.g., <em>pimpl-&gt;func(this, params) </em>). This incurs only brief space overhead on the stack (cheap) for the duration of the function call (brief), and can’t possibly get out of sync. However, it does mean adding an extra parameter to each hidden function.</li>
+</ul>
+<h3>Acknowledgments</h3>
+<p>Thanks to Edd, pizer, and Howard Hinnant for clarifying why <em>~unique_ptr&lt;T&gt;</em> requires <em>T</em> to be a complete type, and therefore the need to write a user-defined external class destructor; to Stephan Lavavej and Alisdair Meredith for reminding me to write <em>=default</em> on the move constructor and move assignment operator; and to Howard Hinnant for pointing out that even with <em>=default</em> the move assignment operator must be defined out of line in the implementation file because it requires a complete type (in case it has to delete it).</p>
+<h3>Notes</h3>
+<p>[1] James O. Coplien. <a href="http://users.rcn.com/jcoplien/Patterns/C++Idioms/EuroPLoP98.html">“C++ Idioms”</a> (EuroPLoP98).</p>
+<p>[2] At first I used to name the pointer variable <em>impl_</em>. The eponymous <em>pimpl</em> was actually coined in 1996 by friend and colleague Jeff Sumner, who shares my penchant for &#8220;p&#8221; prefixes for pointer variables as well as my occasional taste for horrid puns.</p>
+<p>[3] This is the simplest expression of the pattern in C++11. The major alternatives would be to use a <em>shared_ptr</em> or a raw pointer instead of a <em>unique_ptr</em>, and both are more complex to write correctly and/or more error-prone when compiler-generated operations do the wrong thing: If you used a <em>shared_ptr</em> you’d get the right destructor, move constructor, and move assignment operator by default, but the compiler-generated copying operations would be wrong so you’d have to write those explicitly to provide them or <em>=delete</em> them (and if you forget you silently have the wrong semantics), and it would incur small but needless inefficiency for unused-but-still-present reference counting. And if you used a raw pointer, you have to write all five operations by hand – destructor, copy construction, copy assignment, move construction, and move assignment.</p>
+<p>[4] Please don’t email me jokes about this subheading. I can imagine most of the answers.</p>
+<p>[5] Gamma et al. <a href="http://en.wikipedia.org/wiki/Design_Patterns"><em>Design Patterns: Elements of Reusable Object-Oriented Software</em></a> (Addison-Wesley, 1994).</p>
+<p>[6] Not all need be present in a given class. For example, #2 doesn’t apply to value-like classes that don’t participate in inheritance.</p>
+<h3>Major Change History</h3>
+<p>2011-11-27: Removed move operations from the basic pattern. Since not all Pimpl&#8217;d types need to be move-aware, it&#8217;s not really part of the core pattern.</p>
+																			</div>
+
+				
+				
+<!-- You can start editing here. -->
+
+<div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/gotw/_100/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	</div>
+<script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKioFmldQADTOPtfW0MTIyNjEyNDYJAsAjsE/mg=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2Fgotw%2F_100%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/gotw\/_100\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2Fgotw%2F_100%2F","postID":"885","shortlink":"https:\/\/wp.me\/Peb5Y-eh","canEditPost":"","editLink":"https:\/\/wordpress.com\/page\/herbsutter.com\/885","statsLink":"https:\/\/wordpress.com\/stats\/post\/885\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2Fgotw%2F_100%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'885','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sQmp2cWhtTi1+a1NEZ35rPzFBRlVTJVNUWnNGZTRDMmRmK3lmMVBhUzc3NUZ8Z1JnbUZVLz9vJTMwWy8sJVpQMFNkcTZYVzVpLFRFTSVbcnE1SzEwYVJBUnhQNGhdb2dYaE1lTy53T2RXVS02SnNGeFlabFQ9ZHQlNDJKTTdHY0IuOUczOW9JbHZFX0t1Y1otVDYrMl9sP01qLHxGVkhVc3hhTjhbZTJRJSw1bllBYyw='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '885' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

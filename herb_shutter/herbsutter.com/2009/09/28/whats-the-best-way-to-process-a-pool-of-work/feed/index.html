@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: &#8220;What&#8217;s the Best Way To Process a Pool of Work?&#8221;	</title>
+	<atom:link href="https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: sparc				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1632</link>
+		<dc:creator><![CDATA[sparc]]></dc:creator>
+		<pubDate>Fri, 25 Dec 2009 19:03:38 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1632</guid>
+					<description><![CDATA[Dmitry Vyukov&#039;s solution would be suitable in your problem scenario simply because the tasks seem to consume memory in terms of GBs. Neither Pooling nor Sub-Pooling might help in this Scenario. And hence it is better to get closest to the Host OS.]]></description>
+		<content:encoded><![CDATA[<p>Dmitry Vyukov&#8217;s solution would be suitable in your problem scenario simply because the tasks seem to consume memory in terms of GBs. Neither Pooling nor Sub-Pooling might help in this Scenario. And hence it is better to get closest to the Host OS.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: BuschnicK				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1498</link>
+		<dc:creator><![CDATA[BuschnicK]]></dc:creator>
+		<pubDate>Mon, 05 Oct 2009 14:37:16 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1498</guid>
+					<description><![CDATA[Thank you all for the suggestions! Very productive discussion indeed. 
+
+@Leo: no, I&#039;m not tracking per thread yet, but your idea sounds doable - I&#039;ll give it a try.
+
+cheers,
+
+    Sören]]></description>
+		<content:encoded><![CDATA[<p>Thank you all for the suggestions! Very productive discussion indeed. </p>
+<p>@Leo: no, I&#8217;m not tracking per thread yet, but your idea sounds doable &#8211; I&#8217;ll give it a try.</p>
+<p>cheers,</p>
+<p>    Sören</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Leo Sutic				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1497</link>
+		<dc:creator><![CDATA[Leo Sutic]]></dc:creator>
+		<pubDate>Fri, 02 Oct 2009 16:05:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1497</guid>
+					<description><![CDATA[@BuschnicK: But are you tracking the memory usage on a *per worker thread* basis? If you are, then the solution is simple: Create a semaphore with one permit that is shared among all worker threads. As soon as an item allocates more than 800MB, acquire a permit and set a local flag. When finished and local flag is set, release the permit.
+
+That way you&#039;ll only ever have one work item using up more than 800MB, and with 8 threads you are capped at 7 * 800MB + 2GB = 5.6GB + 2GB = 7.6GB.
+
+/LS]]></description>
+		<content:encoded><![CDATA[<p>@BuschnicK: But are you tracking the memory usage on a *per worker thread* basis? If you are, then the solution is simple: Create a semaphore with one permit that is shared among all worker threads. As soon as an item allocates more than 800MB, acquire a permit and set a local flag. When finished and local flag is set, release the permit.</p>
+<p>That way you&#8217;ll only ever have one work item using up more than 800MB, and with 8 threads you are capped at 7 * 800MB + 2GB = 5.6GB + 2GB = 7.6GB.</p>
+<p>/LS</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: JeffreyTan				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1496</link>
+		<dc:creator><![CDATA[JeffreyTan]]></dc:creator>
+		<pubDate>Thu, 01 Oct 2009 04:37:58 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1496</guid>
+					<description><![CDATA[Isn&#039;t this a similar problem facing by ThreadPool implementation? 
+
+We can use a dedicated dispatching thread to serve the task queue and a pool of threads to serving the tasks. Whenever the task queue is not empty, the main dispatching thread will wake and check the memory consumption of system, if the consumption is still not bad, fetch a thread from the pool to process the new task. Also, the threadpool worker threads will sleep or end based on the current free threads count. This way, the threadpool can increase/decrease based on the work load dynamically. 
+
+Jeffrey Richter&#039;s Win2000 Server-side programming has the code snippet for implementing this type of thread pool. 
+
+Let me know if there is any problem in this design.]]></description>
+		<content:encoded><![CDATA[<p>Isn&#8217;t this a similar problem facing by ThreadPool implementation? </p>
+<p>We can use a dedicated dispatching thread to serve the task queue and a pool of threads to serving the tasks. Whenever the task queue is not empty, the main dispatching thread will wake and check the memory consumption of system, if the consumption is still not bad, fetch a thread from the pool to process the new task. Also, the threadpool worker threads will sleep or end based on the current free threads count. This way, the threadpool can increase/decrease based on the work load dynamically. </p>
+<p>Jeffrey Richter&#8217;s Win2000 Server-side programming has the code snippet for implementing this type of thread pool. </p>
+<p>Let me know if there is any problem in this design.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Sharon				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1495</link>
+		<dc:creator><![CDATA[Sharon]]></dc:creator>
+		<pubDate>Wed, 30 Sep 2009 21:42:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1495</guid>
+					<description><![CDATA[If the jobs can be aborted with no side effect i would use priority in the following way:
+Have memory management keep track of the amount of memory allocated by each thread. 
+If memory run low start to abort tasks according to priority. 
+Priority should be a mix of :
+1. how much memory the thread allocated (i.e. how much advantage we get from aborting this thread) 
+2. how much time the thread been running on it current job (i.e. how much CPU resource we waste by aborting the job). 
+After aborting job the aborted job is put back to the jobs queue. It can either be put to the front of the queue in this case no thread will start that job again until at least one other job finished. The job can be  put to the back of the queue in which case the next job (which might have smaller memory footprint) can be fetched. 
+It is also possible to remember for each aborted job how much memory / time they consumed before they were aborted to gain some insight if they should be started again in the current memory situation etc.]]></description>
+		<content:encoded><![CDATA[<p>If the jobs can be aborted with no side effect i would use priority in the following way:<br />
+Have memory management keep track of the amount of memory allocated by each thread.<br />
+If memory run low start to abort tasks according to priority.<br />
+Priority should be a mix of :<br />
+1. how much memory the thread allocated (i.e. how much advantage we get from aborting this thread)<br />
+2. how much time the thread been running on it current job (i.e. how much CPU resource we waste by aborting the job).<br />
+After aborting job the aborted job is put back to the jobs queue. It can either be put to the front of the queue in this case no thread will start that job again until at least one other job finished. The job can be  put to the back of the queue in which case the next job (which might have smaller memory footprint) can be fetched.<br />
+It is also possible to remember for each aborted job how much memory / time they consumed before they were aborted to gain some insight if they should be started again in the current memory situation etc.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: fool				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1494</link>
+		<dc:creator><![CDATA[fool]]></dc:creator>
+		<pubDate>Wed, 30 Sep 2009 17:55:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1494</guid>
+					<description><![CDATA[...Just be careful if suspending work on any thread that you can never have *all* threads suspended!]]></description>
+		<content:encoded><![CDATA[<p>&#8230;Just be careful if suspending work on any thread that you can never have *all* threads suspended!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: BuschnicK				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1493</link>
+		<dc:creator><![CDATA[BuschnicK]]></dc:creator>
+		<pubDate>Wed, 30 Sep 2009 07:30:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1493</guid>
+					<description><![CDATA[@kert: What&#039;s the difference between an explicitly shared memory pool and the regular heap? What advantage would I gain?
+
+@Leo: I am already using custom allocators (boost pool allocators for small allocations and global overrides for new and delete). So tracking the memory used is not much of a problem. The question is how to use this knowledge to not run out...
+
+@SDR: Upgrading the target machine isn&#039;t as easy as it sounds because we:
+a) have lots of them not only one (it is not only parallel per machine but also distributed over several boxes)
+b) some have already been shipped to customers and we can easily upgrade the software but not the hardware
+c) we are also using Amazon&#039;s EC2 cloud where you only have limited control over hardware resources.]]></description>
+		<content:encoded><![CDATA[<p>@kert: What&#8217;s the difference between an explicitly shared memory pool and the regular heap? What advantage would I gain?</p>
+<p>@Leo: I am already using custom allocators (boost pool allocators for small allocations and global overrides for new and delete). So tracking the memory used is not much of a problem. The question is how to use this knowledge to not run out&#8230;</p>
+<p>@SDR: Upgrading the target machine isn&#8217;t as easy as it sounds because we:<br />
+a) have lots of them not only one (it is not only parallel per machine but also distributed over several boxes)<br />
+b) some have already been shipped to customers and we can easily upgrade the software but not the hardware<br />
+c) we are also using Amazon&#8217;s EC2 cloud where you only have limited control over hardware resources.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: kert				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1492</link>
+		<dc:creator><![CDATA[kert]]></dc:creator>
+		<pubDate>Tue, 29 Sep 2009 23:59:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1492</guid>
+					<description><![CDATA[Implement a memory pool that is shared between the threads.
+
+Such design problems and patterns are common in embedded systems which consider memory as a finite resource in every context.]]></description>
+		<content:encoded><![CDATA[<p>Implement a memory pool that is shared between the threads.</p>
+<p>Such design problems and patterns are common in embedded systems which consider memory as a finite resource in every context.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Leo Sutic				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1491</link>
+		<dc:creator><![CDATA[Leo Sutic]]></dc:creator>
+		<pubDate>Tue, 29 Sep 2009 23:22:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1491</guid>
+					<description><![CDATA[Sören,
+
+the idea was to track memory consumption by somehow hooking into the allocator. That way, you can accurately track memory use on a per-work item basis, and suspend when a work item has grown too big.
+
+How does the code analyzer work? Is it your own C/C++ code, or someone elses? A mixture of both? Is there any chance at all to intercept malloc/new calls?
+
+/LS]]></description>
+		<content:encoded><![CDATA[<p>Sören,</p>
+<p>the idea was to track memory consumption by somehow hooking into the allocator. That way, you can accurately track memory use on a per-work item basis, and suspend when a work item has grown too big.</p>
+<p>How does the code analyzer work? Is it your own C/C++ code, or someone elses? A mixture of both? Is there any chance at all to intercept malloc/new calls?</p>
+<p>/LS</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: SDR				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1490</link>
+		<dc:creator><![CDATA[SDR]]></dc:creator>
+		<pubDate>Tue, 29 Sep 2009 19:16:45 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1490</guid>
+					<description><![CDATA[If your requirements permit, you may consider upgrading the target machine.  Doubling the RAM will remove your concern.  This is probably more cost effective than devoting development resources.
+
+If you don&#039;t have control of your target machine, you may choose to do nothing.  If you expect events where the memory usage exceeds 8GB to be rare, you may accept the performance hit of paging.
+
+Otherwise, is there a reliable pattern to the timing of memory usage?  Or is both the amplitude and velocity of memory use random?]]></description>
+		<content:encoded><![CDATA[<p>If your requirements permit, you may consider upgrading the target machine.  Doubling the RAM will remove your concern.  This is probably more cost effective than devoting development resources.</p>
+<p>If you don&#8217;t have control of your target machine, you may choose to do nothing.  If you expect events where the memory usage exceeds 8GB to be rare, you may accept the performance hit of paging.</p>
+<p>Otherwise, is there a reliable pattern to the timing of memory usage?  Or is both the amplitude and velocity of memory use random?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Dmitry Vyukov				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1489</link>
+		<dc:creator><![CDATA[Dmitry Vyukov]]></dc:creator>
+		<pubDate>Tue, 29 Sep 2009 15:51:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1489</guid>
+					<description><![CDATA[You may try to move processing to separate OS processes, this way you will get an easy way to determine resource consumption and to temporary suspend individual processing (OS must provide such functions).
+I.e. main process accepts requests and distributes them among a pool of worker processes, when processing completes it receives results and send them back to a user. Besides that main process periodically checks memory consumption of worker processes and suspends some of them if needed. Suspended processes are known to be &quot;large&quot;, they are resumed later when total memory consumption drops down. Suspended processes will occupy some space in page file (must not be a problem taking into account sizes of modern hard drives), but will release physical memory.]]></description>
+		<content:encoded><![CDATA[<p>You may try to move processing to separate OS processes, this way you will get an easy way to determine resource consumption and to temporary suspend individual processing (OS must provide such functions).<br />
+I.e. main process accepts requests and distributes them among a pool of worker processes, when processing completes it receives results and send them back to a user. Besides that main process periodically checks memory consumption of worker processes and suspends some of them if needed. Suspended processes are known to be &#8220;large&#8221;, they are resumed later when total memory consumption drops down. Suspended processes will occupy some space in page file (must not be a problem taking into account sizes of modern hard drives), but will release physical memory.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michael Cederberg				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1488</link>
+		<dc:creator><![CDATA[Michael Cederberg]]></dc:creator>
+		<pubDate>Tue, 29 Sep 2009 14:38:30 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1488</guid>
+					<description><![CDATA[Without knowing your problem in details, I would do something along the lines of your solution #3:
+
+Create a resource manager that tracks resource usage (e.g. memory, long running work).
+
+When adding work to the queue, then add info about the work describing resource usage.
+
+When choosing which work item to process next, then choose the first work item that will not overuse available resources. Update resource manager whenever a processing of a work item begins and ends. In your example, it sounds like initial available resources are: 8GB memory and X allowed long running tasks (assuming you would not like all your threads to process long running work items).
+
+If you have difficulty estimating the resource consumption, then try to split work items into multiple stages. That way, estimation of resource consumption becomes easier. In addition it becomes less of a problem if you are too conservative when estimating resource consumption.
+
+If there are requirements for certain work items to be processed in sequence, then that should be possible too. The key thing is to enforce the sequencing only when there is an actual requirement for it.]]></description>
+		<content:encoded><![CDATA[<p>Without knowing your problem in details, I would do something along the lines of your solution #3:</p>
+<p>Create a resource manager that tracks resource usage (e.g. memory, long running work).</p>
+<p>When adding work to the queue, then add info about the work describing resource usage.</p>
+<p>When choosing which work item to process next, then choose the first work item that will not overuse available resources. Update resource manager whenever a processing of a work item begins and ends. In your example, it sounds like initial available resources are: 8GB memory and X allowed long running tasks (assuming you would not like all your threads to process long running work items).</p>
+<p>If you have difficulty estimating the resource consumption, then try to split work items into multiple stages. That way, estimation of resource consumption becomes easier. In addition it becomes less of a problem if you are too conservative when estimating resource consumption.</p>
+<p>If there are requirements for certain work items to be processed in sequence, then that should be possible too. The key thing is to enforce the sequencing only when there is an actual requirement for it.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: BuschnicK				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1487</link>
+		<dc:creator><![CDATA[BuschnicK]]></dc:creator>
+		<pubDate>Tue, 29 Sep 2009 13:47:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1487</guid>
+					<description><![CDATA[More info about the problem: http://www.vxclass.com
+I&#039;m trying to optimize the diffing back-end of vxClass. 
+
+@Leo: Handling out of memory situations after they have occured is very hard because unfortunately they don&#039;t always manifest in a simple out-of-memory exception but in all kinds of other nasty ways. 
+Your suggestion 1. sounds a bit like my 2.. I&#039;ll certainly use something like that.
+Splitting into two queues for small and large items is a good idea - although predicting how much memory one item will take is a tough problem in our case.
+
+@Bob: We have already thought about how we can parallelize a single task from the queue. We couldn&#039;t think of a good way. The way the algorithm works every subsequent step is dependent on the results of all previous ones.
+
+Anyways, thank you very much for the suggestions thus far!
+
+    Sören
+
+I&#039;m the one who asked the original question btw ;-)]]></description>
+		<content:encoded><![CDATA[<p>More info about the problem: <a href="http://www.vxclass.com" rel="nofollow">http://www.vxclass.com</a><br />
+I&#8217;m trying to optimize the diffing back-end of vxClass. </p>
+<p>@Leo: Handling out of memory situations after they have occured is very hard because unfortunately they don&#8217;t always manifest in a simple out-of-memory exception but in all kinds of other nasty ways.<br />
+Your suggestion 1. sounds a bit like my 2.. I&#8217;ll certainly use something like that.<br />
+Splitting into two queues for small and large items is a good idea &#8211; although predicting how much memory one item will take is a tough problem in our case.</p>
+<p>@Bob: We have already thought about how we can parallelize a single task from the queue. We couldn&#8217;t think of a good way. The way the algorithm works every subsequent step is dependent on the results of all previous ones.</p>
+<p>Anyways, thank you very much for the suggestions thus far!</p>
+<p>    Sören</p>
+<p>I&#8217;m the one who asked the original question btw ;-)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bob				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1486</link>
+		<dc:creator><![CDATA[Bob]]></dc:creator>
+		<pubDate>Tue, 29 Sep 2009 13:06:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1486</guid>
+					<description><![CDATA[Just use a single thread to process the queue. That way you will never have fights between threads over memory.
+
+If you need to get performance back up, then use multi-threading inside a single task process.
+
+You might find this link useful: http://blog.mrmeyer.com/?p=4646]]></description>
+		<content:encoded><![CDATA[<p>Just use a single thread to process the queue. That way you will never have fights between threads over memory.</p>
+<p>If you need to get performance back up, then use multi-threading inside a single task process.</p>
+<p>You might find this link useful: <a href="http://blog.mrmeyer.com/?p=4646" rel="nofollow">http://blog.mrmeyer.com/?p=4646</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Leo Sutic				</title>
+				<link>https://herbsutter.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1485</link>
+		<dc:creator><![CDATA[Leo Sutic]]></dc:creator>
+		<pubDate>Tue, 29 Sep 2009 12:07:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/28/whats-the-best-way-to-process-a-pool-of-work/#comment-1485</guid>
+					<description><![CDATA[It is very difficult to give advice, since we are told so very little of the finer points of the problem, for example, what means we have to track memory allocation on a per-item basis. Anyway:
+
+0. When dealing with random and unknowable input, don&#039;t expect to make optimal decisions. Just so you don&#039;t kill yourself over this.
+
+1. Continuously check available memory while processing. If it looks to be running out, use some ordering scheme to decide which work item should either (a) dump everything and be put back into the queue or (b) just suspend execution for a little while or (c) flush itself to disk and suspend.
+
+2. Put in some code to handle out of memory conditions. Then just run.
+
+3. If the size of work items are known up front, use two queues. If not, check when a work item has allocated more than 1GB. That makes it &quot;large&quot;. If another item being processed is also large, suspend until the other item has completed. Worst case here is that you have one 2GB item and then 7 &quot;large&quot; ones of 1GB each, so maybe set the threshold a bit lower - 800MB for 7x0.8 + 2 = 7.6GB max, giving yourself a nice 400MB margin.
+
+/LS]]></description>
+		<content:encoded><![CDATA[<p>It is very difficult to give advice, since we are told so very little of the finer points of the problem, for example, what means we have to track memory allocation on a per-item basis. Anyway:</p>
+<p>0. When dealing with random and unknowable input, don&#8217;t expect to make optimal decisions. Just so you don&#8217;t kill yourself over this.</p>
+<p>1. Continuously check available memory while processing. If it looks to be running out, use some ordering scheme to decide which work item should either (a) dump everything and be put back into the queue or (b) just suspend execution for a little while or (c) flush itself to disk and suspend.</p>
+<p>2. Put in some code to handle out of memory conditions. Then just run.</p>
+<p>3. If the size of work items are known up front, use two queues. If not, check when a work item has allocated more than 1GB. That makes it &#8220;large&#8221;. If another item being processed is also large, suspend until the other item has completed. Worst case here is that you have one 2GB item and then 7 &#8220;large&#8221; ones of 1GB each, so maybe set the threshold a bit lower &#8211; 800MB for 7&#215;0.8 + 2 = 7.6GB max, giving yourself a nice 400MB margin.</p>
+<p>/LS</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

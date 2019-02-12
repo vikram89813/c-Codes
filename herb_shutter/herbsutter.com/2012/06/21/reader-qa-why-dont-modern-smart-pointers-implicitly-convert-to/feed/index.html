@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: Reader Q&#038;A: Why don&#8217;t modern smart pointers implicitly convert to *?	</title>
+	<atom:link href="https://herbsutter.com/2012/06/21/reader-qa-why-dont-modern-smart-pointers-implicitly-convert-to/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2012/06/21/reader-qa-why-dont-modern-smart-pointers-implicitly-convert-to/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Dave Harris				</title>
+				<link>https://herbsutter.com/2012/06/21/reader-qa-why-dont-modern-smart-pointers-implicitly-convert-to/#comment-5716</link>
+		<dc:creator><![CDATA[Dave Harris]]></dc:creator>
+		<pubDate>Sun, 24 Jun 2012 18:54:14 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1574#comment-5716</guid>
+					<description><![CDATA[My employer&#039;s smart pointer class provides the implicit conversion. I don&#039;t think we&#039;ve ever had either of the problems you mention, in 15 years or so of writing code in a huge code base. If it is a problem in the routine that declares the pointer, it will also be a problem in all the functions that take a raw T * (in other words, all the places that required the get()). Since best practice still allows for using raw pointers sometimes, they can&#039;t be that bad. For me the purpose of smart pointers is lifetime management, not disabling pointer arithmetic. 
+
+I think a bigger reason for not providing the conversion is code like:
+    shared_ptr p0( new int );
+    int *p1 = p0;
+    shared_ptr p2( p1 );
+
+where you end up with two reference counts and double-deletion. This is not a problem in my employer&#039;s code base because our smart pointer is intrusive, so the final line uses the same count as the first line. We can freely and safely convert between smart and raw pointers. You can&#039;t do that with shared_ptr or unique_ptr. 
+
+So I do agree with the choice made for unique_ptr and shared_ptr, but not the reason you gave.
+
+(I&#039;d add that sprinkling .get() everywhere is quite a big deal, because it&#039;s 6 characters of clutter, which can get painful especially when several pointers are involved. When we introduced our in-house smart pointers, it was long enough ago that we needed to make them easy to use to encourage their use. So I feel for your reader needing workarounds.)]]></description>
+		<content:encoded><![CDATA[<p>My employer&#8217;s smart pointer class provides the implicit conversion. I don&#8217;t think we&#8217;ve ever had either of the problems you mention, in 15 years or so of writing code in a huge code base. If it is a problem in the routine that declares the pointer, it will also be a problem in all the functions that take a raw T * (in other words, all the places that required the get()). Since best practice still allows for using raw pointers sometimes, they can&#8217;t be that bad. For me the purpose of smart pointers is lifetime management, not disabling pointer arithmetic. </p>
+<p>I think a bigger reason for not providing the conversion is code like:<br />
+    shared_ptr p0( new int );<br />
+    int *p1 = p0;<br />
+    shared_ptr p2( p1 );</p>
+<p>where you end up with two reference counts and double-deletion. This is not a problem in my employer&#8217;s code base because our smart pointer is intrusive, so the final line uses the same count as the first line. We can freely and safely convert between smart and raw pointers. You can&#8217;t do that with shared_ptr or unique_ptr. </p>
+<p>So I do agree with the choice made for unique_ptr and shared_ptr, but not the reason you gave.</p>
+<p>(I&#8217;d add that sprinkling .get() everywhere is quite a big deal, because it&#8217;s 6 characters of clutter, which can get painful especially when several pointers are involved. When we introduced our in-house smart pointers, it was long enough ago that we needed to make them easy to use to encourage their use. So I feel for your reader needing workarounds.)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mike				</title>
+				<link>https://herbsutter.com/2012/06/21/reader-qa-why-dont-modern-smart-pointers-implicitly-convert-to/#comment-5703</link>
+		<dc:creator><![CDATA[Mike]]></dc:creator>
+		<pubDate>Fri, 22 Jun 2012 03:29:56 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1574#comment-5703</guid>
+					<description><![CDATA[I came across this bit of wisdom many years ago and I&#039;ve never forgotten:  The more a smart pointer acts like a dumb pointer, the more it _is_ a dumb pointer.]]></description>
+		<content:encoded><![CDATA[<p>I came across this bit of wisdom many years ago and I&#8217;ve never forgotten:  The more a smart pointer acts like a dumb pointer, the more it _is_ a dumb pointer.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jagannath				</title>
+				<link>https://herbsutter.com/2012/06/21/reader-qa-why-dont-modern-smart-pointers-implicitly-convert-to/#comment-5701</link>
+		<dc:creator><![CDATA[Jagannath]]></dc:creator>
+		<pubDate>Thu, 21 Jun 2012 22:34:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1574#comment-5701</guid>
+					<description><![CDATA[The delete p; part can be stopped by having another version of implicit conversion to void*. But, I see another problem as well.
+
+SomeClass* Retrieve()
+{
+     unique_ptr p( ... );
+
+      return p; // oops. meant p.release();
+}]]></description>
+		<content:encoded><![CDATA[<p>The delete p; part can be stopped by having another version of implicit conversion to void*. But, I see another problem as well.</p>
+<p>SomeClass* Retrieve()<br />
+{<br />
+     unique_ptr p( &#8230; );</p>
+<p>      return p; // oops. meant p.release();<br />
+}</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

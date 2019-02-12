@@ -1,0 +1,1218 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #4 Solution: Class Mechanics | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965314&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F20%2Fgotw-4-class-mechanics%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #4 Solution: Class&nbsp;Mechanics Comments Feed" href="https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #4: Class Mechanics&nbsp;(7/10)' href='https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/' />
+<link rel='next' title='GotW #5: Overriding Virtual&nbsp;Functions' href='https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-vz' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F20%2Fgotw-4-class-mechanics%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F20%2Fgotw-4-class-mechanics%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #4 Solution: Class Mechanics" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/" />
+<meta property="og:description" content="How good are you at the details of writing classes? This item focuses not only on blatant errors, but even more so on professional style. Understanding these principles will help you to design clas…" />
+<meta property="article:published_time" content="2013-05-20T18:22:22+00:00" />
+<meta property="article:modified_time" content="2013-05-21T21:13:45+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965314" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #4 Solution: Class&nbsp;Mechanics" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="How good are you at the details of writing classes? This item focuses not only on blatant errors, but even more so on professional style. Understanding these principles will help you to design classes that are easier to use and easier to maintain.  Problem JG Question 1. What makes interfaces &quot;easy to use correctly, hard&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-1957 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/" rel="prev">GotW #4: Class Mechanics&nbsp;(7/10)</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/" rel="next">GotW #5: Overriding Virtual&nbsp;Functions</a> &raquo;</div>
+			</div>
+			
+			<div class="post-1957 post type-post status-publish format-standard hentry category-gotw" id="post-1957">
+				<div class="posttitle">
+					<h2>GotW #4 Solution: Class&nbsp;Mechanics</h2>
+					<p class="post-info">2013-05-20 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>How good are you at the details of writing classes? This item focuses not only on blatant errors, but even more so on professional style. Understanding these principles will help you to design classes that are easier to use and easier to maintain.<br />
+</em></span></p>
+<p>
+ </p>
+<h1>Problem<br />
+</h1>
+<h2>JG Question<br />
+</h2>
+<p>1. What makes interfaces &#8220;easy to use correctly, hard to use incorrectly&#8221;? Explain.
+</p>
+<h2>Guru Question<br />
+</h2>
+<p>2. You are doing a code review. A programmer has written the following class, which shows some poor style and has some real errors. How many can you find, and how would you fix them?
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>class complex {<br />public:<br />    complex( double r, double i = 0 )<br />        : real(r), imag(i)<br />    { }<br /><br />    void operator+ ( complex other ) {<br />        real = real + other.real;<br />        imag = imag + other.imag;<br />    }<br /><br />    void operator&lt;&lt;( ostream os ) {<br />        os &lt;&lt; "(" &lt;&lt; real &lt;&lt; "," &lt;&lt; imag &lt;&lt; ")";<br />    }<br /><br />    complex operator++() {<br />        ++real;<br />        return *this;<br />    }<br /><br />    complex operator++( int ) {<br />        auto temp = *this;<br />        ++real;<br />        return temp;<br />    }<br /><br />    // ... more functions that complement the above ...<br /><br />private:<br />    double real, imag;<br />};
+</code></pre>
+</p>
+<p>Note: This is not intended to be a complete class. For example, if you provide <span style="color:#2e74b5;">operator++</span> you would normally also provide <span style="color:#2e74b5;">operator&#8211;</span>. Rather, this is an instructive example to focus on the mechanics of writing correctly the kinds of functions this class is trying to support.
+</p>
+<p>
+ </p>
+<h1>Solution<br />
+</h1>
+<h2>1. What makes interfaces &#8220;easy to use correctly, hard to use incorrectly&#8221;? Explain.<br />
+</h2>
+<p>We want to enable a <a href="http://blogs.msdn.com/b/brada/archive/2003/10/02/50420.aspx">&#8220;pit of success&#8221;</a> where users of our type just naturally fall into good practices—they just naturally write code that is valid, correct, and efficient.
+</p>
+<p>On the other hand, we want to make it hard for our users to get into trouble—we want code that would be incorrect or inefficient to be invalid (a compile time error if possible) or at least inconvenient and hard to write silently so that we can protect the user from unwelcome surprises.
+</p>
+<p>Scott Meyers <a href="http://programmer.97things.oreilly.com/wiki/index.php/Make_Interfaces_Easy_to_Use_Correctly_and_Hard_to_Use_Incorrectly">popularized</a> this guidance. See his concise writeup for further examples.
+</p>
+<p>
+ </p>
+<h2>2. You are doing a code review. A programmer has written the following class, which shows some poor style and has some real errors. How many can you find, and how would you fix them?<br />
+</h2>
+<p>This class has a lot of problems—even more than I will show explicitly here. The point of this puzzle was primarily to highlight class mechanics (issues like &#8220;what is the canonical form of <span style="color:#2e74b5;">operator&lt;&lt;</span>?&#8221; and &#8220;should <span style="color:#2e74b5;">operator+</span> be a member?&#8221;) rather than point out where the interface is just plain poorly designed. However, I will start off with perhaps the two most useful observation first:
+</p>
+<p>First, this is a code review but the developer doesn&#8217;t seem to have tried to even unit-test his code, else he would have found some glaring problems.
+</p>
+<p>Second, why write a <span style="color:#2e74b5;">complex</span> class when one already exists in the standard library? And, what&#8217;s more, when the standard one isn&#8217;t plagued with any of the following problems and has been crafted based on years of practice by the best people in our industry? Humble thyself and reuse.
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> Reuse code—especially standard library code—instead of handcrafting your own. It&#8217;s faster, easier, and safer.
+</p>
+</blockquote>
+<p>Perhaps the best way to fix the problems in the <span style="color:#2e74b5;">complex</span> code is to avoid using the class at all, and use the <span style="color:#2e74b5;">std::complex</span> template instead.
+</p>
+<p>Having said that, it&#8217;s an instructive example, so let&#8217;s go through the class as written and fix the problems as we go. First, the constructor:
+</p>
+<h3>1. The default constructor is missing.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    complex( double r, double i = 0 )<br />        : real(r), imag(i)<br />    { }
+</code></pre>
+</p>
+<p>Once we supply a user-written constructor, we suppress the implicit generation of the default constructor. Beyond &#8220;easy to use correctly,&#8221; not having a default constructor makes the class annoying to use at all. In this case, we could either default both parameters, or provide a <span style="color:#2e74b5;">complex() = default;</span> and declare the data members with initializers such as <span style="color:#2e74b5;">double real = 0, imag = 0;</span> , or just delegate with <span style="color:#2e74b5;">complex() : complex(0) { }</span> . Just defaulting the parameter is the simplest here.
+</p>
+<p>Also, as explained in GotW #1, prefer to use <span style="color:#2e74b5;">{ }</span> consistently for initialization rather than <span style="color:#2e74b5;">( )</span> just as a good modern habit. The two mean exactly the same thing in this case, but <span style="color:#2e74b5;">{ }</span> lets us be more consistent, and could catch a few errors during maintenance, such as typos that would invoke <span style="color:#2e74b5;">double</span>-to-<span style="color:#2e74b5;">float</span> narrowing conversions.
+</p>
+<h3>2. operator+ passes by value.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    void operator+ ( complex other ) {<br />        real = real + other.real;<br />        imag = imag + other.imag;<br />    }
+</code></pre>
+</p>
+<p>Although we&#8217;re about make other changes to this function in a moment, as written this parameter should be passed by <span style="color:#2e74b5;">const&amp;</span> because all we do is read from it.
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> Prefer passing a read-only parameter by <strong>const&amp;</strong> if you are only going to read from it (not make a copy of it).
+</p>
+</blockquote>
+<h3>3. operator+ modifies this object&#8217;s value.<br />
+</h3>
+<p>Instead of returning <span style="color:#2e74b5;">void</span>, <span style="color:#2e74b5;">operator+</span> should return a <span style="color:#2e74b5;">complex</span> containing the sum and not modify this object&#8217;s value. Users who write <span style="color:#2e74b5;">val1 + val2</span> and see <span style="color:#2e74b5;">val1</span> changed are unlikely to be impressed by these gratuitously weird semantics. As Scott Meyers is wont to say, when writing a value type, &#8220;do as the <span style="color:#2e74b5;">int</span>s do&#8221; and follow the conventions of the built-in types.
+</p>
+<h3>4. operator+ is not written in terms of operator+= (which is missing).<br />
+</h3>
+<p>Really, this <span style="color:#2e74b5;">operator+</span> is trying to be <span style="color:#2e74b5;">operator+=</span>. It should be split into an actual <span style="color:#2e74b5;">operator+</span> and <span style="color:#2e74b5;">operator+=</span>, with the former calling the latter.
+</p>
+<blockquote>
+<p><strong>Guideline: </strong>If you supply a standalone version of an operator (e.g., <strong>operator+</strong>), always supply an assignment version of the same operator (e.g., <strong>operator+=</strong>) and prefer implementing the former in terms of the latter. Also, always preserve the natural relationship between op and op= (where op stands for any operator).
+</p>
+</blockquote>
+<p>Having <span style="color:#2e74b5;">+=</span> is good, because users should prefer using it. Even in the above code, <span style="color:#2e74b5;">real = real + other.real;</span> should be <span style="color:#2e74b5;">real += other.real;</span> and similarly for the second line.
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> Prefer writing <strong>a op= b</strong> instead of <strong>a = a op b</strong> (where op stands for any operator). It&#8217;s clearer, and it&#8217;s often more efficient.
+</p>
+</blockquote>
+<p>The reason why <span style="color:#2e74b5;">operator+=</span> is more efficient is that it operates on the left-hand object directly and returns only a reference, not a temporary object. On the other hand, <span style="color:#2e74b5;">operator+</span> must return a temporary object. To see why, consider the following canonical forms for how <span style="color:#2e74b5;">operator+=</span> and <span style="color:#2e74b5;">operator+</span> should normally be implemented for some type <span style="color:#2e74b5;">T</span>.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>T&amp; T::operator+=( const T&amp; other ) {<br />    //...<br />    return *this;<br />}<br /><br />T operator+( T a, const T&amp; b ) {<br />    a += b;<br />    return a;<br />}
+</code></pre>
+</p>
+<p>Did you notice that one parameter is passed by value, and one by reference? That&#8217;s because if you&#8217;re going to copy from a parameter anyway, it&#8217;s often better to pass it by value, which will naturally enable a move operation if the caller passes a temporary object such as in expressions like <span style="color:#2e74b5;">(val1 * val2) + val3</span>. This is a good habit to follow even in cases like <span style="color:#2e74b5;">complex</span> where a move is the same cost as a copy, since it doesn&#8217;t cost any efficiency when move and copy are the same, and arguably makes for cleaner code than passing by reference and adding an extra named local object. We&#8217;ll see more on parameter passing in a future GotW.
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> Prefer passing a read-only parameter by value if you&#8217;re going to make a copy of the parameter anyway, because it enables move from rvalue arguments.
+</p>
+</blockquote>
+<p>Implementing <span style="color:#2e74b5;">+</span> in terms of <span style="color:#2e74b5;">+=</span> both makes the code simpler and guarantees consistent semantics as the two functions are less likely to diverge during maintenance.
+</p>
+<h3>5. operator+ should not be a member function.<br />
+</h3>
+<p>If <span style="color:#2e74b5;">operator+</span> is made a member function, as it is here, then it won&#8217;t work as naturally as your users may expect when you do decide to allow implicit conversions from other types. Here, an implicit conversion from <span style="color:#2e74b5;">double</span> to <span style="color:#2e74b5;">complex</span> makes sense, but with the original class users have an asymmetry: Specifically, when adding <span style="color:#2e74b5;">complex</span> objects to numeric values, you can write <span style="color:#2e74b5;">a = b + 1.0</span> but not <span style="color:#2e74b5;">a = 1.0 + b</span> because a member <span style="color:#2e74b5;">operator+</span> requires a <span style="color:#2e74b5;">complex</span> (and not a <span style="color:#2e74b5;">double</span>) as its left-hand argument.
+</p>
+<p>Finally, the other reason to prefer non-members is because they provide better encapsulation, as <a href="http://www.drdobbs.com/cpp/how-non-member-functions-improve-encapsu/184401197">pointed out by Scott Meyers</a>.
+</p>
+<blockquote>
+<p><strong>Guideline: </strong>Prefer these guidelines for making an operator a member vs. nonmember function: unary operators are members; <strong>= () []</strong> and <strong>-&gt;</strong> must be members; the assignment operators (<strong>+= –= /= *=</strong> etc.) must be members; all other binary operators are nonmembers.
+</p>
+</blockquote>
+<h3>6. operator&lt;&lt; should not be a member function.<br />
+</h3>
+<p>The author of this code didn&#8217;t really mean to enable the syntax <span style="color:#2e74b5;">my_complex &lt;&lt; cout</span>, did they?
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    void operator&lt;&lt;( ostream os ) {<br />        os &lt;&lt; "(" &lt;&lt; real &lt;&lt; "," &lt;&lt; imag &lt;&lt; ")";<br />    }
+</code></pre>
+</p>
+<p>The same reasons already given to show why <span style="color:#2e74b5;">operator+</span> should be a nonmember apply also to <span style="color:#2e74b5;">operator&lt;&lt;</span>, only more so because a member the first parameter has to be a stream, not a <span style="color:#2e74b5;">complex</span>. Further, the parameters should be references: <span style="color:#2e74b5;">(ostream&amp;, const complex &amp;)</span>.
+</p>
+<p>Note also that the nonmember <span style="color:#2e74b5;">operator&lt;&lt;</span> should normally be implemented in terms of a(n often virtual) <span style="color:#2e74b5;">const</span> member function that does the work, usually named something like <span style="color:#2e74b5;">print</span>.
+</p>
+<h3>7. operator&lt;&lt; should return ostream&amp;.<br />
+</h3>
+<p>Further, <span style="color:#2e74b5;">operator&lt;&lt;</span> should have a return type of <span style="color:#2e74b5;">ostream&amp;</span> and should return a reference to the stream in order to permit chaining. That way, users can use your <span style="color:#2e74b5;">operator&lt;&lt;</span> naturally in code like <span style="color:#2e74b5;">cout &lt;&lt; a &lt;&lt; b;</span>.
+</p>
+<blockquote>
+<p><strong>Guideline: </strong>Always return stream references from <strong>operator&lt;&lt;</strong> and <strong>operator&gt;&gt;</strong>.
+</p>
+</blockquote>
+<h3>8. The preincrement operator&#8217;s return type is incorrect.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    complex operator++() {<br />        ++real;<br />        return *this;<br />    }
+</code></pre>
+</p>
+<p>Ignoring for the sake of argument whether preincrement is meaningful for <span style="color:#2e74b5;">complex</span> numbers, if the function exists it should return a reference. This lets client code operate more intuitively and avoids needless inefficiency.
+</p>
+<blockquote>
+<p><strong>Guideline: </strong>When you <strong>return *this</strong>, the return type should usually be a reference.
+</p>
+</blockquote>
+<h3>9. Postincrement should be implemented in terms of preincrement.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    complex operator++( int ) {<br />        auto temp = *this;<br />        ++real;<br />        return temp;<br />    }
+</code></pre>
+</p>
+<p>Instead of repeating the work, prefer to call <span style="color:#2e74b5;">++*this</span>. See GotW #2 for the full canonical form for postincrement.
+</p>
+<blockquote>
+<p><strong>Guideline: </strong>For consistency, always implement postincrement in terms of preincrement, otherwise your users will get surprising (and often unpleasant) results.
+</p>
+</blockquote>
+<h3>Summary<br />
+</h3>
+<p>That&#8217;s it. There are other modern C++ features we could apply here, but they would be arguably gratuitous and not appropriate for general recommendations. For example, this is a value type not designed to be inherited from, so we could prevent inheritance by making the class <span style="color:#2e74b5;">final</span>, but that would be protecting against Machiavelli, not Murphy, and there&#8217;s no need for a general guideline that tells everyone they should now write <span style="color:#2e74b5;">final</span> on every value type; that would just be tedious and unnecessary.
+</p>
+<p>Here&#8217;s a corrected version of the class, ignoring design and style issues not explicitly noted above:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>class complex {<br />public:<br />    complex( double r = 0, double i = 0 )<br />        : real{r}, imag{i}<br />    { }<br /><br />    complex&amp; operator+=( const complex&amp; other ) {<br />        real += other.real;<br />        imag += other.imag;<br />        return *this;<br />    }<br /><br />    complex&amp; operator++() {<br />        ++real;<br />        return *this;<br />    }<br /><br />    complex operator++( int ) {<br />        auto temp = *this;<br />        ++*this;<br />        return temp;<br />    }<br /><br />    ostream&amp; print( ostream&amp; os ) const {<br />        return os &lt;&lt; "(" &lt;&lt; real &lt;&lt; "," &lt;&lt; imag &lt;&lt; ")";<br />    }<br /><br />private:<br />    double real, imag;<br />};<br /><br />complex operator+( complex lhs, const complex&amp; rhs ) {<br />    lhs += rhs;<br />    return lhs;<br />}<br /><br />ostream&amp; operator&lt;&lt;( ostream&amp; os, const complex&amp; c ) {<br />    return c.print(os);<br />}
+</code></pre>
+</p>
+<h2>Acknowledgments<br />
+</h2>
+<p>Thanks in particular to the following for their feedback to improve this article: Mikhail Belyaev, jlehrer, Olaf van der Spek, Marshall, litb1, hm, Dave Harris, nosenseetal.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											39 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">39 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment byuser comment-author-zhnmju123 even thread-even depth-1 highlander-comment" id="comment-10539">
+		<div id="div-comment-10539">
+		<div class="cmtinfo"><em> on <a href="#comment-10539" title="">2013-05-28 at 2:17 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7ff60bd79632cdb98a2eb2fda9f895d2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Zenju</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10539"></div><p>@Luca Risolia:<br />
+I you want to consider all r/l-value cases you would need to implement all four<br />
+T operator+(const T&amp; a, const T&amp; b)<br />
+T operator+(T&amp;&amp; a, const T&amp; b)<br />
+T operator+(const T&amp; a, T&amp;&amp; b)<br />
+T operator+(T&amp;&amp; a, T&amp;&amp; b)</p>
+<p>This&#8217;s overkill, so it&#8217;s probably a good idea to concentrate on the most-used form, which is the temporary in the first argument for chains of operator +. For other classes, e.g. strings, this is all that&#8217;s ever needed, since operator + is not symmetric.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10526">
+		<div id="div-comment-10526">
+		<div class="cmtinfo"><em> on <a href="#comment-10526" title="">2013-05-27 at 7:09 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/8c45433d3eb647f91cb581511e4e9ad0?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Luca Risolia</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10526"></div><p>@Zenju</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+complex a;
+auto r = operator+(a, complex{});
+</pre>
+<p>a is a lvalue while the second argument is a temporary, which means operator+(const complex&amp;, complex&amp;&amp;) will be called. You can easily have more convoluted expressions in which the same overload might be called. Associativity rules do not change the result for a complex type. Do I miss anything?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-zhnmju123 even thread-even depth-1 highlander-comment" id="comment-10521">
+		<div id="div-comment-10521">
+		<div class="cmtinfo"><em> on <a href="#comment-10521" title="">2013-05-27 at 4:03 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/7ff60bd79632cdb98a2eb2fda9f895d2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Zenju</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10521"></div><p>@Luca Risolia: operator + has left-to-right associativity, so the first parameter will have to deal with temporaries, not the second.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-zhnmju123 odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10520">
+		<div id="div-comment-10520">
+		<div class="cmtinfo"><em> on <a href="#comment-10520" title="">2013-05-27 at 4:00 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/7ff60bd79632cdb98a2eb2fda9f895d2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Zenju</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10520"></div><p>&gt; Guideline: Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments. </p>
+<p>While talking about optimizations, it should be mentioned that passing one parameter by value in order to &#8220;unify&#8221; l/r-value parameters is not the most efficient solution:<br />
+In case the first parameter is a temporary, there is a move-construction that could otherwise be avoided had the function been specified as:</p>
+<p>T operator+(T&amp;&amp; a, const T&amp; b )</p>
+<p>So for maximum efficiency it is best to have these two overloads instead:<br />
+T operator+(const T&amp; a, const T&amp; b) and<br />
+T operator+(T&amp;&amp; a, const T&amp; b)</p>
+<p>This might seem nit-picky, but in general move-construction is not free! For example I know a string class which always has an associated control structure(alloc-count, size, ect.). Due to implementation details, the destructor cannot simply call &#8220;operator delete&#8221;, but requires a valid control structure.<br />
+Therefore even the move-constructor must create a dummy constrol structure, which boils down to a memory allocation, i.e. a system-call!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10432">
+		<div id="div-comment-10432">
+		<div class="cmtinfo"><em> on <a href="#comment-10432" title="">2013-05-25 at 7:12 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/8c45433d3eb647f91cb581511e4e9ad0?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.linux-projects.org' rel='external nofollow' class='url'>Luca Risolia</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10432"></div><p>@Herb, I apologize if this has been already suggested by others, but what about recommending the following version of </p>
+<pre class="brush: plain; title: ; notranslate" title="">operator+()</pre>
+<p> other than the one you propose in the final version of the complex class:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+complex operator+( const complex&amp; lhs, complex&amp;&amp; rhs ) {
+    rhs += lhs;
+    return rhs;
+}
+</pre>
+<p>Compared to the original solution, this way an extra-copy can be avoided when a temporary object is passed as argument to rhs and the const ref lhs is bound to an lvalue.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-decourse odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10387">
+		<div id="div-comment-10387">
+		<div class="cmtinfo"><em> on <a href="#comment-10387" title="">2013-05-23 at 7:26 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3352d7b7b661c84c5b888312397efc76?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>decourse</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10387"></div><p>Thanks for that answer, Herb.</p>
+<p>I was searching for an example where the difference between the two different forms of parameter passing may matter, and the only example I could think of is where the class must satisfy some imposed API. Inheriting from an abstract base class is the most obvious example; I haven&#8217;t put any thought to whether or not a concept could do it.</p>
+<p>Hiding the implementation detail by removing the call-by-value is EXACTLY the same thing as hiding the implementation by introducing a layer of abstraction or indirection (e.g. inheriting from an ABC, or implementing the class using a pimpl). That&#8217;s the bit I was missing.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10379">
+		<div id="div-comment-10379">
+		<div class="cmtinfo"><em> on <a href="#comment-10379" title="">2013-05-23 at 2:45 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10379"></div><p>@decourse: f( int ) and f( const int&amp; ) tell the caller the same thing: He provides an int as the first argument, and his int won&#8217;t be modified. You ask, why is that in the signature where the caller can see the implementation detail (and must recompile if it changes), even though it doesn&#8217;t affect him?</p>
+<p>So now consider: </p>
+<pre class="brush: plain; title: ; notranslate" title="">class widget { /*...*/ private: int x; }; </pre>
+<p> Guru question: Why is x in the class definition where the caller can see that implementation detail (and must recompile if it changes), even though he can&#8217;t use it?</p>
+<p>The two questions are the same. The reason it is necessary to surface this difference in the function signature, even though the caller of the function can&#8217;t be affected by it and doesn&#8217;t care, is the same reason why we have to make private class members visible in the class definition, even though the caller of the class can&#8217;t use them and doesn&#8217;t care: Link compatibility requires the compiler knows the calling convention incl. parameter passing and the full layout of all objects used as a value. Even though the caller cannot use such &#8220;private&#8221; information, it must always be available to the compiler on both sides. The fact that the compiler always knows this is also one of the reasons C++ is a naturally highly optimizable language.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-decourse odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10343">
+		<div id="div-comment-10343">
+		<div class="cmtinfo"><em> on <a href="#comment-10343" title="">2013-05-22 at 7:17 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3352d7b7b661c84c5b888312397efc76?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>decourse</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10343"></div><p>@Herb, I guess what I&#8217;m after here is some advice as to what passing an object by value actually <i>means</i>.</p>
+<p>We all know by now the difference between passing a smart pointer and passing a raw pointer. In each case, choosing one over the other signals a clear intention about the interface. I the signature asks for a smart pointer, for example, it &#8220;means&#8221; that the function wants to manage the lifetime of the passed object, but if it asks for a raw pointer, that &#8220;means&#8221; it doesn&#8217;t. It&#8217;s a similar story with lvalue references and rvalue references. Moreover, these differences are part of the interface.</p>
+<p>I don&#8217;t really know what it means when a function asks a caller to pass an object by value. But whatever it means, it&#8217;s not really part of the interface, but part of the implementation.</p>
+<p>I don&#8217;t like that. It smells wrong.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10315">
+		<div id="div-comment-10315">
+		<div class="cmtinfo"><em> on <a href="#comment-10315" title="">2013-05-22 at 10:53 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10315"></div><p>@Matthew: Yes, there will eventually be another GotW on parameter passing that will cover these kinds of things.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10308">
+		<div id="div-comment-10308">
+		<div class="cmtinfo"><em> on <a href="#comment-10308" title="">2013-05-22 at 6:07 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/72ff40f6f7ceeb6fa1adb984b1385c6c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Matthew Fioravante</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10308"></div><p>@Herb:<br />
+Trying to code based on whether or not the optimizer can do RVO on named temporaries or only unnamed return values is a distraction I agree. </p>
+<p>When it comes to value types however, there are no move semantics so the optimization game we&#8217;re trying to play here is copy ellision in either one of the parameters or the return value. The problem is that with passing one of the parameters by value is that the optimization only works if the caller happens to use an rvalue for that parameter (5 + x) vs (x + 5). </p>
+<p>For something like operator+(), we always use the return value so copy ellision can always be taken advantage of if its done on the return side vs on the parameter side. This could matter for a math library such a 3d linear algebra library for a game engine where you are doing a lot of 4&#215;4 matrix multiplies. Theres also the minor issue that the copy for passing by value is done at every call site and possibly bloats the code if the function is called often.</p>
+<p>Also when passing by value, which argument should be a reference and which a value?</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+T operator+(const T&amp; a, T b);
+T operator+(T a, const T&amp; b);
+</pre>
+<p>Should we pick a convention and suggest everyone follow it? Much like preferring ++i to i++ with iterators? I often find myself writing x + 5, than I do 5 + x.</p>
+<p>If your type has move semantics then the most correct way to do it is with a bunch of ugly overloads.<br />
+This is probably another GOTW, but I&#8217;d really like to know if there is any guidance for how to reduce the ammount of code here:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+T operator+(const T&amp; a, const T&amp; b);
+T operator+(const T&amp; a, T&amp;&amp; b);
+T operator+(T&amp;&amp; a, const T&amp; b);
+T operator+(T&amp;&amp; a, T&amp;&amp; b);
+</pre>
+<p>Perhaps the following:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+T operator+(const T&amp; a, const T&amp; b) {
+T c = a; //this one must do a copy
+c += b;
+return c;
+}
+T operator+(const T&amp; a, T&amp;&amp; b) {
+T c = std::move(b); //great, we can move
+c += a;
+return c;
+}
+T operator+(T&amp;&amp; a, const T&amp; b) {
+return b + std::move(a); //calls lv + rv
+}
+T operator+(T&amp;&amp; a, T&amp;&amp; b) {
+return a + std::move(b); //calls lv + rv
+}
+</pre>
+<p>Or this? (Does this even work like the above in all cases?)</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+T operator+(T a, const T&amp; b)  {
+return a += b; //lv + lv or rv + lv
+}
+T operator+(const T&amp; a, T&amp;&amp; b) {
+return std::move(b) + a; //calls rv + lv
+}
+T operator+(T&amp;&amp; a, T&amp;&amp; b) {
+return std::move(a) + b; //calls rv + lv
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10297">
+		<div id="div-comment-10297">
+		<div class="cmtinfo"><em> on <a href="#comment-10297" title="">2013-05-21 at 1:29 pm</a></em> <img alt='' src='https://i0.wp.com/graph.facebook.com/100000047521852/picture?q=type%3Dlarge&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/darylew1' rel='external nofollow' class='url'>Daryle Walker</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10297"></div><p>@Herb Sutter (2013-5-21T10:59): I&#8217;ve heard about transcendental functions being implemented with the help of internal constant tables.  Constexpr can help there.  A response by Róbert Dávid described something similar.  The constexpr is also a just-in-case some programmer changes complex to a class template, like the &#8220;value_type&#8221; alias added.  (Like if we want &#8220;int&#8221; versions.  There&#8217;s no reason for complex to be limited to floating-point; anything besides division, &#8220;abs,&#8221; and the transcendentals works just fine with integer arithmetic.)</p>
+<p>What the haters don&#8217;t see is that &#8220;superfluous&#8221; code isn&#8217;t over-engineering basic stuff, but adding the finishing details.  They&#8217;re refinements.  Middle programmers have to worry about those details and do a pass beyond make-it-work so they don&#8217;t pass inefficiencies down the line.</p>
+<p>Maybe you can do a GotW on constexpr someday.</p>
+<p>@Róbert Dávid (2013-5-21T12:22): Yes, it could be considered overkill, but complex range-for support may come in handy for generic code.  The tuple support is another example.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-nosenseetal odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10294">
+		<div id="div-comment-10294">
+		<div class="cmtinfo"><em> on <a href="#comment-10294" title="">2013-05-21 at 12:37 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6aea6e2f57f2a7b1cd6870375fbdc42f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>nosenseetal</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10294"></div><p>can somebody explain what Herb meant with this: &#8221; That makes the class annoying to use at all.&#8221;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10293">
+		<div id="div-comment-10293">
+		<div class="cmtinfo"><em> on <a href="#comment-10293" title="">2013-05-21 at 12:22 pm</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/100004054812229/picture?q=type%3Dlarge%26_md5%3D9e5f827892523ff7a319a1687be4b4dd&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/profile.php?id=100004054812229' rel='external nofollow' class='url'>Róbert Dávid</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10293"></div><p>@Daryle Walker: I&#8217;m not sure it is a good idea to use range-for on a.. single.. complex value.</p>
+<p>@Herb Sutter: Compile-time float values is something I would kill for while implementing code from mathematicians, containing code that is essentially possible to do compile time &#8211; but it is not feasible to just code the &#8216;result&#8217; into the code, as the constant changing every iteration. To oversimplify, something like &#8220;return input*2*sqrt(3)&#8221; at first, &#8220;return input*3*sqrt(3)&#8221; in the second version, &#8220;return input*3*sqrt(5)&#8221; in the third (mixed with changes of &#8216;non-compile-time&#8217; logic as well). And this happened in three companies so far, so I have a sense that this isn&#8217;t really uncommon. Generally, I would like to push as much computation to compile time as possible &#8211; constexpr can do miracles, even with its current, limited version. (constexpr dgemm, anyone?)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10292">
+		<div id="div-comment-10292">
+		<div class="cmtinfo"><em> on <a href="#comment-10292" title="">2013-05-21 at 11:50 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/64abcdfeac5d480fd1f58a7901ad26ee?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Michael Marcin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10292"></div><p>Sorry that was obviously supposed to be:</p>
+<pre class="brush: plain; title: ; notranslate" title="">T operator+( const T&amp; lhs, const X&amp; rhs ) {
+    T rv = lhs;
+    rv += rhs;
+    return rv;
+}</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10291">
+		<div id="div-comment-10291">
+		<div class="cmtinfo"><em> on <a href="#comment-10291" title="">2013-05-21 at 11:48 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/64abcdfeac5d480fd1f58a7901ad26ee?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Michael Marcin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10291"></div><p>While pass by value for things like operator is good in theory. I&#8217;m not sure how good it is in practice. There was recently talk about this related to the boost operators library.</p>
+<p>Compare</p>
+<pre class="brush: plain; title: ; notranslate" title="">T operator+( T lhs, const X&amp; rhs ) {
+	lhs += rhs;
+    return lhs;
+}</pre>
+<p><a href="http://ideone.com/q1ETx3" rel="nofollow">http://ideone.com/q1ETx3</a></p>
+<pre class="brush: plain; title: ; notranslate" title="">T operator+( const T&amp; lhs, const X&amp; rhs ) {
+	T rv = lhs;
+	rv += lhs;
+    return rv;
+}</pre>
+<p><a href="http://ideone.com/wutk1x" rel="nofollow">http://ideone.com/wutk1x</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10290">
+		<div id="div-comment-10290">
+		<div class="cmtinfo"><em> on <a href="#comment-10290" title="">2013-05-21 at 10:59 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10290"></div><p>@Daryle: I actually did consider whether to talk about making this constexpr, and I deliberately decided not to (and almost mentioned in this in the summary alongside why I didn&#8217;t talk about final). Two reasons:</p>
+<p>(1) I can&#8217;t think of any use cases for a compile-time complex number (or any floating point value for that matter); it&#8217;s not like we&#8217;re going to initialize arrays with them or set enumerator values with them or instantiate templates with them, right? I could be wrong here &#8212; does anyone know of a valid constexpr use for a floating point number?</p>
+<p>(2) Doing it would make this simple class more complicated, as I think you&#8217;ve demonstrated. :) And the extra work is for no real advantage if I&#8217;m right about (1), and with the disadvantage of providing incorrect fodder for people looking for disinformational examples to claim how hard simple stuff is in C++, when it really isn&#8217;t (at least not in this case).</p>
+<p>I think we should be teaching how simple it really is to write high-quality C++ code, not how complex C++ code can be made by people who revel in complexity (which we&#8217;re all guilty of from time to time of course). This example really is simple and doesn&#8217;t need constexpr, so I didn&#8217;t even mention constexpr. If I&#8217;m wrong about that, I&#8217;d really be happy to know &#8212; what are the use cases for making complex constexpr-aware? On the other hand, if I&#8217;m right about that but the question is a FAQ, maybe I should add this kind of note about constexpr in the Summary along with why I didn&#8217;t mention or recommend saying final either.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10289">
+		<div id="div-comment-10289">
+		<div class="cmtinfo"><em> on <a href="#comment-10289" title="">2013-05-21 at 10:46 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10289"></div><p>@decourse: It&#8217;s not an abstraction leak because it doesn&#8217;t affect the caller&#8217;s argument. It&#8217;s an implementation detail that happens to be visible but isn&#8217;t a &#8220;leak&#8221; inasmuch as it has no effect on the calling code.</p>
+<p>@Marshall and Matt: Even in the 1990s, my impression was that talking about writing your code in order to try to enable (N)RVO was overdone; optimizers have been good at this for a long time, some did better with a named temporary and others with an unnamed return value, and debates about whether a named local variable or reusing a parameter or creating a temporary would help the optimizer the most were generally a distraction. In general I think we really do want to teach people to: (a) write code for clarity first (overthinking (N)RVO is usually asking for premature optimization), and (b) pass an input value parameter by value if you&#8217;re going to copy from it anyway, because it really does help when passed rvalues. The community seems to be converging on that this is the right advice.</p>
+<p>@hm: Thanks, that &#8220;explicit&#8221; was a leftover from the original 1997-vintage version that no longer applies since I&#8217;ve updated the advice (and don&#8217;t even talk about explicit conversions any more in the current version). Removed.</p>
+<p>@Dave Harris: Thanks, &#8220;for&#8221; was missing. Added.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10287">
+		<div id="div-comment-10287">
+		<div class="cmtinfo"><em> on <a href="#comment-10287" title="">2013-05-21 at 9:24 am</a></em>  <cite><a href='http://musingstudio.com/2013/05/21/herb-sutter-gotw-4-class-mechanics/' rel='external nofollow' class='url'>Herb Sutter GotW 4: Class Mechanics | musingstudio</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10287"></div><p>[&#8230;] Herb Sutter&#8217;s GotW 4 on class mechanics is a treasure trove of best practice. It includes handy examples and canonical signatures for operator&lt;&lt;, operator+ and the pre/post-increment operators. [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10285">
+		<div id="div-comment-10285">
+		<div class="cmtinfo"><em> on <a href="#comment-10285" title="">2013-05-21 at 8:04 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/51d9c0f234a7029ac58358a6dc2053f5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Dave Harris</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10285"></div><p>Point 8, &#8220;Ignoring the sake of argument&#8221;, looks like an editing error. I think you mean, &#8220;Ignoring the argument&#8221; and were thinking of &#8220;For the sake of argument&#8221;. Not important, but probably should be fixed if those words might make it into print.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10283">
+		<div id="div-comment-10283">
+		<div class="cmtinfo"><em> on <a href="#comment-10283" title="">2013-05-21 at 5:36 am</a></em> <img alt='' src='https://i0.wp.com/graph.facebook.com/100000047521852/picture?q=type%3Dlarge&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/darylew1' rel='external nofollow' class='url'>Daryle Walker</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10283"></div><p>Why did I change the component implementation from two value_type objects to an array of two objects?</p>
+<p>1. Why not?  Especially since C++11 allows arrays to be put in the member-initialization list<br />
+2. It&#8217;d only be a problem if the member(s) were directly exposed, but we&#8217;re hiding them.  Your implementation for the accessors can change to match how the data is stored.<br />
+3. The components are guaranteed to be packed, so since the class is also standard-layout, we can reinterpret between a complex and an array-of-two-doubles for some kinds of C-level fun.  (We can&#8217;t do array-of-complex and array-of-twice-the-doubles reinterpretations unless we can guarantee no rear padding somehow.)<br />
+4. We can do this:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+class complex {
+public:
+    //...
+    friend constexpr
+    auto  begin( complex const &amp;c ) noexcept -&gt; value_type const *
+    { return &amp;c_[0]; }
+
+    friend constexpr
+    auto  end( complex const &amp;c ) noexcept -&gt; value_type const *
+    { return begin(c) + 2; }
+
+    // Do the non-const versions, maybe with const_cast...
+
+    friend
+    void  swap( complex &amp;a, complex &amp;b ) noexcept(???)
+    { std::swap(a.c_, b.c_); }
+
+    //...
+};
+</pre>
+<p>And now it will automatically work with range-for!  (The swap isn&#8217;t there for any reason but to show the new routine in the standard for built-in arrays.)  Heck, we can add tuple support:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+class complex {
+public:
+    //...
+    template &lt; std::size_t I &gt;
+    friend
+    auto  get( complex const &amp;c ) noexcept -&gt; value_type const &amp;
+    {
+        static_assert( I &lt; 2u, &quot;Index out of bounds&quot; );
+        return c.c_[ I ];
+    }
+
+    template &lt; std::size_t I &gt;
+    friend
+    auto  get( complex &amp;c ) noexcept -&gt; value_type &amp;
+    { return const_cast&lt;value_type &amp;&gt;(get&lt;I&gt;( const_cast&lt;complex const &amp;&gt;(c) )); }
+
+    template &lt; std::size_t I &gt;
+    friend
+    auto  get( complex &amp;&amp;c ) noexcept -&gt; value_type &amp;&amp;
+    { return std::forward&lt;value_type&gt;(get&lt;I&gt;( c )); }
+    //...
+};
+
+//...
+
+namespace std {
+
+    struct tuple_size&lt;my::complex&gt;
+        : integral_constant&lt; size_t, 2u &gt;
+    { };
+
+    template &lt; size_t I &gt;
+    struct tuple_element&lt; I, my::complex &gt;
+    {
+        static_assert( I &lt; 2u, &quot;Index too large&quot; );
+        using type = my::complex::value_type;
+    };
+
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mtclow even thread-even depth-1 highlander-comment" id="comment-10281">
+		<div id="div-comment-10281">
+		<div class="cmtinfo"><em> on <a href="#comment-10281" title="">2013-05-21 at 5:10 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/ac727873c5724326c84ed245faa9fe6c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://nathanielmchorneysdiary.wordpress.com' rel='external nofollow' class='url'>Marshall Clow</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10281"></div><p>&gt;&gt; You don’t need to create a temporary in the return statement for RVO, at least not on modern versions of gcc.</p>
+<p>I&#8217;ll take your word for it &#8211; but there are other compilers in the world besides gcc.</p>
+<p>Besides, the more I look at that code, the more I like it &#8211; it says very clearly what the routine does: &#8220;Return a new complex object whose value is the sum of the two parameters &#8216;a&#8217; and &#8216;b'&#8221;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10280">
+		<div id="div-comment-10280">
+		<div class="cmtinfo"><em> on <a href="#comment-10280" title="">2013-05-21 at 5:09 am</a></em> <img alt='' src='https://i0.wp.com/graph.facebook.com/100000047521852/picture?q=type%3Dlarge&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/darylew1' rel='external nofollow' class='url'>Daryle Walker</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10280"></div><p>Besides having the arguments in the wrong order, and returning void, the output routine has another problem.  Not only is taking (and returning) references to streams is suggested, it&#8217;s required!  Streams are explicitly not copyable.  (This was uncertain in C++03, but made definitive in C++11.)</p>
+<p>The stream classes are now templates, making them unsuitable with stuff marked virtual.  You would either have to ignore any version of streams besides char, or set up a complex network that works around the virtual/template boundary.</p>
+<p>I disagree with a &#8220;print&#8221; function for another reason.  It&#8217;s duplicitous; it does the EXACT SAME thing as the stream operator.  Why would you ever need both?  Can you think of a situation that you would need &#8220;print&#8221; instead of the operator?  Users might get confused, think that there&#8217;s some subtle difference, but there wouldn&#8217;t be one.  You don&#8217;t need &#8220;print&#8221; for access; the stream operators should work on publicly accessible data, resorting to friend access if there&#8217;s not enough getters.  The output streamer should print enough public information that the input streamer can read it back and create/construct an equivalent copy.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+class complex {
+public:
+    //...
+    template &lt; typename Ch, class Tr &gt;
+    friend
+    basic_ostream&lt;Ch, Tr&gt; &amp;
+    operator &lt;&lt;( basic_ostream&lt;Ch, Tr&gt; &amp;o, complex const &amp;c )
+    { return o &lt;&lt; '(' &lt;&lt; c.c_[0] &lt;&lt; ',' &lt;&lt; c.c_[1] &lt;&lt; ')'; }
+    //...
+};
+</pre>
+<p>You shouldn&#8217;t actually implement the output-streamer this way; the width modifier would apply only to the first section (the &#8220;(&#8220;) and spew everything else to the stream as-is.  Like std::complex, stream the five sections to a string then print the string.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10279">
+		<div id="div-comment-10279">
+		<div class="cmtinfo"><em> on <a href="#comment-10279" title="">2013-05-21 at 5:03 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/72ff40f6f7ceeb6fa1adb984b1385c6c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Matthew Fioravante</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10279"></div><p>@Marshsall:<br />
+You don&#8217;t need to create a temporary in the return statement for RVO, at least not on modern versions of gcc. Creating a temporary on the stack and returning it later works just fine.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10278">
+		<div id="div-comment-10278">
+		<div class="cmtinfo"><em> on <a href="#comment-10278" title="">2013-05-21 at 4:38 am</a></em> <img alt='' src='https://i0.wp.com/graph.facebook.com/100000047521852/picture?q=type%3Dlarge&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/darylew1' rel='external nofollow' class='url'>Daryle Walker</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10278"></div><p>In my previous post, note that the component-wise constructor is not explicit.  That is intentional.  Explicit constructors are for configuration parameters, while implicit ones are for equivalency (either conversion and/or component-wise).  It&#8217;s like std::vector: the size-setting constructor is explicit, while the iterator-pair and initialization-list ones aren&#8217;t.  In C++03, the decision for making constructors explicit only mattered for ones with a single-argument mode; now it&#8217;s for all constructors.  We moved that model to multivalued initialization, whether by std::initialization_list, variadic arguments, or regular constructors with several arguments.</p>
+<p>Another way to look at it is that complex numbers are a natural upgrade for real numbers, so having a non-explicit converting constructor makes sense.</p>
+<p>I have a separately-defined default constructor, marked &#8220;default.&#8221;  I could have incorporated it into the component-wise/converting constructor, but I wanted distinct semantics.  When the value_type is trivial (and since it&#8217;s double, it is), this constructor upgrades the class from trivially-copyable to trivial.  This lets default-set, but not value-initialized, complex objects have random garbage bits.  This is a GOOD thing.  The real and imaginary components are independent; there&#8217;s no invariant on either for the class or each other.  Letting complex be a trivial type means it can play around with C-level routines.</p>
+<p>The complex class is also standard-layout.  This allows other kinds of C-level play.  Since I changed the components from being separate members to a two-element array, I can exploit the same complex  array-of-2 reinterpretations the standard wants for std::complex.  (The standard expects the reinterpetation to work for an array-of-complex  array-of-twice-the-reals, but I can&#8217;t do that unless there&#8217;s no trailing padding.  That can only be done if the compiler supports a Pragma forcing the lack of padding.)</p>
+<p>The complex class is POD since it&#8217;s both trivial and standard-layout.</p>
+<p>The default constructor can&#8217;t be constexpr since it&#8217;s set to be trivial.  A constexpr constructor has to be code-full for use in constant expressions, but the point of a trivial constructor is that it&#8217;s code-less!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10277">
+		<div id="div-comment-10277">
+		<div class="cmtinfo"><em> on <a href="#comment-10277" title="">2013-05-21 at 3:29 am</a></em> <img alt='' src='https://i0.wp.com/graph.facebook.com/100000047521852/picture?q=type%3Dlarge%26_md5%3D73b4541993340888a79cf109d5002194&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/darylew1' rel='external nofollow' class='url'>Daryle Walker</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10277"></div><p>Your code doesn&#8217;t take constexpr into account, which changes quite a few things.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+class complex {
+public:
+    // Only have to change the component type in one spot
+    using value_type = double;
+
+    // Constructors
+    complex() = default;
+    constexpr
+    complex( value_type const &amp;r, value_type const &amp;i = value_type{} )
+        : c_{ r, i }
+    { }
+
+    //...
+private:
+    // Member data
+    value_type  c_[ 2 ];
+};
+</pre>
+<p>First, you need a constexpr-marked constructor, and the component-wise one will do quite nicely.  Fortunately, you can initialize arrays in the member-initialization part now.</p>
+<p>The advice to implement OP in terms of OP= is somewhat bad now due to constexpr.  Implementing a non-mutating function in terms of a mutating one disqualifies the former from being constexpr (since the latter can&#8217;t).  You either have to reverse the dependencies or write them independently:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+class complex {
+public:
+    //...
+    complex &amp;  operator +=( complex const &amp;a ) {
+        c_[ 0 ] += a.c_[ 0 ];
+        c_[ 1 ] += a.c_[ 1 ];
+        return *this;
+    }
+
+    // Has to be a friend if you don't have component-level getters
+    friend constexpr
+    complex  operator +( complex const &amp;l, complex const &amp;r )
+    { return {l.c_[0] + r.c_[0], l.c_[1] + r.c_[1]}; }
+    //...
+};
+</pre>
+<p>I was going to go the reversed-dependency route, but I had a epiphany about the &#8220;independent&#8221; route.  The two operators look unconnected, but notice that each one is implemented in terms of the corresponding element-level operator.  If the element-level operators are connected, then the current ones will be indirectly connected.  So the old advice is like a hobgoblin&#8217;s foolish consistency (or something).</p>
+<p>[I&#8217;ll have some more posts, assuming this code.]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10273">
+		<div id="div-comment-10273">
+		<div class="cmtinfo"><em> on <a href="#comment-10273" title="">2013-05-20 at 10:21 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/33fad8261b5627c094016baaaf57bff0?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>hm</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10273"></div><p>You did not explain why to make the ctor explicit (but you did it explicit in the summary code).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-decourse even thread-even depth-1 highlander-comment" id="comment-10271">
+		<div id="div-comment-10271">
+		<div class="cmtinfo"><em> on <a href="#comment-10271" title="">2013-05-20 at 8:00 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3352d7b7b661c84c5b888312397efc76?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>decourse</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10271"></div><blockquote><p>Guideline: Prefer passing a read-only parameter by const&amp; if you are only going to read from it (not make a copy of it).</p>
+<p>Guideline: Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments.</p></blockquote>
+<p>Can someone explain to me why this is not an undesirable abstraction leak?</p>
+<p>I think it&#8217;s defensible in this case, especially since operator+ is trivial. In the general case, I think it&#8217;s bad advice to leak information about the way a function is implemented into its interface.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10270">
+		<div id="div-comment-10270">
+		<div class="cmtinfo"><em> on <a href="#comment-10270" title="">2013-05-20 at 7:55 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/ac727873c5724326c84ed245faa9fe6c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/mtclow' rel='external nofollow' class='url'>Marshall</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10270"></div><p>To enable RVO, I would be tempted to write this:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+T operator+(const T&amp; a, const T&amp; b) {
+  return T { a.r + b.r, a.i + b.i};
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10269">
+		<div id="div-comment-10269">
+		<div class="cmtinfo"><em> on <a href="#comment-10269" title="">2013-05-20 at 7:45 pm</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/15206932/picture?q=type%3Dlarge%26_md5%3D9304e661617bbd01da84d543fd1b6d40&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/fmatthew5876' rel='external nofollow' class='url'>Matt Fioravante</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10269"></div><pre class="brush: plain; title: ; notranslate" title="">
+T operator+( T a, const T&amp; b ) {
+    a += b;
+    return a;
+}
+</pre>
+<p>[quote]Guideline: Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments.[/quote]</p>
+<p>In some cases it may actually be better to pass both arguments by reference so that the compiler can take advantage of return value optimization. For simple value types like complex, a 3d vector, or a 4&#215;4 matrix (where the data is an array the class, not dynamically allocated), this is better because there are no move semantics to take advantage of.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+T operator+(const T&amp; a, const T&amp; b) {
+  T c = a;
+  c+=a;
+  return c;
+}
+Also you can't be fancy and try to do this:
+[code]
+return c+=a;
+</pre>
+<p>Now the return value is a reference from operator+=() instead of the temporary you created and the compiler may no longer be able to do RVO.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10265">
+		<div id="div-comment-10265">
+		<div class="cmtinfo"><em> on <a href="#comment-10265" title="">2013-05-20 at 1:43 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f8110b0da33ac68a61c474cf2f73a904?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Chris</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10265"></div><p>Thank you so much for this article. I see so many who make some of these common errors every day, particularly making operators member functions and not taking the first parameter by value in cases like operator+. If they just discovered this article, they would be much better off. </p>
+<p>Anyway, I believe you have a small typo:<br />
+&#8220;For example, if you provide operator++ you would normally also provide operator–.&#8221;</p>
+<p>These two don&#8217;t always match (think: bidirectional iterator, think harder: forward iterator). You can argue that those aren&#8217;t the general case, but I would probably go with + and &#8211; (even specifying unary or binary if you want).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10259">
+		<div id="div-comment-10259">
+		<div class="cmtinfo"><em> on <a href="#comment-10259" title="">2013-05-20 at 12:02 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10259"></div><p>@litb1: Good point, that&#8217;s worth mentioning. Added.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-litb1 odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10261">
+		<div id="div-comment-10261">
+		<div class="cmtinfo"><em> on <a href="#comment-10261" title="">2013-05-20 at 11:58 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/31a1c40a45079decc7f5525d2a873481?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>litb1</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10261"></div><p>I wonder whether there is any way to avoid the redundancy in the default argument for imag and the inclass initializer for it (when defaulting the default constructor).  One alternative is constructor delegation </p>
+<pre class="brush: plain; title: ; notranslate" title="">complex ():complex (1.0f) {}</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10260">
+		<div id="div-comment-10260">
+		<div class="cmtinfo"><em> on <a href="#comment-10260" title="">2013-05-20 at 11:44 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10260"></div><p>@Marshall: Re const, it doesn&#8217;t quite mean that &#8212; wait for GotW #6a. Re aliasing (other parameters): Yes, that&#8217;s another advantage of pass-by-value. Re move from rvalues, yes, that&#8217;s part of what I added in the text I added in response to Olaf&#8217;s comment.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10258">
+		<div id="div-comment-10258">
+		<div class="cmtinfo"><em> on <a href="#comment-10258" title="">2013-05-20 at 11:38 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/31a1c40a45079decc7f5525d2a873481?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>litb1</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10258"></div><p>You mention that as an alternative the following can be used</p>
+<p>    complex () = default;</p>
+<p>Wouldn&#8217;t this leave the two non-class data members uninitialized (as they are default initialized)?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10257">
+		<div id="div-comment-10257">
+		<div class="cmtinfo"><em> on <a href="#comment-10257" title="">2013-05-20 at 11:38 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10257"></div><p>@Olaf: Thanks. I agree, this is a good place to mention the new C++11 guidance to pass by value if you&#8217;re going to make a copy of the parameter anyway. Updated, including not just there but also in the canonical operator+ with a new paragraph and guideline there, so that now we have both of these guidelines in the text:</p>
+<p>Guideline: Prefer passing a read-only parameter by const&amp; if you are only going to read from it (not make a copy of it).</p>
+<p>Guideline: Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments.</p>
+<p>I&#8217;ve also updated the wording of the first of these guidelines in GotW #2 to match this wording.</p>
+<p>Note that the new paragraph alludes to my intention to write a new GotW about parameter passing&#8230; &#8220;how to pass parameters&#8221; deserves a GotW all its own, because the C++11 answer is simultaneously different, considerably simpler in the mainstream, and considerably more complex when you want to take full control, than the C++98 answer.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mttpd odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10255">
+		<div id="div-comment-10255">
+		<div class="cmtinfo"><em> on <a href="#comment-10255" title="">2013-05-20 at 11:09 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1cc4a77a8256c3049728728c6c45625b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mttpd</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10255"></div><p>(a) Regarding #2 (and given the above comment by Marshall, specifically the aliasing part) &#8212; I&#8217;m still wondering, wouldn&#8217;t pass-by-value be a better fit here, per N3445?<br />
+<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3445.html" rel="nofollow">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3445.html</a></p>
+<p>Specifically:<br />
+&#8220;We can change our habits to pass trivially copyable classes of sixteen bytes or less by value. With this approach, complex numbers would primarily be passed by value, not by reference as they are in the class template complex (26.4 Complex numbers [complex.numbers]). This approach avoids aliasing issues, enables removing some indirect references when accessing parameters, but may introduce copying on older platforms.&#8221;</p>
+<p>I&#8217;m guessing this may have something to do with the latter part, stating that the &#8220;net performance change is unclear.&#8221; However, isn&#8217;t this case similarly unclear for pass-by-value for our specific class (given its size and the presumed use for numerical computing, where aliasing might have an important impact on performance)?</p>
+<p>I&#8217;m kind of interested in this issue personally and somewhat playing the Devil&#8217;s advocate here, since so far I&#8217;ve been mostly using pass-by-const-reference for all (strictly-)larger-than-scalar types, just want to make sure I&#8217;m not missing a potentially important edge case by not expanding this to &#8220;small classes&#8221; (as in N3445).</p>
+<p>(b) Regarding prohibiting inheritance from value types being an overkill &#8212; perhaps, but isn&#8217;t it precisely addressing the &#8220;easy to use correctly, hard to use incorrectly&#8221; point?<br />
+I&#8217;m thinking in terms of the Standard Library containers here (perhaps that&#8217;s too much of an association, correct me if I&#8217;m wrong) &#8212; is it *ever* justified to inherit from one of those?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10253">
+		<div id="div-comment-10253">
+		<div class="cmtinfo"><em> on <a href="#comment-10253" title="">2013-05-20 at 10:47 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/ac727873c5724326c84ed245faa9fe6c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://cplusplusmusings.wordpress.com' rel='external nofollow' class='url'>Marshall</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10253"></div><p>&gt;&gt; Guideline: Prefer passing read-only parameters by const&amp; instead of by value.</p>
+<p>There&#8217;s a subtlety here, new in C++11.</p>
+<p>* What we&#8217;re used to saying is that &#8220;passing by const &amp;&#8221; means the value will never change.</p>
+<p>* What we have now is that &#8220;passing by const &amp;&#8221; means that the callee will not change the value. Other threads of execution may do so &#8211; at any time.</p>
+<p>This can lead to lost optimization opportunities, because the compiler cannot be sure that &#8220;other.i&#8221; (say) will not change during the execution of operator+. [ I&#8217;m speaking generally here, b/c in this case I don&#8217;t think it matters. ]</p>
+<p>If you pass by value, then the compiler can (a) know that this value is unique (i.e, no other pointers or references alias it), and (b) use move semantics when appropriate.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10252">
+		<div id="div-comment-10252">
+		<div class="cmtinfo"><em> on <a href="#comment-10252" title="">2013-05-20 at 10:46 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/26230e55188637785a569c6ec8ca0f3f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Olaf van der Spek</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10252"></div><pre class="brush: plain; title: ; notranslate" title="">
+complex operator+( const complex&amp; lhs, const complex&amp; rhs ) {
+</pre>
+<p>What about this?</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+complex operator+( complex lhs, const complex&amp; rhs ) {
+    lhs += rhs;
+    return lhs;
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jlehrer even thread-even depth-1 highlander-comment" id="comment-10251">
+		<div id="div-comment-10251">
+		<div class="cmtinfo"><em> on <a href="#comment-10251" title="">2013-05-20 at 10:45 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6ad1c1c64ff7192f4dac3c4c3eb1c0f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.lehrerfamily.com/' rel='external nofollow' class='url'>jlehrer</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10251"></div><p>In #5 I think you meant &#8220;the other reason to prefer non-members&#8221; not &#8220;the other reason to prefer members&#8221;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-7ff60bd79632cdb98a2eb2fda9f895d2">
+	</div>
+	<div class="grofile-hash-map-8c45433d3eb647f91cb581511e4e9ad0">
+	</div>
+	<div class="grofile-hash-map-3352d7b7b661c84c5b888312397efc76">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-72ff40f6f7ceeb6fa1adb984b1385c6c">
+	</div>
+	<div class="grofile-hash-map-60c1f13f6ea1b5f82a8eda9bdab66a75">
+	</div>
+	<div class="grofile-hash-map-6aea6e2f57f2a7b1cd6870375fbdc42f">
+	</div>
+	<div class="grofile-hash-map-322cf2e150d5cd84275b131184731c0a">
+	</div>
+	<div class="grofile-hash-map-64abcdfeac5d480fd1f58a7901ad26ee">
+	</div>
+	<div class="grofile-hash-map-51d9c0f234a7029ac58358a6dc2053f5">
+	</div>
+	<div class="grofile-hash-map-ac727873c5724326c84ed245faa9fe6c">
+	</div>
+	<div class="grofile-hash-map-33fad8261b5627c094016baaaf57bff0">
+	</div>
+	<div class="grofile-hash-map-ac727873c5724326c84ed245faa9fe6c">
+	</div>
+	<div class="grofile-hash-map-f8110b0da33ac68a61c474cf2f73a904">
+	</div>
+	<div class="grofile-hash-map-31a1c40a45079decc7f5525d2a873481">
+	</div>
+	<div class="grofile-hash-map-31a1c40a45079decc7f5525d2a873481">
+	</div>
+	<div class="grofile-hash-map-1cc4a77a8256c3049728728c6c45625b">
+	</div>
+	<div class="grofile-hash-map-26230e55188637785a569c6ec8ca0f3f">
+	</div>
+	<div class="grofile-hash-map-c6ad1c1c64ff7192f4dac3c4c3eb1c0f">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_10539={"id":468178,"unique_id":"wp-comment-10539","title":"%40Luca%20Risolia%3AI%20you%20want%20to%20consider%20all%20r%2Fl-value%20cases%20you%20would%20need%20to%20implement%20all%20fourT%20operator%2B%28const%20T%26amp%3B%20a%2C%20const%20T%26amp%3B%20b%29T%20operator%2B%28T%26amp%3B%26amp%3B%20a%2C%20const%20T%26amp%3B%20b%29T%20operator%2B%28const...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10539","item_id":"_comm_10539"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10539 == 'undefined' ){PDRTJS_468178_comm_10539 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10539 );}}PDRTJS_settings_468178_comm_10526={"id":468178,"unique_id":"wp-comment-10526","title":"%40Zenju%26%23091%3Bcode%26%23093%3Bcomplex%20a%3Bauto%20r%20%3D%20operator%2B%28a%2C%20complex%7B%7D%29%3B%26%23091%3B%2Fcode%26%23093%3Ba%20is%20a%20lvalue%20while%20the%20second%20argument%20is%20a%20temporary%2C%20which%20means%20operator%2B%28const%20complex%26amp%3B%2C%20complex%26amp%3B%26amp%3B%29%20will%20be%20called.%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10526","item_id":"_comm_10526"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10526 == 'undefined' ){PDRTJS_468178_comm_10526 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10526 );}}PDRTJS_settings_468178_comm_10521={"id":468178,"unique_id":"wp-comment-10521","title":"%40Luca%20Risolia%3A%20operator%20%2B%20has%20left-to-right%20associativity%2C%20so%20the%20first%20parameter%20will%20have%20to%20deal%20with%20temporaries%2C%20not%20the%20second....","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10521","item_id":"_comm_10521"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10521 == 'undefined' ){PDRTJS_468178_comm_10521 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10521 );}}PDRTJS_settings_468178_comm_10520={"id":468178,"unique_id":"wp-comment-10520","title":"%26gt%3B%20Guideline%3A%20Prefer%20passing%20a%20read-only%20parameter%20by%20value%20if%20youre%20going%20to%20make%20a%20copy%20of%20the%20parameter%20anyway%2C%20because%20it%20enables%20move%20from%20rvalue%20arguments.%20While%20talking%20about%20optimizatio...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10520","item_id":"_comm_10520"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10520 == 'undefined' ){PDRTJS_468178_comm_10520 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10520 );}}PDRTJS_settings_468178_comm_10432={"id":468178,"unique_id":"wp-comment-10432","title":"%40Herb%2C%20I%20apologize%20if%20this%20has%20been%20already%20suggested%20by%20others%2C%20but%20what%20about%20recommending%20the%20following%20version%20of%20%26%23091%3Bcode%26%23093%3Boperator%2B%28%29%26%23091%3B%2Fcode%26%23093%3B%20other%20than%20the%20one%20you%20propose%20in%20the%20final%20version%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10432","item_id":"_comm_10432"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10432 == 'undefined' ){PDRTJS_468178_comm_10432 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10432 );}}PDRTJS_settings_468178_comm_10387={"id":468178,"unique_id":"wp-comment-10387","title":"Thanks%20for%20that%20answer%2C%20Herb.I%20was%20searching%20for%20an%20example%20where%20the%20difference%20between%20the%20two%20different%20forms%20of%20parameter%20passing%20may%20matter%2C%20and%20the%20only%20example%20I%20could%20think%20of%20is%20where%20th...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10387","item_id":"_comm_10387"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10387 == 'undefined' ){PDRTJS_468178_comm_10387 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10387 );}}PDRTJS_settings_468178_comm_10379={"id":468178,"unique_id":"wp-comment-10379","title":"%40decourse%3A%20f%28%20int%20%29%20and%20f%28%20const%20int%26amp%3B%20%29%20tell%20the%20caller%20the%20same%20thing%3A%20He%20provides%20an%20int%20as%20the%20first%20argument%2C%20and%20his%20int%20won%26%23039%3Bt%20be%20modified.%20You%20ask%2C%20why%20is%20that%20in%20the%20signature%20where%20th...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10379","item_id":"_comm_10379"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10379 == 'undefined' ){PDRTJS_468178_comm_10379 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10379 );}}PDRTJS_settings_468178_comm_10343={"id":468178,"unique_id":"wp-comment-10343","title":"%40Herb%2C%20I%20guess%20what%20I%26%23039%3Bm%20after%20here%20is%20some%20advice%20as%20to%20what%20passing%20an%20object%20by%20value%20actually%20%26lt%3Bi%26gt%3Bmeans%26lt%3B%2Fi%26gt%3B.We%20all%20know%20by%20now%20the%20difference%20between%20passing%20a%20smart%20pointer%20and%20passing%20a%20raw%20p...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10343","item_id":"_comm_10343"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10343 == 'undefined' ){PDRTJS_468178_comm_10343 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10343 );}}PDRTJS_settings_468178_comm_10315={"id":468178,"unique_id":"wp-comment-10315","title":"%40Matthew%3A%20Yes%2C%20there%20will%20eventually%20be%20another%20GotW%20on%20parameter%20passing%20that%20will%20cover%20these%20kinds%20of%20things....","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10315","item_id":"_comm_10315"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10315 == 'undefined' ){PDRTJS_468178_comm_10315 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10315 );}}PDRTJS_settings_468178_comm_10308={"id":468178,"unique_id":"wp-comment-10308","title":"%40Herb%3ATrying%20to%20code%20based%20on%20whether%20or%20not%20the%20optimizer%20can%20do%20RVO%20on%20named%20temporaries%20or%20only%20unnamed%20return%20values%20is%20a%20distraction%20I%20agree.%20When%20it%20comes%20to%20value%20types%20however%2C%20there%20are%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10308","item_id":"_comm_10308"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10308 == 'undefined' ){PDRTJS_468178_comm_10308 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10308 );}}PDRTJS_settings_468178_comm_10297={"id":468178,"unique_id":"wp-comment-10297","title":"%40Herb%20Sutter%20%282013-5-21T10%3A59%29%3A%20I%26%23039%3Bve%20heard%20about%20transcendental%20functions%20being%20implemented%20with%20the%20help%20of%20internal%20constant%20tables.%20%20Constexpr%20can%20help%20there.%20%20A%20response%20by%20Rbert%20Dvid%20describ...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10297","item_id":"_comm_10297"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10297 == 'undefined' ){PDRTJS_468178_comm_10297 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10297 );}}PDRTJS_settings_468178_comm_10294={"id":468178,"unique_id":"wp-comment-10294","title":"can%20somebody%20explain%20what%20Herb%20meant%20with%20this%3A%20%26quot%3B%20That%20makes%20the%20class%20annoying%20to%20use%20at%20all.%26quot%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10294","item_id":"_comm_10294"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10294 == 'undefined' ){PDRTJS_468178_comm_10294 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10294 );}}PDRTJS_settings_468178_comm_10293={"id":468178,"unique_id":"wp-comment-10293","title":"%40Daryle%20Walker%3A%20I%26%23039%3Bm%20not%20sure%20it%20is%20a%20good%20idea%20to%20use%20range-for%20on%20a..%20single..%20complex%20value.%40Herb%20Sutter%3A%20Compile-time%20float%20values%20is%20something%20I%20would%20kill%20for%20while%20implementing%20code%20from%20ma...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10293","item_id":"_comm_10293"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10293 == 'undefined' ){PDRTJS_468178_comm_10293 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10293 );}}PDRTJS_settings_468178_comm_10292={"id":468178,"unique_id":"wp-comment-10292","title":"Sorry%20that%20was%20obviously%20supposed%20to%20be%3A%26%23091%3Bcode%26%23093%3BT%20operator%2B%28%20const%20T%26amp%3B%20lhs%2C%20const%20X%26amp%3B%20rhs%20%29%20%7B%20%20%20%20T%20rv%20%3D%20lhs%3B%20%20%20%20rv%20%2B%3D%20rhs%3B%20%20%20%20return%20rv%3B%7D%26%23091%3B%2Fcode%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10292","item_id":"_comm_10292"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10292 == 'undefined' ){PDRTJS_468178_comm_10292 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10292 );}}PDRTJS_settings_468178_comm_10291={"id":468178,"unique_id":"wp-comment-10291","title":"While%20pass%20by%20value%20for%20things%20like%20operator%20is%20good%20in%20theory.%20I%26%23039%3Bm%20not%20sure%20how%20good%20it%20is%20in%20practice.%20There%20was%20recently%20talk%20about%20this%20related%20to%20the%20boost%20operators%20library.Compare%26%23091%3Bcode%26%23093%3BT%20o...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10291","item_id":"_comm_10291"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10291 == 'undefined' ){PDRTJS_468178_comm_10291 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10291 );}}PDRTJS_settings_468178_comm_10290={"id":468178,"unique_id":"wp-comment-10290","title":"%40Daryle%3A%20I%20actually%20did%20consider%20whether%20to%20talk%20about%20making%20this%20constexpr%2C%20and%20I%20deliberately%20decided%20not%20to%20%28and%20almost%20mentioned%20in%20this%20in%20the%20summary%20alongside%20why%20I%20didn%26%23039%3Bt%20talk%20about%20fina...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10290","item_id":"_comm_10290"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10290 == 'undefined' ){PDRTJS_468178_comm_10290 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10290 );}}PDRTJS_settings_468178_comm_10289={"id":468178,"unique_id":"wp-comment-10289","title":"%40decourse%3A%20It%26%23039%3Bs%20not%20an%20abstraction%20leak%20because%20it%20doesn%26%23039%3Bt%20affect%20the%20caller%26%23039%3Bs%20argument.%20It%26%23039%3Bs%20an%20implementation%20detail%20that%20happens%20to%20be%20visible%20but%20isn%26%23039%3Bt%20a%20%26quot%3Bleak%26quot%3B%20inasmuch%20as%20it%20has%20no%20effect%20o...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10289","item_id":"_comm_10289"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10289 == 'undefined' ){PDRTJS_468178_comm_10289 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10289 );}}PDRTJS_settings_468178_comm_10287={"id":468178,"unique_id":"wp-comment-10287","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20Herb%20Sutter%26%238217%3Bs%20GotW%204%20on%20class%20mechanics%20is%20a%20treasure%20trove%20of%20best%20practice.%20It%20includes%20handy%20examples%20and%20canonical%20signatures%20for%20operator%26lt%3B%26lt%3B%2C%20operator%2B%20and%20the%20pre%2Fpost-...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10287","item_id":"_comm_10287"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10287 == 'undefined' ){PDRTJS_468178_comm_10287 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10287 );}}PDRTJS_settings_468178_comm_10285={"id":468178,"unique_id":"wp-comment-10285","title":"Point%208%2C%20%26quot%3BIgnoring%20the%20sake%20of%20argument%26quot%3B%2C%20looks%20like%20an%20editing%20error.%20I%20think%20you%20mean%2C%20%26quot%3BIgnoring%20the%20argument%26quot%3B%20and%20were%20thinking%20of%20%26quot%3BFor%20the%20sake%20of%20argument%26quot%3B.%20Not%20important%2C%20but%20probably%20shoul...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10285","item_id":"_comm_10285"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10285 == 'undefined' ){PDRTJS_468178_comm_10285 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10285 );}}PDRTJS_settings_468178_comm_10283={"id":468178,"unique_id":"wp-comment-10283","title":"Why%20did%20I%20change%20the%20component%20implementation%20from%20two%20value_type%20objects%20to%20an%20array%20of%20two%20objects%3F1.%20Why%20not%3F%20%20Especially%20since%20C%2B%2B11%20allows%20arrays%20to%20be%20put%20in%20the%20member-initialization%20list2...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10283","item_id":"_comm_10283"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10283 == 'undefined' ){PDRTJS_468178_comm_10283 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10283 );}}PDRTJS_settings_468178_comm_10281={"id":468178,"unique_id":"wp-comment-10281","title":"%26gt%3B%26gt%3B%20You%20dont%20need%20to%20create%20a%20temporary%20in%20the%20return%20statement%20for%20RVO%2C%20at%20least%20not%20on%20modern%20versions%20of%20gcc.I%26%23039%3Bll%20take%20your%20word%20for%20it%20-%20but%20there%20are%20other%20compilers%20in%20the%20world%20beside...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10281","item_id":"_comm_10281"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10281 == 'undefined' ){PDRTJS_468178_comm_10281 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10281 );}}PDRTJS_settings_468178_comm_10280={"id":468178,"unique_id":"wp-comment-10280","title":"Besides%20having%20the%20arguments%20in%20the%20wrong%20order%2C%20and%20returning%20void%2C%20the%20output%20routine%20has%20another%20problem.%20%20Not%20only%20is%20taking%20%28and%20returning%29%20references%20to%20streams%20is%20suggested%2C%20it%26%23039%3Bs%20required%21...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10280","item_id":"_comm_10280"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10280 == 'undefined' ){PDRTJS_468178_comm_10280 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10280 );}}PDRTJS_settings_468178_comm_10279={"id":468178,"unique_id":"wp-comment-10279","title":"%40Marshsall%3AYou%20don%26%23039%3Bt%20need%20to%20create%20a%20temporary%20in%20the%20return%20statement%20for%20RVO%2C%20at%20least%20not%20on%20modern%20versions%20of%20gcc.%20Creating%20a%20temporary%20on%20the%20stack%20and%20returning%20it%20later%20works%20just%20fine....","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10279","item_id":"_comm_10279"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10279 == 'undefined' ){PDRTJS_468178_comm_10279 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10279 );}}PDRTJS_settings_468178_comm_10278={"id":468178,"unique_id":"wp-comment-10278","title":"In%20my%20previous%20post%2C%20note%20that%20the%20component-wise%20constructor%20is%20not%20explicit.%20%20That%20is%20intentional.%20%20Explicit%20constructors%20are%20for%20configuration%20parameters%2C%20while%20implicit%20ones%20are%20for%20equivalen...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10278","item_id":"_comm_10278"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10278 == 'undefined' ){PDRTJS_468178_comm_10278 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10278 );}}PDRTJS_settings_468178_comm_10277={"id":468178,"unique_id":"wp-comment-10277","title":"Your%20code%20doesn%26%23039%3Bt%20take%20constexpr%20into%20account%2C%20which%20changes%20quite%20a%20few%20things.%26%23091%3Bcode%26%23093%3Bclass%20complex%20%7Bpublic%3A%20%20%20%20%2F%2F%20Only%20have%20to%20change%20the%20component%20type%20in%20one%20spot%20%20%20%20using%20value_type%20%3D%20double%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10277","item_id":"_comm_10277"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10277 == 'undefined' ){PDRTJS_468178_comm_10277 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10277 );}}PDRTJS_settings_468178_comm_10273={"id":468178,"unique_id":"wp-comment-10273","title":"You%20did%20not%20explain%20why%20to%20make%20the%20ctor%20explicit%20%28but%20you%20did%20it%20explicit%20in%20the%20summary%20code%29....","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10273","item_id":"_comm_10273"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10273 == 'undefined' ){PDRTJS_468178_comm_10273 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10273 );}}PDRTJS_settings_468178_comm_10271={"id":468178,"unique_id":"wp-comment-10271","title":"%26lt%3Bblockquote%26gt%3BGuideline%3A%20Prefer%20passing%20a%20read-only%20parameter%20by%20const%26amp%3B%20if%20you%20are%20only%20going%20to%20read%20from%20it%20%28not%20make%20a%20copy%20of%20it%29.Guideline%3A%20Prefer%20passing%20a%20read-only%20parameter%20by%20value%20if...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10271","item_id":"_comm_10271"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10271 == 'undefined' ){PDRTJS_468178_comm_10271 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10271 );}}PDRTJS_settings_468178_comm_10270={"id":468178,"unique_id":"wp-comment-10270","title":"To%20enable%20RVO%2C%20I%20would%20be%20tempted%20to%20write%20this%3A%26%23091%3Bcode%26%23093%3BT%20operator%2B%28const%20T%26amp%3B%20a%2C%20const%20T%26amp%3B%20b%29%20%7B%20%20return%20T%20%7B%20a.r%20%2B%20b.r%2C%20a.i%20%2B%20b.i%7D%3B%7D%26%23091%3B%2Fcode%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10270","item_id":"_comm_10270"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10270 == 'undefined' ){PDRTJS_468178_comm_10270 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10270 );}}PDRTJS_settings_468178_comm_10269={"id":468178,"unique_id":"wp-comment-10269","title":"%26%23091%3Bcode%26%23093%3BT%20operator%2B%28%20T%20a%2C%20const%20T%26amp%3B%20b%20%29%20%7B%20%20%20%20a%20%2B%3D%20b%3B%20%20%20%20return%20a%3B%7D%26%23091%3B%2Fcode%26%23093%3B%26%23091%3Bquote%26%23093%3BGuideline%3A%20Prefer%20passing%20a%20read-only%20parameter%20by%20value%20if%20youre%20going%20to%20make%20a%20copy%20of%20the%20parameter%20anyway%2C%20be...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10269","item_id":"_comm_10269"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10269 == 'undefined' ){PDRTJS_468178_comm_10269 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10269 );}}PDRTJS_settings_468178_comm_10265={"id":468178,"unique_id":"wp-comment-10265","title":"Thank%20you%20so%20much%20for%20this%20article.%20I%20see%20so%20many%20who%20make%20some%20of%20these%20common%20errors%20every%20day%2C%20particularly%20making%20operators%20member%20functions%20and%20not%20taking%20the%20first%20parameter%20by%20value%20in%20cas...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10265","item_id":"_comm_10265"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10265 == 'undefined' ){PDRTJS_468178_comm_10265 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10265 );}}PDRTJS_settings_468178_comm_10259={"id":468178,"unique_id":"wp-comment-10259","title":"%40litb1%3A%20Good%20point%2C%20that%26%23039%3Bs%20worth%20mentioning.%20Added....","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10259","item_id":"_comm_10259"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10259 == 'undefined' ){PDRTJS_468178_comm_10259 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10259 );}}PDRTJS_settings_468178_comm_10261={"id":468178,"unique_id":"wp-comment-10261","title":"I%20wonder%20whether%20there%20is%20any%20way%20to%20avoid%20the%20redundancy%20in%20the%20default%20argument%20for%20imag%20and%20the%20inclass%20initializer%20for%20it%20%28when%20defaulting%20the%20default%20constructor%29.%20%20One%20alternative%20is%20constr...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10261","item_id":"_comm_10261"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10261 == 'undefined' ){PDRTJS_468178_comm_10261 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10261 );}}PDRTJS_settings_468178_comm_10260={"id":468178,"unique_id":"wp-comment-10260","title":"%40Marshall%3A%20Re%20const%2C%20it%20doesn%26%23039%3Bt%20quite%20mean%20that%20--%20wait%20for%20GotW%20%236a.%20Re%20aliasing%20%28other%20parameters%29%3A%20Yes%2C%20that%26%23039%3Bs%20another%20advantage%20of%20pass-by-value.%20Re%20move%20from%20rvalues%2C%20yes%2C%20that%26%23039%3Bs%20part%20of%20wha...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10260","item_id":"_comm_10260"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10260 == 'undefined' ){PDRTJS_468178_comm_10260 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10260 );}}PDRTJS_settings_468178_comm_10258={"id":468178,"unique_id":"wp-comment-10258","title":"You%20mention%20that%20as%20an%20alternative%20the%20following%20can%20be%20used%20%20%20%20complex%20%28%29%20%3D%20default%3BWouldn%26%23039%3Bt%20this%20leave%20the%20two%20non-class%20data%20members%20uninitialized%20%28as%20they%20are%20default%20initialized%29%3F...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10258","item_id":"_comm_10258"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10258 == 'undefined' ){PDRTJS_468178_comm_10258 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10258 );}}PDRTJS_settings_468178_comm_10257={"id":468178,"unique_id":"wp-comment-10257","title":"%40Olaf%3A%20Thanks.%20I%20agree%2C%20this%20is%20a%20good%20place%20to%20mention%20the%20new%20C%2B%2B11%20guidance%20to%20pass%20by%20value%20if%20you%26%23039%3Bre%20going%20to%20make%20a%20copy%20of%20the%20parameter%20anyway.%20Updated%2C%20including%20not%20just%20there%20but%20also%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10257","item_id":"_comm_10257"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10257 == 'undefined' ){PDRTJS_468178_comm_10257 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10257 );}}PDRTJS_settings_468178_comm_10255={"id":468178,"unique_id":"wp-comment-10255","title":"%28a%29%20Regarding%20%232%20%28and%20given%20the%20above%20comment%20by%20Marshall%2C%20specifically%20the%20aliasing%20part%29%20--%20I%26%23039%3Bm%20still%20wondering%2C%20wouldn%26%23039%3Bt%20pass-by-value%20be%20a%20better%20fit%20here%2C%20per%20N3445%3F%20http%3A%2F%2Fwww.open-std.org%2F...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10255","item_id":"_comm_10255"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10255 == 'undefined' ){PDRTJS_468178_comm_10255 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10255 );}}PDRTJS_settings_468178_comm_10253={"id":468178,"unique_id":"wp-comment-10253","title":"%26gt%3B%26gt%3B%20Guideline%3A%20Prefer%20passing%20read-only%20parameters%20by%20const%26amp%3B%20instead%20of%20by%20value.There%26%23039%3Bs%20a%20subtlety%20here%2C%20new%20in%20C%2B%2B11.%2A%20What%20we%26%23039%3Bre%20used%20to%20saying%20is%20that%20%26quot%3Bpassing%20by%20const%20%26amp%3B%26quot%3B%20means%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10253","item_id":"_comm_10253"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10253 == 'undefined' ){PDRTJS_468178_comm_10253 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10253 );}}PDRTJS_settings_468178_comm_10252={"id":468178,"unique_id":"wp-comment-10252","title":"%26%23091%3Bcode%26%23093%3Bcomplex%20operator%2B%28%20const%20complex%26amp%3B%20lhs%2C%20const%20complex%26amp%3B%20rhs%20%29%20%7B%26%23091%3B%2Fcode%26%23093%3BWhat%20about%20this%3F%26%23091%3Bcode%26%23093%3Bcomplex%20operator%2B%28%20complex%20lhs%2C%20const%20complex%26amp%3B%20rhs%20%29%20%7B%20%20%20%20lhs%20%2B%3D%20rhs%3B%20%20%20%20return%20lhs%3B%7D%26%23091%3B%2F...","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10252","item_id":"_comm_10252"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10252 == 'undefined' ){PDRTJS_468178_comm_10252 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10252 );}}PDRTJS_settings_468178_comm_10251={"id":468178,"unique_id":"wp-comment-10251","title":"In%20%235%20I%20think%20you%20meant%20%26quot%3Bthe%20other%20reason%20to%20prefer%20non-members%26quot%3B%20not%20%26quot%3Bthe%20other%20reason%20to%20prefer%20members%26quot%3B....","permalink":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/#comment-10251","item_id":"_comm_10251"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10251 == 'undefined' ){PDRTJS_468178_comm_10251 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10251 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F20%2Fgotw-4-class-mechanics%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/05\/20\/gotw-4-class-mechanics\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F05%2F20%2Fgotw-4-class-mechanics%2F","postID":"1957","shortlink":"https:\/\/wp.me\/peb5Y-vz","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/1957","statsLink":"https:\/\/wordpress.com\/stats\/post\/1957\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F20%2Fgotw-4-class-mechanics%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'1957','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sajNYa3VnLX5PX2MrR3FkWHdMQj96Y0JwLWFITyxJN3F6a1FfQW1sMGFdLUUtQU50dVNRdm5lST9XZ2lXYVQyMGkzeFZKMldUdURXOS8yJjhsVnxvTkMxLVZ+M3NJeWovWmxtaV0sfjE9OXNMUyUyPUxJYkhZOT0mQi9+LFFjeWhxWGRidFRoT24sMG1DdC9RcGt4REM9PSZ2R29uTiYsaDRFPVkxakZTOEhjKzQ/fFRDQ0Fzcy5qNWdzbXZlVlRGdDN1VSxO'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '1957' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

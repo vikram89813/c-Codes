@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: Effective Concurrency: Know When to Use an Active Object Instead of a Mutex	</title>
+	<atom:link href="https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: ML				</title>
+				<link>https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2955</link>
+		<dc:creator><![CDATA[ML]]></dc:creator>
+		<pubDate>Wed, 11 May 2011 17:30:45 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2955</guid>
+					<description><![CDATA[Oops. It stripped my angle brackets in the code above. Replacing them with curly brackets, the typedef at the top should be &quot;std::function{void()}&quot; and the deque at the bottom should be &quot;std::deque{Message}&quot;.]]></description>
+		<content:encoded><![CDATA[<p>Oops. It stripped my angle brackets in the code above. Replacing them with curly brackets, the typedef at the top should be &#8220;std::function{void()}&#8221; and the deque at the bottom should be &#8220;std::deque{Message}&#8221;.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: ML				</title>
+				<link>https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2954</link>
+		<dc:creator><![CDATA[ML]]></dc:creator>
+		<pubDate>Wed, 11 May 2011 17:27:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2954</guid>
+					<description><![CDATA[J.J. Lee,
+
+If your OS doesn&#039;t provide a multithreaded message queue, yes you might create one with a condition variable. Something like this (untested code, using Boost.Thread since I don&#039;t have C++0x threads):
+
+class MessageQueue
+{
+public:
+  typedef std::function Message;
+    
+  void Send( const Message&#038; msg )
+  {
+    boost::unique_lock lock( m_mutex );
+    m_queue.push_back( msg );
+    m_cond.notify_all();
+  }
+
+  Message Receive()
+  {
+    boost::unique_lock lock( m_mutex );
+    while( m_queue.empty() )
+    {
+      m_cond.wait( lock );
+    }
+    const Message msg = m_queue.front();
+    m_queue.pop_front();
+    return msg;
+  }
+
+private:
+  std::deque     m_queue;
+  boost::mutex        m_mutex;
+  boost::condition_variable m_cond;
+};]]></description>
+		<content:encoded><![CDATA[<p>J.J. Lee,</p>
+<p>If your OS doesn&#8217;t provide a multithreaded message queue, yes you might create one with a condition variable. Something like this (untested code, using Boost.Thread since I don&#8217;t have C++0x threads):</p>
+<p>class MessageQueue<br />
+{<br />
+public:<br />
+  typedef std::function Message;</p>
+<p>  void Send( const Message&amp; msg )<br />
+  {<br />
+    boost::unique_lock lock( m_mutex );<br />
+    m_queue.push_back( msg );<br />
+    m_cond.notify_all();<br />
+  }</p>
+<p>  Message Receive()<br />
+  {<br />
+    boost::unique_lock lock( m_mutex );<br />
+    while( m_queue.empty() )<br />
+    {<br />
+      m_cond.wait( lock );<br />
+    }<br />
+    const Message msg = m_queue.front();<br />
+    m_queue.pop_front();<br />
+    return msg;<br />
+  }</p>
+<p>private:<br />
+  std::deque     m_queue;<br />
+  boost::mutex        m_mutex;<br />
+  boost::condition_variable m_cond;<br />
+};</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: J. J. Lee				</title>
+				<link>https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2952</link>
+		<dc:creator><![CDATA[J. J. Lee]]></dc:creator>
+		<pubDate>Wed, 11 May 2011 15:51:12 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2952</guid>
+					<description><![CDATA[Thanks for such a nice article!
+
+Is below a stupid question?
+
+How to make message_queue work for a non GUI thread (without using PostMessage)? - &quot;If the queue is empty, pop blocks until something is available.&quot;
+
+Is it OK for a mutex + a condition variable?
+Or is there any better idea?]]></description>
+		<content:encoded><![CDATA[<p>Thanks for such a nice article!</p>
+<p>Is below a stupid question?</p>
+<p>How to make message_queue work for a non GUI thread (without using PostMessage)? &#8211; &#8220;If the queue is empty, pop blocks until something is available.&#8221;</p>
+<p>Is it OK for a mutex + a condition variable?<br />
+Or is there any better idea?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Thomas Lann				</title>
+				<link>https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2779</link>
+		<dc:creator><![CDATA[Thomas Lann]]></dc:creator>
+		<pubDate>Thu, 27 Jan 2011 18:20:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2779</guid>
+					<description><![CDATA[I believe waiting on a message queue is a lot better then waiting on the file I/O to complete.  Plus,  Herb has another article on doing lock free queues.]]></description>
+		<content:encoded><![CDATA[<p>I believe waiting on a message queue is a lot better then waiting on the file I/O to complete.  Plus,  Herb has another article on doing lock free queues.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Krzysiek T.				</title>
+				<link>https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2755</link>
+		<dc:creator><![CDATA[Krzysiek T.]]></dc:creator>
+		<pubDate>Tue, 11 Jan 2011 14:17:31 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2755</guid>
+					<description><![CDATA[I mean message_queue must use mutex inside]]></description>
+		<content:encoded><![CDATA[<p>I mean message_queue must use mutex inside</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Krzysiek T.				</title>
+				<link>https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2754</link>
+		<dc:creator><![CDATA[Krzysiek T.]]></dc:creator>
+		<pubDate>Tue, 11 Jan 2011 13:36:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2754</guid>
+					<description><![CDATA[Nice article, but not very revelatory. So called &quot;active object&quot; simply uses mutex inside. But of course, some obvious things must be said explicitly sometimes.]]></description>
+		<content:encoded><![CDATA[<p>Nice article, but not very revelatory. So called &#8220;active object&#8221; simply uses mutex inside. But of course, some obvious things must be said explicitly sometimes.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Candy for programmers &#124; Kjellkod&#039;s Blog				</title>
+				<link>https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2722</link>
+		<dc:creator><![CDATA[Candy for programmers &#124; Kjellkod&#039;s Blog]]></dc:creator>
+		<pubDate>Mon, 20 Dec 2010 20:40:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2722</guid>
+					<description><![CDATA[[...] way, I got an itch when I checked out Herb&#8217;s Effective Concurrency Columns and &#8220;Know when to use an active object instead of a mutex&#8221; and I just had to upgrade my Active Object C++0x. I moved it to Qt code instead from C++0x [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] way, I got an itch when I checked out Herb&#8217;s Effective Concurrency Columns and &#8220;Know when to use an active object instead of a mutex&#8221; and I just had to upgrade my Active Object C++0x. I moved it to Qt code instead from C++0x [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: patrikkahari				</title>
+				<link>https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2307</link>
+		<dc:creator><![CDATA[patrikkahari]]></dc:creator>
+		<pubDate>Tue, 28 Sep 2010 20:34:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2307</guid>
+					<description><![CDATA[Another good chapter. When will we get to read the book? :)]]></description>
+		<content:encoded><![CDATA[<p>Another good chapter. When will we get to read the book? :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Nasko				</title>
+				<link>https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2295</link>
+		<dc:creator><![CDATA[Nasko]]></dc:creator>
+		<pubDate>Sat, 25 Sep 2010 12:58:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2295</guid>
+					<description><![CDATA[Thanks for the nice article :)
+
+I don&#039;t know if this is the right place to ask and get answered, but here are some questions:
+
+Isn’t there a problem with the “queue” approach, if the “write” operation produces tasks faster than the log thread can consume them?
+Can you give some good practices on avoiding that?
+
+I usually approach the problem with fast producers, by adding a semaphore that blocks producers when some limit is exceeded. In this case something like the call to &quot;write&quot; being an async call if the limit is not hit, and otherwise being a blocking call (the check is based only on the semaphore logic). The implementation is something like - the semaphore starts from N, where N is the desired limit, producers do a &quot;-1&quot; and consumers a &quot;+1&quot;. In the case of a queue, the limit is the number of maximum pending tasks at any time. If N can&#039;t be fine-tuned at initialization time, the consumer can tune it as it works (though that may not always be a good idea?)
+I would be grateful if you share some opinion on this approach in the case of logging and in general - the limiting of access with a semaphore, because i am not sure of its drawbacks.]]></description>
+		<content:encoded><![CDATA[<p>Thanks for the nice article :)</p>
+<p>I don&#8217;t know if this is the right place to ask and get answered, but here are some questions:</p>
+<p>Isn’t there a problem with the “queue” approach, if the “write” operation produces tasks faster than the log thread can consume them?<br />
+Can you give some good practices on avoiding that?</p>
+<p>I usually approach the problem with fast producers, by adding a semaphore that blocks producers when some limit is exceeded. In this case something like the call to &#8220;write&#8221; being an async call if the limit is not hit, and otherwise being a blocking call (the check is based only on the semaphore logic). The implementation is something like &#8211; the semaphore starts from N, where N is the desired limit, producers do a &#8220;-1&#8221; and consumers a &#8220;+1&#8221;. In the case of a queue, the limit is the number of maximum pending tasks at any time. If N can&#8217;t be fine-tuned at initialization time, the consumer can tune it as it works (though that may not always be a good idea?)<br />
+I would be grateful if you share some opinion on this approach in the case of logging and in general &#8211; the limiting of access with a semaphore, because i am not sure of its drawbacks.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: ML				</title>
+				<link>https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2291</link>
+		<dc:creator><![CDATA[ML]]></dc:creator>
+		<pubDate>Fri, 24 Sep 2010 18:55:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/#comment-2291</guid>
+					<description><![CDATA[Thanks, Herb. I have profited from these articles. I hope you will treat exceptions and error handling at some point soon.]]></description>
+		<content:encoded><![CDATA[<p>Thanks, Herb. I have profited from these articles. I hope you will treat exceptions and error handling at some point soon.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

@@ -1,0 +1,1349 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #6b Solution: Const-Correctness, Part 2 | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965311&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F28%2Fgotw-6b-solution-const-correctness-part-2%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #6b Solution: Const-Correctness, Part&nbsp;2 Comments Feed" href="https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='C++ and Beyond: My material for December, and early-bird registration (through June&nbsp;9)' href='https://herbsutter.com/2013/05/25/c-and-beyond-my-material-for-december-and-early-bird-registration-through-june-9/' />
+<link rel='next' title='GotW #89: Smart&nbsp;Pointers' href='https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-wD' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F28%2Fgotw-6b-solution-const-correctness-part-2%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F28%2Fgotw-6b-solution-const-correctness-part-2%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #6b Solution: Const-Correctness, Part 2" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/" />
+<meta property="og:description" content="const and mutable are powerful tools for writing safer code. Use them consistently. Problem Guru Question In the following code, add or remove const (including minor variants and related keywords) …" />
+<meta property="article:published_time" content="2013-05-29T00:05:43+00:00" />
+<meta property="article:modified_time" content="2013-12-23T14:30:00+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965311" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #6b Solution: Const-Correctness, Part&nbsp;2" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="const and mutable are powerful tools for writing safer code. Use them consistently. Problem Guru Question In the following code, add or remove const (including minor variants and related keywords) wherever appropriate. Note: Don&#039;t comment on or change the structure of this program. It&#039;s contrived and condensed for illustration only. For bonus points: In what&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2023 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/05/25/c-and-beyond-my-material-for-december-and-early-bird-registration-through-june-9/" rel="prev">C++ and Beyond: My material for December, and early-bird registration (through June&nbsp;9)</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/05/28/gotw-89-smart-pointers/" rel="next">GotW #89: Smart&nbsp;Pointers</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2023 post type-post status-publish format-standard hentry category-gotw" id="post-2023">
+				<div class="posttitle">
+					<h2>GotW #6b Solution: Const-Correctness, Part&nbsp;2</h2>
+					<p class="post-info">2013-05-28 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>const and mutable are powerful tools for writing safer code. Use them consistently.</em></span>
+	</p>
+<h1>Problem<br />
+</h1>
+<h2>Guru Question<br />
+</h2>
+<p>In the following code, add or remove <span style="color:#2e74b5;">const</span> (including minor variants and related keywords) wherever appropriate. Note: Don&#8217;t comment on or change the structure of this program. It&#8217;s contrived and condensed for illustration only.
+</p>
+<p>For bonus points: In what places are the program&#8217;s results undefined or uncompilable due to <span style="color:#2e74b5;">const</span> errors?
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>class polygon {<br />public:<br />    polygon() : area{-1} {}<br /><br />    void add_point( const point pt ) { area = -1;<br />                                       points.push_back(pt); }<br /><br />    point get_point( const int i ) { return points[i]; }<br /><br />    int get_num_points() { return points.size(); }<br /><br />    double get_area() {<br />        if( area &lt; 0 )   // if not yet calculated and cached<br />            calc_area();     // calculate now<br />        return area;<br />    }<br /><br />private:<br />    void calc_area() {<br />        area = 0;<br />        vector&lt;point&gt;::iterator i;<br />        for( i = begin(points); i != end(points); ++i )<br />            area += /* some work using *i */;<br />    }<br /><br />    vector&lt;point&gt; points;<br />    double        area;<br />};<br /><br />polygon operator+( polygon&amp; lhs, polygon&amp; rhs ) {<br />    auto ret = lhs;<br />    auto last = rhs.get_num_points();<br />    for( auto i = 0; i &lt; last; ++i ) // concatenate<br />        ret.add_point( rhs.get_point(i) );<br />    return ret;<br />}<br /><br />void f( const polygon&amp; poly ) {<br />    const_cast&lt;polygon&amp;&gt;(poly).add_point( {0,0} );<br />}<br /><br />void g( polygon&amp; const poly ) { poly.add_point( {1,1} ); }<br /><br />void h( polygon* const poly ) { poly-&gt;add_point( {2,2} ); }<br /><br />int main() {<br />    polygon poly;<br />    const polygon cpoly;<br /><br />    f(poly);<br />    f(cpoly);<br />    g(poly);<br />    h(&amp;poly);<br />}
+</code></pre>
+</p>
+<p>
+ </p>
+<h1>Solution<br />
+</h1>
+<p>When I pose this kind of problem, I find that most people think the problem is on the easy side and address only the more-usual <span style="color:#2e74b5;">const</span> issues. There are, however, subtleties that are worth knowing, and hence this Item.
+</p>
+<h3>1. The point object is passed by value, so there is little benefit to declaring it const.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    void  add_point( const point pt )<span style="color:#2e74b5;">
+				</span></code></pre>
+</p>
+<p>In this particular case, because the function is defined inline, the <span style="color:#2e74b5;">const</span> value parameter can make sense. This is because for inline functions the declaration and definition are the same. Otherwise, <span style="color:#2e74b5;">const</span> value parameters should appear only on the definition, not on the declaration. Let&#8217;s see why.
+</p>
+<p>Putting the <span style="color:#2e74b5;">const</span> on a value parameter in a function declaration is irrelevant <em>outside</em> the function—it makes no difference to the caller and can only confuse readers. To the compiler, the function signature is the same whether you include this <span style="color:#2e74b5;">const</span> in front of a value parameter or not. For example:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// value parameter: top-level const is not part of function signature<br />int f( int );<br />int f( const int );    // <span style="text-decoration:underline;">redeclares</span> f(int): this is the same function<br /><br />// non-value parameter: top-level const is part of function signature<br />int g( int&amp; );<br />int g( const int&amp; );   // overloads g(int&amp;): these are two functions<span style="color:#2e74b5;">
+				</span></code></pre>
+</p>
+<p>But putting the <span style="color:#2e74b5;">const</span> on the value parameter does make a difference to how it can be used <em>inside</em> the function&#8217;s actual definition. Remember that, inside a function, the parameters are just the first set of local variables, so putting a <span style="color:#2e74b5;">const</span> on a value parameter simply means that the function can&#8217;t modify its local variable, which only happens to be a parameter. Here&#8217;s an example that declares and then defines the same function <span style="color:#2e74b5;">f</span>:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>int f( int );          // declaration: no const<br /><br />int f( const int i ) { // definition: use const to express "read-only"<br /><br />    vector&lt;int&gt; v;<br />    v.push_back(i);    // ok, only reads from i<br /><br />    i = 42;            // error, attempts to modify i<br /><br />}
+</code></pre>
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> Consider not writing <strong>const</strong> on pass-by-value function parameters when only forward-declaring a function. You can always add it on the definition to express a read-only parameter.
+</p>
+</blockquote>
+<h3>2. get_point and get_num_points should be const.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    point get_point( const int i ) { return points[i]; }<br /><br />    int   get_num_points() { return points.size(); }
+</code></pre>
+</p>
+<p>These functions should be marked <span style="color:#2e74b5;">const</span>, because they don&#8217;t change the state of the object.
+</p>
+<h3>3. get_area should be const.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    double get_area() {<br />        if( area &lt; 0 )   // if not yet calculated and cached<br />            calc_area();     // calculate now<br />        return area;<br />    }
+</code></pre>
+</p>
+<p>Even though this function modifies the object&#8217;s internal state, we should consider making it <span style="color:#2e74b5;">const</span>. Why? Because this function does not modify the object&#8217;s <em>observable</em> state; we are doing some caching here, but that&#8217;s an internal implementation detail and the object is logically <span style="color:#2e74b5;">const</span> even if it isn&#8217;t physically <span style="color:#2e74b5;">const</span>.
+</p>
+<h3>4. Therefore calc_area should also be const.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    void calc_area() {<br />        area = 0;<br />        vector&lt;point&gt;::iterator i;<br />        for( i = begin(points); i != end(points); ++i )<br />            area += /* some work using *i */;<br />    }
+</code></pre>
+</p>
+<p>Once we make <span style="color:#2e74b5;">get_area</span> be <span style="color:#2e74b5;">const</span>, this private helper function ought also to be <span style="color:#2e74b5;">const</span>.
+</p>
+<p>In turn, once you make this function <span style="color:#2e74b5;">const</span>, the compiler will tell you that you also need to do something about the member variable <span style="color:#2e74b5;">area</span>, which should be:
+</p>
+<ul>
+<li>declared <span style="color:#2e74b5;">mutable</span>, so that it&#8217;s writable in a <span style="color:#2e74b5;">const</span> member function; and
+</li>
+<li>synchronized using a <span style="color:#2e74b5;">mutex</span> or made <span style="color:#2e74b5;">atomic&lt;&gt;</span>, so that it&#8217;s concurrency-safe, as discussed in GotW #6a.
+</li>
+</ul>
+<h3>5. Also, calc_area should use a const_iterator.<br />
+</h3>
+<p>The iterator should not change the state of the <span style="color:#2e74b5;">points</span> collection, and so it ought to be a <span style="color:#2e74b5;">const_iterator</span>. We&#8217;re now forced to make this change anyway if we&#8217;re making <span style="color:#2e74b5;">calc_area</span> be a <span style="color:#2e74b5;">const</span> member function, but note that if we had said <span style="color:#2e74b5;">auto</span> for the iterator&#8217;s type we wouldn&#8217;t have had to make any change at all. While we&#8217;re at it, the <span style="color:#2e74b5;">for</span> loop inside <span style="color:#2e74b5;">calc_area</span>: It should prefer to use the range-based <span style="color:#2e74b5;">for</span> loop, as well as <span style="color:#2e74b5;">auto</span>.
+</p>
+<p>Combining all that, we get this simpler and <span style="color:#2e74b5;">const</span>-correct code:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>      for( auto&amp; pt : points )<br />          area += /* some work using pt */;
+</code></pre>
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> Prefer declaring variables using <strong>auto</strong>.
+</p>
+</blockquote>
+<blockquote>
+<p><strong>Guideline:</strong> Prefer range-based <strong>for</strong> loops to naked iterator-incrementing <strong>for</strong> loops when visiting the elements of the range in order.
+</p>
+</blockquote>
+<h3>6. area should be mutable and synchronized.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    double        area;
+</code></pre>
+</p>
+<p>As noted already, in conjunction with the other changes the internal cache variable will <span style="color:#2e74b5;">area</span> now want to be <span style="color:#2e74b5;">mutable </span>so that it can be used correctly and safely inside <span style="color:#2e74b5;">const</span> member functions, and because it is now a shared variable potentially used by multiple concurrent <span style="color:#2e74b5;">const</span> operations it must also be synchronized—protected with a mutex or made <span style="color:#2e74b5;">atomic</span>.
+</p>
+<p><strong>Bonus Question: Before reading on, which should it be: Protected by a mutex? or made atomic&lt;double&gt;?<br />
+</strong></p>
+<p>Have you thought about it? All right, let&#8217;s continue…
+</p>
+<p>Both work, but a mutex is usually overkill for a single variable.
+</p>
+<p>Option 1 is to use a mutex in the perhaps-soon-to-be-canonical &#8220;<span style="color:#2e74b5;">mutable mutex mutables</span>&#8221; pattern:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Option 1: Use a mutex <br /><br />    double get_area() const {<br />        auto lock = unique_lock&lt;mutex&gt;{mutables};<br />        if( area &lt; 0 )   // if not yet calculated and cached<br />            calc_area();     // calculate now<br />        return area;<br />    }<br /><br />private:<br />    // ...<br />    mutable mutex  mutables;      // canonical pattern: mutex that<br />    mutable double area;          //   covers all mutable members
+</code></pre>
+</p>
+<p>Option 1 generalizes well if you add more data members in the future. However, it&#8217;s also more invasive and generalizes less well if you add more <span style="color:#2e74b5;">const</span> member functions in the future that use <span style="color:#2e74b5;">area</span>, because they will all have to remember to acquire a lock on the mutex before using <span style="color:#2e74b5;">area</span>.
+</p>
+<p>Option 2 is to just change <span style="color:#2e74b5;">double</span> to <span style="color:#2e74b5;">mutable atomic&lt;double&gt;</span>. This is attractive because the &#8220;<span style="color:#2e74b5;">mutable</span> part&#8221; of <span style="color:#2e74b5;">polygon</span> is just a single variable. That can work, but you have to be careful because that&#8217;s not the only necessary change, for two reasons:
+</p>
+<ul>
+<li>The minor reason is that <span style="color:#2e74b5;">atomic&lt;double&gt;</span> doesn&#8217;t support <span style="color:#2e74b5;">+=</span>, so if we only change <span style="color:#2e74b5;">area</span>&#8216;s type then <span style="color:#2e74b5;">calc_area</span> will no longer compile. That can be worked around, but leads us to the major reason…
+</li>
+<li>The major reason is that, because <span style="color:#2e74b5;">calc_area</span> is a compound operation and must be safe to run on multiple threads concurrently, we must restructure <span style="color:#2e74b5;">calc_area</span> to be safe to run concurrently. In particular it should not perform intermediate updates to <span style="color:#2e74b5;">area</span>, and should ensure that multiple competing concurrent updates to <span style="color:#2e74b5;">area</span> don&#8217;t cause overwrites that lose written values.
+</li>
+</ul>
+<p>There are several ways to do it, but the simplest is probably to allow benign redundant recalculations in the case of concurrent calls to <span style="color:#2e74b5;">calc_area</span>, on the grounds that it&#8217;s probably no worse than blocking the concurrent calls which would have to wait anyway.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Option 2: Use an atomic<br /><br />    void calc_area() const {<br />        auto tmp = 0.0;              // do all the work off to the side<br />        for( auto&amp; pt : points )<br />            tmp += /* some work using pt */;<br />        area = tmp;                  // then commit with a single write<br />    }<br /><br />private:<br />    // ...<br />    mutable atomic&lt;double&gt; area;
+</code></pre>
+</p>
+<p>Notice that concurrent <span style="color:#2e74b5;">const</span> operations that call to <span style="color:#2e74b5;">calc_area</span> can still overlap and overwrite each other&#8217;s results, but that&#8217;s benign because they&#8217;re <em>concurrent <span style="color:#2e74b5;">const</span> operations</em> so they will all calculate the same value. Also, concurrent <span style="color:#2e74b5;">calc_area</span> calls use the shared <span style="color:#2e74b5;">points</span> variable in a loop which should make us mentally check that it doesn&#8217;t cause cache contention, but because they&#8217;re all readers it won&#8217;t and so this too is fine.
+</p>
+<h3>7. operator+&#8217;s rhs parameter should be a reference to const.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>polygon operator+( polygon&amp; lhs, polygon&amp; rhs ) {
+</code></pre>
+</p>
+<p>The <span style="color:#2e74b5;">rhs</span> parameter should be passed by reference to <span style="color:#2e74b5;">const</span>, of course.
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> Prefer passing a read-only parameter by <strong>const&amp;</strong> if you are only going to read from it (not make a copy of it).
+</p>
+</blockquote>
+<p>&#8220;But wait!&#8221; I can just hear some of you saying, &#8220;you forgot about <span style="color:#2e74b5;">lhs</span>! Shouldn&#8217;t it be <span style="color:#2e74b5;">const&amp;</span> too?&#8221; Actually, not so much:
+</p>
+<h3>8. operator+&#8217;s lhs parameter should be passed by value.<br />
+</h3>
+<p>The key point is that we&#8217;re going to copy from it anyway, in this case immediately:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    auto ret = lhs;
+</code></pre>
+</p>
+<p>When you&#8217;re in the special case of &#8220;read-only parameter that you&#8217;re going to take copy of anyway,&#8221; there are several ways to accept the parameter, which I&#8217;ll cover in detail in another GotW. For now, suffice it to say that usually you shouldn&#8217;t overthink these options, and just use pass-by-value as the simplest method, which offers some advantages that we also touched on in GotW #4:
+</p>
+<ul>
+<li>If the caller passes a named <span style="color:#2e74b5;">polygon</span> object (an lvalue), there&#8217;s no difference. Both pass-by-<span style="color:#2e74b5;">const&amp;</span> followed by an explicit copy and pass-by-value will perform one copy.
+</li>
+<li>
+<div>If the caller passes a temporary <span style="color:#2e74b5;">polygon</span> object (an rvalue), the compiler automatically move-constructs <span style="color:#2e74b5;">lhs</span> from that, which probably makes no difference for a small type like <span style="color:#2e74b5;">polygon</span> but can be considerably cheaper for many types.
+</div>
+<blockquote>
+<p><strong>Guideline:</strong> Prefer passing a read-only parameter by value if you&#8217;re going to make a copy of the parameter anyway, because it enables move from rvalue arguments.
+</p>
+</blockquote>
+</li>
+</ul>
+<h3>9. Also in operator+, last should be const.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    auto last = rhs.get_num_points();<br />    for( auto i = 0; i &lt; last; ++i ) // concatenate<br />        ret.add_point( rhs.get_point(i) );<br />    return ret;<br />}
+</code></pre>
+</p>
+<p>Since <span style="color:#2e74b5;">last</span> should never change, prefer to say so by making it <span style="color:#2e74b5;">const</span>.
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> Prefer to make variables, including locals, <strong>const</strong> if they should not change.
+</p>
+</blockquote>
+<p>Incidentally, notice that once we make <span style="color:#2e74b5;">rhs</span> a reference-to-<span style="color:#2e74b5;">const</span> parameter as noted above, we see another reason why <span style="color:#2e74b5;">get_point</span> should be a <span style="color:#2e74b5;">const</span> member function.
+</p>
+<h3>10. f&#8217;s const_cast may give undefined behavior, and is morally wrong anyway.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>void f( const polygon&amp; poly ) {<br />    const_cast&lt;polygon&amp;&gt;(poly).add_point( {0,0} );<br />}
+</code></pre>
+</p>
+<p>Bonus: The result of the <span style="color:#2e74b5;">const_cast</span> is undefined if the referenced object was declared as <span style="color:#2e74b5;">const</span>—which it is in the case of <span style="color:#2e74b5;">f(cpoly)</span> below.
+</p>
+<p>The parameter isn&#8217;t really <span style="color:#2e74b5;">const</span>, so don&#8217;t declare it as <span style="color:#2e74b5;">const</span> and then try to modify it anyway. Lying to the compiler, never mind to the caller, is a bad idea, never mind morally reprehensible in most value systems.
+</p>
+<h3>11. g&#8217;s const is illegal and useless.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>void g( polygon&amp; const poly ) { poly.add_point( {1,1} ); }
+</code></pre>
+</p>
+<p>This <span style="color:#2e74b5;">const</span> is illegal; you can&#8217;t apply <span style="color:#2e74b5;">const</span> directly to the reference itself, besides which references are already <span style="color:#2e74b5;">const</span> inasmuch as they cannot be reseated to refer to a different object.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>void h( polygon* const poly ) { poly-&gt;add_point( {2,2} ); }
+</code></pre>
+</p>
+<p>Note that <span style="color:#2e74b5;">h</span>&#8216;s <span style="color:#2e74b5;">const</span> merely ensures that <span style="color:#2e74b5;">h</span>&#8216;s body won&#8217;t modify the pointer value. This is the same as the <span style="color:#2e74b5;">const</span> value parameters in <span style="color:#2e74b5;">add_point</span> and <span style="color:#2e74b5;">get_point</span>, and perfectly fine on the definition.
+</p>
+<h3>12. Examining the mainline.<br />
+</h3>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>int main() {<br />    polygon poly;<br />    const polygon cpoly;<br /><br />    f(poly);
+</code></pre>
+</p>
+<p>This is fine.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    f(cpoly);
+</code></pre>
+</p>
+<p>As already noted, this causes undefined results when <span style="color:#2e74b5;">f</span> tries to cast away the <span style="color:#2e74b5;">const</span>-ness of its parameter and then modify it.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    g(poly);
+</code></pre>
+</p>
+<p>This is fine.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>    h(&amp;poly);<br />}
+</code></pre>
+</p>
+<p>This is fine.
+</p>
+<h3>Summary<br />
+</h3>
+<p>Here is a revised version of the code that corrects the <span style="color:#2e74b5;">const</span> issues noted above, but does not attempt to correct any other poor style. Note that because of the <span style="color:#2e74b5;">atomic</span> member, which is not copyable, we now provide <span style="color:#2e74b5;">polygon</span>&#8216;s copy and move operations explicitly.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>class polygon {<br />public:<br />    polygon() : area{-1} {}<br /><br />    polygon( const polygon&amp; other ) : points{other.points}, area{-1} { }<br /><br />    polygon( polygon&amp;&amp; other ) <br />        : points{move(other.points)}, area{other.area.load()}<br />        { other.area = -1; }<br /><br />    polygon&amp; operator=( const polygon&amp; other )<br />        { points = other.points; area = -1; return *this; }<br /><br />    polygon&amp; operator=( polygon&amp;&amp; other ) {<br />        points = move(other.points);<br />        area = other.area.load();<br />        other.area = -1;<br />        return *this;<br />    }<br /><br />    void add_point( point pt ) <br />        { area = -1; points.push_back(pt); }<br /><br />    point get_point( int i ) const { return points[i]; }<br /><br />    int get_num_points() const { return points.size(); }<br /><br />    double get_area() const {<br />        if( area &lt; 0 )   // if not yet calculated and cached<br />            calc_area();     // calculate now<br />        return area;<br />    }<br /><br />private:<br />    void calc_area() const {<br />        auto tmp = 0.0;<br />        for( auto&amp; pt : points )<br />            tmp += /* some work using pt */;<br />        area = tmp;<br />    }<br /><br />    vector&lt;point&gt;          points;<br />    mutable atomic&lt;double&gt; area;<br />};<br /><br />polygon operator+( polygon lhs, const polygon&amp; rhs ) {<br />    const auto last = rhs.get_num_points();<br />    for( auto i = 0; i &lt; last; ++i ) // concatenate<br />        lhs.add_point( rhs.get_point(i) );<br />    return lhs;<br />}<br /><br />void f( polygon&amp; poly ) { poly.add_point( {0,0} ); }<br /><br />void g( polygon&amp; poly ) { poly.add_point( {1,1} ); }<br /><br />void h( polygon* poly ) { poly-&gt;add_point( {2,2} ); }<br /><br />int main() {<br />    auto poly = polygon{};<br /><br />    f(poly);<br />    g(poly);<br />    h(&amp;poly);<br />}
+</code></pre>
+</p>
+<h2>Acknowledgments<br />
+</h2>
+<p>Thanks in particular to the following for their feedback to improve this article: mttpd, Vincent Lascaux, jlehrer, Motti, Fernando Pelliccioni, Leo, Mathias Stearn.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											54 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">54 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-33415">
+		<div id="div-comment-33415">
+		<div class="cmtinfo"><em> on <a href="#comment-33415" title="">2014-12-08 at 7:06 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0d883ccec369f2e37ab430514f314b25?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Simon</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_33415"></div><p>The move ctor is moving the points from the other-object and loading the area from the atomic member of the other object, but those two actions aren&#8217;t performed in an atomic way. Couldn&#8217;t the area change after the points got moved but before the area gets loaded concurrently? Wouldn&#8217;t it be safer to either invalidate the area or am I missing a point?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12169">
+		<div id="div-comment-12169">
+		<div class="cmtinfo"><em> on <a href="#comment-12169" title="">2013-08-13 at 1:23 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/424c6e279112d4a2364f9a54f58b7df0?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Tony Van Eerd</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12169"></div><p>@Felipe &#8211; some people (ie John Lakos) would say you are talking about about the *salient attributes* of the object.  *You* (class author) decide which aspects of an object are salient and which aren&#8217;t.</p>
+<p>This is typically the observable properties, but not always &#8211; eg capacity() is observable for vectors, but it is not considered part of its &#8216;value&#8217; and thus not part of its equality operator.</p>
+<p>You are definitely on the right track &#8211; mutable things are typically implementation details and typically not part of the object&#8217;s _value_, and thus not part of its equality operator.</p>
+<p>I think calling GetArea() inside equality is fine, particularly if the implementor thinks (measures!) that&#8217;s a good trade-off.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12126">
+		<div id="div-comment-12126">
+		<div class="cmtinfo"><em> on <a href="#comment-12126" title="">2013-08-10 at 10:18 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/5af94b11a5d725007a04dc077207750e?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Felipe</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12126"></div><p>I guess I&#8217;m going into a very different subject here, but the original version of this item got me thinking about the difference between the state of an object and equivalence between objects. I&#8217;ve been looking for a good forum to put this out for discussion. What follows more or less reflects my train of thought.</p>
+<p>Consider the following client code, assuming Polygon provides {operator==} and {operator&lt;&lt;}:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+    Polygon p1, p2;
+
+    p1.AddPoint( Point(0.0,0.0) );
+    p1.AddPoint( Point(1.0,0.0) );
+    p1.AddPoint( Point(1.0,1.0) );
+    p1.AddPoint( Point(0.0,1.0) );
+
+    p2.AddPoint( Point(0.0,0.0) );
+    p2.AddPoint( Point(1.0,0.0) );
+    p2.AddPoint( Point(1.0,1.0) );
+    p2.AddPoint( Point(0.0,1.0) );
+
+    std::cout &lt;&lt; &quot;The area of p1 is = &quot; &lt;&lt; p1.GetArea() &lt;&lt; std::endl;
+    std::cout &lt;&lt; &quot;Are they equal? &quot; &lt;&lt; ( (p1==p2)?&quot;Yes!&quot;:&quot;No :(&quot; ) &lt;&lt; std::endl;
+    std::cout &lt;&lt; &quot;What do they look like?\n&quot;;
+    std::cout &lt;&lt; &quot;p1: &quot; &lt;&lt; p1 &lt;&lt; std::endl;
+    std::cout &lt;&lt; &quot;p2: &quot; &lt;&lt; p2 &lt;&lt; std::endl;
+</pre>
+<p>The objects p1 and p2 are certainly equivalent, i.e. they represent two identical polygons, but after the call to {p1.GetArea()} (which happens to be a const member function that alters a mutable private member variable) their state is different. My questions are:</p>
+<p>1. What should {operator==} test for?<br />
+2. What should {operator&lt;&lt;} print? </p>
+<p>My own answers:</p>
+<p>1. {operator==} should test for equivalence, and thus never compare a mutable member variable (is that a good guideline?). However, should one call {GetArea()} in the body of {operator==} and thus possibly change the object&#039;s state?<br />
+2. {operator&lt;&lt;} should print all the observable attributes of the object, not its state (i.e. printing the value of {GetArea()}, not the current value of the mutable variable that represents the area). One could, in fact, provide a separate method (perhaps called {serialize()}) that would print the state in case that&#039;s meaningful.</p>
+<p>So seems that my approach distinguishes between &#039;observable state&#039; and &#039;implementation state&#039;, and the two operators should reflect the former. I then wonder, why not make them always non-member (free), non-friend functions?</p>
+<p>A few other questions come up as a consequence of my own answers, but I&#039;ll leave it at that and hope for some comments from more illuminated folks.</p>
+<p>Disclaimer: The actual mechanics of comparing 2 polygons can get as complicated as one wishes, I&#039;m just taking a naive, intuitive approach and don&#039;t really care about the innards, mostly the interface. Also, apologies in advance if this rant is way off topic.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12124">
+		<div id="div-comment-12124">
+		<div class="cmtinfo"><em> on <a href="#comment-12124" title="">2013-08-08 at 10:37 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/424c6e279112d4a2364f9a54f58b7df0?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Tony Van Eerd</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12124"></div><p>I don&#8217;t understand why you are setting area in the move ops, but setting it to -1 in the copy ctor/assignment.</p>
+<p>I see it still works either way, but since the whole idea of caching and delaying the area calculation is for the sake of optimization, why not avoid it here as well?</p>
+<p>Also, I like the idea of using memory_order_relaxed for setting area on the non-const operations.  But then again, I&#8217;m forced to wear atomic kevlar regularly, so I&#8217;ve gotten use to it, and the rash has nearly cleared up&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-11027">
+		<div id="div-comment-11027">
+		<div class="cmtinfo"><em> on <a href="#comment-11027" title="">2013-06-06 at 8:14 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11027"></div><p>@Mathias: Excellent point, fixed. Thanks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11019">
+		<div id="div-comment-11019">
+		<div class="cmtinfo"><em> on <a href="#comment-11019" title="">2013-06-06 at 6:21 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e117145b01b2f09961aae4b0f9e2d7e9?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mathias Stearn</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11019"></div><p>Wouldn&#8217;t the move operations need to set other.area to -1 since a cached area would no longer apply to the now-empty points vector?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10734">
+		<div id="div-comment-10734">
+		<div class="cmtinfo"><em> on <a href="#comment-10734" title="">2013-05-30 at 12:37 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10734"></div><p>@Fernando: I just backed out that .load &#8212; whether or not you transfer other&#8217;s cached area is just an optimization. And by removing it from the code, it helps to answer your other question, because it emphasizes that you don&#8217;t need to move the atomic for semantic correctness, and if you used a mutex you wouldn&#8217;t need to move that either: Just as when you move you don&#8217;t get a new atomic (it&#8217;s still the same atomic for this instance) you also don&#8217;t get a new mutex (it&#8217;s still the same as before). The only thing you have to move is the logical state, which is the vector of points, and set the cached area to a valid value or -1, then you&#8217;re consistent.</p>
+<p>So with a mutex, the move would look exactly the same as I&#8217;ve now updated it to be above &#8212; just move other.points and reset area:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+class polygon {
+public:
+
+    /* ... all the other stuff ... */
+
+    polygon( polygon&amp;&amp; other ) 
+        : points{move(other.points)}, area{-1} { }
+
+    polygon&amp; operator=( polygon&amp;&amp; other ) {
+        { points = move(other.points); area = -1; return *this; }
+
+private:
+    vector&lt;point&gt; points;
+    mutable mutex mutables;
+    mutable double area;
+};
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-fpelliccioni odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10728">
+		<div id="div-comment-10728">
+		<div class="cmtinfo"><em> on <a href="#comment-10728" title="">2013-05-30 at 11:20 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a5880b79259a523e1a782864e8373c3e?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Fernando Pelliccioni</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10728"></div><p>Hi Herb.<br />
+GCC 4.8 and Clang ( svn version ) works as expected. :)<br />
+I never thought the solution using .load(), great!<br />
+Some time ago I had a similar problem, but using std::mutex.<br />
+The only solution that came to mind (to make my class movable) was using the Pimpl Idiom, but that involves allocation of memory in the free-storage :(<br />
+Do you have any way to implement a similar solution but using std::mutex as a member?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10727">
+		<div id="div-comment-10727">
+		<div class="cmtinfo"><em> on <a href="#comment-10727" title="">2013-05-30 at 10:55 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10727"></div><p>@edflanders: Yes, because you then take by value + move(param) as Arne noted. The only case where that&#8217;s not a good idea is when you have a type that&#8217;s expensive to move, such as std::array. I currently plan to cover this in a new GotW on general parameter passing, probably sometime in June or July.</p>
+<p>@Elvis: That wouldn&#8217;t allow area to be non-mutable. It&#8217;s mutable because it can be written to in const operations, which is still true if you restructure the code the way you suggest. As long as there&#8217;s a cached area that can be written to in const operations, it needs to be mutable, and synchronized as atomic or with an internal mutex.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10726">
+		<div id="div-comment-10726">
+		<div class="cmtinfo"><em> on <a href="#comment-10726" title="">2013-05-30 at 10:49 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10726"></div><p>@Leo: Aha, thanks for spotting that leftover text from the original GotW. In several original GotWs I used to recommend considering returning a const value, instead of a non-const value, on the basis that it would help callers by letting them know when they accidentally modify a returned rvalue. I no longer think that&#8217;s good advice, especially since you want to move from rvalues which is a non-const operation, so I&#8217;ve been rooting it out of the GotWs as I go through, and I got rid of most of the references to that in this one but missed that one. Thanks, fixed.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10725">
+		<div id="div-comment-10725">
+		<div class="cmtinfo"><em> on <a href="#comment-10725" title="">2013-05-30 at 10:32 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10725"></div><p>@Fernando: Sigh, you&#8217;re right. You know, that was my reading too and I wrote them out, then noticed that GCC let me get away with =default for the move operations and didn&#8217;t reread the standard. Since I had already written them out before switching to =default, the fix was as easy as hitting Ctrl-Y twice. :) Fixed mo betta.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10713">
+		<div id="div-comment-10713">
+		<div class="cmtinfo"><em> on <a href="#comment-10713" title="">2013-05-30 at 5:07 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/4c77f7b1ced9c430015cb4c3018e5144?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>edflanders</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10713"></div><p>@Arne Mertz:<br />
+Thanks for the response. What about classes that don&#8217;t benefit from move? I understand that, for a class like the one below, there will still be two copies despite of the use of std::move()?</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+struct Matrix3x3
+{
+  double m_[3][3];
+};
+typedef Matrix3x3 T;
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10703">
+		<div id="div-comment-10703">
+		<div class="cmtinfo"><em> on <a href="#comment-10703" title="">2013-05-30 at 2:13 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/3bf7ddc1459f78ef1c649e07e21e31f6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Elvis</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10703"></div><pre class="brush: plain; title: ; notranslate" title="">void calc_area() const</pre>
+<p> in my opinion must be </p>
+<pre class="brush: plain; title: ; notranslate" title=""> double calc_area() const </pre>
+<p> in this way we can avoid mutable area.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10700">
+		<div id="div-comment-10700">
+		<div class="cmtinfo"><em> on <a href="#comment-10700" title="">2013-05-30 at 1:02 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f6eaf3173d03147c5ad1e0fb7d85f102?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Arne Mertz</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10700"></div><p>@edflanders: </p>
+<pre class="brush: plain; title: ; notranslate" title="">struct S
+{
+  S(T t) : t_(std::move(t))) {}  // at most one copy, one or two moves
+  void SetT(T t) { t_ = std::move(t); }  //at most one copy, one or two moves
+  T t_;
+};</pre>
+<p>It&#8217;s in both cases one copy, one move, if the argument is an lvalue, and two moves, if it&#8217;s an rvalue. In the setter, t is move-or-copy _constructed_, while t_ is move-assigned.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10687">
+		<div id="div-comment-10687">
+		<div class="cmtinfo"><em> on <a href="#comment-10687" title="">2013-05-29 at 4:56 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/8bd78adcc3b17f9a7ee6a34825fdc75b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sean Lin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10687"></div><p>In old GotW 6, there is a guideline said:<br />
+&#8220;Guideline: When using return-by-value for non-builtin return types, prefer returning a const value.&#8221;</p>
+<p>no longer true? If it is still prefered, get_point should return const point, right ?</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+const point get_point( int i ) const { return points[i]; }
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10684">
+		<div id="div-comment-10684">
+		<div class="cmtinfo"><em> on <a href="#comment-10684" title="">2013-05-29 at 3:42 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/4c77f7b1ced9c430015cb4c3018e5144?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>edflanders</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10684"></div><p>Regarding the guideline &#8220;Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway&#8230;&#8221;:</p>
+<p>Does that apply to cases where need to copy to a specific location? E.g.:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+struct S
+{
+  S(T t) : t_(t)) {}  // two copies?
+  void SetT(T t) { t_ = t; }  // two copies?
+  T t_;
+};
+</pre>
+<p>Does the guideline hold, or should you still pass T const&amp; in these cases?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10680">
+		<div id="div-comment-10680">
+		<div class="cmtinfo"><em> on <a href="#comment-10680" title="">2013-05-29 at 3:15 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d51032a14bd8da40bbc1f0d7412b090b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Leo</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10680"></div><p>&#8220;Incidentally, notice that once we make rhs a reference-to-const parameter as noted above, we see another reason why get_point should be a const member function, returning either a const value or a reference to const.&#8221;</p>
+<p>Currently get_point returns neither.<br />
+Is the idea behind a const value return type to prevent erroneous code like</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+int i ...
+poly.get_point(i) = ...
+poly.get_point(i) += ...
+</pre>
+<p>from compiling? But when assigning to a variable the top level const would be ignored and the variable could be used without constraints?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10679">
+		<div id="div-comment-10679">
+		<div class="cmtinfo"><em> on <a href="#comment-10679" title="">2013-05-29 at 3:11 pm</a></em> <img alt='' src='https://i1.wp.com/a0.twimg.com/profile_images/1661690017/YinYang_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/pepper_chico' rel='external nofollow' class='url'>Francisco Lopes (@pepper_chico)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10679"></div><p>@Herb: You wrote: &#8220;@Francisco: You wrote: “The answer contains good wisdom on const correctness, but got confused about the concurrency semantics meaning/correctness…” – could you elaborate on what you mean?&#8221; – First, I meant: &#8220;I got a little confused&#8221;, not the article, and, it&#8217;s nothing all special but just what one can derive from the general reaction to the article. The things related to internal/external synchronization, I think it may have not been explicit enough for the layperson, even more for the ones used to externally synchronized libraries. I wait for the synchronization wisdom from the mentioned GOTW to deal with this api contracts, etc.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-fpelliccioni even thread-even depth-1 highlander-comment" id="comment-10666">
+		<div id="div-comment-10666">
+		<div class="cmtinfo"><em> on <a href="#comment-10666" title="">2013-05-29 at 12:16 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/a5880b79259a523e1a782864e8373c3e?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Fernando Pelliccioni</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10666"></div><p>Hi Herb,</p>
+<p>hummmm&#8230; I think that &#8220;move-ctor = default&#8221; is not going to help.</p>
+<p>I don&#8217;t see anything abount std::atomic&#8217;s move-ctor in the Standard ( n3691 &#8211; [atomics.types.generic] )</p>
+<p>If atomic copy-ctor is explicitly deleted, the, the move-ctor is deleted too ( implicitly ).<br />
+Am I right?</p>
+<p>I expected to find something like &#8230;</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+atomic(atomic&amp;&amp;) = default;
+</pre>
+<p> &#8230; in the Standard, but I didn&#8217;t find it.</p>
+<p>All this makes it very difficult to create classes with std::atomic or std::mutex as members.<br />
+Is it worth another GotW? :)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mttpd odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10661">
+		<div id="div-comment-10661">
+		<div class="cmtinfo"><em> on <a href="#comment-10661" title="">2013-05-29 at 11:36 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1cc4a77a8256c3049728728c6c45625b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mttpd</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10661"></div><p>@Herb: Fair enough. Out of curiosity, are you concerns similar to those in the SO link (interaction with uniform initialization) or are there some other reasons? // Huh, perhaps brainstorming on this could make an interesting (JG?) question on its own&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10655">
+		<div id="div-comment-10655">
+		<div class="cmtinfo"><em> on <a href="#comment-10655" title="">2013-05-29 at 11:17 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10655"></div><p>@Fernando: You are correct, thanks. I&#8217;ve now added the copy and move operations; fortunately I could use = default for the latter.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10653">
+		<div id="div-comment-10653">
+		<div class="cmtinfo"><em> on <a href="#comment-10653" title="">2013-05-29 at 11:00 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a8e5066736cc8ac66c25d7dc4e1001b1?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Tomáš Šturm</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10653"></div><p>You wrote on operator+:<br />
+&#8220;If the caller passes a temporary polygon object (an rvalue), the compiler automatically move-constructs lhs from that, which probably makes no difference for a small type like polygon but can be considerably cheaper for many types.&#8221;</p>
+<p>polygon may be a small type but it still contains std::vector as a member. And move-constructing that could make a significant difference in some use cases, couldn&#8217;t it?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10651">
+		<div id="div-comment-10651">
+		<div class="cmtinfo"><em> on <a href="#comment-10651" title="">2013-05-29 at 10:48 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10651"></div><p>@mttpd: I went back and forth on that one several times, and several drafts had emplace_back. I stuck with push_back only because I wasn&#8217;t (yet) fully confident that emplace_back is a full replacement and should be used by default, but that may well be where we land and if so I&#8217;ll take a pass to purge push_backs out of the GotW code.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mttpd odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10650">
+		<div id="div-comment-10650">
+		<div class="cmtinfo"><em> on <a href="#comment-10650" title="">2013-05-29 at 10:33 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1cc4a77a8256c3049728728c6c45625b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mttpd</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10650"></div><p>A nitpick (and possibly very much in the &#8220;drive-by improvement&#8221; category ;]) &#8212; I would suggest replacing all occurrences of &#8220;push_back&#8221; with &#8220;emplace_back&#8221; &#8212; as of C++11 it may be a good idea to consider it the default choice.</p>
+<p>Perhaps it&#8217;s even fair to say it&#8217;s debatable whether &#8220;push_back&#8221; should be used at all anymore:<br />
+<a href="http://stackoverflow.com/questions/10890653/why-would-i-ever-use-push-back-instead-of-emplace-back" rel="nofollow">http://stackoverflow.com/questions/10890653/why-would-i-ever-use-push-back-instead-of-emplace-back</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10649">
+		<div id="div-comment-10649">
+		<div class="cmtinfo"><em> on <a href="#comment-10649" title="">2013-05-29 at 10:30 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/19f34236b881c8bd1a18c5039107f3d8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Vincent Lascaux</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10649"></div><p>@Herb: Isn&#8217;t memory_order_relaxed still stronger than what we actually need here? We don&#8217;t even need atomicity here, is that right?</p>
+<p>I&#8217;m mostly trying to understand where the synchronizations are needed in the world of &#8220;multiple reader/single writer&#8221;.<br />
+This convention shakes my world a little. Until now, I respected (some might say &#8220;tried to respect&#8221; :)) the rule that if a variable is synchronized through atomic/interlocked operations or through mutex in one part of the code, it should be synchronized everywhere.<br />
+With your convention, non const methods generally don&#8217;t need synchronization at all. If the rule is as simple as &#8220;if you don&#8217;t write const, you don&#8217;t need atomic/mutex access&#8221;, then I think wearing Kevlar glove while typing the non synchronized code might be overkilled. If the rule is that simple, what are you concerned about?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10648">
+		<div id="div-comment-10648">
+		<div class="cmtinfo"><em> on <a href="#comment-10648" title="">2013-05-29 at 10:16 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10648"></div><p>@Vincent: In that case, yes, you could probably get away with writing area.store(-1,memory_order_relaxed); but I&#8217;ll tell you why you shouldn&#8217;t. First, in general, you should ban explicit use of memory_order_* by default in your coding standards and permit it only on a case by case basis with rigorous performance data justification and correctness review by memory model experts. Second, it&#8217;s unlikely you&#8217;ll get performance data justification here because right after &#8220;area = -1;&#8221; comes &#8220;points.push_back(pt);&#8221; which is likely to dominate (possibly even if it doesn&#8217;t do an allocation).</p>
+<p>When you see someone tempted to hold a lit firecracker or an explicit memory_order_* in their hand, really be highly suspicious and rigorously measure to see if it&#8217;s a screaming problem that makes this necessary, and then most of the time make them put it down, and in rare cases approved by certified bomb squad experts allow it but make the person wear a Kevlar glove and maybe a little body armor.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10643">
+		<div id="div-comment-10643">
+		<div class="cmtinfo"><em> on <a href="#comment-10643" title="">2013-05-29 at 8:44 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/19f34236b881c8bd1a18c5039107f3d8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Vincent Lascaux</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10643"></div><p>To follow up on my question on how much needs to be synchronized, the atomic solution (which most likely has the smallest overhead, at least in term of space) has the same implementation as the non synchronized version for add_point:</p>
+<pre class="brush: plain; title: ; notranslate" title=""> void add_point( const point pt ) { area = -1; points.push_back(pt); } </pre>
+<p>This calls atomic::operator = (double) and can be rather expensive (hundreds of time more expensive than assigning -1 to a double?). Because add_point is non const, this is an unnecessary expense.<br />
+When using the mutex solution, it&#8217;s &#8220;easy&#8221; to remove the synchronization where it&#8217;s unnecessary (just remove the lock_guard). Is there a way to remove the &#8220;atomic&#8221; here? to do a non synchronized store to area?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10640">
+		<div id="div-comment-10640">
+		<div class="cmtinfo"><em> on <a href="#comment-10640" title="">2013-05-29 at 8:24 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10640"></div><p>@Francisco: You wrote: “The answer contains good wisdom on const correctness, but got confused about the concurrency semantics meaning/correctness…” – could you elaborate on what you mean?</p>
+<p>@Vincent, Phil: My comment in Option 1 meant that other const functions that use area, even just to read it, also need to take the lock. Here, that is just get_area which as Phil wrote performs a read of area and so could see a torn read if not also synchronized; that’s why I wrote the note. However, I can and should say this all more simply here to avoid this confusion: Since in this case that’s the only other const function that uses area, and it calls get_area, for simplicity and completeness the easiest thing would be to move the lock there and then I can remove the note. Updated, thanks!</p>
+<p>@jlehrer: Well, it’s transitively correct, but yes that text would work better one paragraph later in calc_area. Done, thanks.</p>
+<p>@Motti: Thanks for pointing out I had two 6 points. Fixed. (However, the revised class at the end is perfectly conforming to normal thread safety and a model of how to do it, see above comment.)</p>
+<p>@several asking why I didn’t make various suggested improvements not related to const: Because the problem statement said not to do drive-by improvements, but focus on const issues. :)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10639">
+		<div id="div-comment-10639">
+		<div class="cmtinfo"><em> on <a href="#comment-10639" title="">2013-05-29 at 8:23 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10639"></div><p>@Steve: There’s nothing “blindly” about it, it has to be quite eyes-wide-open and intentional. “Blindly” would be having a mutable member variable and not synchronizing it. :) The reason is that the caller, who must perform the usual correct external synchronization for non-const accesses if the variable is shared, cannot do the right thing for concurrent const accesses because he doesn’t know about the internal state shared among const accesses, therefore you need to do internal synchronization to get back up to the normal level of thread safety. (This is a general issues and one of the huge pitfalls of copy-on-write (COW) as I wrote about before.)</p>
+<p>As mentioned in GotW #6a, unless you can prove that no object of your type will ever be shared (generally impossible or infeasible), you have to choose the tradeoff you like best: Don’t have mutable variables that could be written to in const member functions and don’t add internal synchronization (at least not for this reason), or have mutable variables that could be written to in const member functions and add internal synchronization. If you’re going to have mutable state like this cache, that is an internal implementation detail not visible to the caller but that would perform writes in const member functions, you need to synchronize it as discussed in 6a and 6b.</p>
+<p>@Rick, Paul, Craig, Alb: As Rick’s and Arne’s and Erik’s followups noted (Erik summarized it particularly well), the revised polygon is fine and recommendable, it’s the caller who wrote a bug – he wrote a race by modifying the variable via .add_point on one thread and concurrently using it on another thread without external synchronization. The definition of a race condition is “two concurrent accesses and at least one is a writer” (i.e., non-const).</p>
+<p>All this is making me think that I should write an additional GotW I wasn’t planning on to discuss what “thread-safe” means, and discuss the difference between internal synchronization and external synchronization and when each is necessary. It’s a perennial question that’s actually mostly language-neutral but it seems there needs to be a treatment of it, including things like why constructors and destructors generally never need to perform internal synchronization (many people don’t realize this).</p>
+<p>@Martin: Yes, these are language-neutral concurrency questions. The only C++-specific details are the spelling of things like unique_lock, mutable, and const.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10637">
+		<div id="div-comment-10637">
+		<div class="cmtinfo"><em> on <a href="#comment-10637" title="">2013-05-29 at 8:16 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/ca391c038b300a739462dae91c5e8cbc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Adrian</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10637"></div><p>I would have expected some advice here on the appropriate uses of const for the copy constructor, copy assignment, and move assignment operators, unless the fact that this class has mutables and/or atomics has no impact on how const is used for those methods..</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10636">
+		<div id="div-comment-10636">
+		<div class="cmtinfo"><em> on <a href="#comment-10636" title="">2013-05-29 at 8:03 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/ca391c038b300a739462dae91c5e8cbc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Adrian</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10636"></div><p>@Phil Miller:  Read the text below the Option 1 example.  Herb points out that you would need to grab the mutex everywhere you access area.  So, although he didn&#8217;t write it out, it&#8217;s clear that you&#8217;d need to modify get_area.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10635">
+		<div id="div-comment-10635">
+		<div class="cmtinfo"><em> on <a href="#comment-10635" title="">2013-05-29 at 7:34 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a5880b79259a523e1a782864e8373c3e?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/fpelliccioni' rel='external nofollow' class='url'>Fernando Pelliccioni</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10635"></div><p>Herb,</p>
+<p>You need to provide a move-ctor or a copy-ctor to polygon because &#8230;</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+atomic(const atomic&amp;) = delete;
+</pre>
+<p>Same with std::mutex</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10629">
+		<div id="div-comment-10629">
+		<div class="cmtinfo"><em> on <a href="#comment-10629" title="">2013-05-29 at 5:44 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6fa53387482c3f831262d20dbb372b2e?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://ppl.cs.illinois.edu' rel='external nofollow' class='url'>Phil Miller</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10629"></div><p>I believe there&#8217;s a bug in the described mutex version of calc_area() as it interacts with concurrent calls to get_area():</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+    void calc_area() const {
+        auto lock = unique_lock&lt;mutex&gt;{mutables};
+        area = 0.0;
+        for( auto&amp; pt : points )
+            area += /* some work using pt */;
+    }
+
+    double get_area() const {
+        if( area &lt; 0 )   // if not yet calculated and cached
+            calc_area();     // calculate now
+        return area;
+    }
+</pre>
+<p>These are both const, so they should be callable completely concurrently. However, a second call to get_area() which a first one is running can return wrong results, because it will see intermediate non-negative values of area:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+Thread 1:                                 |  Thread 2:
+d1 = poly.get_area();                     |
+&gt; cal_area() called                       |
+auto lock = unique_lock&lt;mutex&gt;{mutables}; |
+area = 0.0;                               |
+// transient non-negative state of area   | d2 = poly.get_area();
+for( auto&amp; pt : points )                  | // check against 0, return
+  area += /* some work using pt */;       | // any time here
+&gt; calls return, d1 is correct             | // value in d2 is arbitrary
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10628">
+		<div id="div-comment-10628">
+		<div class="cmtinfo"><em> on <a href="#comment-10628" title="">2013-05-29 at 5:37 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e6ca6db2bed3478aaef583b9cecf7f19?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alb</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10628"></div><p>Let &#8216;s say that the fact is that I have been seeing code only protecting mutations locally without wondering of the entire thread safety inside the application. This local protection were often considered as to having done the job for taking into account the concurrent issues. That&#8217;s why I think they give a false sense of confidence against these problems.</p>
+<p>I tend to think that if internaly the class protects its mutable states against concurrency issues then the class shall be &#8216;externaly&#8217; entirly immutable, i.e. all the public and protected functions shall be const and all members shall be either const (const vector points;) or mutable (such as mutable atomic area). Function add_point shall no exists as a member one but as an external function creating a new immutable polygon object.</p>
+<p>On the other hand, if the class enables mutability of its instance by their users, it is impossible to assume that this mutability won&#8217;t concurrently happen while a const function is running. How can you ensure that the code of the working threads accessing the shared object only in a read-only way will still be modifiable when adding new threads that uses these objects in a non-const way ?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10620">
+		<div id="div-comment-10620">
+		<div class="cmtinfo"><em> on <a href="#comment-10620" title="">2013-05-29 at 3:44 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/256c9d534302a138d5d1fe3ed833e217?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Martin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10620"></div><p>You know &#8230; reading these examples always makes me (genuinely) wonder: Is it C++ that we &#8220;have to&#8221; think about all these subtleties, or could one also write such articles for other languages?</p>
+<p>In other words: Are there any good GotW&#8217;s for C# (or Java)?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10614">
+		<div id="div-comment-10614">
+		<div class="cmtinfo"><em> on <a href="#comment-10614" title="">2013-05-29 at 12:29 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f48e50d8e5dce03101af6cea5fe6859b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Erik</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10614"></div><p>Wrt to the thread safety of add_points and calc_area, the idea is to provide a normal degree of thread safety, not a complete lock strategy for the class. Synchronizing for mutability is (as always) best done externally to the class.</p>
+<p>What Herb does is just satisfying the normal expectancy that const-only (ie, thought of as read only) access is concurrency-safe.</p>
+<p>An example: If I produce a polygon in a thread, and then make that visible (thread safely) to a bunch of workers doing const-only access, I&#8217;ll not bother synchronizing access to the polygon in the workers. I&#8217;m only reading it!<br />
+Without the atomic, get_area will race on the first accesses.</p>
+<p>If I changed the design to having the workers mutate the polygon, then I&#8217;d add a locking strategy for it. Probably a mutex that each worker must hold before even looking at the poly.</p>
+<p>The polygon class without the atomic will be a nasty surprise for me as a user, with the atomic it&#8217;ll behave as expected and let me use my standard patters for concurrency without nasty surprises.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10613">
+		<div id="div-comment-10613">
+		<div class="cmtinfo"><em> on <a href="#comment-10613" title="">2013-05-29 at 12:07 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e6ca6db2bed3478aaef583b9cecf7f19?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alb</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10613"></div><p>Hello,</p>
+<p>* What happen if add_point is called concurrently while executing the loop processing the area ? if I remember correctly, the push_back call may invalidate iterators.</p>
+<p>* What about the get_area returned if add_point is called concurrently just after &#8220;area = tmp;&#8221; statement in the calc_area function and before the return statement of the get_area function ? Don&#8217;t it will return -1 ?</p>
+<p>Even if point is constant, shall not it be considered to be protected against concurrency since it is mutable in the class point of view ?</p>
+<p>Does not atomic (and mutexes and all this kind of local synchronisation patterns) give a false sense of confidence agains concurrent issues ?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10611">
+		<div id="div-comment-10611">
+		<div class="cmtinfo"><em> on <a href="#comment-10611" title="">2013-05-28 at 11:49 pm</a></em> <img alt='' src='https://i1.wp.com/a0.twimg.com/profile_images/3400415517/b32d7b9d6be258c9e814612d3f313724_normal.jpeg?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/cdmh' rel='external nofollow' class='url'>Craig Henderson (@cdmh)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10611"></div><p>calc_area() iterates over the points collection without protection. If execution of one thread is in this loop while another thread calls add_point() then calc_area will fail with undefined behavior as the collection is ripped out from under it.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-lanzkron even thread-even depth-1 highlander-comment" id="comment-10608">
+		<div id="div-comment-10608">
+		<div class="cmtinfo"><em> on <a href="#comment-10608" title="">2013-05-28 at 11:15 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6183c6f9d621a125cd3aa0f7ae324285?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://lanzkron.wordpress.com' rel='external nofollow' class='url'>Motti Lanzkron</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10608"></div><p>As Rick Yorgason said this class is not thread safe. In my opinion it&#8217;s even worse than what he points out.<br />
+If a thread calls add_point while another thread is calculating the area the `points` vector may be reallocated thus invalidating all iterators. In which case `calc_area` causes undefined behaviour!</p>
+<p>In other news, you have two &#8220;6&#8221; points.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10606">
+		<div id="div-comment-10606">
+		<div class="cmtinfo"><em> on <a href="#comment-10606" title="">2013-05-28 at 11:11 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/36ddceab054b49f6e111a8ca8bafe993?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Thibaud</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10606"></div><p>What about std::call_once to compute area ?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10604">
+		<div id="div-comment-10604">
+		<div class="cmtinfo"><em> on <a href="#comment-10604" title="">2013-05-28 at 10:45 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f6eaf3173d03147c5ad1e0fb7d85f102?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Arne Mertz</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10604"></div><p>@Rick (and Paul): right, the concurrent call of add_point is not threadsafe, as is any concurrent call of modifying (read: nonconst) functions on an object.</p>
+<p>@Steve: I am surely not an expert, but the only overhead I know of in std::atomic are the limitations on optimizations the compiler may do on write access. Since that write access is very seldom (once in calc_area, wich is called only after changing the shape), the overhead should be very close to negligible. Any policy based switching to non-atomics for non-concurrent usage would be overkill wrt the implementation, it would make the code a tiny bit less readable and it would introduce the danger of picking the wrong implementation in multithreaded environments or to simply forgetting to switch when changing from single threaded to multithreaded. And since almost every system is parallel these days you shoud just not code for singlethreaded environmets explicitly any more.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10601">
+		<div id="div-comment-10601">
+		<div class="cmtinfo"><em> on <a href="#comment-10601" title="">2013-05-28 at 9:50 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/42a12877926b232f49d6e5102d0ee4a5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jens</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10601"></div><p>Why don&#8217;t you use std::accumulate instead of the hand-crafted for-loop in point 5? I think it is more expressive than writing a for-loop:</p>
+<p>Combining all that, we get this simpler and const-correct code:</p>
+<p><code><br />
+      for( auto&amp; pt : points )<br />
+          area += /* some work using pt */;<br />
+</code></p>
+<p>becomes<br />
+<code><br />
+void calc_area() {<br />
+        area = std::accumulate( std::cbegin(points), std::cend(points),<br />
+                                              0,<br />
+                                              [](double x, double y) {return /* ... */} );<br />
+ }</code></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-skebanga even thread-even depth-1 highlander-comment" id="comment-10598">
+		<div id="div-comment-10598">
+		<div class="cmtinfo"><em> on <a href="#comment-10598" title="">2013-05-28 at 6:48 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/79903a88026b021e89735578bb71fd22?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://metaquotes5.wordpress.com' rel='external nofollow' class='url'>skebanga</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10598"></div><p>@jlehrer &#8211; what about mixed use? We often have data structures which make sense in both single- and multi-threaded environments. Often both usages crop up in the same application; and as such, having to pay the multi-threaded penalty in the single-threaded domain doesn&#8217;t make me feel nice! </p>
+<p>Perhaps making polygon a class template would be deemed too cumbersome? Perhaps it is premature optimization? I don&#8217;t know, but in any event a lock policy solves this.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jlehrer odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10597">
+		<div id="div-comment-10597">
+		<div class="cmtinfo"><em> on <a href="#comment-10597" title="">2013-05-28 at 6:38 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6ad1c1c64ff7192f4dac3c4c3eb1c0f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.lehrerfamily.com/' rel='external nofollow' class='url'>jlehrer</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10597"></div><p>In response to Steve Lorimer&#8217;s comment about single threaded versions of the code &#8211; If I were designing a library for public use I would probably use a typedef for this atomic variable that switched between an atomic double and a plain old double.  I would allow the consumer to specify via macros if they wanted to compile in multi-threaded support or not.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jlehrer even thread-even depth-1 highlander-comment" id="comment-10595">
+		<div id="div-comment-10595">
+		<div class="cmtinfo"><em> on <a href="#comment-10595" title="">2013-05-28 at 6:30 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6ad1c1c64ff7192f4dac3c4c3eb1c0f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.lehrerfamily.com/' rel='external nofollow' class='url'>jlehrer</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10595"></div><p>You wrote:</p>
+<p>&#8220;Once you make [get_area()] const, the compiler will tell you that you also need to do something about the member variable area&#8221;</p>
+<p>No, it won&#8217;t.  The compiler will only tell you that you are calling a non-const method from within a const method.  The member variable &#8220;area&#8221; is not modified in this function, only read.  I suspect that at one point you did not have the &#8220;calc_area()&#8221; method and did the work inline in &#8220;get_area()&#8221;.  When you extracted out the calculation and storage to get_area() you probably didn&#8217;t update the explanation text.</p>
+<p>Or, you have a method called &#8220;calculate_area_impl&#8221; the was non-mutating and returned the calculated area that was then stored inside of calc_area().</p>
+<p>Either way, the body text of the solution, I believe, is incorrect.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10594">
+		<div id="div-comment-10594">
+		<div class="cmtinfo"><em> on <a href="#comment-10594" title="">2013-05-28 at 6:19 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/98ee79fdd42f72f2a3a1da1f14ff2bf1?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Paul Byrne</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10594"></div><p>I had more-or-less the same thought as Rick (post #4), but my concern was that thread 1 could be stepping through the collection of points at the same time as one or more points are being added to it, producing an indeterminate result, as the thread-safety is only introduced when the result is written to the member variable. I haven&#8217;t given it a lot of thought, but it appears to me that the mutex approach provides a means to (partially) overcome this. OTOH, I think that this class is clearly not thread-safe, and I guess that the point of GOTW #6b is not to address the wider issue of thread-safety for this poorly designed class, but I feel that the example is a bit limited.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10593">
+		<div id="div-comment-10593">
+		<div class="cmtinfo"><em> on <a href="#comment-10593" title="">2013-05-28 at 6:12 pm</a></em> <img alt='' src='https://i1.wp.com/a0.twimg.com/profile_images/1661690017/YinYang_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/pepper_chico' rel='external nofollow' class='url'>Francisco Lopes (@pepper_chico)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10593"></div><p>The answer contains good wisdom on const correctness, but got confused about the concurrency semantics meaning/correctness&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mttpd odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10592">
+		<div id="div-comment-10592">
+		<div class="cmtinfo"><em> on <a href="#comment-10592" title="">2013-05-28 at 5:58 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1cc4a77a8256c3049728728c6c45625b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mttpd</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10592"></div><p>@Herb: Yay! :-)</p>
+<p>To give credit, after verifying with GCC (<a href="http://ideone.com/KcGaII" rel="nofollow">http://ideone.com/KcGaII</a>), I&#8217;ve also checked this on SO: <a href="http://stackoverflow.com/a/3802028/" rel="nofollow">http://stackoverflow.com/a/3802028/</a></p>
+<p>True, there are &#8220;some compilers [that] do not flag const references&#8221;:<br />
+<a href="https://www.securecoding.cert.org/confluence/display/cplusplus/DCL33-CPP.+Never+qualify+a+variable+of+reference+type+with+const+or+volatile" rel="nofollow">https://www.securecoding.cert.org/confluence/display/cplusplus/DCL33-CPP.+Never+qualify+a+variable+of+reference+type+with+const+or+volatile</a></p>
+<p>To my understanding, however, justifying something like that would require a rather (too) liberal reading of the phrase with the conditional &#8220;ignored&#8221; allowance, treating it instead as a general (unconditional) escape valve: basically, ignoring (no pun intended) the &#8220;typedef/template type argument/(new to C++11)decltype-specificer&#8221; restriction.</p>
+<p>// On a side note, the conditional allowance for template type arguments might have been a necessary inconsistency:<br />
+<a href="http://groups.google.com/group/comp.lang.c++/browse_thread/thread/8e82c3edb2a9a645/" rel="nofollow">http://groups.google.com/group/comp.lang.c++/browse_thread/thread/8e82c3edb2a9a645/</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10589">
+		<div id="div-comment-10589">
+		<div class="cmtinfo"><em> on <a href="#comment-10589" title="">2013-05-28 at 5:10 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/19f34236b881c8bd1a18c5039107f3d8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Vincent Lascaux</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10589"></div><p>Herb, you mention &#8220;// Option 1: Use a mutex (NB: Also lock in other funcs that use area)&#8221;.<br />
+Given that add_point is not const and hence is not thread safe (by design), why would a mutex be needed there? Couldn&#8217;t the mutex be just skipped in that method (but kept in calc_area obviously)?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10588">
+		<div id="div-comment-10588">
+		<div class="cmtinfo"><em> on <a href="#comment-10588" title="">2013-05-28 at 4:52 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3be7c20c4a0dc941dfc40f99784d8f1d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.longbowgames.com' rel='external nofollow' class='url'>Rick Yorgason</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10588"></div><p>Actually, I guess the root of the problem is that add_point isn&#8217;t thread safe, but since it&#8217;s not const, you&#8217;re not guaranteeing that it is.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10587">
+		<div id="div-comment-10587">
+		<div class="cmtinfo"><em> on <a href="#comment-10587" title="">2013-05-28 at 4:48 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3be7c20c4a0dc941dfc40f99784d8f1d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.longbowgames.com' rel='external nofollow' class='url'>Rick Yorgason</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10587"></div><p>I believe there&#8217;s still a bug with that atomic variable. Consider this code:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+Thread 1:
+d1 = poly.get_area();
+
+Thread 2:
+poly.add_point({1, 1});
+d2 = poly.get_area();
+</pre>
+<p>If that gets executed like so:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+Thread 1:             | Thread 2:
+d1 = poly.get_area(); |
+&gt; calc_area() called  |
+                      | poly.add_point({1, 1});
+                      | d2 = poly.get_area();
+                      | &gt; calc_area() called
+                      | &gt; area = tmp executed
+&gt; area = tmp executed |
+</pre>
+<p>then d2&#8217;s area does not include {1, 1}.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10585">
+		<div id="div-comment-10585">
+		<div class="cmtinfo"><em> on <a href="#comment-10585" title="">2013-05-28 at 4:38 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/79903a88026b021e89735578bb71fd22?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Steve Lorimer</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10585"></div><p>Herb, you mention above that area should be synchronized using a mutex or made atomic, so that it’s concurrency-safe, as discussed in GotW #6a. &#8211; this introduces overhead which would be otherwise avoidable in a single-threaded scenario.</p>
+<p>Do you think blindly using mutexes / atomics whenever you have a mutable variable is the correct approach? Could doing this excessively lead to performance issues?</p>
+<p>Perhaps using Andrei Alexandrescu&#8217;s approach of policy based design to specify whether polygon is used in a single- or multi-threaded environment. In this way we could have locking / atomically updating area be a no-op when in a single-threaded environment.</p>
+<p>Or is what I am suggesting premature optimization?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10584">
+		<div id="div-comment-10584">
+		<div class="cmtinfo"><em> on <a href="#comment-10584" title="">2013-05-28 at 4:28 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10584"></div><p>@mttpd: I do believe you&#8217;re right. I see that same wording all the way back in C++98 too, and I first wrote that some 16 years ago and as far as I can recall you&#8217;re the first to point this out. It probably slipped by because a number of compilers I&#8217;ve tested against over the years did accept the const as redundant which is a conforming (if useless) extension. Fixed, thanks. And you get those bonus points!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mttpd odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10582">
+		<div id="div-comment-10582">
+		<div class="cmtinfo"><em> on <a href="#comment-10582" title="">2013-05-28 at 4:17 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1cc4a77a8256c3049728728c6c45625b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mttpd</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10582"></div><p>&gt; &#8220;(If, in looking for the “Bonus” points, you said something about these two functions being uncompilable—sorry, they’re quite legal C++. You were probably thinking of putting the const to the left of the &amp; or *, which would have made the function body illegal.) &#8221;</p>
+<p>I don&#8217;t think so, per 8.3.2/1 this use of cv-qualified references is ill-formed:<br />
+&#8220;Cv-qualified references are ill-formed except when the cv-qualifiers are introduced<br />
+through the use of a typedef-name (7.1.3, 14.1) or decltype-specificer (7.1.6.2), in which case the cv-qualifiers<br />
+are ignored.&#8221;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-0d883ccec369f2e37ab430514f314b25">
+	</div>
+	<div class="grofile-hash-map-424c6e279112d4a2364f9a54f58b7df0">
+	</div>
+	<div class="grofile-hash-map-5af94b11a5d725007a04dc077207750e">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-e117145b01b2f09961aae4b0f9e2d7e9">
+	</div>
+	<div class="grofile-hash-map-a5880b79259a523e1a782864e8373c3e">
+	</div>
+	<div class="grofile-hash-map-4c77f7b1ced9c430015cb4c3018e5144">
+	</div>
+	<div class="grofile-hash-map-3bf7ddc1459f78ef1c649e07e21e31f6">
+	</div>
+	<div class="grofile-hash-map-f6eaf3173d03147c5ad1e0fb7d85f102">
+	</div>
+	<div class="grofile-hash-map-8bd78adcc3b17f9a7ee6a34825fdc75b">
+	</div>
+	<div class="grofile-hash-map-d51032a14bd8da40bbc1f0d7412b090b">
+	</div>
+	<div class="grofile-hash-map-01425f5b1ccf55bad1be27753e475dd1">
+	</div>
+	<div class="grofile-hash-map-1cc4a77a8256c3049728728c6c45625b">
+	</div>
+	<div class="grofile-hash-map-a8e5066736cc8ac66c25d7dc4e1001b1">
+	</div>
+	<div class="grofile-hash-map-19f34236b881c8bd1a18c5039107f3d8">
+	</div>
+	<div class="grofile-hash-map-ca391c038b300a739462dae91c5e8cbc">
+	</div>
+	<div class="grofile-hash-map-a5880b79259a523e1a782864e8373c3e">
+	</div>
+	<div class="grofile-hash-map-6fa53387482c3f831262d20dbb372b2e">
+	</div>
+	<div class="grofile-hash-map-e6ca6db2bed3478aaef583b9cecf7f19">
+	</div>
+	<div class="grofile-hash-map-256c9d534302a138d5d1fe3ed833e217">
+	</div>
+	<div class="grofile-hash-map-f48e50d8e5dce03101af6cea5fe6859b">
+	</div>
+	<div class="grofile-hash-map-975dad62d62a92bec12803fe3a8e7067">
+	</div>
+	<div class="grofile-hash-map-6183c6f9d621a125cd3aa0f7ae324285">
+	</div>
+	<div class="grofile-hash-map-36ddceab054b49f6e111a8ca8bafe993">
+	</div>
+	<div class="grofile-hash-map-42a12877926b232f49d6e5102d0ee4a5">
+	</div>
+	<div class="grofile-hash-map-79903a88026b021e89735578bb71fd22">
+	</div>
+	<div class="grofile-hash-map-c6ad1c1c64ff7192f4dac3c4c3eb1c0f">
+	</div>
+	<div class="grofile-hash-map-98ee79fdd42f72f2a3a1da1f14ff2bf1">
+	</div>
+	<div class="grofile-hash-map-3be7c20c4a0dc941dfc40f99784d8f1d">
+	</div>
+	<div class="grofile-hash-map-79903a88026b021e89735578bb71fd22">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_33415={"id":468178,"unique_id":"wp-comment-33415","title":"The%20move%20ctor%20is%20moving%20the%20points%20from%20the%20other-object%20and%20loading%20the%20area%20from%20the%20atomic%20member%20of%20the%20other%20object%2C%20but%20those%20two%20actions%20aren%26%23039%3Bt%20performed%20in%20an%20atomic%20way.%20Couldn%26%23039%3Bt%20the%20are...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-33415","item_id":"_comm_33415"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_33415 == 'undefined' ){PDRTJS_468178_comm_33415 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_33415 );}}PDRTJS_settings_468178_comm_12169={"id":468178,"unique_id":"wp-comment-12169","title":"%40Felipe%20-%20some%20people%20%28ie%20John%20Lakos%29%20would%20say%20you%20are%20talking%20about%20about%20the%20%2Asalient%20attributes%2A%20of%20the%20object.%20%20%2AYou%2A%20%28class%20author%29%20decide%20which%20aspects%20of%20an%20object%20are%20salient%20and%20which%20a...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-12169","item_id":"_comm_12169"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12169 == 'undefined' ){PDRTJS_468178_comm_12169 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12169 );}}PDRTJS_settings_468178_comm_12126={"id":468178,"unique_id":"wp-comment-12126","title":"I%20guess%20I%26%23039%3Bm%20going%20into%20a%20very%20different%20subject%20here%2C%20but%20the%20original%20version%20of%20this%20item%20got%20me%20thinking%20about%20the%20difference%20between%20the%20state%20of%20an%20object%20and%20equivalence%20between%20objects.%20I%26%23039%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-12126","item_id":"_comm_12126"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12126 == 'undefined' ){PDRTJS_468178_comm_12126 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12126 );}}PDRTJS_settings_468178_comm_12124={"id":468178,"unique_id":"wp-comment-12124","title":"I%20don%26%23039%3Bt%20understand%20why%20you%20are%20setting%20area%20in%20the%20move%20ops%2C%20but%20setting%20it%20to%20-1%20in%20the%20copy%20ctor%2Fassignment.I%20see%20it%20still%20works%20either%20way%2C%20but%20since%20the%20whole%20idea%20of%20caching%20and%20delaying%20the...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-12124","item_id":"_comm_12124"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12124 == 'undefined' ){PDRTJS_468178_comm_12124 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12124 );}}PDRTJS_settings_468178_comm_11027={"id":468178,"unique_id":"wp-comment-11027","title":"%40Mathias%3A%20Excellent%20point%2C%20fixed.%20Thanks....","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-11027","item_id":"_comm_11027"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11027 == 'undefined' ){PDRTJS_468178_comm_11027 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11027 );}}PDRTJS_settings_468178_comm_11019={"id":468178,"unique_id":"wp-comment-11019","title":"Wouldn%26%23039%3Bt%20the%20move%20operations%20need%20to%20set%20other.area%20to%20-1%20since%20a%20cached%20area%20would%20no%20longer%20apply%20to%20the%20now-empty%20points%20vector%3F...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-11019","item_id":"_comm_11019"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11019 == 'undefined' ){PDRTJS_468178_comm_11019 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11019 );}}PDRTJS_settings_468178_comm_10734={"id":468178,"unique_id":"wp-comment-10734","title":"%40Fernando%3A%20I%20just%20backed%20out%20that%20.load%20--%20whether%20or%20not%20you%20transfer%20other%26%23039%3Bs%20cached%20area%20is%20just%20an%20optimization.%20And%20by%20removing%20it%20from%20the%20code%2C%20it%20helps%20to%20answer%20your%20other%20question%2C%20becau...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10734","item_id":"_comm_10734"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10734 == 'undefined' ){PDRTJS_468178_comm_10734 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10734 );}}PDRTJS_settings_468178_comm_10728={"id":468178,"unique_id":"wp-comment-10728","title":"Hi%20Herb.%20GCC%204.8%20and%20Clang%20%28%20svn%20version%20%29%20works%20as%20expected.%20%3A%29I%20never%20thought%20the%20solution%20using%20.load%28%29%2C%20great%21Some%20time%20ago%20I%20had%20a%20similar%20problem%2C%20but%20using%20std%3A%3Amutex.%20The%20only%20solution%20th...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10728","item_id":"_comm_10728"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10728 == 'undefined' ){PDRTJS_468178_comm_10728 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10728 );}}PDRTJS_settings_468178_comm_10727={"id":468178,"unique_id":"wp-comment-10727","title":"%40edflanders%3A%20Yes%2C%20because%20you%20then%20take%20by%20value%20%2B%20move%28param%29%20as%20Arne%20noted.%20The%20only%20case%20where%20that%26%23039%3Bs%20not%20a%20good%20idea%20is%20when%20you%20have%20a%20type%20that%26%23039%3Bs%20expensive%20to%20move%2C%20such%20as%20std%3A%3Aarray.%20I%20cu...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10727","item_id":"_comm_10727"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10727 == 'undefined' ){PDRTJS_468178_comm_10727 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10727 );}}PDRTJS_settings_468178_comm_10726={"id":468178,"unique_id":"wp-comment-10726","title":"%40Leo%3A%20Aha%2C%20thanks%20for%20spotting%20that%20leftover%20text%20from%20the%20original%20GotW.%20In%20several%20original%20GotWs%20I%20used%20to%20recommend%20considering%20returning%20a%20const%20value%2C%20instead%20of%20a%20non-const%20value%2C%20on%20the%20b...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10726","item_id":"_comm_10726"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10726 == 'undefined' ){PDRTJS_468178_comm_10726 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10726 );}}PDRTJS_settings_468178_comm_10725={"id":468178,"unique_id":"wp-comment-10725","title":"%40Fernando%3A%20Sigh%2C%20you%26%23039%3Bre%20right.%20You%20know%2C%20that%20was%20my%20reading%20too%20and%20I%20wrote%20them%20out%2C%20then%20noticed%20that%20GCC%20let%20me%20get%20away%20with%20%3Ddefault%20for%20the%20move%20operations%20and%20didn%26%23039%3Bt%20reread%20the%20standard.%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10725","item_id":"_comm_10725"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10725 == 'undefined' ){PDRTJS_468178_comm_10725 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10725 );}}PDRTJS_settings_468178_comm_10713={"id":468178,"unique_id":"wp-comment-10713","title":"%40Arne%20Mertz%3AThanks%20for%20the%20response.%20What%20about%20classes%20that%20don%26%23039%3Bt%20benefit%20from%20move%3F%20I%20understand%20that%2C%20for%20a%20class%20like%20the%20one%20below%2C%20there%20will%20still%20be%20two%20copies%20despite%20of%20the%20use%20of%20std%3A%3A...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10713","item_id":"_comm_10713"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10713 == 'undefined' ){PDRTJS_468178_comm_10713 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10713 );}}PDRTJS_settings_468178_comm_10703={"id":468178,"unique_id":"wp-comment-10703","title":"%26%23091%3Bcode%26%23093%3Bvoid%20calc_area%28%29%20const%26%23091%3B%2Fcode%26%23093%3B%20in%20my%20opinion%20must%20be%20%26%23091%3Bcode%26%23093%3B%20double%20calc_area%28%29%20const%20%26%23091%3B%2Fcode%26%23093%3B%20in%20this%20way%20we%20can%20avoid%20mutable%20area....","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10703","item_id":"_comm_10703"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10703 == 'undefined' ){PDRTJS_468178_comm_10703 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10703 );}}PDRTJS_settings_468178_comm_10700={"id":468178,"unique_id":"wp-comment-10700","title":"%40edflanders%3A%20%26%23091%3Bcode%26%23093%3Bstruct%20S%7B%20%20S%28T%20t%29%20%3A%20t_%28std%3A%3Amove%28t%29%29%29%20%7B%7D%20%20%2F%2F%20at%20most%20one%20copy%2C%20one%20or%20two%20moves%20%20void%20SetT%28T%20t%29%20%7B%20t_%20%3D%20std%3A%3Amove%28t%29%3B%20%7D%20%20%2F%2Fat%20most%20one%20copy%2C%20one%20or%20two%20moves%20%20T%20t_%3B%7D%3B%26%23091%3B%2Fcode%26%23093%3BIt%26%23039%3Bs...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10700","item_id":"_comm_10700"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10700 == 'undefined' ){PDRTJS_468178_comm_10700 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10700 );}}PDRTJS_settings_468178_comm_10687={"id":468178,"unique_id":"wp-comment-10687","title":"In%20old%20GotW%206%2C%20there%20is%20a%20guideline%20said%3A%26quot%3BGuideline%3A%20When%20using%20return-by-value%20for%20non-builtin%20return%20types%2C%20prefer%20returning%20a%20const%20value.%26quot%3Bno%20longer%20true%3F%20If%20it%20is%20still%20prefered%2C%20get_point%20sh...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10687","item_id":"_comm_10687"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10687 == 'undefined' ){PDRTJS_468178_comm_10687 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10687 );}}PDRTJS_settings_468178_comm_10684={"id":468178,"unique_id":"wp-comment-10684","title":"Regarding%20the%20guideline%20%26quot%3BPrefer%20passing%20a%20read-only%20parameter%20by%20value%20if%20youre%20going%20to%20make%20a%20copy%20of%20the%20parameter%20anyway...%26quot%3B%3ADoes%20that%20apply%20to%20cases%20where%20need%20to%20copy%20to%20a%20specific%20location...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10684","item_id":"_comm_10684"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10684 == 'undefined' ){PDRTJS_468178_comm_10684 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10684 );}}PDRTJS_settings_468178_comm_10680={"id":468178,"unique_id":"wp-comment-10680","title":"%26quot%3BIncidentally%2C%20notice%20that%20once%20we%20make%20rhs%20a%20reference-to-const%20parameter%20as%20noted%20above%2C%20we%20see%20another%20reason%20why%20get_point%20should%20be%20a%20const%20member%20function%2C%20returning%20either%20a%20const%20value%20or...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10680","item_id":"_comm_10680"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10680 == 'undefined' ){PDRTJS_468178_comm_10680 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10680 );}}PDRTJS_settings_468178_comm_10679={"id":468178,"unique_id":"wp-comment-10679","title":"%40Herb%3A%20You%20wrote%3A%20%26quot%3B%40Francisco%3A%20You%20wrote%3A%20The%20answer%20contains%20good%20wisdom%20on%20const%20correctness%2C%20but%20got%20confused%20about%20the%20concurrency%20semantics%20meaning%2Fcorrectness%20%20could%20you%20elaborate%20on%20what%20y...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10679","item_id":"_comm_10679"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10679 == 'undefined' ){PDRTJS_468178_comm_10679 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10679 );}}PDRTJS_settings_468178_comm_10666={"id":468178,"unique_id":"wp-comment-10666","title":"Hi%20Herb%2Chummmm...%20I%20think%20that%20%26quot%3Bmove-ctor%20%3D%20default%26quot%3B%20is%20not%20going%20to%20help.I%20don%26%23039%3Bt%20see%20anything%20abount%20std%3A%3Aatomic%26%23039%3Bs%20move-ctor%20in%20the%20Standard%20%28%20n3691%20-%20%26%23091%3Batomics.types.generic%26%23093%3B%20%29If%20atomic%20copy-cto...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10666","item_id":"_comm_10666"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10666 == 'undefined' ){PDRTJS_468178_comm_10666 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10666 );}}PDRTJS_settings_468178_comm_10661={"id":468178,"unique_id":"wp-comment-10661","title":"%40Herb%3A%20Fair%20enough.%20Out%20of%20curiosity%2C%20are%20you%20concerns%20similar%20to%20those%20in%20the%20SO%20link%20%28interaction%20with%20uniform%20initialization%29%20or%20are%20there%20some%20other%20reasons%3F%20%2F%2F%20Huh%2C%20perhaps%20brainstorming%20on%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10661","item_id":"_comm_10661"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10661 == 'undefined' ){PDRTJS_468178_comm_10661 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10661 );}}PDRTJS_settings_468178_comm_10655={"id":468178,"unique_id":"wp-comment-10655","title":"%40Fernando%3A%20You%20are%20correct%2C%20thanks.%20I%26%23039%3Bve%20now%20added%20the%20copy%20and%20move%20operations%3B%20fortunately%20I%20could%20use%20%3D%20default%20for%20the%20latter....","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10655","item_id":"_comm_10655"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10655 == 'undefined' ){PDRTJS_468178_comm_10655 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10655 );}}PDRTJS_settings_468178_comm_10653={"id":468178,"unique_id":"wp-comment-10653","title":"You%20wrote%20on%20operator%2B%3A%26quot%3BIf%20the%20caller%20passes%20a%20temporary%20polygon%20object%20%28an%20rvalue%29%2C%20the%20compiler%20automatically%20move-constructs%20lhs%20from%20that%2C%20which%20probably%20makes%20no%20difference%20for%20a%20small%20type%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10653","item_id":"_comm_10653"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10653 == 'undefined' ){PDRTJS_468178_comm_10653 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10653 );}}PDRTJS_settings_468178_comm_10651={"id":468178,"unique_id":"wp-comment-10651","title":"%40mttpd%3A%20I%20went%20back%20and%20forth%20on%20that%20one%20several%20times%2C%20and%20several%20drafts%20had%20emplace_back.%20I%20stuck%20with%20push_back%20only%20because%20I%20wasn%26%23039%3Bt%20%28yet%29%20fully%20confident%20that%20emplace_back%20is%20a%20full%20replac...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10651","item_id":"_comm_10651"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10651 == 'undefined' ){PDRTJS_468178_comm_10651 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10651 );}}PDRTJS_settings_468178_comm_10650={"id":468178,"unique_id":"wp-comment-10650","title":"A%20nitpick%20%28and%20possibly%20very%20much%20in%20the%20%26quot%3Bdrive-by%20improvement%26quot%3B%20category%20%3B%26%23093%3B%29%20--%20I%20would%20suggest%20replacing%20all%20occurrences%20of%20%26quot%3Bpush_back%26quot%3B%20with%20%26quot%3Bemplace_back%26quot%3B%20--%20as%20of%20C%2B%2B11%20it%20may%20be%20a%20good%20idea%20t...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10650","item_id":"_comm_10650"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10650 == 'undefined' ){PDRTJS_468178_comm_10650 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10650 );}}PDRTJS_settings_468178_comm_10649={"id":468178,"unique_id":"wp-comment-10649","title":"%40Herb%3A%20Isn%26%23039%3Bt%20memory_order_relaxed%20still%20stronger%20than%20what%20we%20actually%20need%20here%3F%20We%20don%26%23039%3Bt%20even%20need%20atomicity%20here%2C%20is%20that%20right%3FI%26%23039%3Bm%20mostly%20trying%20to%20understand%20where%20the%20synchronizations%20are%20n...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10649","item_id":"_comm_10649"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10649 == 'undefined' ){PDRTJS_468178_comm_10649 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10649 );}}PDRTJS_settings_468178_comm_10648={"id":468178,"unique_id":"wp-comment-10648","title":"%40Vincent%3A%20In%20that%20case%2C%20yes%2C%20you%20could%20probably%20get%20away%20with%20writing%20area.store%28-1%2Cmemory_order_relaxed%29%3B%20but%20I%26%23039%3Bll%20tell%20you%20why%20you%20shouldn%26%23039%3Bt.%20First%2C%20in%20general%2C%20you%20should%20ban%20explicit%20use%20of%20m...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10648","item_id":"_comm_10648"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10648 == 'undefined' ){PDRTJS_468178_comm_10648 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10648 );}}PDRTJS_settings_468178_comm_10643={"id":468178,"unique_id":"wp-comment-10643","title":"To%20follow%20up%20on%20my%20question%20on%20how%20much%20needs%20to%20be%20synchronized%2C%20the%20atomic%20solution%20%28which%20most%20likely%20has%20the%20smallest%20overhead%2C%20at%20least%20in%20term%20of%20space%29%20has%20the%20same%20implementation%20as%20the%20n...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10643","item_id":"_comm_10643"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10643 == 'undefined' ){PDRTJS_468178_comm_10643 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10643 );}}PDRTJS_settings_468178_comm_10640={"id":468178,"unique_id":"wp-comment-10640","title":"%40Francisco%3A%20You%20wrote%3A%20The%20answer%20contains%20good%20wisdom%20on%20const%20correctness%2C%20but%20got%20confused%20about%20the%20concurrency%20semantics%20meaning%2Fcorrectness%20%20could%20you%20elaborate%20on%20what%20you%20mean%3F%40Vincent%2C%20P...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10640","item_id":"_comm_10640"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10640 == 'undefined' ){PDRTJS_468178_comm_10640 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10640 );}}PDRTJS_settings_468178_comm_10639={"id":468178,"unique_id":"wp-comment-10639","title":"%40Steve%3A%20Theres%20nothing%20blindly%20about%20it%2C%20it%20has%20to%20be%20quite%20eyes-wide-open%20and%20intentional.%20Blindly%20would%20be%20having%20a%20mutable%20member%20variable%20and%20not%20synchronizing%20it.%20%3A%29%20The%20reason%20is%20that%20the%20c...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10639","item_id":"_comm_10639"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10639 == 'undefined' ){PDRTJS_468178_comm_10639 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10639 );}}PDRTJS_settings_468178_comm_10637={"id":468178,"unique_id":"wp-comment-10637","title":"I%20would%20have%20expected%20some%20advice%20here%20on%20the%20appropriate%20uses%20of%20const%20for%20the%20copy%20constructor%2C%20copy%20assignment%2C%20and%20move%20assignment%20operators%2C%20unless%20the%20fact%20that%20this%20class%20has%20mutables%20and%2F...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10637","item_id":"_comm_10637"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10637 == 'undefined' ){PDRTJS_468178_comm_10637 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10637 );}}PDRTJS_settings_468178_comm_10636={"id":468178,"unique_id":"wp-comment-10636","title":"%40Phil%20Miller%3A%20%20Read%20the%20text%20below%20the%20Option%201%20example.%20%20Herb%20points%20out%20that%20you%20would%20need%20to%20grab%20the%20mutex%20everywhere%20you%20access%20area.%20%20So%2C%20although%20he%20didn%26%23039%3Bt%20write%20it%20out%2C%20it%26%23039%3Bs%20clear%20that%20y...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10636","item_id":"_comm_10636"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10636 == 'undefined' ){PDRTJS_468178_comm_10636 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10636 );}}PDRTJS_settings_468178_comm_10635={"id":468178,"unique_id":"wp-comment-10635","title":"Herb%2CYou%20need%20to%20provide%20a%20move-ctor%20or%20a%20copy-ctor%20to%20polygon%20because%20...%26%23091%3Bcode%26%23093%3Batomic%28const%20atomic%26amp%3B%29%20%3D%20delete%3B%26%23091%3B%2Fcode%26%23093%3BSame%20with%20std%3A%3Amutex...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10635","item_id":"_comm_10635"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10635 == 'undefined' ){PDRTJS_468178_comm_10635 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10635 );}}PDRTJS_settings_468178_comm_10629={"id":468178,"unique_id":"wp-comment-10629","title":"I%20believe%20there%26%23039%3Bs%20a%20bug%20in%20the%20described%20mutex%20version%20of%20calc_area%28%29%20as%20it%20interacts%20with%20concurrent%20calls%20to%20get_area%28%29%3A%26%23091%3Bcode%26%23093%3B%20%20%20%20void%20calc_area%28%29%20const%20%7B%20%20%20%20%20%20%20%20auto%20lock%20%3D%20unique_lock%26lt%3Bmute...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10629","item_id":"_comm_10629"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10629 == 'undefined' ){PDRTJS_468178_comm_10629 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10629 );}}PDRTJS_settings_468178_comm_10628={"id":468178,"unique_id":"wp-comment-10628","title":"Let%20%26%23039%3Bs%20say%20that%20the%20fact%20is%20that%20I%20have%20been%20seeing%20code%20only%20protecting%20mutations%20locally%20without%20wondering%20of%20the%20entire%20thread%20safety%20inside%20the%20application.%20This%20local%20protection%20were%20often%20c...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10628","item_id":"_comm_10628"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10628 == 'undefined' ){PDRTJS_468178_comm_10628 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10628 );}}PDRTJS_settings_468178_comm_10620={"id":468178,"unique_id":"wp-comment-10620","title":"You%20know%20...%20reading%20these%20examples%20always%20makes%20me%20%28genuinely%29%20wonder%3A%20Is%20it%20C%2B%2B%20that%20we%20%26quot%3Bhave%20to%26quot%3B%20think%20about%20all%20these%20subtleties%2C%20or%20could%20one%20also%20write%20such%20articles%20for%20other%20languages%3FIn%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10620","item_id":"_comm_10620"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10620 == 'undefined' ){PDRTJS_468178_comm_10620 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10620 );}}PDRTJS_settings_468178_comm_10614={"id":468178,"unique_id":"wp-comment-10614","title":"Wrt%20to%20the%20thread%20safety%20of%20add_points%20and%20calc_area%2C%20the%20idea%20is%20to%20provide%20a%20normal%20degree%20of%20thread%20safety%2C%20not%20a%20complete%20lock%20strategy%20for%20the%20class.%20Synchronizing%20for%20mutability%20is%20%28as%20alwa...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10614","item_id":"_comm_10614"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10614 == 'undefined' ){PDRTJS_468178_comm_10614 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10614 );}}PDRTJS_settings_468178_comm_10613={"id":468178,"unique_id":"wp-comment-10613","title":"Hello%2C%2A%20What%20happen%20if%20add_point%20is%20called%20concurrently%20while%20executing%20the%20loop%20processing%20the%20area%20%3F%20if%20I%20remember%20correctly%2C%20the%20push_back%20call%20may%20invalidate%20iterators.%2A%20What%20about%20the%20get_ar...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10613","item_id":"_comm_10613"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10613 == 'undefined' ){PDRTJS_468178_comm_10613 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10613 );}}PDRTJS_settings_468178_comm_10611={"id":468178,"unique_id":"wp-comment-10611","title":"calc_area%28%29%20iterates%20over%20the%20points%20collection%20without%20protection.%20If%20execution%20of%20one%20thread%20is%20in%20this%20loop%20while%20another%20thread%20calls%20add_point%28%29%20then%20calc_area%20will%20fail%20with%20undefined%20behav...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10611","item_id":"_comm_10611"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10611 == 'undefined' ){PDRTJS_468178_comm_10611 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10611 );}}PDRTJS_settings_468178_comm_10608={"id":468178,"unique_id":"wp-comment-10608","title":"As%20Rick%20Yorgason%20said%20this%20class%20is%20not%20thread%20safe.%20In%20my%20opinion%20it%26%23039%3Bs%20even%20worse%20than%20what%20he%20points%20out.If%20a%20thread%20calls%20add_point%20while%20another%20thread%20is%20calculating%20the%20area%20the%20%60points%60%20ve...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10608","item_id":"_comm_10608"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10608 == 'undefined' ){PDRTJS_468178_comm_10608 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10608 );}}PDRTJS_settings_468178_comm_10606={"id":468178,"unique_id":"wp-comment-10606","title":"What%20about%20std%3A%3Acall_once%20to%20compute%20area%20%3F...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10606","item_id":"_comm_10606"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10606 == 'undefined' ){PDRTJS_468178_comm_10606 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10606 );}}PDRTJS_settings_468178_comm_10604={"id":468178,"unique_id":"wp-comment-10604","title":"%40Rick%20%28and%20Paul%29%3A%20right%2C%20the%20concurrent%20call%20of%20add_point%20is%20not%20threadsafe%2C%20as%20is%20any%20concurrent%20call%20of%20modifying%20%28read%3A%20nonconst%29%20functions%20on%20an%20object.%40Steve%3A%20I%20am%20surely%20not%20an%20expert%2C%20but%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10604","item_id":"_comm_10604"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10604 == 'undefined' ){PDRTJS_468178_comm_10604 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10604 );}}PDRTJS_settings_468178_comm_10601={"id":468178,"unique_id":"wp-comment-10601","title":"Why%20don%26%23039%3Bt%20you%20use%20std%3A%3Aaccumulate%20instead%20of%20the%20hand-crafted%20for-loop%20in%20point%205%3F%20I%20think%20it%20is%20more%20expressive%20than%20writing%20a%20for-loop%3ACombining%20all%20that%2C%20we%20get%20this%20simpler%20and%20const-correct%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10601","item_id":"_comm_10601"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10601 == 'undefined' ){PDRTJS_468178_comm_10601 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10601 );}}PDRTJS_settings_468178_comm_10598={"id":468178,"unique_id":"wp-comment-10598","title":"%40jlehrer%20-%20what%20about%20mixed%20use%3F%20We%20often%20have%20data%20structures%20which%20make%20sense%20in%20both%20single-%20and%20multi-threaded%20environments.%20Often%20both%20usages%20crop%20up%20in%20the%20same%20application%3B%20and%20as%20such%2C%20ha...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10598","item_id":"_comm_10598"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10598 == 'undefined' ){PDRTJS_468178_comm_10598 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10598 );}}PDRTJS_settings_468178_comm_10597={"id":468178,"unique_id":"wp-comment-10597","title":"In%20response%20to%20Steve%20Lorimer%26%23039%3Bs%20comment%20about%20single%20threaded%20versions%20of%20the%20code%20-%20If%20I%20were%20designing%20a%20library%20for%20public%20use%20I%20would%20probably%20use%20a%20typedef%20for%20this%20atomic%20variable%20that%20switc...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10597","item_id":"_comm_10597"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10597 == 'undefined' ){PDRTJS_468178_comm_10597 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10597 );}}PDRTJS_settings_468178_comm_10595={"id":468178,"unique_id":"wp-comment-10595","title":"You%20wrote%3A%26quot%3BOnce%20you%20make%20%26%23091%3Bget_area%28%29%26%23093%3B%20const%2C%20the%20compiler%20will%20tell%20you%20that%20you%20also%20need%20to%20do%20something%20about%20the%20member%20variable%20area%26quot%3BNo%2C%20it%20won%26%23039%3Bt.%20%20The%20compiler%20will%20only%20tell%20you%20that%20you%20a...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10595","item_id":"_comm_10595"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10595 == 'undefined' ){PDRTJS_468178_comm_10595 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10595 );}}PDRTJS_settings_468178_comm_10594={"id":468178,"unique_id":"wp-comment-10594","title":"I%20had%20more-or-less%20the%20same%20thought%20as%20Rick%20%28post%20%234%29%2C%20but%20my%20concern%20was%20that%20thread%201%20could%20be%20stepping%20through%20the%20collection%20of%20points%20at%20the%20same%20time%20as%20one%20or%20more%20points%20are%20being%20added%20t...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10594","item_id":"_comm_10594"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10594 == 'undefined' ){PDRTJS_468178_comm_10594 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10594 );}}PDRTJS_settings_468178_comm_10593={"id":468178,"unique_id":"wp-comment-10593","title":"The%20answer%20contains%20good%20wisdom%20on%20const%20correctness%2C%20but%20got%20confused%20about%20the%20concurrency%20semantics%20meaning%2Fcorrectness......","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10593","item_id":"_comm_10593"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10593 == 'undefined' ){PDRTJS_468178_comm_10593 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10593 );}}PDRTJS_settings_468178_comm_10592={"id":468178,"unique_id":"wp-comment-10592","title":"%40Herb%3A%20Yay%21%20%3A-%29To%20give%20credit%2C%20after%20verifying%20with%20GCC%20%28http%3A%2F%2Fideone.com%2FKcGaII%29%2C%20I%26%23039%3Bve%20also%20checked%20this%20on%20SO%3A%20http%3A%2F%2Fstackoverflow.com%2Fa%2F3802028%2FTrue%2C%20there%20are%20%26quot%3Bsome%20compilers%20%26%23091%3Bthat%26%23093%3B%20do%20not%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10592","item_id":"_comm_10592"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10592 == 'undefined' ){PDRTJS_468178_comm_10592 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10592 );}}PDRTJS_settings_468178_comm_10589={"id":468178,"unique_id":"wp-comment-10589","title":"Herb%2C%20you%20mention%20%26quot%3B%2F%2F%20Option%201%3A%20Use%20a%20mutex%20%28NB%3A%20Also%20lock%20in%20other%20funcs%20that%20use%20area%29%26quot%3B.Given%20that%20add_point%20is%20not%20const%20and%20hence%20is%20not%20thread%20safe%20%28by%20design%29%2C%20why%20would%20a%20mutex%20be%20needed%20t...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10589","item_id":"_comm_10589"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10589 == 'undefined' ){PDRTJS_468178_comm_10589 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10589 );}}PDRTJS_settings_468178_comm_10588={"id":468178,"unique_id":"wp-comment-10588","title":"Actually%2C%20I%20guess%20the%20root%20of%20the%20problem%20is%20that%20add_point%20isn%26%23039%3Bt%20thread%20safe%2C%20but%20since%20it%26%23039%3Bs%20not%20const%2C%20you%26%23039%3Bre%20not%20guaranteeing%20that%20it%20is....","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10588","item_id":"_comm_10588"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10588 == 'undefined' ){PDRTJS_468178_comm_10588 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10588 );}}PDRTJS_settings_468178_comm_10587={"id":468178,"unique_id":"wp-comment-10587","title":"I%20believe%20there%26%23039%3Bs%20still%20a%20bug%20with%20that%20atomic%20variable.%20Consider%20this%20code%3A%26%23091%3Bcode%26%23093%3BThread%201%3Ad1%20%3D%20poly.get_area%28%29%3BThread%202%3Apoly.add_point%28%7B1%2C%201%7D%29%3Bd2%20%3D%20poly.get_area%28%29%3B%26%23091%3B%2Fcode%26%23093%3BIf%20that%20gets%20executed%20l...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10587","item_id":"_comm_10587"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10587 == 'undefined' ){PDRTJS_468178_comm_10587 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10587 );}}PDRTJS_settings_468178_comm_10585={"id":468178,"unique_id":"wp-comment-10585","title":"Herb%2C%20you%20mention%20above%20that%20area%20should%20be%20synchronized%20using%20a%20mutex%20or%20made%20atomic%2C%20so%20that%20its%20concurrency-safe%2C%20as%20discussed%20in%20GotW%20%236a.%20-%20this%20introduces%20overhead%20which%20would%20be%20otherwise%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10585","item_id":"_comm_10585"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10585 == 'undefined' ){PDRTJS_468178_comm_10585 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10585 );}}PDRTJS_settings_468178_comm_10584={"id":468178,"unique_id":"wp-comment-10584","title":"%40mttpd%3A%20I%20do%20believe%20you%26%23039%3Bre%20right.%20I%20see%20that%20same%20wording%20all%20the%20way%20back%20in%20C%2B%2B98%20too%2C%20and%20I%20first%20wrote%20that%20some%2016%20years%20ago%20and%20as%20far%20as%20I%20can%20recall%20you%26%23039%3Bre%20the%20first%20to%20point%20this%20out.%20I...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10584","item_id":"_comm_10584"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10584 == 'undefined' ){PDRTJS_468178_comm_10584 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10584 );}}PDRTJS_settings_468178_comm_10582={"id":468178,"unique_id":"wp-comment-10582","title":"%26gt%3B%20%26quot%3B%28If%2C%20in%20looking%20for%20the%20Bonus%20points%2C%20you%20said%20something%20about%20these%20two%20functions%20being%20uncompilablesorry%2C%20theyre%20quite%20legal%20C%2B%2B.%20You%20were%20probably%20thinking%20of%20putting%20the%20const%20to%20the%20le...","permalink":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/#comment-10582","item_id":"_comm_10582"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10582 == 'undefined' ){PDRTJS_468178_comm_10582 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10582 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F28%2Fgotw-6b-solution-const-correctness-part-2%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F05%2F28%2Fgotw-6b-solution-const-correctness-part-2%2F","postID":"2023","shortlink":"https:\/\/wp.me\/peb5Y-wD","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2023","statsLink":"https:\/\/wordpress.com\/stats\/post\/2023\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F28%2Fgotw-6b-solution-const-correctness-part-2%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2023','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLjk4YUFvWFE2QTk5bltbQ2IydXFvQV1zVC9KdH58OHwlVGw9bGNGK1NdV1dxcHxXRFl5RGRzMDJ4PWlocithJTkmTnh6NXRdMjdKUTNrNEMuR18zNUc0eixWSk5LSXQwT3E5T2dHXTQvZzR5Ri5TLnxtMFloS1M5U096VnwmM0krVENQNmtNQm5VRllqNmpIT0VYQkwmek81M0pbRG5XeVJdSDdNeGYyRnVrUXxnTU9UQ0x1RG4vL19kXy9XaEtwV2RGJS9RRA=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2023' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>
+<!--
+	generated in 0.238 seconds
+	160104 bytes batcached for 300 seconds
+-->

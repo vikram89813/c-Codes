@@ -1,0 +1,891 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #1: Variable Initialization—or Is It? (3/10) | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965355&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F06%2Fgotw-1-variable-initialization-or-is-it-310%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #1: Variable Initialization—or Is It?&nbsp;(3/10) Comments Feed" href="https://herbsutter.com/2013/05/06/gotw-1-variable-initialization-or-is-it-310/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Guru of the Week and the Exceptional C++&nbsp;Series' href='https://herbsutter.com/2013/05/04/guru-of-the-week-and-the-exceptional-c-series/' />
+<link rel='next' title='GotW #1 Solution: Variable Initialization – or Is&nbsp;It?' href='https://herbsutter.com/2013/05/09/gotw-1-solution/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/05/06/gotw-1-variable-initialization-or-is-it-310/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-tu' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F06%2Fgotw-1-variable-initialization-or-is-it-310%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F06%2Fgotw-1-variable-initialization-or-is-it-310%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #1: Variable Initialization—or Is It? (3/10)" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/06/gotw-1-variable-initialization-or-is-it-310/" />
+<meta property="og:description" content="This first problem highlights the importance of understanding what you write. Here we have a few simple lines of code — most of which mean something different from all the others, even though the s…" />
+<meta property="article:published_time" content="2013-05-06T08:26:40+00:00" />
+<meta property="article:modified_time" content="2013-05-06T13:40:17+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965355" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #1: Variable Initialization—or Is It?&nbsp;(3/10)" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="This first problem highlights the importance of understanding what you write. Here we have a few simple lines of code — most of which mean something different from all the others, even though the syntax varies only slightly.  Problem JG Question 1. What is the difference, if any, among the following? widget w; // (a)widget&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/05/06/gotw-1-variable-initialization-or-is-it-310/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-1828 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/05/04/guru-of-the-week-and-the-exceptional-c-series/" rel="prev">Guru of the Week and the Exceptional C++&nbsp;Series</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/05/09/gotw-1-solution/" rel="next">GotW #1 Solution: Variable Initialization – or Is&nbsp;It?</a> &raquo;</div>
+			</div>
+			
+			<div class="post-1828 post type-post status-publish format-standard hentry category-gotw" id="post-1828">
+				<div class="posttitle">
+					<h2>GotW #1: Variable Initialization—or Is It?&nbsp;(3/10)</h2>
+					<p class="post-info">2013-05-06 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>This first problem highlights the importance of understanding what you write. Here we have a few simple lines of code — most of which mean something different from all the others, even though the syntax varies only slightly.<br />
+</em></span></p>
+<p>
+ </p>
+<h1>Problem<br />
+</h1>
+<h2>JG Question<br />
+</h2>
+<p>1. What is the difference, if any, among the following?
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>widget w;                   // (a)<br /><br />widget w();                 // (b)<br />widget w{};                 // (c)<br /><br />widget w(x);                // (d)<br />widget w{x};                // (e)<br /><br />widget w = x;               // (f)<br />widget w = {x};             // (g)<br /><br />auto w = x;                 // (h)<br />auto w = widget{x};         // (i)
+</code></pre>
+</p>
+<h2>Guru Questions<br />
+</h2>
+<p>2. What do each of the following lines do?
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>vector&lt;int&gt; v1( 10, 20 );   // (a)<br /><br />vector&lt;int&gt; v2{ 10, 20 };   // (b)
+</code></pre>
+</p>
+<p>3. Besides the cases above, what other benefits are there to using <span style="color:#2e74b5;">{ }</span> to initialize objects?
+</p>
+<p>4. When should you use <span style="color:#2e74b5;">( )</span> vs. <span style="color:#2e74b5;">{ }</span> syntax to initialize objects? Why?</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											28 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">28 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="pingback even thread-even depth-1 highlander-comment" id="comment-10101">
+		<div id="div-comment-10101">
+		<div class="cmtinfo"><em> on <a href="#comment-10101" title="">2013-05-15 at 10:22 am</a></em>  <cite><a href='http://blog.artlogic.com/2013/05/15/return-of-the-guru-sutter-back-for-c14/' rel='external nofollow' class='url'>Return of the Guru: Sutter Back for C++14 | Art &amp; Logic Blog</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10101"></div><p>[&#8230;] GotW #1 [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9906">
+		<div id="div-comment-9906">
+		<div class="cmtinfo"><em> on <a href="#comment-9906" title="">2013-05-09 at 9:19 am</a></em> <img alt='' src='https://i0.wp.com/a0.twimg.com/profile_images/2390352971/2i91uu8i1n3hpiebo213_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/sehetw' rel='external nofollow' class='url'>sehe (@sehetw)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9906"></div><p>@bittermanandy Thanks for the clarification. </p>
+<p>Now that I typed your @handle to start a response, I can see you probably chose that name to match your sentiment? I get the impression that you are bitter that C++ isn&#8217;t a better &#8220;general purpose language&#8221;. </p>
+<p>It may not be what you expected it to be: it&#8217;s a language amenable to all tasks, but not necessarily eminent for all tasks. </p>
+<p>The point of C++11 is not that it should correct all the shortcomings of C++&#8217;s legacy. In my opinion, the point of C++11 is that IFF C++ is the right choice of tool for your particular job, you&#8217;ll be an order of magnitude more empowered and productive using it.</p>
+<p>I&#8217;m willing to say that roughly 50% (or probably, more) of the stuff that populates (More) Effective C++, STL etc. is no longer essential knowledge to survive: C++11 no longer needs to be the minefield C++ used to be. This is major news if you need to be using C++. </p>
+<p>Of course, if you don&#8217;t need to be using C++, the news is &#8230; &#8220;meh&#8221; (under the hood, it&#8217;s still the same minefield, right?!). But perhaps that says more about the audience than about the quality of the news.</p>
+<p>I&#8217;m certainly thinking C++11 is becoming a _more viable_ choice for my own future work. And the trends are certainly making the choice relevant.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-akrzemi1 even thread-even depth-1 highlander-comment" id="comment-9889">
+		<div id="div-comment-9889">
+		<div class="cmtinfo"><em> on <a href="#comment-9889" title="">2013-05-08 at 11:05 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c3baf4aa5bebf6d1407ed4e3b0981864?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://akrzemi1.wordpress.com' rel='external nofollow' class='url'>Andrzej Krzemieński</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9889"></div><p>@bames53: This is in fact a very good observation. Constructors that just take some (random) parameters are typically confusing. </p>
+<pre class="brush: plain; title: ; notranslate" title="">
+vector&lt;string&gt; v(10); 
+</pre>
+<p>What does it mean? Set capacity to 10? Set size to 10? Create a single-element vector? I can of course look it up in the docs, But why force me to do that if the meaning could be made obvious:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+vector&lt;string&gt; v(with_size, 10); // some tag
+vector&lt;string&gt; v(size := 10); // if we had named parameters
+</pre>
+<p>Worse, what if I know (incorrectly) that v(10) reserves capacity, because this is what vector did in the other library I used? I wouldn&#8217;t be looking up something i already (think I) know.</p>
+<p>Especially for constructors (as opposed to normal functions) I believe we are missing the feature that would help us to express what particular arguments mean.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9885">
+		<div id="div-comment-9885">
+		<div class="cmtinfo"><em> on <a href="#comment-9885" title="">2013-05-08 at 2:52 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/418a35526fec06e8f35423373b0b6bef?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Gregory</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9885"></div><p>My bad. In first example, always a default constructor is chosen. It actually should be</p>
+<p>Widget w{};</p>
+<p>and</p>
+<p>Widget w{{}};</p>
+<p>That is, there should be no difference between initializing with empty initializer_list and default initialization.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9884">
+		<div id="div-comment-9884">
+		<div class="cmtinfo"><em> on <a href="#comment-9884" title="">2013-05-08 at 1:16 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/418a35526fec06e8f35423373b0b6bef?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Gregory</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9884"></div><p>My take on 4.<br />
+In the presence of initializer-list constructor and default constructor an author of a class should care that </p>
+<p>Widget w; </p>
+<p>and</p>
+<p>Widget w{};</p>
+<p>are doing essentially the same thing. Moreover, IMHO if a class has initializer-list constructor then it should not have any other constructors except special ones (default, copy, move constructors). Clearly, STL already breaks those assumptions, so standard collections should be thought as exceptions to the rule.</p>
+<p>Also, if we have some Composite with initializer-list constructor then an author of a class should think about interaction of initializer-list constructor and copy/move constructor:</p>
+<p>CompositeWidget w;<br />
+CompositeWidget w2{w};</p>
+<p>and</p>
+<p>CompositeWidget w;<br />
+CompositeWidget w2(w);</p>
+<p>should do the same thing. Initializer-list constructor should not be provided if it&#8217;s not desirable for these two statements to be semantically the same. </p>
+<p>If these rules are followed then we can say that brace-initialization should be used in all cases (except when dealing with standard collections or with unknown types in template code that may happen to be standard collections).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9882">
+		<div id="div-comment-9882">
+		<div class="cmtinfo"><em> on <a href="#comment-9882" title="">2013-05-07 at 5:05 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/be74fa535cbfd6ff09375b269d6e2eb2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>klementor</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9882"></div><p>(a) widget w;<br />
+If w is of static or thread_local storage duration, it is zero-initialized. Otherwise, it is default-initialized.</p>
+<p>(b) widget w();<br />
+This is a function declaration.</p>
+<p>(c) widget w{};<br />
+w is direct-initialized.</p>
+<p>(d) widget w(x);<br />
+If x is a type, w is a function declaration. Otherwise, w is direct-initialized.</p>
+<p>(e) widget w{x};<br />
+w is direct-list-initialized.</p>
+<p>(f) widget w = x;<br />
+w is copy-initialized.</p>
+<p>(g) widget w = {x};<br />
+w is copy-initialized.</p>
+<p>(h) auto w = x;<br />
+w is copy-initialized.</p>
+<p>(i) auto w = widget{x};<br />
+w is copy-initialized.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9881">
+		<div id="div-comment-9881">
+		<div class="cmtinfo"><em> on <a href="#comment-9881" title="">2013-05-07 at 7:58 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/b496d1aa1d91d06225f25ec9492974c3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/homerocda' rel='external nofollow' class='url'>Homero</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9881"></div><p>Ok, let&#8217;s play:</p>
+<p>1. (a) and (c) create an object of type widget and assign it to variable w calling the default constructor. (b) declares a function of name w which returns a widget and takes no parameters. (d) and (e) are equivalent and create an object of type widget calling a constructor that can take an object of the same type as x as argument. (f) creates a widget by calling the overloaded assignment operator that can take x as argument OR casting x to a widget and assigning it to w through the copy constructor. (g) tries to initialize w by using a initialization list with x. (h) Creates a variable of type w with the same type as x calling the proper copy constructor or assignment operator. (i) Creates an object of type widget using x as parameter for the propper constructor and calls the move constructor to assign it to w.</p>
+<p>2. (a) creates a vector of 10 elements and initialize all its elements with the value 20. (b) Creates a vector with two elements, with value 10 and 20.</p>
+<p>3. {} offers more clear declaration of intent and is consistent with array initialization at declaration time.</p>
+<p>4. The curly brackets style should be used whenever possible in modern C++ code, falling back to () only if you intend to write code that should be backwards compatible with older compilers.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9880">
+		<div id="div-comment-9880">
+		<div class="cmtinfo"><em> on <a href="#comment-9880" title="">2013-05-07 at 5:25 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/dcafbba93dc637c513c6cf8ae3d5ea2a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/bittermanandy' rel='external nofollow' class='url'>bittermanandy</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9880"></div><p>sehe: yes, I realise the C++ standards committee is balancing a lot of different things; and I realise other languages are an option. The point is, people *are taking* the other option. In droves. The C++ standards committee might not have nice syntax and usability of the language high on their list of priorities. That&#8217;s fine. It just means people won&#8217;t use it (&#8230;even when compiler writers finally implement it). I can&#8217;t personally see the point in spending sixteen-plus year&#8217;s worth of time and effort on something that barely anybody is going to use, that&#8217;s all.</p>
+<p>Herb&#8217;s books and GotW are fascinating things, and a decade or so ago I used to read them avidly, excited by how much more I was learning about a language I thought I already knew. In that decade I&#8217;ve realised that knowing the difference between widget w() and widget w{} isn&#8217;t a badge of honour to wear proudly to prove one&#8217;s coding credentials; it&#8217;s a syntax disaster that means people are going to write buggy code&#8230; in part because the Standards Committee didn&#8217;t prioritize &#8220;prettyness&#8221; and &#8220;consistency&#8221;.</p>
+<p>I mean, clearly there&#8217;s nothing I can write here that will change it now. I just think it&#8217;s a real shame that the new version(s) of C++ has/have left it &#8220;the same as before only more so&#8221;, when it could have made it a modern, usable language instead. You are quite right though, there are other options, for which we can all be thankful. I suppose there&#8217;s not much point in me continuing to bang this particular drum so I&#8217;ll leave this discussion to actually answering the questions in the post&#8230; sorry for the digression.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9879">
+		<div id="div-comment-9879">
+		<div class="cmtinfo"><em> on <a href="#comment-9879" title="">2013-05-07 at 4:00 am</a></em> <img alt='' src='https://i0.wp.com/a0.twimg.com/profile_images/2390352971/2i91uu8i1n3hpiebo213_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/sehetw' rel='external nofollow' class='url'>sehe (@sehetw)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9879"></div><p>@bittermanandy welcome to c++. Similarity to any language other than C is not a driving design force. Rather, it is the other way around (referring to the C# case. ::global anyone?)</p>
+<p>Another key driving force is backwards code compatibility (using `var` over `auto` would have been nice. For a green-field language!).</p>
+<p>Also, the difference between a non-vexing parse and a most-vexing parse used to be 0 (zero) pixels, so actually, extending the lead to 2 (non-ugly) pixels is quite an improvement.</p>
+<p>Just a few quick shots. The C++ standards committee is balancing a **lot** more goals than just &#8220;prettyness&#8221; or even &#8220;consistency&#8221;. Feel free to use D, Boo, Go or C# if it pleases you more.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9878">
+		<div id="div-comment-9878">
+		<div class="cmtinfo"><em> on <a href="#comment-9878" title="">2013-05-07 at 2:14 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f1634a09333f7b391db92e1d2bea6253?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sebastian Redl</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9878"></div><p>&gt; Consistency with other languages would be nice too. Why “auto” and not “var”, for example?<br />
+I don&#8217;t see any reason to be consistent with &#8220;other languages&#8221; &#8211; especially when you&#8217;ll have a hard time being consistent with more than one at the same time. Using &#8220;var&#8221; would be consistent with C#. JavaScript also uses &#8220;var&#8221;, but modern JavaScript is moving away from that to &#8220;let&#8221;. Java doesn&#8217;t have type deduction and won&#8217;t get it, but the RFE that was rejected asked for &#8220;let&#8221;.<br />
+&#8220;auto&#8221; has the big advantage that it was already a keyword, and so you don&#8217;t get the enormous code breakage that you would get from introducing something as common as &#8220;var&#8221; as a new keyword. (C# can afford this due to differences in general parsing strategy from C++ and stronger restrictions on where &#8220;var&#8221; can appear.)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9877">
+		<div id="div-comment-9877">
+		<div class="cmtinfo"><em> on <a href="#comment-9877" title="">2013-05-07 at 2:08 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f1634a09333f7b391db92e1d2bea6253?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sebastian Redl</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9877"></div><p>One thing that nobody has pointed out yet is the difference between 1e and 1g. Specifically, the former is direct-list-initialization, while the latter is copy-list-initialization. The difference being that only 1e will select explicit constructors. In other words, given a widget:</p>
+<p>struct widget {<br />
+  explicit widget(X x);<br />
+};</p>
+<p>1e will compile, 1g will not. That&#8217;s the same as the difference between 1d and 1f.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-bittermanandy odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9874">
+		<div id="div-comment-9874">
+		<div class="cmtinfo"><em> on <a href="#comment-9874" title="">2013-05-06 at 11:44 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/dcafbba93dc637c513c6cf8ae3d5ea2a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bittermanandy</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9874"></div><p>I started answering these fairly confidently, then I assumed that the difference between () and {} was broadly the same as in C#, and I realise I&#8217;m not actually sure that&#8217;s the case. With that in mind, I think the latter zero-initialises types without a default constructor of their own, otherwise acts like a constructor, unless it&#8217;s an initialiser list, in which case it&#8217;s like C#.</p>
+<p>What I am sure of is that this is a syntactic disaster area. You know what the *visual* difference between () and {} is, in a typical font in a typical IDE? Two pixels. If there&#8217;s any meaningful difference between them &#8211; if the difference between them could ever cause a bug &#8211; it&#8217;s going to be a nightmare to actually *notice* it when it happens.</p>
+<p>(To illustrate, just look at the two vector examples. One is a vector with 10 elements with all the same value, the other is a vector with 2 elements with different values&#8230; and yet you have to look at it twice to even realise there&#8217;s a difference between them. When reading the code in an actual codebase, you probably wouldn&#8217;t spot it).</p>
+<p>It&#8217;s great that C++ is adding some new stuff, and all; but the syntax and usability are dreadful, two years after a major release there aren&#8217;t any fully conforming compilers (and VS, the one I use by far the most often, is *way* off), and an update is already being planned, suggesting C++11 wasn&#8217;t even properly finished. I have to say that the Standards Committee are doing a fantastic job up of creating a theoretically better C++ up there in their ivory tower, but if nobody can use it (and of those that can, few do &#8211; witness the guy above who doesn&#8217;t even know what &#8220;auto&#8221; does, and he is *far* from alone) it&#8217;s no use to anybody.</p>
+<p>That&#8217;s not to say it shouldn&#8217;t be tried, of course. Seeking to improve C++ may well be a worthwhile endeavour (though taking sixteen years to do it just means everyone will have moved on). But when the &#8220;improvement&#8221; involves a two-pixel difference in syntax that totally changes how something behaves, that should be a massive red flag that something has gone badly wrong. Syntax matters, and the syntax of all the new stuff is universally fugly. (Consistency with other languages would be nice too. Why &#8220;auto&#8221; and not &#8220;var&#8221;, for example? And the syntax for lambdas &#8211; just why?) Too little, much too late, and klunky syntax. Sadly.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-juanchopalacios even thread-even depth-1 highlander-comment" id="comment-9873">
+		<div id="div-comment-9873">
+		<div class="cmtinfo"><em> on <a href="#comment-9873" title="">2013-05-06 at 10:16 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1735ab1c8ba4229daa855ec6aad03065?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://juanchopanzacpp.wordpress.com' rel='external nofollow' class='url'>juanchopanza</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9873"></div><p>Concerning the first question, besides what already applied in C++03, the main subtlety is brace or &#8220;uniform&#8221; initialization. What happens in all cases of w{&#8230;.} depends on whether widget had an std::initializer_list constructor or is an aggregate. So a partial answer is &#8220;we can&#8217;t really know for sure what will happen without knowing more about widget&#8221;.</p>
+<p>Concerning the guru question, std::vector has an initializer_list constructor and that one trumps the others. So the first vector has size 10 and is full of 20s, the second one has size 2 and contains values 10 and 20.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9872">
+		<div id="div-comment-9872">
+		<div class="cmtinfo"><em> on <a href="#comment-9872" title="">2013-05-06 at 3:47 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/28fb981f4140586663137d6225e6862f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/germinolegrand' rel='external nofollow' class='url'>germinolegrand</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9872"></div><p>@Chris Chiesa: The *auto* keyword is part of the C++11 standard, whitch brings lots of new features, you should have look at it, it&#8217;s been in use since nov 2011. You can find more infos on <a href="http://isocpp.org/tour" rel="nofollow">http://isocpp.org/tour</a> . Have a good C++11 update ;) !</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9871">
+		<div id="div-comment-9871">
+		<div class="cmtinfo"><em> on <a href="#comment-9871" title="">2013-05-06 at 3:35 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3f75c7fe9aa4aeae4b5ab3f4b672be14?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Chris Chiesa</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9871"></div><p>Interesting.  When I click the &#8220;comment&#8221; link, I am taken to a snarky version of a 404 page, that asks &#8220;Where did you get such a link?&#8221;  Got it from yer own danged email, is where, just this morning! </p>
+<p>The comment I was *going *to post would have been something like, &#8220;I&#8217;ve been a C++ programmer for years, and while I know I&#8217;ve never been &#8216;world class&#8217; at it, I must *really *be out of the loop; I don&#8217;t recognize the *auto *keyword; what does that do?&#8221; </p>
+<p>Cheers,     Chris Chiesa</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9870">
+		<div id="div-comment-9870">
+		<div class="cmtinfo"><em> on <a href="#comment-9870" title="">2013-05-06 at 1:47 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d7aaf766b7091c5583ee189b116ecd6a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Glen</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9870"></div><p>@Loghorn: I just spat my coffee over my desk! lol</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9868">
+		<div id="div-comment-9868">
+		<div class="cmtinfo"><em> on <a href="#comment-9868" title="">2013-05-06 at 12:27 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/68f403eb5e6fef229e3c19a5d5f7fea6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mikhail Belyaev</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9868"></div><p>Having thought it through, my comment has at least two obvious mistakes.</p>
+<p>b is illegal altogether because of this kind of syntax being a function declaration returning widget. It makes me cry every time almost as much as having to place &#8220;typename&#8221; and &#8220;template&#8221; because of compiler warnings. It gives another benefit to using {}: if such a call is created by macro or vararg template expansion, it can be very troublesome to find out why this w() thingie does not work. A function declaration is of course legal C++, but among the other pieces of code it is an obvious typo.</p>
+<p>f and g of course use move-assignment (or copy assignment if move is not available) after construction and not move-construct. That&#8217;s just my typo. These will be almost always be optimized to using copy construction, but compilers are not obligated to do it.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9867">
+		<div id="div-comment-9867">
+		<div class="cmtinfo"><em> on <a href="#comment-9867" title="">2013-05-06 at 11:00 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c5b07bc797d8141bed5e3eff48c65d1c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.iconic-software.com' rel='external nofollow' class='url'>Brandon</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9867"></div><p>Widget x = y; // if Widget has a constructor that takes decltype( y ), the compiler will optimize to call that instead of op=()</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9866">
+		<div id="div-comment-9866">
+		<div class="cmtinfo"><em> on <a href="#comment-9866" title="">2013-05-06 at 8:29 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1397eae94e7fe715f040459c988c40b1?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bames53</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9866"></div><p>@MichalMocny</p>
+<p>I think this would have been very bad. &#8216;a&#8217; should be the same as &#8216;c&#8217;, should be the same as &#8216;d&#8217;. And I don&#8217;t want to see &#8216;b&#8217;. The non-uniformity imposed by having {} prefer initializer_list constructors is far less than the non-uniformity you&#8217;re suggesting here:</p>
+<p>Although the rule could be worded simply &#8220;always use {}&#8221;, the actual usage would be more complicated; &#8220;use {} sometimes, use = {} sometimes, use {{}} sometimes,&#8221; etc. The exception when non-brace initialization is required is relatively rare compared to when you would require different kinds of brace initialization.</p>
+<p>Additionally, components designed with brace initialization in mind can and should avoid the problem by not having any constructors that might collide with list_initializer constructors. For example a `vector` designed today might have a third dummy parameter to disambiguate.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9865">
+		<div id="div-comment-9865">
+		<div class="cmtinfo"><em> on <a href="#comment-9865" title="">2013-05-06 at 8:25 am</a></em> <img alt='' src='https://i0.wp.com/a0.twimg.com/profile_images/523734979/avatar_normal.jpg?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/zahirtezcan' rel='external nofollow' class='url'>zahirtezcan (@zahirtezcan)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9865"></div><p>I just want to make an addition for question 3. As far as I know, for incoming C++14 there is a use for {} &#8220;lambda capture by move&#8221;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jmckesson even thread-even depth-1 highlander-comment" id="comment-9864">
+		<div id="div-comment-9864">
+		<div class="cmtinfo"><em> on <a href="#comment-9864" title="">2013-05-06 at 7:37 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a356923f858fbe363dad1dc566837fc6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>jmckesson</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9864"></div><p>1) These are pretty easy. Let `X` be whatever type `x` is.</p>
+<p>a) default constructs `w` via default initialization. The contents of `widget` will be default-initialized if `widget` does not have a user-provided default constructor. Otherwise, they will be value-initialized.</p>
+<p>b) declares a function named `w` that takes no parameters and returns a `widget`.</p>
+<p>c) default constructs `w` via value initialization. The contents of `widget` will always be value-initialized.</p>
+<p>d) constructs `w` by calling a `widget` constructor that can takes a single `X` value either by value or by l-value reference.</p>
+<p>e) this depends. If there is an initializer-list constructor of `widget` who’s initializer_list is the type of `x`, then that constructor will be called with an initializer_list that is one element long. Otherwise, it will call a constructor that can takes a single `X` value either by value or by l-value reference.</p>
+<p>f) Implicit conversion is attempted on the value `x`. If `X` has a non-explicit `operator widget()` overload, then that will be used to convert `x` into `w`. Otherwise, if `widget` has a non-explicit constructor that can takes a single `X` by value or by l-value reference, then that constructor will be called. If any of these result in finding an explicit function, an error will result.</p>
+<p>g) If there is an initializer-list constructor of `widget` who’s initializer_list is the type of `x`, then that constructor will be called with an initializer_list that is one element long. Otherwise, it will attempt implicit conversion as in f) above.</p>
+<p>h) Constructs a `w`, of type `X`, via copy initialization from `x`. If no copy constructor is accessible (ie: has been deleted or otherwise cannot be called), a compiler error will result.</p>
+<p>i) Constructs a `w` of type `widget`, via copy initialization from a temporary. The temporary will be constructed in accord with e) above. Note that the actual copy of the temporary to `w` may be elided.</p>
+<p>2)</p>
+<p>a) Constructs a 20-element `vector`, where each element is initialized to 10.</p>
+<p>b) Constructs a 2-element `vector`. The first element is 20, the second is 10.</p>
+<p>3)</p>
+<p>This is kind of a difficult question. I say because because #2 is not a benefit of {} syntax at all. It’s a detriment, because you *cannot* use {} syntax to access the two-element constructor of `vector`. You could if you used `vector{20, 10}`; that would attempt to create `20` widgets, with the widgets being copy-constructed from a `widget` that was implicitly constructed from `10`.</p>
+<p>It is not a benefit that `vector{20, 10}` is *completely ambiguous* without knowing what `T` is. That `T=int` resolves to *completely* different code from `T=widget`. That’s not an advantage; that’s a detriment.</p>
+<p>The main benefit to using {}, to me, is to not have to use the typename of a variable type so often. For example:</p>
+<p>std::string GetLuaString(lua_State *L)<br />
+{<br />
+size_t len = 0;<br />
+const char *str = lua_tolstring(L, -1, &amp;len);<br />
+return {str, len};<br />
+}</p>
+<p>I don’t need to repeat `std::string` here. The compiler knows what I’m returning, so it figures it out.</p>
+<p>This also works for calling functions:</p>
+<p>void SomeFunc(std::string str);</p>
+<p>SomeFunc({“stuff”, 5});</p>
+<p>That’s not the most useful example, but you get the idea. It’s like a form of `auto` for parameters and return values. Though return values won’t be as important in C++14 since we can auto-deduce them and thus stick the type in the return statement. But it’ll still be important for those non-inline functions where we can’t auto-deduce them.</p>
+<p>4)</p>
+<p>Only if both of the following conditions are met:</p>
+<p>A) If you are ABSOLUTELY certain of the type you’re trying to initialize. That means you know exactly what it is and what constructors are available. This includes any template parameters of that type. So if you’re in some template code, and you have a `vector`, you can’t use {}.</p>
+<p>B) If the constructor you’re trying to call is reachable with {}. This ties into A; since you know the type, and you know the arguments, you can therefore know if the horrible {} ambiguity rules hide the constructor you want to call or not. If they don’t hide it, you can use {}. If they do, you can’t; you have to use ().</p>
+<p>Personally, I love uniform initialization, as a concept. But the ambiguity rules are so terrible that you can’t really trust it. If I were to give a professional opinion, I would say that, until the standards committee fixes them (and no formal proposals have been provided that do so. Though I have worked on a preliminary one: <a href="https://groups.google.com/a/isocpp.org/forum/#!searchin/std-proposals/More$20uniform$20initialization/std-proposals/hfDHD0GyfqI/xwTMNI276-kJ" rel="nofollow">https://groups.google.com/a/isocpp.org/forum/#!searchin/std-proposals/More$20uniform$20initialization/std-proposals/hfDHD0GyfqI/xwTMNI276-kJ</a>), there is only one time you should ever use it:</p>
+<p>To resolve the Most Vexing Parse. That is, case `1.b` above: `widget w()`. That’s the only time you can trust it to work, and even then, you can only use it if A and B are satisfied. Otherwise, you have to use extra parenthesis like we do now.</p>
+<p>I would love to be able to recommend you always use {}. Or even that you should use it whenever possible. But I cannot in good conscious do so. Not until the standard is fixed.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9862">
+		<div id="div-comment-9862">
+		<div class="cmtinfo"><em> on <a href="#comment-9862" title="">2013-05-06 at 7:15 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9862"></div><p>@Loghorn: :) All but (i) work on <a href="http://rise4fun.com/vcpp" rel="nofollow">http://rise4fun.com/vcpp</a> . As promised in November, more info coming in the first half of 2013 (i.e., no later than end of next month).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9861">
+		<div id="div-comment-9861">
+		<div class="cmtinfo"><em> on <a href="#comment-9861" title="">2013-05-06 at 6:26 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/05aa36ab5c7d2c620d27d86415ba2eb7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://mmocny.com' rel='external nofollow' class='url'>Michal Mocny</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9861"></div><p>Brace initialization binding tighter to initializer_list initialization is, I consider, an unfortunate language wart.  (Please do correct me if I am mistaken.)</p>
+<p>Specifically, looking at Guru Question 2 example(b), that will create a vector with 2 int values 10,20.  If you wanted to initialize 10 elements with the value 20, you *must* use regular bracket initialization (Question 2 example(a) notation).</p>
+<p>Much like leaving out make_unique meant we could not teach novices to not use &#8220;new&#8221; any more, this brace initialization decision means we cannot teach &#8220;always initialize with {}&#8221;.  Instead we have to consider the implications of each initialization and peer inside class constructor details (e.g. I know this class has blah constructor, but hmm does it also have an initializer_list constructor?  I&#8217;ll just stick to using brackets, oops vexing parse).</p>
+<p>What makes this seem more unfortunate, is that I think living with the reverse decision would have been totally fine:</p>
+<p>// Not true in real C++, alternative reality<br />
+vector a{ 10, 20 }; // a.size() == 10<br />
+vector b{{ 10, 20 }}; // b.size() == 2<br />
+vector c = { 10, 20 }; // c.size() == 2<br />
+vector d = vector{ 10, 20 }; // d.size() == 10</p>
+<p>What it would also mean, is that auto brace initialization would be less awkward:</p>
+<p>// Not true in real C++, alternative reality<br />
+auto a{1}; // a is int<br />
+auto b{{1}}; // b is initializer_list</p>
+<p>Thoughts?  Am I wrong, is there some reason for which initializer_list being the default is a great choice?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-pindragon odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9860">
+		<div id="div-comment-9860">
+		<div class="cmtinfo"><em> on <a href="#comment-9860" title="">2013-05-06 at 6:25 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/20f3a5c1e83e75b2585df9e4dbca0b05?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>pindragon</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9860"></div><p>Just an on-the-spot non-pro opinion:</p>
+<p>1. </p>
+<p>* a,b,c &#8212; no real difference;<br />
+* d, e &#8212; no real difference, but:<br />
+  * if widget is a struct (or a class with public fields), e can initialize its fields directly whilst d needs a constructor;<br />
+  * implicit-casting of x will not work in d;<br />
+  * if widget has an initializer-list-based constructor, it can be called with a one-element list in e, but not in d;<br />
+* f, g &#8212; the same differences between &#8217;em as for d and e, but they first create an object as in d and e, and after that move-construct it into a new object of class widget, the other difference is that f can result in an operator-based implicit cast rather than calling the single-arg constructor;<br />
+* h &#8212; same as f (?), but cannot call operator-based cast as there is no cast happening anyhow, i &#8212; same as g (?);</p>
+<p>2. a creates a vector of type int, size 10, filled with 10 twenties; b creates a vector of type int, size 2, with elements 10 and 20.<br />
+3. The main benefit is a uniform initialization manner for sequences, pairs, tuples and structures (it has its flaws, but still). This can help template programming a lot as it makes types more interchangeable. You can replace a tuple-based proof-of-concept code with a struct-based (giving it names) or class-constructor-based (giving it everything else) in no time if every piece of your initialization is using curly braces only.<br />
+4. As far as I understand it, it is better to initialize objects with {} if you really mean &#8220;take this pile&#8217;o&#8217;data and put it there&#8221; and use () when you create more complex objects whose initialization is not about data, but about more complex things (like vector&#8217;s size-based constructor above). To put it simple, you should use {} to create std::pairs, but it&#8217;s not a good thing to use when initializing your SettingsManagerFactoryVisitor object with it&#8217;s 12 runtime polymorphic Strategy classes.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9858">
+		<div id="div-comment-9858">
+		<div class="cmtinfo"><em> on <a href="#comment-9858" title="">2013-05-06 at 6:08 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f5de40a1513d2e1edaa47aa26703f8ff?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/alexmatto' rel='external nofollow' class='url'>alexmatto</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9858"></div><p>1.a) Creates a widget calling the default constructor<br />
+1.b) A function receiving void and returning a Widget<br />
+1.c) Creates a widget calling the default constructor<br />
+1.d) Creates a widget calling a constructor receiving X<br />
+1.e) Creates a widget calling a constructor with an initializer list parameter<br />
+1.f) Creates a widget calling the copy-assignement constructor<br />
+1.g) Creates a widget calling a constructor with an initializer list parameter<br />
+1.h) Creates a variable of the same type of X, and copy X to it<br />
+1.i) Creates a variable of type Widget and calls the move-assignment constructor with an initializer list parameter</p>
+<p>2.a) Creates a vector with 10 elements, all of value 20<br />
+2.b) Creates a vector with 2 elements, 10 and 20</p>
+<p>3. It&#8217;s uniform, and avoid ambiguities.</p>
+<p>4. When you do not want to use an initializer list constructor. (Like the question 2.a, if you really want to create 10 elements of value 20 then it&#8217;s best to use &#8220;()&#8221; instead of writing ten &#8220;20&#8221; inside bracers)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9857">
+		<div id="div-comment-9857">
+		<div class="cmtinfo"><em> on <a href="#comment-9857" title="">2013-05-06 at 6:04 am</a></em> <img alt='' src='https://i0.wp.com/a0.twimg.com/profile_images/242635332/Klaim_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/MJKlaim' rel='external nofollow' class='url'>Klaim - Joel Lamotte (@MJKlaim)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9857"></div><p>I&#8217;m not an expert but let&#8217;s see if my current knowledge match the standard:</p>
+<p>1)<br />
+a) w is a default-initialized widget;<br />
+b) w is a free function returning a widget;<br />
+c) w is a default-initialized widget;<br />
+d) w is a widget constructed using x, which have to be a compatible type with the constructor argument, with implicit cast allowed;<br />
+e) w is a widget constructed using x, which have to be exactly the type with the constructor argument, with no implicit cast allowed OR if widget have an initializer-list constructor, it will be constructed using it.<br />
+f) w is a widget constructed using x exactly like in d)<br />
+g) this one I&#8217;m not sure, I guess it depends on the available widget constructors. It might be either<br />
+ 1. w is a widget contructed using a constructor taking an initializer list as argument<br />
+ 2. w is a widget contructed using a copy constructor using a temporary widget constructed using x as non-implicitely-cast constructor argument;<br />
+ 3. same as 2. but the compiler is allowed to not construct the temporary, which would make it the same as d)<br />
+h) w is of the same type as x and is constructed by copying x value;<br />
+g) w is a widget constructed by constructor with argument taking exactly the type of x (with no implicit cast allowed);</p>
+<p>Damn I&#8217;m not totally confident in the g) case even if I use it sometime in my current projects.</p>
+<p>2)<br />
+a) v1 is a vector of 10 int all initalized with the value 20;<br />
+b) v2 is a vector of  2 elements: v2[0] == 10 &amp;&amp; v2[0] == 20;</p>
+<p>This is because vector have an initializer-list constructor;</p>
+<p>3) Mainly to force type checking on constructor arguments as no implicit cast is allowed (between float and int for example) using this syntaxe.</p>
+<p>4) If the type don&#8217;t have an initializer-list constructor, then just use {}; otherwise, use {} until you want to call a specific constructor in which case use ();</p>
+<p>I can&#8217;t wait for the answers because the more I think about some cases, the more doubts I&#8217;m getting&#8230;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9856">
+		<div id="div-comment-9856">
+		<div class="cmtinfo"><em> on <a href="#comment-9856" title="">2013-05-06 at 6:03 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9fdfde82947baf080a81ef0db500f2a3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ben Craig</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9856"></div><p>Junior Guru<br />
+1.<br />
+a) initializes widget with the default widget ctor.  If widget is a typedef to something like an int, then widget is unintialized.<br />
+b) This is a function prototype, and is a closs relative of the &#8220;most vexing parse&#8221;.<br />
+c) I think this is the same as a), except if widget is a primitive type.  In that case, widget will be zero initialized.<br />
+d) initializes widget with a one arg constructor taking x.<br />
+e) this could be two different things, depending on widget&#8217;s definition.  It could either be the same as d, or it could use widget&#8217;s initializer list constructor, if it has one.  Even for the &#8220;same as d&#8221; case, you get slightly better behavior in the face of float -&gt; int conversions.<br />
+f) This is copy initialization.  Widget(x) is invoked, and the temporary is moved or copied to the target ( w ).  In release mode, this move / copy is likely elided.<br />
+g) same as e<br />
+h) copy initializes a w, with the same type as x<br />
+i) copy initialization, and w is going to be of type x</p>
+<p>Guru<br />
+2.<br />
+a) Creates a vector of size 10, with each element set to 20<br />
+b) Creates a vector of size 2, with element 0 set to 10 and element 1 set to 20<br />
+3. {} helps in generic code.  {} makes it easier to initialize containers. {} avoids narrowing conversions.  {} ensures that everything gets initialized, even primitives.<br />
+4. Use {} when you can, use () when you must?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9855">
+		<div id="div-comment-9855">
+		<div class="cmtinfo"><em> on <a href="#comment-9855" title="">2013-05-06 at 5:54 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c7ddf245f24e0529a5f87405e349e794?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/alessandrovergani' rel='external nofollow' class='url'>Loghorn</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9855"></div><p>The main difference between (a, b, d, f, h) and (c, e, g, i) is that the former group is supported by Visual Studio and the latter is not.<br />
+I know I&#8217;m trolling a little here, but there is no news since November about a more conforming Visual C++ and it&#8217;s been said to keep knocking until the door opens&#8230; :-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/05/06/gotw-1-variable-initialization-or-is-it-310/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-5343330f3c16a7c708767cc53e92bf27">
+	</div>
+	<div class="grofile-hash-map-c3baf4aa5bebf6d1407ed4e3b0981864">
+	</div>
+	<div class="grofile-hash-map-418a35526fec06e8f35423373b0b6bef">
+	</div>
+	<div class="grofile-hash-map-be74fa535cbfd6ff09375b269d6e2eb2">
+	</div>
+	<div class="grofile-hash-map-b496d1aa1d91d06225f25ec9492974c3">
+	</div>
+	<div class="grofile-hash-map-dcafbba93dc637c513c6cf8ae3d5ea2a">
+	</div>
+	<div class="grofile-hash-map-f1634a09333f7b391db92e1d2bea6253">
+	</div>
+	<div class="grofile-hash-map-dcafbba93dc637c513c6cf8ae3d5ea2a">
+	</div>
+	<div class="grofile-hash-map-1735ab1c8ba4229daa855ec6aad03065">
+	</div>
+	<div class="grofile-hash-map-28fb981f4140586663137d6225e6862f">
+	</div>
+	<div class="grofile-hash-map-3f75c7fe9aa4aeae4b5ab3f4b672be14">
+	</div>
+	<div class="grofile-hash-map-d7aaf766b7091c5583ee189b116ecd6a">
+	</div>
+	<div class="grofile-hash-map-68f403eb5e6fef229e3c19a5d5f7fea6">
+	</div>
+	<div class="grofile-hash-map-c5b07bc797d8141bed5e3eff48c65d1c">
+	</div>
+	<div class="grofile-hash-map-1397eae94e7fe715f040459c988c40b1">
+	</div>
+	<div class="grofile-hash-map-e5198f8a4049584b8c2c41e2d0086770">
+	</div>
+	<div class="grofile-hash-map-a356923f858fbe363dad1dc566837fc6">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-05aa36ab5c7d2c620d27d86415ba2eb7">
+	</div>
+	<div class="grofile-hash-map-20f3a5c1e83e75b2585df9e4dbca0b05">
+	</div>
+	<div class="grofile-hash-map-f5de40a1513d2e1edaa47aa26703f8ff">
+	</div>
+	<div class="grofile-hash-map-2d62de19319092e658a1b403adc6b03d">
+	</div>
+	<div class="grofile-hash-map-9fdfde82947baf080a81ef0db500f2a3">
+	</div>
+	<div class="grofile-hash-map-c7ddf245f24e0529a5f87405e349e794">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_10101={"id":468178,"unique_id":"wp-comment-10101","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20GotW%20%231%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-10101","item_id":"_comm_10101"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10101 == 'undefined' ){PDRTJS_468178_comm_10101 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10101 );}}PDRTJS_settings_468178_comm_9906={"id":468178,"unique_id":"wp-comment-9906","title":"%40bittermanandy%20Thanks%20for%20the%20clarification.%20Now%20that%20I%20typed%20your%20%40handle%20to%20start%20a%20response%2C%20I%20can%20see%20you%20probably%20chose%20that%20name%20to%20match%20your%20sentiment%3F%20I%20get%20the%20impression%20that%20you%20are%20b...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9906","item_id":"_comm_9906"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9906 == 'undefined' ){PDRTJS_468178_comm_9906 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9906 );}}PDRTJS_settings_468178_comm_9889={"id":468178,"unique_id":"wp-comment-9889","title":"%40bames53%3A%20This%20is%20in%20fact%20a%20very%20good%20observation.%20Constructors%20that%20just%20take%20some%20%28random%29%20parameters%20are%20typically%20confusing.%20%26%23091%3Bcode%26%23093%3Bvector%26lt%3Bstring%26gt%3B%20v%2810%29%3B%20%26%23091%3B%2Fcode%26%23093%3BWhat%20does%20it%20mean%3F%20Set%20ca...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9889","item_id":"_comm_9889"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9889 == 'undefined' ){PDRTJS_468178_comm_9889 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9889 );}}PDRTJS_settings_468178_comm_9885={"id":468178,"unique_id":"wp-comment-9885","title":"My%20bad.%20In%20first%20example%2C%20always%20a%20default%20constructor%20is%20chosen.%20It%20actually%20should%20beWidget%20w%7B%7D%3BandWidget%20w%7B%7B%7D%7D%3BThat%20is%2C%20there%20should%20be%20no%20difference%20between%20initializing%20with%20empty%20initialize...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9885","item_id":"_comm_9885"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9885 == 'undefined' ){PDRTJS_468178_comm_9885 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9885 );}}PDRTJS_settings_468178_comm_9884={"id":468178,"unique_id":"wp-comment-9884","title":"My%20take%20on%204.In%20the%20presence%20of%20initializer-list%20constructor%20and%20default%20constructor%20an%20author%20of%20a%20class%20should%20care%20that%20Widget%20w%3B%20andWidget%20w%7B%7D%3Bare%20doing%20essentially%20the%20same%20thing.%20Moreover%2C%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9884","item_id":"_comm_9884"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9884 == 'undefined' ){PDRTJS_468178_comm_9884 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9884 );}}PDRTJS_settings_468178_comm_9882={"id":468178,"unique_id":"wp-comment-9882","title":"%28a%29%20widget%20w%3B%20If%20w%20is%20of%20static%20or%20thread_local%20storage%20duration%2C%20it%20is%20zero-initialized.%20Otherwise%2C%20it%20is%20default-initialized.%28b%29%20widget%20w%28%29%3BThis%20is%20a%20function%20declaration.%28c%29%20widget%20w%7B%7D%3Bw%20is%20di...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9882","item_id":"_comm_9882"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9882 == 'undefined' ){PDRTJS_468178_comm_9882 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9882 );}}PDRTJS_settings_468178_comm_9881={"id":468178,"unique_id":"wp-comment-9881","title":"Ok%2C%20let%26%23039%3Bs%20play%3A1.%20%28a%29%20and%20%28c%29%20create%20an%20object%20of%20type%20widget%20and%20assign%20it%20to%20variable%20w%20calling%20the%20default%20constructor.%20%28b%29%20declares%20a%20function%20of%20name%20w%20which%20returns%20a%20widget%20and%20takes%20no%20pa...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9881","item_id":"_comm_9881"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9881 == 'undefined' ){PDRTJS_468178_comm_9881 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9881 );}}PDRTJS_settings_468178_comm_9880={"id":468178,"unique_id":"wp-comment-9880","title":"sehe%3A%20yes%2C%20I%20realise%20the%20C%2B%2B%20standards%20committee%20is%20balancing%20a%20lot%20of%20different%20things%3B%20and%20I%20realise%20other%20languages%20are%20an%20option.%20The%20point%20is%2C%20people%20%2Aare%20taking%2A%20the%20other%20option.%20In%20droves...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9880","item_id":"_comm_9880"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9880 == 'undefined' ){PDRTJS_468178_comm_9880 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9880 );}}PDRTJS_settings_468178_comm_9879={"id":468178,"unique_id":"wp-comment-9879","title":"%40bittermanandy%20welcome%20to%20c%2B%2B.%20Similarity%20to%20any%20language%20other%20than%20C%20is%20not%20a%20driving%20design%20force.%20Rather%2C%20it%20is%20the%20other%20way%20around%20%28referring%20to%20the%20C%23%20case.%20%3A%3Aglobal%20anyone%3F%29Another%20key%20dr...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9879","item_id":"_comm_9879"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9879 == 'undefined' ){PDRTJS_468178_comm_9879 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9879 );}}PDRTJS_settings_468178_comm_9878={"id":468178,"unique_id":"wp-comment-9878","title":"%26gt%3B%20Consistency%20with%20other%20languages%20would%20be%20nice%20too.%20Why%20auto%20and%20not%20var%2C%20for%20example%3FI%20don%26%23039%3Bt%20see%20any%20reason%20to%20be%20consistent%20with%20%26quot%3Bother%20languages%26quot%3B%20-%20especially%20when%20you%26%23039%3Bll%20have%20a%20hard%20time...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9878","item_id":"_comm_9878"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9878 == 'undefined' ){PDRTJS_468178_comm_9878 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9878 );}}PDRTJS_settings_468178_comm_9877={"id":468178,"unique_id":"wp-comment-9877","title":"One%20thing%20that%20nobody%20has%20pointed%20out%20yet%20is%20the%20difference%20between%201e%20and%201g.%20Specifically%2C%20the%20former%20is%20direct-list-initialization%2C%20while%20the%20latter%20is%20copy-list-initialization.%20The%20difference...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9877","item_id":"_comm_9877"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9877 == 'undefined' ){PDRTJS_468178_comm_9877 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9877 );}}PDRTJS_settings_468178_comm_9874={"id":468178,"unique_id":"wp-comment-9874","title":"I%20started%20answering%20these%20fairly%20confidently%2C%20then%20I%20assumed%20that%20the%20difference%20between%20%28%29%20and%20%7B%7D%20was%20broadly%20the%20same%20as%20in%20C%23%2C%20and%20I%20realise%20I%26%23039%3Bm%20not%20actually%20sure%20that%26%23039%3Bs%20the%20case.%20With%20that%20in...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9874","item_id":"_comm_9874"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9874 == 'undefined' ){PDRTJS_468178_comm_9874 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9874 );}}PDRTJS_settings_468178_comm_9873={"id":468178,"unique_id":"wp-comment-9873","title":"Concerning%20the%20first%20question%2C%20besides%20what%20already%20applied%20in%20C%2B%2B03%2C%20the%20main%20subtlety%20is%20brace%20or%20%26quot%3Buniform%26quot%3B%20initialization.%20What%20happens%20in%20all%20cases%20of%20w%7B....%7D%20depends%20on%20whether%20widget%20had%20an...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9873","item_id":"_comm_9873"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9873 == 'undefined' ){PDRTJS_468178_comm_9873 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9873 );}}PDRTJS_settings_468178_comm_9872={"id":468178,"unique_id":"wp-comment-9872","title":"%40Chris%20Chiesa%3A%20The%20%2Aauto%2A%20keyword%20is%20part%20of%20the%20C%2B%2B11%20standard%2C%20whitch%20brings%20lots%20of%20new%20features%2C%20you%20should%20have%20look%20at%20it%2C%20it%26%23039%3Bs%20been%20in%20use%20since%20nov%202011.%20You%20can%20find%20more%20infos%20on%20http%3A%2F...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9872","item_id":"_comm_9872"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9872 == 'undefined' ){PDRTJS_468178_comm_9872 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9872 );}}PDRTJS_settings_468178_comm_9871={"id":468178,"unique_id":"wp-comment-9871","title":"Interesting.%20%20When%20I%20click%20the%20%26quot%3Bcomment%26quot%3B%20link%2C%20I%20am%20taken%20to%20a%20snarky%20version%20of%20a%20404%20page%2C%20that%20asks%20%26quot%3BWhere%20did%20you%20get%20such%20a%20link%3F%26quot%3B%20%20Got%20it%20from%20yer%20own%20danged%20email%2C%20is%20where%2C%20just%20this%20morn...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9871","item_id":"_comm_9871"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9871 == 'undefined' ){PDRTJS_468178_comm_9871 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9871 );}}PDRTJS_settings_468178_comm_9870={"id":468178,"unique_id":"wp-comment-9870","title":"%40Loghorn%3A%20I%20just%20spat%20my%20coffee%20over%20my%20desk%21%20lol...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9870","item_id":"_comm_9870"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9870 == 'undefined' ){PDRTJS_468178_comm_9870 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9870 );}}PDRTJS_settings_468178_comm_9868={"id":468178,"unique_id":"wp-comment-9868","title":"Having%20thought%20it%20through%2C%20my%20comment%20has%20at%20least%20two%20obvious%20mistakes.b%20is%20illegal%20altogether%20because%20of%20this%20kind%20of%20syntax%20being%20a%20function%20declaration%20returning%20widget.%20It%20makes%20me%20cry%20every...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9868","item_id":"_comm_9868"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9868 == 'undefined' ){PDRTJS_468178_comm_9868 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9868 );}}PDRTJS_settings_468178_comm_9867={"id":468178,"unique_id":"wp-comment-9867","title":"Widget%20x%20%3D%20y%3B%20%2F%2F%20if%20Widget%20has%20a%20constructor%20that%20takes%20decltype%28%20y%20%29%2C%20the%20compiler%20will%20optimize%20to%20call%20that%20instead%20of%20op%3D%28%29...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9867","item_id":"_comm_9867"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9867 == 'undefined' ){PDRTJS_468178_comm_9867 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9867 );}}PDRTJS_settings_468178_comm_9866={"id":468178,"unique_id":"wp-comment-9866","title":"%40MichalMocnyI%20think%20this%20would%20have%20been%20very%20bad.%20%26%23039%3Ba%26%23039%3B%20should%20be%20the%20same%20as%20%26%23039%3Bc%26%23039%3B%2C%20should%20be%20the%20same%20as%20%26%23039%3Bd%26%23039%3B.%20And%20I%20don%26%23039%3Bt%20want%20to%20see%20%26%23039%3Bb%26%23039%3B.%20The%20non-uniformity%20imposed%20by%20having%20%7B%7D%20prefer%20initialize...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9866","item_id":"_comm_9866"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9866 == 'undefined' ){PDRTJS_468178_comm_9866 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9866 );}}PDRTJS_settings_468178_comm_9865={"id":468178,"unique_id":"wp-comment-9865","title":"I%20just%20want%20to%20make%20an%20addition%20for%20question%203.%20As%20far%20as%20I%20know%2C%20for%20incoming%20C%2B%2B14%20there%20is%20a%20use%20for%20%7B%7D%20%26quot%3Blambda%20capture%20by%20move%26quot%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9865","item_id":"_comm_9865"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9865 == 'undefined' ){PDRTJS_468178_comm_9865 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9865 );}}PDRTJS_settings_468178_comm_9864={"id":468178,"unique_id":"wp-comment-9864","title":"1%29%20These%20are%20pretty%20easy.%20Let%20%60X%60%20be%20whatever%20type%20%60x%60%20is.a%29%20default%20constructs%20%60w%60%20via%20default%20initialization.%20The%20contents%20of%20%60widget%60%20will%20be%20default-initialized%20if%20%60widget%60%20does%20not%20have%20a%20us...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9864","item_id":"_comm_9864"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9864 == 'undefined' ){PDRTJS_468178_comm_9864 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9864 );}}PDRTJS_settings_468178_comm_9862={"id":468178,"unique_id":"wp-comment-9862","title":"%40Loghorn%3A%20%3A%29%20All%20but%20%28i%29%20work%20on%20http%3A%2F%2Frise4fun.com%2Fvcpp%20.%20As%20promised%20in%20November%2C%20more%20info%20coming%20in%20the%20first%20half%20of%202013%20%28i.e.%2C%20no%20later%20than%20end%20of%20next%20month%29....","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9862","item_id":"_comm_9862"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9862 == 'undefined' ){PDRTJS_468178_comm_9862 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9862 );}}PDRTJS_settings_468178_comm_9861={"id":468178,"unique_id":"wp-comment-9861","title":"Brace%20initialization%20binding%20tighter%20to%20initializer_list%20initialization%20is%2C%20I%20consider%2C%20an%20unfortunate%20language%20wart.%20%20%28Please%20do%20correct%20me%20if%20I%20am%20mistaken.%29Specifically%2C%20looking%20at%20Guru%20Questi...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9861","item_id":"_comm_9861"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9861 == 'undefined' ){PDRTJS_468178_comm_9861 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9861 );}}PDRTJS_settings_468178_comm_9860={"id":468178,"unique_id":"wp-comment-9860","title":"Just%20an%20on-the-spot%20non-pro%20opinion%3A1.%20%2A%20a%2Cb%2Cc%20---%20no%20real%20difference%3B%2A%20d%2C%20e%20---%20no%20real%20difference%2C%20but%3A%20%20%2A%20if%20widget%20is%20a%20struct%20%28or%20a%20class%20with%20public%20fields%29%2C%20e%20can%20initialize%20its%20fields%20dir...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9860","item_id":"_comm_9860"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9860 == 'undefined' ){PDRTJS_468178_comm_9860 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9860 );}}PDRTJS_settings_468178_comm_9858={"id":468178,"unique_id":"wp-comment-9858","title":"1.a%29%20Creates%20a%20widget%20calling%20the%20default%20constructor1.b%29%20A%20function%20receiving%20void%20and%20returning%20a%20Widget1.c%29%20Creates%20a%20widget%20calling%20the%20default%20constructor1.d%29%20Creates%20a%20widget%20calling%20a%20cons...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9858","item_id":"_comm_9858"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9858 == 'undefined' ){PDRTJS_468178_comm_9858 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9858 );}}PDRTJS_settings_468178_comm_9857={"id":468178,"unique_id":"wp-comment-9857","title":"I%26%23039%3Bm%20not%20an%20expert%20but%20let%26%23039%3Bs%20see%20if%20my%20current%20knowledge%20match%20the%20standard%3A1%29a%29%20w%20is%20a%20default-initialized%20widget%3Bb%29%20w%20is%20a%20free%20function%20returning%20a%20widget%3Bc%29%20w%20is%20a%20default-initialized%20widget%3Bd...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9857","item_id":"_comm_9857"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9857 == 'undefined' ){PDRTJS_468178_comm_9857 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9857 );}}PDRTJS_settings_468178_comm_9856={"id":468178,"unique_id":"wp-comment-9856","title":"Junior%20Guru1.a%29%20initializes%20widget%20with%20the%20default%20widget%20ctor.%20%20If%20widget%20is%20a%20typedef%20to%20something%20like%20an%20int%2C%20then%20widget%20is%20unintialized.b%29%20This%20is%20a%20function%20prototype%2C%20and%20is%20a%20closs%20rela...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9856","item_id":"_comm_9856"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9856 == 'undefined' ){PDRTJS_468178_comm_9856 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9856 );}}PDRTJS_settings_468178_comm_9855={"id":468178,"unique_id":"wp-comment-9855","title":"The%20main%20difference%20between%20%28a%2C%20b%2C%20d%2C%20f%2C%20h%29%20and%20%28c%2C%20e%2C%20g%2C%20i%29%20is%20that%20the%20former%20group%20is%20supported%20by%20Visual%20Studio%20and%20the%20latter%20is%20not.I%20know%20I%26%23039%3Bm%20trolling%20a%20little%20here%2C%20but%20there%20is%20no%20news%20s...","permalink":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/#comment-9855","item_id":"_comm_9855"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9855 == 'undefined' ){PDRTJS_468178_comm_9855 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9855 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F06%2Fgotw-1-variable-initialization-or-is-it-310%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/05\/06\/gotw-1-variable-initialization-or-is-it-310\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F05%2F06%2Fgotw-1-variable-initialization-or-is-it-310%2F","postID":"1828","shortlink":"https:\/\/wp.me\/peb5Y-tu","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/1828","statsLink":"https:\/\/wordpress.com\/stats\/post\/1828\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F06%2Fgotw-1-variable-initialization-or-is-it-310%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'1828','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLk9bVFdQUTZueWpTWF9xeWZyOV9iRS9FUUV1SmZSaV9VNDlkOHNVLEpvUVd2TGRqamlTXXVXJl9ZYVNIbm0sMkRBQXZIPUVEWWlZczdMVSUxN19CQ0lJOUJmMk1sSXBdK1gvby1rW0MzN1ZyRD1yMCUxMU9IQiVDTUJ4dzlKX1sxR0lJNW04SlBrPV1kcFMrRmZmTTFoMlJtYlNIQ2w4M3hQTDVLdWVReE81aThiYlFkcTJCXXV0anREVlR0JixHQX4uSW5S'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '1828' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

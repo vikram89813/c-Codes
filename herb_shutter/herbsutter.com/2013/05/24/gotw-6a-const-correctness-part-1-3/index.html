@@ -1,0 +1,756 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #6a Solution: Const-Correctness, Part 1 | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965312&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F24%2Fgotw-6a-const-correctness-part-1-3%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #6a Solution: Const-Correctness, Part&nbsp;1 Comments Feed" href="https://herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #6a: Const-Correctness, Part&nbsp;1' href='https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/' />
+<link rel='next' title='GotW #6b: Const-Correctness, Part&nbsp;2' href='https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-wg' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F24%2Fgotw-6a-const-correctness-part-1-3%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F24%2Fgotw-6a-const-correctness-part-1-3%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #6a Solution: Const-Correctness, Part 1" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/" />
+<meta property="og:description" content="const and mutable have been in C++ for many years. How well do you know what they mean today? Problem JG Question 1. What is a &#8220;shared variable&#8221;? Guru Questions 2. What do const and mut…" />
+<meta property="article:published_time" content="2013-05-24T15:40:37+00:00" />
+<meta property="article:modified_time" content="2013-05-26T17:38:32+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965312" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #6a Solution: Const-Correctness, Part&nbsp;1" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="const and mutable have been in C++ for many years. How well do you know what they mean today? Problem JG Question 1. What is a &quot;shared variable&quot;? Guru Questions 2. What do const and mutable mean on shared variables? 3. How are const and mutable different in C++98 and C++11? Solution 1. What is&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2000 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/" rel="prev">GotW #6a: Const-Correctness, Part&nbsp;1</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/" rel="next">GotW #6b: Const-Correctness, Part&nbsp;2</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2000 post type-post status-publish format-standard hentry category-gotw" id="post-2000">
+				<div class="posttitle">
+					<h2>GotW #6a Solution: Const-Correctness, Part&nbsp;1</h2>
+					<p class="post-info">2013-05-24 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>const and mutable have been in C++ for many years. How well do you know what they mean today?<br />
+</em></span></p>
+<h1>Problem</h1>
+<h2>JG Question</h2>
+<p>1. What is a &#8220;shared variable&#8221;?</p>
+<h2>Guru Questions</h2>
+<p>2. What do <span style="color:#2e74b5;">const</span> and <span style="color:#2e74b5;">mutable</span> mean on shared variables?</p>
+<p>3. How are <span style="color:#2e74b5;">const</span> and <span style="color:#2e74b5;">mutable</span> different in C++98 and C++11?</p>
+<h1>Solution</h1>
+<h2>1. What is a &#8220;shared variable&#8221;?</h2>
+<p>A &#8220;shared variable&#8221; is one that could be accessed from more than one thread at the same time.</p>
+<p>This concept is important in the C++ memory model. For example, the C++ memory model (the core of which is described in ISO C++ §1.10) prohibits the invention of a write to a &#8220;potentially shared memory location&#8221; that would not have been written to in a sequentially consistent execution of the program, and the C++ standard library refers to this section when it prohibits &#8220;modify[ing] objects accessible by [other] threads&#8221; through a <span style="color:#2e74b5;">const</span> function, as we will see in #2.</p>
+<h2>2. What do const and mutable mean on shared variables?</h2>
+<p>Starting with C++11, <span style="color:#2e74b5;">const</span> on a variable that is possibly shared means &#8220;read-only or as good as read-only&#8221; for the purposes of concurrency. Concurrent <span style="color:#2e74b5;">const</span> operations on the same object are required to be safe without the calling code doing external synchronization.</p>
+<p>If you are implementing a type, unless you know objects of the type can never be shared (which is generally impossible), this means that each of your <span style="color:#2e74b5;">const</span> member functions must be either:</p>
+<ul>
+<li>truly physically/bitwise <span style="color:#2e74b5;">const</span> with respect to this object, meaning that they perform no writes to the object&#8217;s data; or else</li>
+<li>internally synchronized so that if it does perform any actual writes to the object&#8217;s data, that data is correctly protected with a mutex or equivalent (or if appropriate are <span style="color:#2e74b5;">atomic&lt;&gt;</span>) so that any possible concurrent <span style="color:#2e74b5;">const</span> accesses by multiple callers can&#8217;t tell the difference.</li>
+</ul>
+<p>Types that do not respect this cannot be used with the standard library, which requires that:</p>
+<blockquote><p>&#8220;… to prevent data races (1.10). … [a] C++ standard library function shall not directly or indirectly modify objects (1.10) accessible by threads other than the current thread unless the objects are accessed directly or indirectly via the function&#8217;s non-<strong>const</strong> arguments, including <strong>this</strong>.&#8221;—ISO C++ §17.6.5.9</p></blockquote>
+<p>Similarly, writing <span style="color:#2e74b5;">mutable</span> on a member variable means what it has always meant: The variable is &#8220;writable but logically <span style="color:#2e74b5;">const</span>.&#8221; Note what this implies:</p>
+<ul>
+<li>The &#8220;logically <span style="color:#2e74b5;">const</span>&#8221; part now means &#8220;can be used safely by multiple concurrent <span style="color:#2e74b5;">const</span> operations.&#8221;</li>
+<li>The &#8220;<span style="color:#2e74b5;">mutable</span>&#8221; and &#8220;writable&#8221; part further means that some <span style="color:#2e74b5;">const</span> operations may actually be writers of the shared variable, which means it&#8217;s inherently got to be correct to read and write concurrently, so it should be protected with a mutex or similar, or made <span style="color:#2e74b5;">atomic&lt;&gt;</span>.</li>
+</ul>
+<p>In general, remember:</p>
+<blockquote><p><strong>Guideline:</strong> Remember the &#8220;M&amp;M rule&#8221;: For a member variable, <strong>mutable</strong> and <strong>mutex</strong> (or <strong>atomic)</strong> go together.</p></blockquote>
+<p>This applies in both directions, to wit:</p>
+<blockquote><p><strong>(1) For a member variable, mutable implies mutex (or equivalent):</strong> A <strong>mutable</strong> member variable is presumed to be a mutable shared variable and so must be synchronized internally—protected with a <strong>mutex,</strong> made <strong>atomic,</strong> or similar.</p></blockquote>
+<blockquote><p><strong>(2) For a member variable, mutex (or similar synchronization type) implies mutable<span style="color:#2e74b5;">:</span></strong> A member variable that is itself of a synchronization type, such as a <strong>mutex</strong> or a condition variable, naturally wants to be <strong>mutable,</strong> because you will want to use it in a non-<strong>const</strong> way (e.g., take a <strong>std::lock_guard&lt;mutex&gt;</strong>) inside concurrent <strong>const</strong> member functions.</p></blockquote>
+<p>We&#8217;ll see an example of (2) in Part 2, GotW #6b.</p>
+<h2>3. How are const and mutable different in C++98 and C++11?</h2>
+<p>First, let&#8217;s be clear: C++98 single-threaded code still works. C++11 has excellent C++98 compatibility, and even though the meaning of <span style="color:#2e74b5;">const</span> has evolved, C++98 single-threaded code that uses the old &#8220;logically <span style="color:#2e74b5;">const</span>&#8221; meaning of <span style="color:#2e74b5;">const</span> is still valid.</p>
+<p>With C++98, we taught a generation of C++ developers that &#8220;<span style="color:#2e74b5;">const</span> means logically <span style="color:#2e74b5;">const</span>, not physically/bitwise <span style="color:#2e74b5;">const</span>.&#8221; That is, in C++98 we taught that <span style="color:#2e74b5;">const</span> meant only that the observable state of the object (say, via its non-private member functions) should not change as far as the caller could tell, but its internal bits might change in order to update counters and instrumentation and other data not accessible via the type&#8217;s public or protected interface.</p>
+<p>That definition is not sufficient for concurrency. With C++11 and onward, which now includes a concurrency memory model and thread safety specification for the standard library, this is now much simpler: <span style="color:#2e74b5;">const</span> now really does mean &#8220;read-only, or safe to read concurrently&#8221;—either truly physically/bitwise <span style="color:#2e74b5;">const</span>, or internally synchronized so that any actual writes are synchronized with any possible concurrent <span style="color:#2e74b5;">const</span> accesses so the callers can&#8217;t tell the difference.</p>
+<p>Although existing C++98-era types still work just fine in C++98-era single-threaded code for compatibility, those types and any new ones you write today should obey the new stricter requirement if they could be used on multiple threads. The good news is that most existing types already followed that rule, and code that relies on casting away <span style="color:#2e74b5;">const</span> and/or using <span style="color:#2e74b5;">mutable</span> data members in single-threaded code has already been generally questionable and relatively rare.</p>
+<h2>Summary</h2>
+<p>Don&#8217;t shoot yourself (or your fellow programmers) in the foot. Write <span style="color:#2e74b5;">const</span>-correct code.</p>
+<p>Using <span style="color:#2e74b5;">const</span> consistently is simply necessary for correctly-synchronized code. That by itself is ample reason to be consistently <span style="color:#2e74b5;">const</span>-correct, but there&#8217;s more: It lets you document interfaces and invariants far more effectively than any mere <span style="color:#2e74b5;">/* I promise not to change this */</span> comment can accomplish. It&#8217;s a powerful part of &#8220;design by contract.&#8221; It helps the compiler to stop you from accidentally writing bad code. It can even help the compiler generate tighter, faster, smaller code. That being the case, there&#8217;s no reason why you shouldn&#8217;t use it as much as possible, and every reason why you should.</p>
+<p>Remember that the correct use of <span style="color:#2e74b5;">mutable</span> is a key part of <span style="color:#2e74b5;">const</span>-correctness. If your class contains a member that could change even for <span style="color:#2e74b5;">const</span> objects and operations, make that member <span style="color:#2e74b5;">mutable</span> and protect it with a mutex or make it <span style="color:#2e74b5;">atomic</span>. That way, you will be able to write your class&#8217; <span style="color:#2e74b5;">const</span> member functions easily and correctly, and users of your class will be able to correctly create and use <span style="color:#2e74b5;">const</span> and non-<span style="color:#2e74b5;">const</span> objects of your class&#8217; type.</p>
+<p>It&#8217;s true that not all commercial libraries&#8217; interfaces are <span style="color:#2e74b5;">const</span>-correct. That isn&#8217;t an excuse for you to write <span style="color:#2e74b5;">const</span>-incorrect code, though. It is, however, one of the few good excuses to write <span style="color:#2e74b5;">const_cast</span>, plus a detailed comment nearby grumbling about the library vendor&#8217;s laziness and how you&#8217;re looking for a replacement product.</p>
+<h2>Acknowledgments</h2>
+<p>Thanks in particular to the following for their feedback to improve this article: mttpd, jlehrer, Chris Vine.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											15 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">15 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="pingback even thread-even depth-1 highlander-comment" id="comment-27936">
+		<div id="div-comment-27936">
+		<div class="cmtinfo"><em> on <a href="#comment-27936" title="">2014-09-24 at 7:10 am</a></em>  <cite><a href='http://componentsprogramming.wordpress.com/2014/09/24/writing-min-function-part-4-const-correctness/' rel='external nofollow' class='url'>Writing min function, part 4: Const-Correctness | Components Programming</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_27936"></div><p>[&#8230;] The &#8220;Guru of the Week&#8221; (GotW) articles about Const-Correctness (the original and the new one), from Herb Sutter: <a href="http://www.gotw.ca/gotw/006.htm" rel="nofollow">http://www.gotw.ca/gotw/006.htm</a> <a href="https://herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/" rel="nofollow">https://herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/</a> [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12022">
+		<div id="div-comment-12022">
+		<div class="cmtinfo"><em> on <a href="#comment-12022" title="">2013-07-22 at 7:02 am</a></em>  <cite><a href='http://www.blogosfera.co.uk/2013/07/c-const-correctness-with-volatile-and-external-datat-acess/' rel='external nofollow' class='url'>C++ Const-correctness with volatile and external datat acess | BlogoSfera</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12022"></div><p>[&#8230;] method const for the reason stated in the question. This is especially true after stumbling upon this GotW article, which states that the meaning of const is changing to mean &#8220;able to read [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10646">
+		<div id="div-comment-10646">
+		<div class="cmtinfo"><em> on <a href="#comment-10646" title="">2013-05-29 at 9:34 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0ab2215dee671a9a27eb8b7d5a669094?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>artur</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10646"></div><p>gcc 4.8 -std=gnu++11</p>
+<p><a href="http://en.cppreference.com/w/cpp/locale/locale" rel="nofollow">http://en.cppreference.com/w/cpp/locale/locale</a><br />
+static const locale &amp; classic();</p>
+<p>std::isdigit( jakis_znak, std::locale::classic() );</p>
+<p>valgrind:<br />
+Possible data race during write of size 8 at 0xB9B9E20 by thread #5<br />
+==62666== Locks held: none<br />
+==62666==    at 0xB921980: std::locale::locale(std::locale::_Impl*) (in<br />
+/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.18)<br />
+==62666==    by 0xB923E4E: std::locale::classic() (in<br />
+/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.18)</p>
+<p>==62666== This conflicts with a previous write of size 8 by thread #3<br />
+==62666== Locks held: none<br />
+==62666==    at 0xB921980: std::locale::locale(std::locale::_Impl*) (in<br />
+/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.18)<br />
+==62666==    by 0xB923E4E: std::locale::classic() (in<br />
+/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.18)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10537">
+		<div id="div-comment-10537">
+		<div class="cmtinfo"><em> on <a href="#comment-10537" title="">2013-05-28 at 1:04 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/524b319f6936c338e663325a2d965b71?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alexander Kramer</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10537"></div><p>If const is not bitwise const anymore why not give it some new meaning, e.g. &#8220;CONSistenT&#8221; in terms of safe to be called from multiple threads.<br />
+Then our compiler will check for us whether we mixiung up thread safe and not thread safe methods.</p>
+<p>Below is an example of using Lock class (based on pthread mutex), class SafeData which uses lock for implement thread safe access to some data and class UseSafeData which shows possible usage of SafeData. </p>
+<p>At the first glance making all methods const seems ridiculous, but the benefit is that compiler will disallow calls of unsafe methods from safe methods.<br />
+The guidelines here are slightly different from above:</p>
+<p>* all thread safe methods and members are defined using &#8220;const&#8221;<br />
+* define members which are not thread safe and must be synchronized as &#8220;mutable&#8221; </p>
+<p>This implies that synchronization primitives (locks, critical sections, &#8230;) are themselves thread safe and should provide &#8220;const&#8221; interface. For Lock class below methods lock() and unlock() are const. They also should be declared as const in other classes to restrict the usage to thread safe methods. </p>
+<p>The class SafeData provides two methods for data manipulation, one is thread safe and one is not: setDataSafe() and setData(). </p>
+<p>The class UseSafeData has two instances of SafeData and again two methods useSafe() and useUnsafe() (first is meant to be thread safe, second not).<br />
+Now the compiler will check for incorrect using of SafeData&#8217;s unsafe methods inside useSafe() method thus preventing us from accidently calling not thread safe method from a thread safe one. (See content of methods useSafe() and useUnsafe() ).</p>
+<p>What do You think about this approach? Are there any pitfalls with new C++11?</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+#include &lt;pthread.h&gt;
+
+/// Basic locking class
+/// const=thread safe
+class Lock
+{
+protected:	
+	mutable pthread_mutex_t mutex;	///&lt; pthread mutex must be mutable
+public :
+	
+	Lock()
+	{
+		 pthread_mutex_init(&amp;mutex, NULL);
+	}
+	virtual ~Lock()
+	{
+		pthread_mutex_destroy(&amp;mutex);
+	}
+	
+	/// this method is thread safe and thus const
+	void lock() const
+	{
+		 pthread_mutex_lock(&amp;mutex);
+	}
+	
+	/// this method is thread safe and thus const
+	void unlock() const
+	{
+		 pthread_mutex_unlock(&amp;mutex);
+	}
+};
+
+/// Example of class which is used in multi-threading context and has some non atomic data which requires locking.
+/// const = thread safe
+class  SafeData
+{
+	const Lock lock; ///&lt; const will restrict interface of Lock to const methods 
+	
+	mutable int dataA; ///&lt; members which want to be protected by locks. Must be mutable.
+	mutable int dataB; 
+public:
+
+	/// this method is thread safe (is const)
+	void setDataSafe(int d) const
+	{
+		lock.lock();
+		printf(&quot;setDataSafe(%d) const\n&quot;,d);
+		dataA = d;
+		dataB = d*d;
+		lock.unlock();
+	}
+	
+	/// this method is not thread safe 
+	void setData(int d)
+	{
+		printf(&quot;setData(%d)\n&quot;,d);
+		dataA = d;
+		dataB = d*d;
+	}
+};
+
+
+/// This class is also used by multiple threads and is using other thread-safe classes
+/// const = thread safe
+class UseSafeData
+{
+	
+	/// Const will restrict interface to safe methods
+	const SafeData dataConst;
+	
+	/// Non-const will allow unsafe methods to be called from unsafe methods only
+	SafeData data;
+	
+public:
+
+	/// thread safe method (has const)
+	void useSafe() const
+	{
+		// following two lines are OK: calling safe methods from safe methods.
+		dataConst.setDataSafe(1);
+		data.setDataSafe(2);
+		
+		// following will be prevented by compiler
+		// dataConst.setData(3);
+		
+		// following will be prevented by compiler because we are trying to call unsafe method from safe method.
+		// data.setData(4);
+	}
+	
+	/// not thread safe method (has no const)
+	void useUnsafe()
+	{
+		
+		dataConst.setDataSafe(5);
+		data.setDataSafe(6);
+		
+		// following will be prevented by compiler because we declared dataConst as const thus restricting usage to safe methods
+		// dataConst.setData(7);
+
+		// this is allowed because we are not in safe method and data's interface allows unsafe calles
+		data.setData(8);		
+
+	}
+
+};
+
+
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-10536">
+		<div id="div-comment-10536">
+		<div class="cmtinfo"><em> on <a href="#comment-10536" title="">2013-05-27 at 11:49 pm</a></em>  <cite><a href='http://musingstudio.com/2013/05/28/herb-sutter-gotw6-const-and-mutable/' rel='external nofollow' class='url'>Herb Sutter GotW6: Const and Mutable | musingstudio</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10536"></div><p>[&#8230;] This item covers ground Herb already presented in this video. He recommends that const member functions must be one of: [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10448">
+		<div id="div-comment-10448">
+		<div class="cmtinfo"><em> on <a href="#comment-10448" title="">2013-05-25 at 11:29 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/64abcdfeac5d480fd1f58a7901ad26ee?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Michael Marcin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10448"></div><p>&#8220;Concurrent const operations on the same object are required to be safe without the calling code doing external synchronization.&#8221;</p>
+<p>This is the sentence that was missing from the original you don&#8217;t know const and mutable video/discussion.<br />
+Everything makes sense now and this is a great feature of const.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10438">
+		<div id="div-comment-10438">
+		<div class="cmtinfo"><em> on <a href="#comment-10438" title="">2013-05-25 at 2:47 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10438"></div><p>@Chris: Thanks. I figured that was implicit, but it can&#8217;t hurt to be explicit. I&#8217;ve rewritten the first part of #2 to make this clearer (I hope).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10418">
+		<div id="div-comment-10418">
+		<div class="cmtinfo"><em> on <a href="#comment-10418" title="">2013-05-24 at 2:32 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/56eb8367539a955ed8433201230eb28d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Chris Vine</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10418"></div><p>&#8220;Starting with C++11, const on a variable that is possibly shared means read-only, safe to read concurrently without external synchronization.&#8221;</p>
+<p>This is only true if no threads have access to the shared object in a non-const context.  If a non-const shared object is passed to a library function by reference to const, without synchronization that function&#8217;s read on the object is not safe if  another thread might modify it.</p>
+<p>What I think this should say is that &#8220;const means read-only, and safe to read concurrently without external synchronization if no other thread has write access to the shared object concerned in a non-const context&#8221;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10415">
+		<div id="div-comment-10415">
+		<div class="cmtinfo"><em> on <a href="#comment-10415" title="">2013-05-24 at 11:56 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/72ff40f6f7ceeb6fa1adb984b1385c6c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Matthew Fioravante</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10415"></div><p>Suppose you have a container like std::map and you want to populate it once at startup and then have multiple threads do lookups later.</p>
+<p>This is easy enough to accomplish with the new definition of const. Just create the map, add stuff to it, start your threads, and then expose only a const reference to it to the threads. Since the threads only use const methods, the lookups are guaranteed to be thread safe without requiring the callers to use mutexes or any other external synchronization. One could imagine an implementation of std::map possibly moving nodes around the tree during lookup as an optimization. With const, this behavior would either be prohibitied or would have to be internally synchronized.</p>
+<p>But what if you want the threads to be able to modify the widgets? Assuming the widgets modify operations themselves are properly synchronized in some other way, this is perfectly safe as the internal operations of the std::map (or any other key/value mapping data structure) depends only on the keys, not the values.</p>
+<p>Unfortunately the const version of find() returns a const_iterator which only provides access to a const version of the widget. The only way around this problem is to either do a const_cast on the const widget&amp; or do some kind of indirection by storing Widget* in the container or some other iterator/index into another storage container for the widgets. </p>
+<p>It seems like const is a little too strong here, in that the constness of the container also &#8220;infects&#8221; the elements of the container. Sometimes this is what you want, sometimes not. I think in C++98 it made a little more sense but now that const has also gained &#8220;thread safe&#8221; semantics this weaker form of const may be desirable.</p>
+<p>Was this usage pattern ever considered for std::map/unordered_map and other containers? One could even imagine doing the same with a vector, where you wanted to allocate a bunch of object contigously in memory beforehand and then read and modify them later without being able to insert or remove anything from the vector. I don&#8217;t think any sane implementation of vector::operator[]/vector::at() would do anything more than a bounds check and array reference but it still would be technically not standards compliant to read from a std::vector without either using a mutex or a const method.</p>
+<p>I&#8217;m thinking the best solution for this problem for now would be to wrap the container in another class which calls the const methods for lookup and const_cast&#8217;s the values to non-const before returning them. Any thoughts?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mttpd odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10413">
+		<div id="div-comment-10413">
+		<div class="cmtinfo"><em> on <a href="#comment-10413" title="">2013-05-24 at 11:43 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1cc4a77a8256c3049728728c6c45625b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mttpd</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10413"></div><p>Incidentally, my second comment is a nice example of Muphry&#8217;s law (spelling intentional) in action ;-)<br />
+// this CONCEPT; IT&#8217;S used; &#8230;good grief :D</p>
+<p>@Herb: any chance for an edit-own-comments feature? :-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10411">
+		<div id="div-comment-10411">
+		<div class="cmtinfo"><em> on <a href="#comment-10411" title="">2013-05-24 at 11:36 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10411"></div><p>@mttpd, @jlehrer: Fixed, thanks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jlehrer odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10408">
+		<div id="div-comment-10408">
+		<div class="cmtinfo"><em> on <a href="#comment-10408" title="">2013-05-24 at 10:03 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6ad1c1c64ff7192f4dac3c4c3eb1c0f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.lehrerfamily.com/' rel='external nofollow' class='url'>jlehrer</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10408"></div><p>One more typo: const now really does [mean] “read-only, or safe to read concurrently”</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jlehrer even thread-even depth-1 highlander-comment" id="comment-10407">
+		<div id="div-comment-10407">
+		<div class="cmtinfo"><em> on <a href="#comment-10407" title="">2013-05-24 at 9:59 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6ad1c1c64ff7192f4dac3c4c3eb1c0f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.lehrerfamily.com/' rel='external nofollow' class='url'>jlehrer</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10407"></div><p>Typo: “can use used safely by multiple concurrent const operations.”</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mttpd odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10401">
+		<div id="div-comment-10401">
+		<div class="cmtinfo"><em> on <a href="#comment-10401" title="">2013-05-24 at 8:33 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1cc4a77a8256c3049728728c6c45625b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mttpd</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10401"></div><p>Regarding the shared variable question&#8211;the following note from the standard (17.6.4.10/[res.on.objects) may also be of help in underscoring the importance of this concepts:<br />
+&#8220;Modifying an object of a standard library type that is shared between threads risks undefined behavior unless objects of that type are explicitly specified as being sharable without data races or the user supplies a locking mechanism.&#8221;</p>
+<p>// Personally, I also like to think in terms of the shared-vs.-private distinction in the sense its used in OpenMP, but perhaps this is somewhat too API-specific for this question.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mttpd even thread-even depth-1 highlander-comment" id="comment-10399">
+		<div id="div-comment-10399">
+		<div class="cmtinfo"><em> on <a href="#comment-10399" title="">2013-05-24 at 8:23 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1cc4a77a8256c3049728728c6c45625b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mttpd</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10399"></div><p>Just a small fix:</p>
+<p>s/&#8221;const now really does “read-only, or safe to read concurrently”—either truly physically/bitwise const, or internally synchronized so that any actual writes a synchronized with any possible concurrent non-const accesses so the callers can’t tell the difference&#8221;/&#8221;const now really does *MEAN* “read-only, or safe to read concurrently”—either truly physically/bitwise const, or internally synchronized so that any actual writes *ARE* synchronized with any possible concurrent non-const accesses so the callers can’t tell the difference&#8221;<br />
+// emphasis only to be helpful, no shouting intended ;-)</p>
+<p>Incidentally, any comments on constexpr-correctness (or is that reserved for the next part? :])?</p>
+<p>// BTW, there seems to be a few copies of this post.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/05/24/gotw-6a-const-correctness-part-1-3/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-0ab2215dee671a9a27eb8b7d5a669094">
+	</div>
+	<div class="grofile-hash-map-524b319f6936c338e663325a2d965b71">
+	</div>
+	<div class="grofile-hash-map-64abcdfeac5d480fd1f58a7901ad26ee">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-56eb8367539a955ed8433201230eb28d">
+	</div>
+	<div class="grofile-hash-map-72ff40f6f7ceeb6fa1adb984b1385c6c">
+	</div>
+	<div class="grofile-hash-map-1cc4a77a8256c3049728728c6c45625b">
+	</div>
+	<div class="grofile-hash-map-c6ad1c1c64ff7192f4dac3c4c3eb1c0f">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_27936={"id":468178,"unique_id":"wp-comment-27936","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20The%20%26%238220%3BGuru%20of%20the%20Week%26%238221%3B%20%28GotW%29%20articles%20about%20Const-Correctness%20%28the%20original%20and%20the%20new%20one%29%2C%20from%20Herb%20Sutter%3A%20http%3A%2F%2Fwww.gotw.ca%2Fgotw%2F006.htm%20http%3A%2F%2Fherbsutter.com%2F2013%2F0...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-27936","item_id":"_comm_27936"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_27936 == 'undefined' ){PDRTJS_468178_comm_27936 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_27936 );}}PDRTJS_settings_468178_comm_12022={"id":468178,"unique_id":"wp-comment-12022","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20method%20const%20for%20the%20reason%20stated%20in%20the%20question.%20This%20is%20especially%20true%20after%20stumbling%20upon%20this%20GotW%20article%2C%20which%20states%20that%20the%20meaning%20of%20const%20is%20changing%20to%20mean%20%26%238220%3Babl...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-12022","item_id":"_comm_12022"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12022 == 'undefined' ){PDRTJS_468178_comm_12022 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12022 );}}PDRTJS_settings_468178_comm_10646={"id":468178,"unique_id":"wp-comment-10646","title":"gcc%204.8%20-std%3Dgnu%2B%2B11http%3A%2F%2Fen.cppreference.com%2Fw%2Fcpp%2Flocale%2Flocalestatic%20const%20locale%20%26amp%3B%20classic%28%29%3Bstd%3A%3Aisdigit%28%20jakis_znak%2C%20std%3A%3Alocale%3A%3Aclassic%28%29%20%29%3Bvalgrind%3APossible%20data%20race%20during%20write%20o...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10646","item_id":"_comm_10646"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10646 == 'undefined' ){PDRTJS_468178_comm_10646 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10646 );}}PDRTJS_settings_468178_comm_10537={"id":468178,"unique_id":"wp-comment-10537","title":"If%20const%20is%20not%20bitwise%20const%20anymore%20why%20not%20give%20it%20some%20new%20meaning%2C%20e.g.%20%26quot%3BCONSistenT%26quot%3B%20in%20terms%20of%20safe%20to%20be%20called%20from%20multiple%20threads.Then%20our%20compiler%20will%20check%20for%20us%20whether%20we%20mixiun...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10537","item_id":"_comm_10537"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10537 == 'undefined' ){PDRTJS_468178_comm_10537 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10537 );}}PDRTJS_settings_468178_comm_10536={"id":468178,"unique_id":"wp-comment-10536","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20This%20item%20covers%20ground%20Herb%20already%20presented%20in%20this%20video.%20He%20recommends%20that%20const%20member%20functions%20must%20be%20one%20of%3A%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10536","item_id":"_comm_10536"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10536 == 'undefined' ){PDRTJS_468178_comm_10536 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10536 );}}PDRTJS_settings_468178_comm_10448={"id":468178,"unique_id":"wp-comment-10448","title":"%26quot%3BConcurrent%20const%20operations%20on%20the%20same%20object%20are%20required%20to%20be%20safe%20without%20the%20calling%20code%20doing%20external%20synchronization.%26quot%3BThis%20is%20the%20sentence%20that%20was%20missing%20from%20the%20original%20you%20don%26%23039%3Bt%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10448","item_id":"_comm_10448"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10448 == 'undefined' ){PDRTJS_468178_comm_10448 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10448 );}}PDRTJS_settings_468178_comm_10438={"id":468178,"unique_id":"wp-comment-10438","title":"%40Chris%3A%20Thanks.%20I%20figured%20that%20was%20implicit%2C%20but%20it%20can%26%23039%3Bt%20hurt%20to%20be%20explicit.%20I%26%23039%3Bve%20rewritten%20the%20first%20part%20of%20%232%20to%20make%20this%20clearer%20%28I%20hope%29....","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10438","item_id":"_comm_10438"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10438 == 'undefined' ){PDRTJS_468178_comm_10438 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10438 );}}PDRTJS_settings_468178_comm_10418={"id":468178,"unique_id":"wp-comment-10418","title":"%26quot%3BStarting%20with%20C%2B%2B11%2C%20const%20on%20a%20variable%20that%20is%20possibly%20shared%20means%20read-only%2C%20safe%20to%20read%20concurrently%20without%20external%20synchronization.%26quot%3BThis%20is%20only%20true%20if%20no%20threads%20have%20access%20to%20the%20s...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10418","item_id":"_comm_10418"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10418 == 'undefined' ){PDRTJS_468178_comm_10418 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10418 );}}PDRTJS_settings_468178_comm_10415={"id":468178,"unique_id":"wp-comment-10415","title":"Suppose%20you%20have%20a%20container%20like%20std%3A%3Amap%20and%20you%20want%20to%20populate%20it%20once%20at%20startup%20and%20then%20have%20multiple%20threads%20do%20lookups%20later.This%20is%20easy%20enough%20to%20accomplish%20with%20the%20new%20definition%20of...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10415","item_id":"_comm_10415"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10415 == 'undefined' ){PDRTJS_468178_comm_10415 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10415 );}}PDRTJS_settings_468178_comm_10413={"id":468178,"unique_id":"wp-comment-10413","title":"Incidentally%2C%20my%20second%20comment%20is%20a%20nice%20example%20of%20Muphry%26%23039%3Bs%20law%20%28spelling%20intentional%29%20in%20action%20%3B-%29%2F%2F%20this%20CONCEPT%3B%20IT%26%23039%3BS%20used%3B%20...good%20grief%20%3AD%40Herb%3A%20any%20chance%20for%20an%20edit-own-comments%20featur...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10413","item_id":"_comm_10413"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10413 == 'undefined' ){PDRTJS_468178_comm_10413 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10413 );}}PDRTJS_settings_468178_comm_10411={"id":468178,"unique_id":"wp-comment-10411","title":"%40mttpd%2C%20%40jlehrer%3A%20Fixed%2C%20thanks....","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10411","item_id":"_comm_10411"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10411 == 'undefined' ){PDRTJS_468178_comm_10411 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10411 );}}PDRTJS_settings_468178_comm_10408={"id":468178,"unique_id":"wp-comment-10408","title":"One%20more%20typo%3A%20const%20now%20really%20does%20%26%23091%3Bmean%26%23093%3B%20read-only%2C%20or%20safe%20to%20read%20concurrently...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10408","item_id":"_comm_10408"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10408 == 'undefined' ){PDRTJS_468178_comm_10408 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10408 );}}PDRTJS_settings_468178_comm_10407={"id":468178,"unique_id":"wp-comment-10407","title":"Typo%3A%20can%20use%20used%20safely%20by%20multiple%20concurrent%20const%20operations....","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10407","item_id":"_comm_10407"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10407 == 'undefined' ){PDRTJS_468178_comm_10407 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10407 );}}PDRTJS_settings_468178_comm_10401={"id":468178,"unique_id":"wp-comment-10401","title":"Regarding%20the%20shared%20variable%20question--the%20following%20note%20from%20the%20standard%20%2817.6.4.10%2F%26%23091%3Bres.on.objects%29%20may%20also%20be%20of%20help%20in%20underscoring%20the%20importance%20of%20this%20concepts%3A%26quot%3BModifying%20an%20object%20o...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10401","item_id":"_comm_10401"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10401 == 'undefined' ){PDRTJS_468178_comm_10401 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10401 );}}PDRTJS_settings_468178_comm_10399={"id":468178,"unique_id":"wp-comment-10399","title":"Just%20a%20small%20fix%3As%2F%26quot%3Bconst%20now%20really%20does%20read-only%2C%20or%20safe%20to%20read%20concurrentlyeither%20truly%20physically%2Fbitwise%20const%2C%20or%20internally%20synchronized%20so%20that%20any%20actual%20writes%20a%20synchronized%20with%20an...","permalink":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/#comment-10399","item_id":"_comm_10399"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10399 == 'undefined' ){PDRTJS_468178_comm_10399 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10399 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F24%2Fgotw-6a-const-correctness-part-1-3%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/05\/24\/gotw-6a-const-correctness-part-1-3\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F05%2F24%2Fgotw-6a-const-correctness-part-1-3%2F","postID":"2000","shortlink":"https:\/\/wp.me\/peb5Y-wg","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2000","statsLink":"https:\/\/wordpress.com\/stats\/post\/2000\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F24%2Fgotw-6a-const-correctness-part-1-3%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2000','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sfDlYa3VnLX5PX2MrR3FkWHdMQj96Y0JwLWFITyxJN3F6a1FfQW1sMGFdLUUtQU50dVNRdm5lST9XZ2lXYVQyMGkzeFZKMldUdURXOS8yJjhsVnxvTkMxLVZ+M3NJeWovWmxtaV0sfjE9OXNMUyUyPUxJYkhZOT0mQi9+LFFjeWhxWGRidFRoT24sMG1DdC9RcGt4REM9PSZ2R29uTiYsaDRFPVkxakZTOEhjKzQ/fFRDQ0Fzcy5qNWdzbXZlelJpZXJzZT89'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2000' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

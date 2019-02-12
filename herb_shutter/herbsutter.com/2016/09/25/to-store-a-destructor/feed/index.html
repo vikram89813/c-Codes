@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: To store a destructor	</title>
+	<atom:link href="https://herbsutter.com/2016/09/25/to-store-a-destructor/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39446</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Tue, 04 Oct 2016 20:32:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39446</guid>
+					<description><![CDATA[@codant I&#039;m not sure that involves any less cheating (or that there is any cheating), and in both cases we are storing a pointer and a destructor function, so we have the same space footprint. However, doing it the way you suggest erases both the destructor and the object pointer -- making the latter also be invisible loses the ability to later query the object pointer to determine if the object lives in a given memory allocation. Also I think the code is simpler the way it is in the post and in the repo.]]></description>
+		<content:encoded><![CDATA[<p>@codant I&#8217;m not sure that involves any less cheating (or that there is any cheating), and in both cases we are storing a pointer and a destructor function, so we have the same space footprint. However, doing it the way you suggest erases both the destructor and the object pointer &#8212; making the latter also be invisible loses the ability to later query the object pointer to determine if the object lives in a given memory allocation. Also I think the code is simpler the way it is in the post and in the repo.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39445</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Tue, 04 Oct 2016 20:27:08 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39445</guid>
+					<description><![CDATA[@Vishal We store the destructor corresponding to the constructor, and therefore to the complete object. The correct complete-object destructor will be called even if the last deferred_ptr to the object is to a base or member of the object. I&#039;ve added a fourth note bullet to mention this.]]></description>
+		<content:encoded><![CDATA[<p>@Vishal We store the destructor corresponding to the constructor, and therefore to the complete object. The correct complete-object destructor will be called even if the last deferred_ptr to the object is to a base or member of the object. I&#8217;ve added a fourth note bullet to mention this.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Vishal Oza				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39438</link>
+		<dc:creator><![CDATA[Vishal Oza]]></dc:creator>
+		<pubDate>Fri, 30 Sep 2016 19:35:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39438</guid>
+					<description><![CDATA[My question was about inheritance and if the have deferred_ptr of type base but pass an object of type derived that is inherited from base when we call the destructor which destructor are we calling the base class&#039;s or the derived class&#039;s destructor because for this to work we would need to call the derived class&#039;s destructor or else we have resource leaks for the object the derived object used.
+
+Have is a example
+[code]
+class base
+{
+...
+};
+
+class  derived : public base
+{
+...
+};
+
+deferred_ptr&#060;base&#062; ptr(new derived); //does this calls the bases of the derived classes destructor?
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>My question was about inheritance and if the have deferred_ptr of type base but pass an object of type derived that is inherited from base when we call the destructor which destructor are we calling the base class&#8217;s or the derived class&#8217;s destructor because for this to work we would need to call the derived class&#8217;s destructor or else we have resource leaks for the object the derived object used.</p>
+<p>Have is a example</p>
+<pre class="brush: plain; title: ; notranslate">
+class base
+{
+...
+};
+
+class  derived : public base
+{
+...
+};
+
+deferred_ptr&lt;base&gt; ptr(new derived); //does this calls the bases of the derived classes destructor?
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: codant				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39437</link>
+		<dc:creator><![CDATA[codant]]></dc:creator>
+		<pubDate>Fri, 30 Sep 2016 10:58:47 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39437</guid>
+					<description><![CDATA[why not the old fashion way which involves less cheating:
+
+[code]
+
+template&#060;typename T&#062;
+void dtor_(void const* ptr)
+{ reinterpret_cast&#060;const T*&#062;(ptr)-&#062;~T(); };
+
+typedef decltype(std::bind(dtor_&#060;int&#062;,(void*)nullptr)) destructor; 
+
+dtors.push_back(std::bind(dtor_&#060;T&#062;,std::addressof(t)));
+
+for(auto d:dtors)
+     d();//invoke all dtors
+
+[code]
+
+or the more conservative implementation:
+
+[code]
+
+typedef std::tuple&#060;void const &#038; , void(*)(void const &#038; )&#062; destructor; 
+
+template&#060;typename T&#062;
+void dtor_(T &#038; ref)
+{ ref-&#062;~std::remove_reference_t&#060; std::remove_cv_t&#060;T&#062; &#062; (); };
+
+dtors.push_back(reinterpret_cast&#060;destructor &#038; &#062; (std::tie(t,&#038;dtor_&#060;decltype(t)&#062;)));
+
+for(auto d:dtors)
+     d.second(d.first);//invoke all dtors
+
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>why not the old fashion way which involves less cheating:</p>
+<pre class="brush: plain; title: ; notranslate">
+
+template&lt;typename T&gt;
+void dtor_(void const* ptr)
+{ reinterpret_cast&lt;const T*&gt;(ptr)-&gt;~T(); };
+
+typedef decltype(std::bind(dtor_&lt;int&gt;,(void*)nullptr)) destructor; 
+
+dtors.push_back(std::bind(dtor_&lt;T&gt;,std::addressof(t)));
+
+for(auto d:dtors)
+     d();//invoke all dtors
+
+[code]
+
+or the more conservative implementation:
+
+[code]
+
+typedef std::tuple&lt;void const &amp; , void(*)(void const &amp; )&gt; destructor; 
+
+template&lt;typename T&gt;
+void dtor_(T &amp; ref)
+{ ref-&gt;~std::remove_reference_t&lt; std::remove_cv_t&lt;T&gt; &gt; (); };
+
+dtors.push_back(reinterpret_cast&lt;destructor &amp; &gt; (std::tie(t,&amp;dtor_&lt;decltype(t)&gt;)));
+
+for(auto d:dtors)
+     d.second(d.first);//invoke all dtors
+
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39436</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 29 Sep 2016 20:07:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39436</guid>
+					<description><![CDATA[@Vishal I didn&#039;t quite parse your question, but the key is that we are constructing a T object and know the correct type of the complete object, so we store that destructor. Regardless of whether the last deferred_ptr keeping it alive is a deferred_ptr or something else, such as a deferred_ptr or deferred_ptr or deferred_ptr, the correct T destructor will be called to clean up the complete object. I&#039;ll add a note about this to the post. Thanks.]]></description>
+		<content:encoded><![CDATA[<p>@Vishal I didn&#8217;t quite parse your question, but the key is that we are constructing a T object and know the correct type of the complete object, so we store that destructor. Regardless of whether the last deferred_ptr keeping it alive is a deferred_ptr or something else, such as a deferred_ptr or deferred_ptr or deferred_ptr, the correct T destructor will be called to clean up the complete object. I&#8217;ll add a note about this to the post. Thanks.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Vishal Oza				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39434</link>
+		<dc:creator><![CDATA[Vishal Oza]]></dc:creator>
+		<pubDate>Wed, 28 Sep 2016 21:39:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39434</guid>
+					<description><![CDATA[Maybe this is a stupid question but &quot;should you store the exact object type because if the object was an inherited type then would calling the destructor for the base only invokes the bases destructor and not the object&#039;s destructor or would declaring the destructor as virtual would allow the correct destructor through a lookup in the v-table?&quot;]]></description>
+		<content:encoded><![CDATA[<p>Maybe this is a stupid question but &#8220;should you store the exact object type because if the object was an inherited type then would calling the destructor for the base only invokes the bases destructor and not the object&#8217;s destructor or would declaring the destructor as virtual would allow the correct destructor through a lookup in the v-table?&#8221;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39421</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Mon, 26 Sep 2016 22:44:35 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39421</guid>
+					<description><![CDATA[@Greg: vector&#060;T, deferred_allocator&#060;T&#062;&#062; can be useful for other types, though the following is a more speculative use case right now: Notably, with a deferred_allocator, the memory stays live even when the container is no longer using it as long as some iterator is, and so simply dereferencing an invalidated iterator is type- and memory-safe (a stale-data problem rather than undefined behavior); however, incrementing/navigating using an invalidated iterator is no better than today. Check out this section of gcpp readme: https://github.com/hsutter/gcpp#speculative-stl-iterator-safety .]]></description>
+		<content:encoded><![CDATA[<p>@Greg: vector&lt;T, deferred_allocator&lt;T&gt;&gt; can be useful for other types, though the following is a more speculative use case right now: Notably, with a deferred_allocator, the memory stays live even when the container is no longer using it as long as some iterator is, and so simply dereferencing an invalidated iterator is type- and memory-safe (a stale-data problem rather than undefined behavior); however, incrementing/navigating using an invalidated iterator is no better than today. Check out this section of gcpp readme: <a href="https://github.com/hsutter/gcpp#speculative-stl-iterator-safety" rel="nofollow">https://github.com/hsutter/gcpp#speculative-stl-iterator-safety</a> .</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Greg Marr				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39420</link>
+		<dc:creator><![CDATA[Greg Marr]]></dc:creator>
+		<pubDate>Mon, 26 Sep 2016 21:12:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39420</guid>
+					<description><![CDATA[I just watched the talk, and I was reminded of a question I had the first time I read through the slides.  Is the deferred_vector only intended to store deferred_ptr objects, or can it be used for other things?  If it&#039;s only for deferred_ptr, would it be useful to make this explicit and have it be deferred_vector being std::vector&#060;deferred_ptr, deferred_allocator&#060;deferred_ptr&#062;&#062;?  I was thinking that might not be immediately obvious as containing pointers, so maybe deferred_ptr_vector.]]></description>
+		<content:encoded><![CDATA[<p>I just watched the talk, and I was reminded of a question I had the first time I read through the slides.  Is the deferred_vector only intended to store deferred_ptr objects, or can it be used for other things?  If it&#8217;s only for deferred_ptr, would it be useful to make this explicit and have it be deferred_vector being std::vector&lt;deferred_ptr, deferred_allocator&lt;deferred_ptr&gt;&gt;?  I was thinking that might not be immediately obvious as containing pointers, so maybe deferred_ptr_vector.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39419</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Mon, 26 Sep 2016 19:55:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39419</guid>
+					<description><![CDATA[@Greg: Yes, I run across emplace&#039;s lack of support for aggregate init occasionally but regularly.
+
+@Howard: Well, nobody wants to be lumped in with a visual like that... fixed.]]></description>
+		<content:encoded><![CDATA[<p>@Greg: Yes, I run across emplace&#8217;s lack of support for aggregate init occasionally but regularly.</p>
+<p>@Howard: Well, nobody wants to be lumped in with a visual like that&#8230; fixed.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Greg Marr				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39416</link>
+		<dc:creator><![CDATA[Greg Marr]]></dc:creator>
+		<pubDate>Mon, 26 Sep 2016 03:24:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39416</guid>
+					<description><![CDATA[&quot;I think you’d have to write a constructor&quot;
+
+I keep forgetting, until I write it and the compiler yells at me, that emplace_back doesn&#039;t work with aggregate initialization.  Is that something that could possibly be fixed someday?
+
+&quot;just to be able to make the add-a-destructor call site slightly longer as well&quot;
+
+If you normally put spaces inside the braces, it&#039;s actually one character shorter... ;)
+[code]
+push_back({ foo, bar });
+emplace_back(foo, bar);
+[/code]
+
+I can&#039;t wait to see this talk get posted.  I always enjoy your talks.  I miss C++ and Beyond. The timing of CppCon just hasn&#039;t worked for me. :)]]></description>
+		<content:encoded><![CDATA[<p>&#8220;I think you’d have to write a constructor&#8221;</p>
+<p>I keep forgetting, until I write it and the compiler yells at me, that emplace_back doesn&#8217;t work with aggregate initialization.  Is that something that could possibly be fixed someday?</p>
+<p>&#8220;just to be able to make the add-a-destructor call site slightly longer as well&#8221;</p>
+<p>If you normally put spaces inside the braces, it&#8217;s actually one character shorter&#8230; ;)</p>
+<pre class="brush: plain; title: ; notranslate">
+push_back({ foo, bar });
+emplace_back(foo, bar);
+</pre>
+<p>I can&#8217;t wait to see this talk get posted.  I always enjoy your talks.  I miss C++ and Beyond. The timing of CppCon just hasn&#8217;t worked for me. :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: howardhinnant				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39415</link>
+		<dc:creator><![CDATA[howardhinnant]]></dc:creator>
+		<pubDate>Mon, 26 Sep 2016 02:00:53 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39415</guid>
+					<description><![CDATA[`static_cast` can be used in place of `reinterpret_cast` here.  Same functionality.  It is not a bug to use `reinterpret_cast` here.  Just it is nice to softly state that you are changing types, as opposed to screaming it while holding a gun to a puppy&#039;s head.]]></description>
+		<content:encoded><![CDATA[<p>`static_cast` can be used in place of `reinterpret_cast` here.  Same functionality.  It is not a bug to use `reinterpret_cast` here.  Just it is nice to softly state that you are changing types, as opposed to screaming it while holding a gun to a puppy&#8217;s head.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: John Jones				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39414</link>
+		<dc:creator><![CDATA[John Jones]]></dc:creator>
+		<pubDate>Mon, 26 Sep 2016 01:55:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39414</guid>
+					<description><![CDATA[Thanks Herb, FYI this confused me greatly, as when trying it out I wrote this...
+
+[code]
+// From Herb Sutter type erasing a destructor to call it later...
+class destructor
+{
+  const void* p;
+  void(*destroy)(const void*);
+public:
+  destructor() : p(nullptr), destroy([](const void*){}) {}
+  destructor(const destructor&#038; rhs) : p(rhs.p), destroy(rhs.destroy) {}
+  
+  template &#060;typename T&#062;
+  destructor(T&#038; t) : p{std::addressof(t)}, destroy{[](const void* x) { if (x) reinterpret_cast&#060;const T*&#062;(x)-&#062;~T();}} {}
+  
+  void operator()() const { destroy(p); }
+};
+
+class A
+{
+public:
+  A() { std::cout &#060;&#060; &#034;A being constructed\n&#034;; }
+  ~A() { std::cout &#060;&#060; &#034;A being destructed\n&#034;; }
+};
+
+int main()
+{
+  A a;
+  std::vector&#060;destructor&#062; destructors;
+  destructors.emplace_back(a);
+  
+  for (auto x : destructors)
+    x();
+  return 0;
+}
+[/code]
+
+Because I was missing the ref-qualifier on x it really screwed me up because it called my template constructor to incorrectly copy x from the vector. Once I either added the ref-qualifier there or removed the const qualifier on rhs for my copy constructor things worked much more as expected.]]></description>
+		<content:encoded><![CDATA[<p>Thanks Herb, FYI this confused me greatly, as when trying it out I wrote this&#8230;</p>
+<pre class="brush: plain; title: ; notranslate">
+// From Herb Sutter type erasing a destructor to call it later...
+class destructor
+{
+  const void* p;
+  void(*destroy)(const void*);
+public:
+  destructor() : p(nullptr), destroy([](const void*){}) {}
+  destructor(const destructor&amp; rhs) : p(rhs.p), destroy(rhs.destroy) {}
+  
+  template &lt;typename T&gt;
+  destructor(T&amp; t) : p{std::addressof(t)}, destroy{[](const void* x) { if (x) reinterpret_cast&lt;const T*&gt;(x)-&gt;~T();}} {}
+  
+  void operator()() const { destroy(p); }
+};
+
+class A
+{
+public:
+  A() { std::cout &lt;&lt; &quot;A being constructed\n&quot;; }
+  ~A() { std::cout &lt;&lt; &quot;A being destructed\n&quot;; }
+};
+
+int main()
+{
+  A a;
+  std::vector&lt;destructor&gt; destructors;
+  destructors.emplace_back(a);
+  
+  for (auto x : destructors)
+    x();
+  return 0;
+}
+</pre>
+<p>Because I was missing the ref-qualifier on x it really screwed me up because it called my template constructor to incorrectly copy x from the vector. Once I either added the ref-qualifier there or removed the const qualifier on rhs for my copy constructor things worked much more as expected.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39412</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sun, 25 Sep 2016 20:17:14 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39412</guid>
+					<description><![CDATA[@Greg: I do use emplace in other places, but here I think you&#039;d have to write a constructor on &quot;destructor&quot; to make emplace work == an extra line of code just to be able to make the add-a-destructor call site slightly longer as well. This seemed simpler.]]></description>
+		<content:encoded><![CDATA[<p>@Greg: I do use emplace in other places, but here I think you&#8217;d have to write a constructor on &#8220;destructor&#8221; to make emplace work == an extra line of code just to be able to make the add-a-destructor call site slightly longer as well. This seemed simpler.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Greg Marr				</title>
+				<link>https://herbsutter.com/2016/09/25/to-store-a-destructor/#comment-39411</link>
+		<dc:creator><![CDATA[Greg Marr]]></dc:creator>
+		<pubDate>Sun, 25 Sep 2016 19:11:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2778#comment-39411</guid>
+					<description><![CDATA[Is there any difference here between dtors.push_back({obj, func}) and dtors.emplace_back(obj, func)?]]></description>
+		<content:encoded><![CDATA[<p>Is there any difference here between dtors.push_back({obj, func}) and dtors.emplace_back(obj, func)?</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

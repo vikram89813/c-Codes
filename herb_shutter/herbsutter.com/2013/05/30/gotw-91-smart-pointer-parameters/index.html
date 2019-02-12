@@ -1,0 +1,743 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #91: Smart Pointer Parameters | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965375&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F30%2Fgotw-91-smart-pointer-parameters%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #91: Smart Pointer&nbsp;Parameters Comments Feed" href="https://herbsutter.com/2013/05/30/gotw-91-smart-pointer-parameters/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #90 Solution:&nbsp;Factories' href='https://herbsutter.com/2013/05/30/gotw-90-solution-factories/' />
+<link rel='next' title='GotW #91 Solution: Smart Pointer&nbsp;Parameters' href='https://herbsutter.com/2013/06/05/gotw-91-solution-smart-pointer-parameters/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/05/30/gotw-91-smart-pointer-parameters/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-xo' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F30%2Fgotw-91-smart-pointer-parameters%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F30%2Fgotw-91-smart-pointer-parameters%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #91: Smart Pointer Parameters" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/30/gotw-91-smart-pointer-parameters/" />
+<meta property="og:description" content="NOTE: Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn&#8217;t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is…" />
+<meta property="article:published_time" content="2013-05-30T23:12:42+00:00" />
+<meta property="article:modified_time" content="2013-05-30T23:12:43+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965375" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #91: Smart Pointer&nbsp;Parameters" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="NOTE: Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn&#039;t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is the updated version of what was GotW #105.  How should you prefer to pass smart pointers, and why?  Problem JG&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/05/30/gotw-91-smart-pointer-parameters/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2070 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/05/30/gotw-90-solution-factories/" rel="prev">GotW #90 Solution:&nbsp;Factories</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/06/05/gotw-91-solution-smart-pointer-parameters/" rel="next">GotW #91 Solution: Smart Pointer&nbsp;Parameters</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2070 post type-post status-publish format-standard hentry category-gotw" id="post-2070">
+				<div class="posttitle">
+					<h2>GotW #91: Smart Pointer&nbsp;Parameters</h2>
+					<p class="post-info">2013-05-30 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<blockquote>
+<p><strong>NOTE:</strong> Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn&#8217;t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is the updated version of what was GotW #105.
+</p>
+</blockquote>
+<p>
+ </p>
+<p><span style="color:#5a5a5a;"><em>How should you prefer to pass smart pointers, and why?<br />
+</em></span></p>
+<p>
+ </p>
+<h1>Problem<br />
+</h1>
+<h2>JG Question<br />
+</h2>
+<p>1. What are the <em>performance</em> implications of the following function declaration? Explain.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>void f( shared_ptr&lt;widget&gt; );
+</code></pre>
+</p>
+<h2>Guru Questions<br />
+</h2>
+<p>2. What are the <em>correctness</em> implications of the function declaration in #1? Explain with clear examples.
+</p>
+<p>3. A colleague is writing a function <span style="color:#2e74b5;">f</span> that takes an existing object of type <span style="color:#2e74b5;">widget</span> as a required input-only parameter, and trying to decide among the following basic ways to take the parameter (omitting <span style="color:#2e74b5;">const</span>):
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>void f( widget* );              (a)<br />void f( widget&amp; );              (b)<br />void f( unique_ptr&lt;widget&gt; );   (c)<br />void f( unique_ptr&lt;widget&gt;&amp; );  (d)<br />void f( shared_ptr&lt;widget&gt; );   (e)<br />void f( shared_ptr&lt;widget&gt;&amp; );  (f)
+</code></pre>
+</p>
+<p>Under what circumstances is each appropriate? Explain your answer, including where <span style="color:#2e74b5;">const</span> should or should not be added anywhere in the parameter type.
+</p>
+<p>(There are other ways to pass the parameter, but we will consider only the ones shown above.)</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											14 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">14 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="pingback even thread-even depth-1 highlander-comment" id="comment-14211">
+		<div id="div-comment-14211">
+		<div class="cmtinfo"><em> on <a href="#comment-14211" title="">2014-01-26 at 6:07 pm</a></em>  <cite><a href='http://www.wenshan.me/archives/590.html' rel='external nofollow' class='url'>C++的未来和指针 | 闻之山</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14211"></div><p>[&#8230;] Sutter写了一篇非常好的文章:《GotW about this in May》。Eric Niebler 在他的Meeting [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10898">
+		<div id="div-comment-10898">
+		<div class="cmtinfo"><em> on <a href="#comment-10898" title="">2013-06-04 at 12:35 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1c2b3f4c764429281f441d617945ac89?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.lelala.de' rel='external nofollow' class='url'>Lelala</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10898"></div><p>Even if i&#8217;m away a few years of C++ hardcore programming, i&#8217;d guess the first one (#1) has implications due fact that it&#8217;s a template, thus you do not now (first) how many cocmplex stuff is created in the templated class&#8217; constructor, second because its a parameter-by-value, resulting in bad stuff in the C++ universe, depending on deep/flat copy of the object?<br />
+Nontheless, a good interview questsion :-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-10896">
+		<div id="div-comment-10896">
+		<div class="cmtinfo"><em> on <a href="#comment-10896" title="">2013-06-04 at 11:39 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10896"></div><p>@Tom: I have a talk at Build toward the end of this month where I&#8217;ll answer that in detail. Stay tuned.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10869">
+		<div id="div-comment-10869">
+		<div class="cmtinfo"><em> on <a href="#comment-10869" title="">2013-06-04 at 3:39 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/048b60040ffdd00df1aa43d3caa5fceb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Tom</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10869"></div><p>Sorry for off topic.<br />
+But what about VS 2013  and C++11 support?<br />
+Does this mean that Nov. CTP C++ compiler is now part of VS 2013 and thre will be no update for VS 2012 ?<br />
+ *dreaming* Or will VS 2013 finally get full C++11 support ?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-10782">
+		<div id="div-comment-10782">
+		<div class="cmtinfo"><em> on <a href="#comment-10782" title="">2013-05-31 at 11:34 am</a></em> <img alt='' src='https://secure.gravatar.com/blavatar/cb47636c7a39df539e1d822fab8ed18b?s=48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://crazycpp.wordpress.com/2013/05/31/gotw-91/' rel='external nofollow' class='url'>GotW #91 | Crazy Eddie&#039;s Crazy C++</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10782"></div><p>[&#8230;] my answer to GotW 91 [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10776">
+		<div id="div-comment-10776">
+		<div class="cmtinfo"><em> on <a href="#comment-10776" title="">2013-05-31 at 10:16 am</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/100004054812229/picture?q=type%3Dlarge%26_md5%3D9e5f827892523ff7a319a1687be4b4dd&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/profile.php?id=100004054812229' rel='external nofollow' class='url'>Róbert Dávid</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10776"></div><p>@David Thornley: &#8220;If the idea is to make sure the Widget goes away, it might be just as useful to have the unique_ptr in the calling function, and call f using (a) or (b), since this will save the small amount of time to copy the unique_ptr.&#8221;</p>
+<p>If you do that, you delay the destruction of widget after the end of the calling scope, what might not be what you wanted, and also, you save nothing, as a unique_ptr is just a zero overhead wrapper around a plain old pointer, copying (or rather, moving/creating, as the whole idea is to disable copy) costs exactly the same as copying the plain pointer. You might say that &#8220;but I also need to set the source to nullptr on move!&#8221; Well, check the disassembly after an optimized build, you probably will see this being skipped.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10772">
+		<div id="div-comment-10772">
+		<div class="cmtinfo"><em> on <a href="#comment-10772" title="">2013-05-31 at 7:55 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c5750c14e2bd0f866dfe2239c40fd861?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>David Thornley</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10772"></div><p>3.  (a) and (b) are the simplest ways to pass the Widget in.  Since this is a required read-only parameter, the ability of (a) </p>
+<pre class="brush: plain; title: ; notranslate" title="">void f(const Widget const *)</pre>
+<p> to pass </p>
+<pre class="brush: plain; title: ; notranslate" title="">nullptr</pre>
+<p> in is irrelevant, and its only advantage is making it very obvious that there&#8217;s indirection going on, which is usually not all that important.  It might be useful as a reminder if the programmer wants to be reminded to microoptimize memory references, but this is almost always pointless.  One potential disadvantage is that somebody could put a </p>
+<pre class="brush: plain; title: ; notranslate" title="">delete widget;</pre>
+<p> in the function, but if the shop uses the coding standard that a raw pointer never owns, that should be caught in code review.  (b)</p>
+<pre class="brush: plain; title: ; notranslate" title="">void f(const &amp; Widget)</pre>
+<p> reads better, captures the fact that the Widget is required, and doesn&#8217;t lend itself to accidental deletion.</p>
+<p>I have been unable to imagine any use for (d) and (f).  Semantically, a reference is another name for something, and (without bothering to try figuring it out) it seems to me that having two names for a unique_ptr or a shared_ptr is a bad idea.  Over the years, I&#8217;ve learned to stay out of the dark corners of the C++ standard, because things lurk there that bite.</p>
+<p>(c) </p>
+<pre class="brush: plain; title: ; notranslate" title="">void f(unique_ptr&lt;const Widget&gt;)</pre>
+<p> unequivocally transfers ownership.  This is the right thing to use if and only if that&#8217;s what&#8217;s desired.  For example, we may want to create a Widget and transfer it to a wrapper that is the Widget&#8217;s only link to the outside world, possibly if we&#8217;re writing a multiplatform interface or otherwise need consistent calls to inconsistent Widgets.  If the idea is to make sure the Widget goes away, it might be just as useful to have the unique_ptr in the calling function, and call f using (a) or (b), since this will save the small amount of time to copy the unique_ptr.</p>
+<p>(e) </p>
+<pre class="brush: plain; title: ; notranslate" title=""> void f(shared_ptr&lt;const Widget&gt;)</pre>
+<p> gives f shared ownership.  This is useful if and only if the Widget might go away while the Widget is still in use.  The obvious example would be f copying the Widget to a class data member, since the class may well outlive the calling function.</p>
+<p>If the program is single-threaded, or the calling function calls f in a thread that it later necessarily joins, f&#8217;s execution is going to be over before the calling function returns, and there&#8217;s no real need to pass a unique_ptr or shared_ptr unless f transfers its ownership share to a longer-lasting variable or object.  If f is called in a thread that may outlive the calling function, then it needs at least partial ownership, and so (c) or (e) is necessary.</p>
+<p>Since the Widget is an input parameter, it should not be changed, and therefore every example of Widget should be replaced by </p>
+<pre class="brush: plain; title: ; notranslate" title="">const Widget</pre>
+<p> or </p>
+<pre class="brush: plain; title: ; notranslate" title="">Widget const</pre>
+<p>.  This means that the calling function can pass a const Widget to f, and serves as a reminder that the Widget should not be changed.  In (a), the pointer itself can be a const, and that establishes the pointer itself as input-only.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10764">
+		<div id="div-comment-10764">
+		<div class="cmtinfo"><em> on <a href="#comment-10764" title="">2013-05-31 at 2:06 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ef95896d2a7b776c0c22f0039bd0bf4d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Brian M</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10764"></div><p>It would be (a) or (b) for no other reason than the need for compatibility with as many c++  compilers as possible. Maybe not the correct Guru/cool answer but one that is a practical real world answer! </p>
+<p>Even just targeting latest there is still the advantage of keeping things simple and familar unless there are overriding reasons for extra complexity. The KISS principle should be stamped on every engineers forehead&#8230;..</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10763">
+		<div id="div-comment-10763">
+		<div class="cmtinfo"><em> on <a href="#comment-10763" title="">2013-05-31 at 1:34 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/4b177a2cb931b1996fc3572a5ee70d6c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ralph Tandetzky</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10763"></div><p>1. Performance: There&#8217;s a little performance overhead of calling the function with </p>
+<pre class="brush: plain; title: ; notranslate" title=""> shared_ptr&lt;widget&gt; [\code] compared to using [code] const widget &amp; </pre>
+<p> as parameter type. The function call is probably the most expensive thing for the caller here. However, passing a </p>
+<pre class="brush: plain; title: ; notranslate" title=""> shared_ptr </pre>
+<p> requires a thread-safe counter increment and a decrement at destruction which is definite overhead. Also, if the caller has a widget reference, but no shared_ptr to that widget, then a shared_ptr with a null deleter must be created unnecessarily. This requires another memory allocation for the deleter and reference counter, which can be expensive on the calling side. </p>
+<p>2. Correctness: Usually a function with this signature would only need a </p>
+<pre class="brush: plain; title: ; notranslate" title=""> shared_ptr </pre>
+<p>, if it takes shared ownership of it or needs to pass shared ownership to someone else. This would only be useful, if the function stores a </p>
+<pre class="brush: plain; title: ; notranslate" title=""> shared_ptr </pre>
+<p> or a </p>
+<pre class="brush: plain; title: ; notranslate" title=""> weak_ptr </pre>
+<p> in some kind of global variable. If that isn't the case (and it most often isn't), the the function should prefer to take a </p>
+<pre class="brush: plain; title: ; notranslate" title=""> widget &amp; </pre>
+<p> or </p>
+<pre class="brush: plain; title: ; notranslate" title=""> const widget &amp; </pre>
+<p>. Even if there is a factory function like</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+shared_ptr&lt;widget&gt; load_widget( widget::id id );
+</pre>
+<p>then a const reference would still make sense, since</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+f( *load_widget( id ) );
+</pre>
+<p>would still work. The code would also still work and be correct, if the return type of the </p>
+<pre class="brush: plain; title: ; notranslate" title=""> load_widget() </pre>
+<p> function would be changed to </p>
+<pre class="brush: plain; title: ; notranslate" title=""> unique_ptr&lt;widget&gt; </pre>
+<p>.</p>
+<p>3. Since the parameter widget is an input-only parameter and hence should not be modified, the type </p>
+<pre class="brush: plain; title: ; notranslate" title=""> widget </pre>
+<p> should be replaced by </p>
+<pre class="brush: plain; title: ; notranslate" title=""> const widget </pre>
+<p> in all cases, including template argument types. Now to the question what each declaration would mean:</p>
+<pre class="brush: plain; title: ; notranslate" title=""> 
+void f( const widget* );              (a)
+void f( const widget&amp; );              (b)
+</pre>
+<p>This should be prefered, since the function does not need to take ownership of the widget (at least most typically). Still (a) and (b) differ in the fact that (a) can be passed a null pointer to. Yes, it is possible to pass null references with code like this</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+widget * p = nullptr;
+f( *p );
+</pre>
+<p>but normally people don't do that. Remember, we should write code that is easy to use correctly and hard to use incorrectly. Also (b) has the advantage, that a temporary object can be passed. For example</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+f( create_widget() );
+</pre>
+<p>which wouldn't be possible with (a).</p>
+<p>Now let's consider</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+void f( unique_ptr&lt;const widget&gt; );   (c)
+void f( unique_ptr&lt;const widget&gt;&amp; );  (d)
+</pre>
+<p>In case (c) the function </p>
+<pre class="brush: plain; title: ; notranslate" title=""> f </pre>
+<p> will eat the widget. This unnessesarily restricts the caller, since the caller cannot do anything with the widget afterwards. The same effect could be accomplished with the function declaration (b) by writing</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+unique_ptr&lt;widget&gt; p = ...;
+/* ... */
+f( *p );
+p.reset();
+</pre>
+<p>The only advantage is that the callee (c) could use the unique_ptr to the const widget somehow where only a </p>
+<pre class="brush: plain; title: ; notranslate" title=""> unique_ptr&lt;const widget&gt; </pre>
+<p> can be used. However this is highly unlikely. The same applies to (d) only that it MIGHT eat the unique_ptr to the const widget. That would be even worse, since it's not clear from the declaration when this happens. The most surprising thing yet is that the callee can change the pointer so that it points to another object afterwards. Ouch! Hence we need to add another const to the declaration to prevent this:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+void f( const unique_ptr&lt;const widget&gt;&amp; );
+</pre>
+<p>The unique_ptr cannot be moved then. But there's no advantage of passing a unique_ptr then over variant (a). It just makes the code a little more obscure. </p>
+<p>Last but not least, let's consider</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+void f( shared_ptr&lt;const widget&gt; );   (e)
+void f( shared_ptr&lt;const widget&gt;&amp; );  (f)
+</pre>
+<p>I already discussed (e) in 2. In (f) incrementing the reference counter can be prevented. However, as in (d), the callee may change the pointer, hence we should add another const:</p>
+<pre class="brush: plain; title: ; notranslate" title=""> 
+void f( const shared_ptr&lt;const widget&gt;&amp; );
+</pre>
+<p>Now this is almost the same as (e). Again, shared_ptr implies that shared ownership is being used. That is almost never necessary for simple input arguments. It's unnecessarily demanding to the caller to create a shared_ptr, if the shared ownership isn't even used. The parameter type is much more complicated compared to (a) and (b) and there's no significant advantage to (a). And (b) is probably even better than (a). </p>
+<p>Bottom line: Prefer plain pointers and references as function paramter types unless unique or shared ownership must be transferred. If ownership should be transfered pass a unique_ptr or shared_ptr by value. This clearly states the intent in the declaration and it is easy to read and efficient. </p>
+<p>I would prefer to use (b) as a function declaration, if the parameter is not optional. Otherwise, I would use (a) and pass a nullptr, if I want to omit the argument.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10762">
+		<div id="div-comment-10762">
+		<div class="cmtinfo"><em> on <a href="#comment-10762" title="">2013-05-31 at 1:04 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/142027a0b07e81734c147c3d3ff0a1ac?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>borishr</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10762"></div><p>There&#8217;s extra shared count manipulation in </p>
+<pre class="brush: plain; title: ; notranslate" title="">void f( shared_ptr&lt;widget&gt; );</pre>
+<p>. C++98 way would be to use </p>
+<pre class="brush: plain; title: ; notranslate" title="">void f( const shared_ptr&lt;widget&gt;&amp; );</pre>
+<p>. I&#8217;m still not familiar with C++11, but I suspect it will be something with two ampersands :-), like </p>
+<pre class="brush: plain; title: ; notranslate" title="">void f( shared_ptr&lt;widget&gt;&amp;&amp; );</pre>
+<p>. That would handle possible extra copy and shared count update in </p>
+<pre class="brush: plain; title: ; notranslate" title=""> f( make_shared&lt;widget&gt;() ) </pre>
+<p>I would think of </p>
+<pre class="brush: plain; title: ; notranslate" title="">void f( shared_ptr&lt;widget&gt; );</pre>
+<p> variants as equivalent to </p>
+<pre class="brush: plain; title: ; notranslate" title=""> void f( widget* );</pre>
+<p> whereas </p>
+<pre class="brush: plain; title: ; notranslate" title="">void f( unique_ptr&lt;widget&gt; );</pre>
+<p> is equivalent to </p>
+<pre class="brush: plain; title: ; notranslate" title="">void f( widget*&amp; pw ) {...; delete pw; pw=nullptr;} ;</pre>
+<p>. So, for the question 3, I would use </p>
+<pre class="brush: plain; title: ; notranslate" title=""> f( unique_ptr&lt;widget&gt; ); </pre>
+<p> if f is a sink, ie we will not use that pointer again, and variant from question 1 otherwise. Also, I think that it only makes sense passing unique_ptr parameter by value.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10761">
+		<div id="div-comment-10761">
+		<div class="cmtinfo"><em> on <a href="#comment-10761" title="">2013-05-30 at 11:28 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d604d1038259980ae09e6efd9c6b1534?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Thanks</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10761"></div><p>Maybe this should be renamed to GotD (for Guru of the Day). I can&#8217;t almost keep up with so much good material. Thanks!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10758">
+		<div id="div-comment-10758">
+		<div class="cmtinfo"><em> on <a href="#comment-10758" title="">2013-05-30 at 10:26 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3352d7b7b661c84c5b888312397efc76?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/decourse' rel='external nofollow' class='url'>decourse</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10758"></div><p>The difference between (c) and (d) is that (c) MUST take ownership of the object (or possibly destroy it), whereas (d) might not touch it. Use (d) if the function needs to think about whether or not to take ownership.</p>
+<p>There is a similar difference between (e) and (f). (e) says that f will own a copy, and (f) says it might or might not.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10755">
+		<div id="div-comment-10755">
+		<div class="cmtinfo"><em> on <a href="#comment-10755" title="">2013-05-30 at 10:05 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6e5508b29d6d964efbd50701ceb23a5a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/paercebal' rel='external nofollow' class='url'>paercebal</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10755"></div><blockquote><p>1. </p>
+<pre class="brush: plain; title: ; notranslate" title="">void f( shared_ptr&amp;lt;widget&amp;gt; );</pre>
+</blockquote>
+<p>This will make a copy of the shared_ptr, which will only increment the reference counter, which is, unless I&#8217;m wrong, an atomic variable (to make sure two threads could safely copy shared_ptrs pointing to the same object, as they would copy raw pointers).</p>
+<p>The thing is, we usually don&#8217;t even want to pay this cost, so, as we know the object is owned by the previous stack level, we can instead pass the shared_ptr object by const reference, which changes (almost&#8230; see below) nothing to the semantics, and makes the parameter passing costless.</p>
+<blockquote><p>2. What are the correctness implications of the function declaration in #1? Explain with clear examples.</p></blockquote>
+<p>The pointed widget object is owned by the stack at two levels: f, and its caller, which can be overkill in most codes.</p>
+<p>Also, as f has shared ownership, it means it is ok for this function to share it again with other parts of the code (which opens the way to ownership cycles if not monitored).</p>
+<blockquote><p>3.</p>
+<pre class="brush: plain; title: ; notranslate" title="">void f( widget* ); (a)
+void f( widget&amp;amp; ); (b)
+void f( unique_ptr&amp;lt;widget&amp;gt; ); (c)
+void f( unique_ptr&amp;lt;widget&amp;gt;&amp;amp; ); (d)
+void f( shared_ptr&amp;lt;widget&amp;gt; ); (e)
+void f( shared_ptr&amp;lt;widget&amp;gt;&amp;amp; ); (f)</pre>
+</blockquote>
+<p>(a) and (b) are cases where f is not given ownership to the widget parameter, so it can&#8217;t, in turn, give or share it.</p>
+<p>(a) means the parameter being nullptr is a valid value, so f is expected to behave.<br />
+(b) means the parameter is supposed to always exist, so in case of playing with pointers, the caller is supposed to verify that before dereferencing the pointer and calling f.</p>
+<p>(c) has a pure ownership transfer semantic: f will take over the resource, no negociations. The caller must know that its own unique_ptr (or resource) won&#8217;t be owned by it anymore the moment f is called.</p>
+<p>(d) has conditional ownhership transfer IF the unique_ptr is not const. That is, the function fa can decide (or not) to take ownership of the resource, and thus empty the pointer. IF the unique_ptr is const, then this is just passing a smart pointer parameter, without transfer of ownerhisp (similar to case a)</p>
+<p>(e) has ownership sharing semantics. This means that both the caller and f will share the resource&#8230; And potentially other parts of the code, as f can freely share it, too. Having this kind of prototypes means your object is out in the wild&#8230; Isn&#8217;t that where we should wonder about potential ownership cycles that will leak memory? (and where weak_ptr could help break them?) IF the shared_ptr is const, it changes nothing (I see right now the copy constructor of shared_ptr accepts &#8220;const shared_ptr &amp;&#8221;). Unless I&#8217;m wrong, the shared_ptr could be constructed from another shared_ptr of a compatible type (derived-to-base conversion)</p>
+<p>(f) IF the shared_ptr is const, this is like e, but we avoid one counter increment. The const reference means that, the shared_ptr have again derived-to-base conversion. If the parameter is passed as non-const reference, then no conversion is possible&#8230; and we fall back into e&#8217;s case.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10751">
+		<div id="div-comment-10751">
+		<div class="cmtinfo"><em> on <a href="#comment-10751" title="">2013-05-30 at 4:52 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/9fdfde82947baf080a81ef0db500f2a3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ben Craig</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10751"></div><p>(a) and (b) are likely to cause holy wars.  If there is any kind of transfer of ownership (including passing off to other threads), then (a) and (b) are not appropriate.  If (a) and (b) don&#8217;t change ownership, then either can be fine.  Many people prefer (a) to (b), because it makes it more obvious at the call site that a level of indirection is involved.  Other people will prefer (b), because it makes it very difficult to have NULL pointers.</p>
+<p>If f() is a &#8220;sink&#8221; function, then (c) is appropriate.  By &#8220;sink&#8221;, I mean a function that accepts a resource, and destroys it as part of its execution.  const unique_ptr ref doesn&#8217;t buy much, but if your code stores the resource as a unique_ptr, and you have lots of calls to f(), then you can avoid some syntactic overhead by passing const unique_ptr &amp; instead of widget*.</p>
+<p>Similar arguments for (c) and (d) apply to (e) and (f), except instead of discussing &#8220;sinks&#8221;, we get to discuss extra owners.  If f() needs to become an additional owner for the widget, then (e) is appropriate.  Taking the shared_ptr by value here is preferable to taking a const shared_ptr ref and copy constructing a shared_ptr, as the value parameter may get to take advantage of move semantics (perhaps from a make_shared call).  (f) has roughly the same semantics as (a) and (b), and like const unique_ptr &amp;, it can make sense when you have lots of callers of your function.  (f) makes a little more sense than (d) though, as you can decide several layers down that you need a copy / additional owner of your widget, and (f) permits that.  With a unique_ptr, you can&#8217;t really decide several layers down that you should move from your const unique_ptr &amp;.</p>
+<p>One of the downsides of (d) and (f) is that these signatures often overspecify your needs.  (a) and (b) can accept widgets from unique_ptr and shared_ptr, but (d) can only (easily) accept widgets from unique_ptr.  (f) can accept a widget from a unique_ptr, but it &#8220;steals&#8221; the widget, so it only works well with other shared_ptrs.</p>
+<p>There was a &#8220;dumb_ptr&#8221; spec at one point, but I haven&#8217;t followed standardization enough to know if it got accepted to C++14.  I&#8217;m guessing not, as it would probably be mentioned by now if it had.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/05/30/gotw-91-smart-pointer-parameters/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-1c2b3f4c764429281f441d617945ac89">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-048b60040ffdd00df1aa43d3caa5fceb">
+	</div>
+	<div class="grofile-hash-map-322cf2e150d5cd84275b131184731c0a">
+	</div>
+	<div class="grofile-hash-map-c5750c14e2bd0f866dfe2239c40fd861">
+	</div>
+	<div class="grofile-hash-map-ef95896d2a7b776c0c22f0039bd0bf4d">
+	</div>
+	<div class="grofile-hash-map-4b177a2cb931b1996fc3572a5ee70d6c">
+	</div>
+	<div class="grofile-hash-map-142027a0b07e81734c147c3d3ff0a1ac">
+	</div>
+	<div class="grofile-hash-map-d604d1038259980ae09e6efd9c6b1534">
+	</div>
+	<div class="grofile-hash-map-3352d7b7b661c84c5b888312397efc76">
+	</div>
+	<div class="grofile-hash-map-6e5508b29d6d964efbd50701ceb23a5a">
+	</div>
+	<div class="grofile-hash-map-9fdfde82947baf080a81ef0db500f2a3">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_14211={"id":468178,"unique_id":"wp-comment-14211","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20Sutter%3AGotW%20about%20this%20in%20MayEric%20Niebler%20Meeting%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-14211","item_id":"_comm_14211"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14211 == 'undefined' ){PDRTJS_468178_comm_14211 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14211 );}}PDRTJS_settings_468178_comm_10898={"id":468178,"unique_id":"wp-comment-10898","title":"Even%20if%20i%26%23039%3Bm%20away%20a%20few%20years%20of%20C%2B%2B%20hardcore%20programming%2C%20i%26%23039%3Bd%20guess%20the%20first%20one%20%28%231%29%20has%20implications%20due%20fact%20that%20it%26%23039%3Bs%20a%20template%2C%20thus%20you%20do%20not%20now%20%28first%29%20how%20many%20cocmplex%20stuff%20is%20creat...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10898","item_id":"_comm_10898"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10898 == 'undefined' ){PDRTJS_468178_comm_10898 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10898 );}}PDRTJS_settings_468178_comm_10896={"id":468178,"unique_id":"wp-comment-10896","title":"%40Tom%3A%20I%20have%20a%20talk%20at%20Build%20toward%20the%20end%20of%20this%20month%20where%20I%26%23039%3Bll%20answer%20that%20in%20detail.%20Stay%20tuned....","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10896","item_id":"_comm_10896"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10896 == 'undefined' ){PDRTJS_468178_comm_10896 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10896 );}}PDRTJS_settings_468178_comm_10869={"id":468178,"unique_id":"wp-comment-10869","title":"Sorry%20for%20off%20topic.%20But%20what%20about%20VS%202013%20%20and%20C%2B%2B11%20support%3FDoes%20this%20mean%20that%20Nov.%20CTP%20C%2B%2B%20compiler%20is%20now%20part%20of%20VS%202013%20and%20thre%20will%20be%20no%20update%20for%20VS%202012%20%3F%20%2Adreaming%2A%20Or%20will%20VS%202013...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10869","item_id":"_comm_10869"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10869 == 'undefined' ){PDRTJS_468178_comm_10869 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10869 );}}PDRTJS_settings_468178_comm_10782={"id":468178,"unique_id":"wp-comment-10782","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20my%20answer%20to%20GotW%2091%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10782","item_id":"_comm_10782"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10782 == 'undefined' ){PDRTJS_468178_comm_10782 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10782 );}}PDRTJS_settings_468178_comm_10776={"id":468178,"unique_id":"wp-comment-10776","title":"%40David%20Thornley%3A%20%26quot%3BIf%20the%20idea%20is%20to%20make%20sure%20the%20Widget%20goes%20away%2C%20it%20might%20be%20just%20as%20useful%20to%20have%20the%20unique_ptr%20in%20the%20calling%20function%2C%20and%20call%20f%20using%20%28a%29%20or%20%28b%29%2C%20since%20this%20will%20save%20th...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10776","item_id":"_comm_10776"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10776 == 'undefined' ){PDRTJS_468178_comm_10776 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10776 );}}PDRTJS_settings_468178_comm_10772={"id":468178,"unique_id":"wp-comment-10772","title":"3.%20%20%28a%29%20and%20%28b%29%20are%20the%20simplest%20ways%20to%20pass%20the%20Widget%20in.%20%20Since%20this%20is%20a%20required%20read-only%20parameter%2C%20the%20ability%20of%20%28a%29%20%26%23091%3Bcode%26%23093%3Bvoid%20f%28const%20Widget%20const%20%2A%29%26%23091%3B%2Fcode%26%23093%3B%20to%20pass%20%26%23091%3Bcode%26%23093%3Bnullptr%26%23091%3B%2Fcod...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10772","item_id":"_comm_10772"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10772 == 'undefined' ){PDRTJS_468178_comm_10772 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10772 );}}PDRTJS_settings_468178_comm_10764={"id":468178,"unique_id":"wp-comment-10764","title":"It%20would%20be%20%28a%29%20or%20%28b%29%20for%20no%20other%20reason%20than%20the%20need%20for%20compatibility%20with%20as%20many%20c%2B%2B%20%20compilers%20as%20possible.%20Maybe%20not%20the%20correct%20Guru%2Fcool%20answer%20but%20one%20that%20is%20a%20practical%20real%20world%20a...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10764","item_id":"_comm_10764"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10764 == 'undefined' ){PDRTJS_468178_comm_10764 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10764 );}}PDRTJS_settings_468178_comm_10763={"id":468178,"unique_id":"wp-comment-10763","title":"1.%20Performance%3A%20There%26%23039%3Bs%20a%20little%20performance%20overhead%20of%20calling%20the%20function%20with%20%26%23091%3Bcode%26%23093%3B%20shared_ptr%26lt%3Bwidget%26gt%3B%20%26%23091%3Bcode%26%23093%3B%20compared%20to%20using%20%26%23091%3Bcode%26%23093%3B%20const%20widget%20%26amp%3B%20%26%23091%3B%2Fcode%26%23093%3B%20as%20parameter%20type.%20T...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10763","item_id":"_comm_10763"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10763 == 'undefined' ){PDRTJS_468178_comm_10763 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10763 );}}PDRTJS_settings_468178_comm_10762={"id":468178,"unique_id":"wp-comment-10762","title":"There%26%23039%3Bs%20extra%20shared%20count%20manipulation%20in%20%26%23091%3Bcode%26%23093%3Bvoid%20f%28%20shared_ptr%26lt%3Bwidget%26gt%3B%20%29%3B%26%23091%3B%2Fcode%26%23093%3B.%20C%2B%2B98%20way%20would%20be%20to%20use%20%26%23091%3Bcode%26%23093%3Bvoid%20f%28%20const%20shared_ptr%26lt%3Bwidget%26gt%3B%26amp%3B%20%29%3B%26%23091%3B%2Fcode%26%23093%3B.%20I%26%23039%3Bm%20still%20not%20f...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10762","item_id":"_comm_10762"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10762 == 'undefined' ){PDRTJS_468178_comm_10762 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10762 );}}PDRTJS_settings_468178_comm_10761={"id":468178,"unique_id":"wp-comment-10761","title":"Maybe%20this%20should%20be%20renamed%20to%20GotD%20%28for%20Guru%20of%20the%20Day%29.%20I%20can%26%23039%3Bt%20almost%20keep%20up%20with%20so%20much%20good%20material.%20Thanks%21...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10761","item_id":"_comm_10761"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10761 == 'undefined' ){PDRTJS_468178_comm_10761 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10761 );}}PDRTJS_settings_468178_comm_10758={"id":468178,"unique_id":"wp-comment-10758","title":"The%20difference%20between%20%28c%29%20and%20%28d%29%20is%20that%20%28c%29%20MUST%20take%20ownership%20of%20the%20object%20%28or%20possibly%20destroy%20it%29%2C%20whereas%20%28d%29%20might%20not%20touch%20it.%20Use%20%28d%29%20if%20the%20function%20needs%20to%20think%20about%20whether%20or%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10758","item_id":"_comm_10758"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10758 == 'undefined' ){PDRTJS_468178_comm_10758 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10758 );}}PDRTJS_settings_468178_comm_10755={"id":468178,"unique_id":"wp-comment-10755","title":"%26lt%3Bblockquote%26gt%3B1.%20%26%23091%3Bcode%26%23093%3Bvoid%20f%28%20shared_ptr%26amp%3Blt%3Bwidget%26amp%3Bgt%3B%20%29%3B%26%23091%3B%2Fcode%26%23093%3B%26lt%3B%2Fblockquote%26gt%3BThis%20will%20make%20a%20copy%20of%20the%20shared_ptr%2C%20which%20will%20only%20increment%20the%20reference%20counter%2C%20which%20is%2C%20unless%20I%26%23039%3Bm%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10755","item_id":"_comm_10755"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10755 == 'undefined' ){PDRTJS_468178_comm_10755 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10755 );}}PDRTJS_settings_468178_comm_10751={"id":468178,"unique_id":"wp-comment-10751","title":"%28a%29%20and%20%28b%29%20are%20likely%20to%20cause%20holy%20wars.%20%20If%20there%20is%20any%20kind%20of%20transfer%20of%20ownership%20%28including%20passing%20off%20to%20other%20threads%29%2C%20then%20%28a%29%20and%20%28b%29%20are%20not%20appropriate.%20%20If%20%28a%29%20and%20%28b%29%20don%26%23039%3Bt%20cha...","permalink":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/#comment-10751","item_id":"_comm_10751"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10751 == 'undefined' ){PDRTJS_468178_comm_10751 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10751 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F30%2Fgotw-91-smart-pointer-parameters%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/05\/30\/gotw-91-smart-pointer-parameters\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F05%2F30%2Fgotw-91-smart-pointer-parameters%2F","postID":"2070","shortlink":"https:\/\/wp.me\/peb5Y-xo","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2070","statsLink":"https:\/\/wordpress.com\/stats\/post\/2070\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F30%2Fgotw-91-smart-pointer-parameters%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2070','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sJjlONE9GczNGJkhCfGxfSzIsTTFVZWlnc0ZuY2gxOWx5cjdVaF0/TFA5c0pUeHpGYS9pL1BFeTE1al1hcFZyLFM9JXNjM24tais1N1MlejRVRHl2X3lkbVQ9JVRibFdtQmJNN214clV3Qm0sN0xoazM/R1BPcyx8bU1oWzdGZCxSeVVDV1YlY2p4W1NiblZNdVssUXp4TGRTUjlwX1IzazguckpJSm5UflAuVkFsem1iUj1pOVkudEpCLUJIRG8mWCtXandj'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2070' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

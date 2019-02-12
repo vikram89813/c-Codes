@@ -1,0 +1,979 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	>
+
+<channel>
+	<title>Hardware &#8211; Sutter’s Mill</title>
+	<atom:link href="https://herbsutter.com/category/hardware/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Fri, 23 Nov 2018 09:31:46 +0000	</lastBuildDate>
+	<language>en</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+<cloud domain='herbsutter.com' port='80' path='/?rsscloud=notify' registerProcedure='' protocol='http-post' />
+<image>
+		<url>https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=96&#038;d=https%3A%2F%2Fs0.wp.com%2Fi%2Fbuttonw-com.png</url>
+		<title>Hardware &#8211; Sutter’s Mill</title>
+		<link>https://herbsutter.com</link>
+	</image>
+	<atom:link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+	<atom:link rel='hub' href='https://herbsutter.com/?pushpress=hub'/>
+	<item>
+		<title>&#8220;Strong&#8221; and &#8220;weak&#8221; hardware memory models</title>
+		<link>https://herbsutter.com/2012/08/02/strong-and-weak-hardware-memory-models/</link>
+				<comments>https://herbsutter.com/2012/08/02/strong-and-weak-hardware-memory-models/#comments</comments>
+				<pubDate>Thu, 02 Aug 2012 11:26:37 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[C# / .NET]]></category>
+		<category><![CDATA[C++]]></category>
+		<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Java]]></category>
+		<category><![CDATA[Talks & Events]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1590</guid>
+				<description><![CDATA[In Welcome to the Jungle, I predicted that “weak” hardware memory models will disappear. This is true, and it’s happening before our eyes: x86 has always been considered a “strong” hardware memory model that supports sequentially consistent atomics efficiently. The other major architecture, ARM, recently announced that they are now adding strong memory ordering in [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>In <a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the Jungle</a>, I predicted that “weak” hardware memory models will disappear. This is true, and it’s happening before our eyes:</p>
+<ul>
+<li>x86 has always been considered a “strong” hardware memory model that supports sequentially consistent atomics efficiently.</li>
+<li>The other major architecture, ARM, recently announced that they are now adding strong memory ordering in ARMv8 with the new sequentially consistent <em>ldra </em>and <em>strl </em>instructions, as I predicted they would. (Actually, Hans Boehm and I influenced ARM in this direction, so it was an ever-so-slightly disingenuous prediction&#8230;)</li>
+</ul>
+<p>However, at least two people have been confused by what I meant by “weak” hardware memory models, so let me clarify what “weak” means – it means something different for hardware memory models and software memory models, so perhaps those aren’t the clearest terms to use.</p>
+<p>By &#8220;weak <strong><em>(hardware)</em></strong> memory model&#8221; CPUs I mean specifically ones that do not natively support efficient sequentially consistent (SC) atomics, because on the <strong><em>software</em></strong> side programming languages have converged on &#8220;sequential consistency for data-race-free programs&#8221; (SC-DRF, roughly aka DRF0 or RCsc) as the default (C11, C++11) or only (Java 5+) supported software memory model for software. POWER and ARMv7 notoriously do not support SC atomics efficiently.</p>
+<p>Hardware that supports only hardware memory models weaker than SC-DRF, <em>meaning that they do not support SC-DRF efficiently</em>, are permanently disadvantaged and will either become stronger or atrophy. As I mentioned specifically in the article, the two main current hardware architectures with what I called &#8220;weak&#8221; memory models were current ARM (ARMv7) and POWER:</p>
+<ul>
+<li>ARM recently announced ARMv8 which, as I predicted, is upgrading to SC acquire/release by adding new SC acquire/release instructions ldra and strl that are mandatory in both 32-bit and 64-bit mode. In fact, this is something of an industry first &#8212; ARMv8 is the first major CPU architecture to support SC acquire/release instructions directly like this. (Note: That’s for CPUs, but the roadmap for ARM GPUs is similar. ARM GPUs currently have a stronger memory model, namely fully SC; ARM has announced their GPU future roadmap has the GPUs fully coherent with the CPUs, and will likely add “SC load acquire” and “SC store release” to GPUs as well.)</li>
+<li>It remains to be seen whether POWER will adapt similarly, or die out.</li>
+</ul>
+<p>Note that I&#8217;ve seen some people call x86 &#8220;weak&#8221;, but x86 has always been the poster child for a <strong><em>strong (hardware) </em></strong>memory model in all of our <strong><em>software</em></strong> memory model discussions for Java, C, and C++ during the 2000s. Therefore perhaps &#8220;weak&#8221; and &#8220;strong&#8221; are not useful terms if they mean different things to some people, and I&#8217;ve updated the WttJ text to make this clearer.</p>
+<p>I will be discussing this in detail in my <a href="https://herbsutter.com/2012/06/29/cb-session-atomic-weapons-the-c11-memory-model-and-modern-hardware/">atomic&lt;&gt; Weapons</a> talk at C&amp;B next week, which I hope to make freely available online in the near future (as I do most of my talks). I’ll post a link on this blog when I can make it available online.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2012/08/02/strong-and-weak-hardware-memory-models/feed/</wfw:commentRss>
+		<slash:comments>10</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>C&#038;B Session: atomic&#060;&#062; Weapons &#8211; The C++11 Memory Model and Modern Hardware</title>
+		<link>https://herbsutter.com/2012/06/29/cb-session-atomic-weapons-the-c11-memory-model-and-modern-hardware/</link>
+				<comments>https://herbsutter.com/2012/06/29/cb-session-atomic-weapons-the-c11-memory-model-and-modern-hardware/#comments</comments>
+				<pubDate>Fri, 29 Jun 2012 19:41:39 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[C++]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Software Development]]></category>
+		<category><![CDATA[Talks & Events]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1578</guid>
+				<description><![CDATA[Here’s another deep session for C&#38;B 2012 on August 5-8 – if you haven’t registered yet, register soon. We got a bigger venue this time, but as I write this the event is currently almost 75% full with five weeks to go. I know, I’ve already posted three sessions and a panel. But there’s just [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p><a href="http://cppandbeyond.com/2012/06/29/new-session-atomic-weapons-the-c11-memory-model-and-modern-hardware/"><img title="image" style="background-image:none;float:right;padding-top:0;padding-left:0;margin:10px 0 10px 10px;display:inline;padding-right:0;border-width:0;" border="0" alt="image" align="right" src="https://herbsutter.files.wordpress.com/2012/06/image2.png?w=241&#038;h=241" width="241" height="241" /></a>Here’s another deep session for C&amp;B 2012 on August 5-8 – if you haven’t registered yet, <a href="http://cppandbeyond2012.eventbrite.com/">register soon</a>. We got a bigger venue this time, but as I write this the event is currently almost 75% full with five weeks to go.</p>
+<p>I know, I’ve already posted <a href="http://cppandbeyond.com/2012/03/26/session-topic-you-dont-know-and/">three</a> <a href="http://cppandbeyond.com/2012/05/28/two-sessions-c-concurrency-and-parallelism-2012-state-of-the-art-and-standard/">sessions</a> and a <a href="http://cppandbeyond.com/2012/04/30/panel-modern-c-clean-safe-and-faster-than-ever/">panel</a>. But there’s just so much about C++11 to cover, so here’s a fourth brand-new session I’ll do at C&amp;B 2012 that goes deeper on its topic than I’ve ever been willing to go before.</p>
+<blockquote>
+<h3><a href="http://cppandbeyond.com/2012/06/29/new-session-atomic-weapons-the-c11-memory-model-and-modern-hardware/"><font>atomic&lt;&gt; Weapons: The C++11 Memory Model and Modern Hardware</font></a></h3>
+</blockquote>
+<p>This session in one word: <i><strong>Deep.</strong></i> </p>
+<p>It’s a session that includes topics I’ve publicly said for years is Stuff You Shouldn’t Need To Know and I Just Won’t Teach, but it’s becoming achingly clear that people do need to know about it. Achingly, heartbreakingly clear, because some hardware incents you to pull out the big guns to achieve top performance, and C++ programmers just are so addicted to full performance that they’ll reach for the big red levers with the flashing warning lights. Since we can’t keep people from pulling the big red levers, we’d better document the A to Z of what the levers actually do, so that people don’t <a href="http://en.wikipedia.org/wiki/Scram">SCRAM</a> unless they really, really, really meant to. </p>
+<p>This session covers: </p>
+<ul>
+<li><strong>The facts: </strong>The C++11 memory model and what it requires you to do to make sure your code is correct and stays correct. We’ll include clear answers to several FAQs: “how do the compiler and hardware cooperate to remember how to respect these rules?”, “what is a race condition?”, and the ageless one-hand-clapping question “how is a race condition like a debugger?” </li>
+<li><strong>The tools:</strong> The deep interrelationships and fundamental tradeoffs among mutexes, atomics, and fences/barriers. I’ll try to convince you why standalone memory barriers are bad, and why barriers should always be associated with a specific load or store. </li>
+<li><strong>The unspeakables: </strong>I’ll grudgingly and reluctantly talk about the Thing I Said I’d Never Teach That Programmers Should Never Need To Now: relaxed atomics. Don’t use them! If you can avoid it. But here’s what you need to know, even though it would be nice if you didn’t need to know it. </li>
+<li><strong>The rapidly-changing hardware reality: </strong>How locks and atomics map to hardware instructions on ARM and x86/x64, and throw in POWER and Itanium for good measure – and I’ll cover how and why the answers are actually different last year and this year, and how they will likely be different again a few years from now. We’ll cover how the latest CPU and GPU hardware memory models are rapidly evolving, and how this directly affects C++ programmers. </li>
+<li><strong>Coda: Volatile and “compiler-only” memory barriers.</strong> It’s important to understand exactly what atomic and volatile are and aren’t for. I’ll show both why they’re both utterly unrelated (they have exactly zero overlapping uses, really) and yet are fundamentally related when viewed from the perspective of talking about the memory model. Also, people keep seeing and asking about “compiler-only” memory barriers and when to use them – they do have a valid-though-rare use, but it’s not the use that most people are trying to use them for, so beware! </li>
+</ul>
+<p>For me, this is going to be the deepest and most fun C&amp;B yet. At previous C&amp;Bs I’ve spoken about not only code, but also meta topics like design and C++’s role in the marketplace. This time it looks like all my talks will be back to Just Code. Fun times!</p>
+<p>Here a snapshot of the <a href="http://cppandbeyond.com/cb2012-schedule/">list of C&amp;B 2012 sessions</a> so far:</p>
+<blockquote>
+<p><a href="http://cppandbeyond.com/2012/03/13/session-topic-universal-references-in-c11/">Universal References in C++11</a> (Scott)       <br /><a href="http://cppandbeyond.com/2012/03/26/session-topic-you-dont-know-and/">You Don’t Know [keyword] and [keyword]</a> (Herb)       <br /><a href="http://cppandbeyond.com/2012/04/02/panel-session-topic-convincing-your-colleagues/">Convincing Your Colleagues</a> (Panel)       <br /><a href="http://cppandbeyond.com/2012/04/16/session-topic-initial-thoughts-on-effective-c11/">Initial Thoughts on Effective C++11</a> (Scott)       <br /><a href="http://cppandbeyond.com/2012/04/30/panel-modern-c-clean-safe-and-faster-than-ever/">Modern C++ = Clean, Safe, and Faster Than Ever</a> (Panel)       <br /><a href="http://cppandbeyond.com/2012/04/30/session-topics-error-resilience-in-c11/">Error Resilience in C++11</a> (Andrei)       <br /><a href="http://cppandbeyond.com/2012/05/28/two-sessions-c-concurrency-and-parallelism-2012-state-of-the-art-and-standard/">C++ Concurrency – 2012 State of the Art (and Standard)</a> (Herb)       <br /><a href="http://cppandbeyond.com/2012/05/28/two-sessions-c-concurrency-and-parallelism-2012-state-of-the-art-and-standard/">C++ Parallelism – 2012 State of the Art (and Standard)</a> (Herb)       <br /><a href="http://cppandbeyond.com/2012/06/21/session-topic-secrets-of-the-c11-threading-api/">Secrets of the C++11 Threading API</a> (Scott)       <br /><a href="http://cppandbeyond.com/2012/06/29/new-session-atomic-weapons-the-c11-memory-model-and-modern-hardware/">atomic&lt;&gt; Weapons: The C++11 Memory Model and Modern Hardware</a> (Herb)</p>
+</blockquote>
+<p>It’ll be a blast. I hope to see many of you there. <a href="http://cppandbeyond2012.eventbrite.com/">Register soon.</a></p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2012/06/29/cb-session-atomic-weapons-the-c11-memory-model-and-modern-hardware/feed/</wfw:commentRss>
+		<slash:comments>5</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+
+		<media:content url="https://herbsutter.files.wordpress.com/2012/06/image2.png" medium="image">
+			<media:title type="html">image</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Talk Video: Welcome to the Jungle (60 min version + Q&#038;A)</title>
+		<link>https://herbsutter.com/2012/06/21/talk-video-welcome-to-the-jungle-60-min-version-qa/</link>
+				<comments>https://herbsutter.com/2012/06/21/talk-video-welcome-to-the-jungle-60-min-version-qa/#comments</comments>
+				<pubDate>Thu, 21 Jun 2012 20:40:10 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Cloud]]></category>
+		<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Software Development]]></category>
+		<category><![CDATA[Talks & Events]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1572</guid>
+				<description><![CDATA[While visiting Facebook earlier this month, I gave a shorter version of my “Welcome to the Jungle” talk, based on the eponymous WttJ article. They made a nice recording and it’s now available online here: Facebook Engineering Title: Herb Sutter: Welcome to the Jungle In the twilight of Moore&#8217;s Law, the transitions to multicore processors, [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p><a href="https://www.facebook.com/photo.php?v=10151029515183109"><img title="image" style="background-image:none;float:right;padding-top:0;padding-left:0;margin:10px 0 10px 10px;display:inline;padding-right:0;border-width:0;" border="0" alt="image" align="right" src="https://herbsutter.files.wordpress.com/2012/06/image.png?w=324&#038;h=174" width="324" height="174" /></a>While visiting Facebook earlier this month, I gave a shorter version of my “Welcome to the Jungle” talk, based on the <a href="https://herbsutter.com/welcome-to-the-jungle/">eponymous WttJ article</a>. They made a nice recording and it’s now available online here:</p>
+<blockquote>
+<p><strong>Facebook Engineering</strong></p>
+<p><a href="https://www.facebook.com/photo.php?v=10151029515183109"><strong>Title: Herb Sutter: Welcome to the Jungle</strong></a></p>
+<p>In the twilight of Moore&#8217;s Law, the transitions to multicore processors, GPU computing, and HaaS cloud computing are not separate trends, but aspects of a single trend—mainstream computers from desktops to &#8216;smartphones&#8217; are being permanently transformed into heterogeneous supercomputer clusters. Henceforth, a single compute-intensive application will need to harness different kinds of cores, in immense numbers, to get its job done. &#8212; The free lunch is over. Now welcome to the hardware jungle.</p>
+</blockquote>
+<p>The <a href="https://developers.facebook.com/attachment/Welcome_to_the_Jungle_-_FB-pdf/">slides are available here</a>. (There doesn’t seem to be a link to the slides on the page itself as I write this.)</p>
+<p>For those interested in a longer version, in April I gave a 105-minute + Q&amp;A version of this talk in Kansas City at Perceptive, also <a href="https://herbsutter.com/2012/04/23/talk-video-welcome-to-the-jungle/">available online where I posted before</a>.</p>
+<h3>A word about “cluster in a box”</h3>
+<p>I should have remembered that describing a PC as a “heterogeneous cluster in a box” is a big red button for people, in particular because “cluster” implies “parts can fail and program should continue.” So in the Q&amp;A, one commenter made the point that I should have mentioned reliability is an issue.</p>
+<p>As I answered there, I half agree – it’s true but it’s only half the story, and it doesn’t affect the programming model (see more below). One of the slides I omitted to shorten this version of the talk highlighted that there are actually two issues when you go from “Disjoint (tightly coupled)” to “Disjoint (loosely coupled)”: <strong>reliability</strong> <em>and </em><strong>latency</strong>, and both are important. (I also mentioned this in the <a href="https://herbsutter.com/welcome-to-the-jungle/">original WttJ article</a> this is based on; just search for “reliability.”)</p>
+<p>Even after the talk, I still got strong resistance along the lines that, ‘no, you obviously don’t get it, latency isn’t a significant issue at all, reliability is the central issue and it kills your argument because it makes the model fundamentally different.’ Paraphrasing subsequent email:</p>
+<blockquote>
+<p>‘A fundamental difference between distributed computing and single-box multiprocessing is that in the former case you don&#8217;t know whether a failure was a communication failure (i.e. the task was completed but communication failed) or a genuine failure to carry the task. (Hence all complicated two-phase commit protocols etc.) In contrast, in a single-box scenario you can know the box you&#8217;re on is working.’</p>
+</blockquote>
+<p>Let me respond further to this here, because clearly these guys know more about distributed systems than I do and I’m always happy to be educated, but I also think we have a disconnect on three things asserted above: It is not my understanding that reliability is more important than latency, or that apps have to distinguish comms failures from app exceptions, or that N-phase commit enters the picture.</p>
+<p>First, I don’t agree with the assertion that reliability alone is what’s important, or that it’s more important than latency, for the following reason:</p>
+<ul>
+<li><strong>You can build reliable transports on top of unreliable ones.</strong> You do it through techniques like sequencing, redundancy, and retry. A classic example is <a href="http://en.wikipedia.org/wiki/Transmission_Control_Protocol">TCP</a>, which delivers reliable communications over notoriously- and deliberately-unreliable IP which can drop and reorder packets as network nodes and communications paths keep madly appearing and reappearing like a herd of crazed Cheshire cats. We can and do build secure reliable global banking systems on that.</li>
+<li><strong>Once you do that, you have turned a reliability issue into a performance (specifically latency) issue.</strong> Both reliability and latency are key issues when moving to loosely-coupled systems, but because you can turn the first into the second, it’s latency that is actually the more fundamental and important one – and the only one the developer needs to deal with.</li>
+</ul>
+<p>For example, to use compute clouds like Azure and AWS, you usually start with two basic pieces:</p>
+<ul>
+<li>the queue(s), which you use to push the work items out/around and results back/around; and </li>
+<li>an elastic set of compute nodes, each of which pulls work items from the queue and processes them.</li>
+</ul>
+<p>What happens when you encounter a reliability problem? A node can pull a work item but fail to complete it, for example if the node crashes or the system encounters a partial network outage or other communication problem.</p>
+<p>Many modern systems already automatically recover and have another node re-pull the same work item to make sure each work item gets done even in the face of partial failures. From the app&#8217;s point of view, such <strong>failures just manifest as degraded performance (higher latency or time-to-solution) and therefore mainly affect the granularity of parallel work items</strong> – they have to be big enough to be worth sending elsewhere and so minimum size is directly proportional to latency so that the overheads do not dominate. They do not manifest as app-visible failures.</p>
+<p>Yes, the elastic cloud implementation has to deal with things like network failures and retries. But no, this isn’t your problem; it’s not supposed to be your job to implement the elastic cloud, it’s supposed to be your job just to implement each node’s local logic and to create whatever queues you want and push your work item data into them.</p>
+<p>Aside: Of course, as with any retry-based model, you have to make sure that a partly-executed work item doesn’t expose any partial side effects it shouldn’t, and normally you prevent that by doing the work in a transaction and rolling it back on failure, or in the extreme (not generally recommended but sometimes okay) resorting to compensating writes to back out partial work. </p>
+<p>That covers everything except the comment about two-phase commit: Citing that struck me as odd because I haven’t heard much us of that kind of coupled approach in years. Perhaps I’m misinformed, but my impression of 2- or N-phase commit protocols was that they have some serious problems: </p>
+<ul>
+<li>They are inherently nonscalable. </li>
+<li>They increase rather than decrease interdependencies in the system – even with heroic efforts like majority voting and such schemes that try to allow for subsets of nodes being unavailable, which always seemed fragile to me. </li>
+<li>Also, I seem to remember that NPC is a blocking protocol, which if so is inherently anti-concurrency. One of the big realizations in modern mainstream concurrency in the past few years is that Blocking Is Nearly Always Evil. (I’m looking at you, <em>future.get()</em>, and this is why the committee is now considering adding the nonblocking <em>future.then()</em> as well.)</li>
+</ul>
+<p>So my impression is that these were primarily of historical interest – if they are still current in modern datacenters, I would appreciate learning more about it and seeing if I’m overly jaded about N-phase commit.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2012/06/21/talk-video-welcome-to-the-jungle-60-min-version-qa/feed/</wfw:commentRss>
+		<slash:comments>2</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+
+		<media:content url="https://herbsutter.files.wordpress.com/2012/06/image.png" medium="image">
+			<media:title type="html">image</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Two Sessions: C++ Concurrency and Parallelism &#8211; 2012 State of the Art (and Standard)</title>
+		<link>https://herbsutter.com/2012/05/28/two-sessions-c-concurrency-and-parallelism-2012-state-of-the-art-and-standard/</link>
+				<comments>https://herbsutter.com/2012/05/28/two-sessions-c-concurrency-and-parallelism-2012-state-of-the-art-and-standard/#comments</comments>
+				<pubDate>Tue, 29 May 2012 00:09:27 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[C++]]></category>
+		<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Effective Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Software Development]]></category>
+		<category><![CDATA[Talks & Events]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1531</guid>
+				<description><![CDATA[It’s time for, not one, but two brand-new, up-to-date talks on the state of the art of concurrency and parallelism in C++. I’m going to put them together especially and only for C++ and Beyond 2012, and I’ll be giving them nowhere else this year: C++ Concurrency – 2012 State of the Art (and Standard) [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>It’s time for, not one, but two brand-new, up-to-date talks on the state of the art of concurrency and parallelism in C++. I’m going to put them together <strong>especially and only for <em><a href="http://cppandbeyond.com/">C++ and Beyond 2012</a></em></strong>, and I’ll be giving them nowhere else this year:</p>
+<ul>
+<li><strong><font size="3">C++ Concurrency – 2012 State of the Art (and Standard)</font></strong> </li>
+<li><strong><font size="3">C++ Parallelism – 2012 State of the Art (and Standard)</font></strong> </li>
+</ul>
+<p>And there’s a lot to tell. 2012 has already been a busy year for the pushing the boundaries of both “shipping-and-practical” and “proto-standard” concurrency and parallelism in C++:</p>
+<ul>
+<li><strong>In February</strong>, the <a href="https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/">spring ISO C++ standards meeting</a> saw record attendance at 73 experts (normal is 50-55), and spent the full week primarily on new language and library proposals, with notable emphasis on the area of concurrency and parallelism. There was so much interest that I formed four Study Groups and appointed chairs: the largest on concurrency and parallelism (SG1, Hans Boehm), and three others on modules (SG2, Doug Gregor), filesystem (SG3, Beman Dawes), and networking (SG4, Kyle Kloepper). </li>
+<li><strong>Three weeks ago</strong>, we hosted another three-day face-to-face meeting for SG1 and SG4 – and at nearly 40 people the SG1 attendance rivaled that of a normal full ISO C++ meeting, with a who’s-who of the world’s concurrency and parallelism experts in attendance and <a href="https://herbsutter.com/2012/04/06/we-want-await-a-c-talk-thats-applicable-to-c/">further proposal presentations</a> from companies like IBM, Intel, and Microsoft. There was so much interest that I had to form a new Study Group 5 for Transactional Memory (SG5), and appointed Michael Wong of IBM as chair. </li>
+<li>Over the summer, we’ll all be working on updated proposals for the October ISO C++ meeting in Portland. </li>
+</ul>
+<p>Things are heating up, and we’re narrowing down which areas to focus on.</p>
+<p>I’ve spoken and written on these topics before. Here’s what’s different about these talks:</p>
+<ul>
+<li><strong>Brand new: </strong>This material goes beyond what I’ve written and taught about before in my <em>Effective Concurrency</em> articles and courses. </li>
+<li><strong>Cutting-edge current:</strong> It covers the best-practices state of the art <strong>techniques</strong> and <strong>shipping tools</strong>, and what parts of that are standardized <strong>in C++11 already</strong> (the answer to that one may surprise you!) and what’s en route to <strong>near-term standardization</strong> and why, with coverage of the latest discussions. </li>
+<li><strong>Mainstream hardware – many kinds of parallelism:</strong> What’s the relationship among <strong>multi-core</strong> CPUs, <strong>hardware threads</strong>, SIMD <strong>vector units</strong> (Intel <a href="http://en.wikipedia.org/wiki/Streaming_SIMD_Extensions">SSE</a> and <a href="http://en.wikipedia.org/wiki/Advanced_Vector_Extensions">AVX</a>, ARM <a href="http://www.arm.com/products/processors/technologies/neon.php">Neon</a>), and <strong>GPGPU </strong>(general-purpose computation on GPUs, which I covered at <em>C++ and Beyond 2011</em>)? Which are most interesting, what technologies are available now, and what’s being considered for near-term standardization? </li>
+<li><strong>Blocking vs. non-blocking:</strong> What’s the difference between blocking and non-blocking styles, why on earth would you care, which kinds does C++11 support, and how are we looking at rounding it out in C++1<em>y</em>? </li>
+<li><strong>Task and data parallelism:</strong> What’s the difference between task parallelism and data parallelism, which kind of of hardware does each allow you to exploit, and why? </li>
+<li><strong>Work stealing: </strong>What’s the difference between thread pools and work stealing, what are the major flavors of work stealing, which of these (if any) does C++11 already support and is already shipping on some advanced commercial C++ compilers today (this answer will likely surprise you), and what needs to be done in the next round for a complete state-of-the-art parallelism story in C++1<em>y</em>? </li>
+</ul>
+<p>The answers all matter to you – even the ones not yet in the C++ standard – because they are real, available in shipping products, and affect how you design your software today.</p>
+<p>This will be a broad and deep dive. At C++ and Beyond 2011, the <em>attendees</em> (audience!) included some of the world’s leading experts on parallelism and compilers. At these sessions of C&amp;B 2012, I expect anyone who wasn’t personally at the SG1 meeting this month, even world-class experts, will learn something new in these talks. I certainly did, and that’s why I’m motivated to turn the information into talks and share. This isn’t just cool stuff – it’s important and useful in production code today.</p>
+<p>I hope to see many of you at C&amp;B 2012. I’m excited about these topics, and about Scott’s and Andrei’s new material – you just can’t get this stuff anywhere else.</p>
+<p>Asheville is going to be blast. I can’t wait.</p>
+<p>Herb</p>
+<hr />
+<p>P.S.: I haven’t seen this much attention and investment in C++ since last century – C++ conferences at record numbers, C++ compiler investments by the biggest companies in the industry (e.g., Clang), and much more that we’ve seen already…</p>
+<p>… and a little bird tells me there’s a lot more major C++ news coming this year. Stay tuned, and fasten your seat belts. 2012 ain’t done yet, not by a long shot, and I’ll be able to say more about C++ as a whole (besides the specific topics mentioned above) for the first time at C&amp;B in August. I hope to see you there.</p>
+<p>FYI, C&amp;B is already over 60% full, and early bird registration ends this Friday, June 1 – so <a href="http://cppandbeyond2012.eventbrite.com/">register today</a>.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2012/05/28/two-sessions-c-concurrency-and-parallelism-2012-state-of-the-art-and-standard/feed/</wfw:commentRss>
+		<slash:comments>9</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>&#8220;Mobile&#8221; vs. &#8220;PC&#8221;?</title>
+		<link>https://herbsutter.com/2012/04/24/mobile-vs-pc/</link>
+				<comments>https://herbsutter.com/2012/04/24/mobile-vs-pc/#comments</comments>
+				<pubDate>Tue, 24 Apr 2012 22:13:37 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Apple]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Microsoft]]></category>
+		<category><![CDATA[Opinion & Editorial]]></category>
+		<category><![CDATA[Web]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1500</guid>
+				<description><![CDATA[In answering a reader question about Flash today, I linked to Adobe’s November press release and I commented: Granted, Adobe says it’s abandoning Flash ‘only for new mobile device browsers while still supporting it for PC browsers.’ This is still a painful statement because [in part] … the distinction between mobile devices and PCs is [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>In <a href="https://herbsutter.com/2012/04/24/reader-qa-flash-redux/">answering</a> a reader question about Flash today, I linked to <a href="http://blogs.adobe.com/conversations/2011/11/flash-focus.html">Adobe’s November press release</a> and I commented:</p>
+<blockquote><p>Granted, Adobe says it’s abandoning Flash ‘only for new mobile device browsers while still supporting it for PC browsers.’ This is still a painful statement because [in part] … the distinction between mobile devices and PCs is quickly disappearing as of this year as PCs are becoming fully mobilized.</p></blockquote>
+<p>But what’s a “mobile device” vs. a “PC” as of 2012? Here’s a current data point, at least for me.</p>
+<p>For almost two weeks now, my current primary machine has been a <a href="http://www.samsung.com/global/windowspreview/">Slate 7 running Windows 8 Consumer Preview</a>, and I’m extremely pleased with it. It’s a full Windows notebook (sans keyboard), and a full modern tablet. How do I slot it between “mobile device” and “PC,” exactly? Oh, and the desktop browser still supports Flash, but the tablet style browser doesn’t…</p>
+<p>Since I’ve been using it (and am using it to write this post), let me write a mini-review.</p>
+<p>I loved my iPad, and still do, and so I was surprised how quickly I came to love this snappy device even more. Here are a few thoughts, in rough order from least to most important:</p>
+<ul>
+<li>It has a few nice touches that I miss on iOS, like task switching by simple swipe-from-left (much easier than double-clicking the home button and swiping, and my iPhone home button is started to get unreliable with all the double-clicking <em>[ETA: and I never got used to four-finger swiping probably in part because it isn&#8217;t useful on the iPhone]</em>), having a second app open as a sidebar (which greatly relieves the aforementioned back-and-forth task-switching I find myself doing on iOS to refer to two apps), and some little things like including left- and right-cursor keys on the on-screen keyboard (compared to iOS’s touch-and-hold to position the cursor by finger using the magnification loupe). In general, the on-screen keyboard is not only unspeakably better than Win7’s attempt, but even slightly nicer than iPad’s as I find myself not having to switch keyboards as much to get at common punctuation symbols.</li>
+<li>I was happily surprised to find that some of my key web-related apps like Live Writer came already installed.</li>
+<li>The App Store, which isn’t even live yet, already had many of my major apps including Kindle, USA Today, and Cut the Rope. Most seem very reliable; a few marked “App Preview” are definitely beta quality at the moment though. The Kindle app is solid and has everything I expected, except for one complaint: It should really go to a two-column layout in landscape mode like it does on iPad, especially given the wider screen. Still, the non-“preview” apps do work, and the experience and content is surprisingly nice for a not-officially-open App Store.</li>
+<li><a href="http://www.zdnet.com/blog/mobile-news/windows-8-tablets-secret-weapon-onenote-and-inking/6285">Real pen+ink support.</a> This is a Big Deal, <a href="https://herbsutter.com/2010/04/01/links-i-enjoyed-reading-this-week-3/">as I said two years ago</a>. Yes, I’ve tried several iPad pens and apps for sort-of-writing notes, and no, iOS has nothing comparable here; the best I can say for the very best of them is that they’re like using crayons. Be sure to try real “ink” before claiming otherwise – if you haven’t, you don’t know what you’re missing. iPad does have other good non-pen annotation apps, and I’ve enjoyed using <a href="http://itunes.apple.com/us/app/iannotate-pdf/id363998953?mt=8">iAnnotate PDF</a> extensively to read and annotate almost half of <a href="http://erdani.com/index.php/books/tdpl/">Andrei’s D book</a>. But for reading articles and papers I just really, really miss pen+ink.</li>
+<li>All my software just works, from compilers and editors to desktop apps for full Office and other work.</li>
+<li>Therefore, finally, I get my desktop environment and my modern tablet environment <strong>without carrying two devices</strong>. My entire environment, from apps to files, is always there without syncing between notebook and tablet devices, and I can finally eliminate a device. I expected I would do that this year, but I’m pleasantly surprised to be able to do it for real already this early in the year with a beta OS and beta app store.</li>
+</ul>
+<p>I didn’t expect to switch over to it this quickly, but within a few days of getting it I just easily switched to reading my current book-in-progress on this device while traveling (thanks to the Kindle app), reading and pen-annotating a couple of research papers on lock-free coding techniques (it’s by far my favorite OneNote device ever thanks to having both great touch and great pen+ink and light weight so I can just <em>write</em>), and using it both as a notebook and as a tablet without having to switch devices (just docking when I’m at my desk and using the usual large monitors and <a href="http://store.apple.com/us/product/MB110LL/B">my favorite keyboard</a>+mouse, or holding it and using touch+pen only). It already feels like a dream and very familiar both ways. I’m pretty sure I’ll never go back to a traditional clamshell notebook, ever.</p>
+<p>Interestingly, as a side benefit, even the desktop apps are often very, and more, usable when in pure tablet+touch mode than before despite the apparently-small targets. Those small targets do sometimes matter, and I occasionally reach for my pen when using those on my lap. But I’ve found in practice they often don’t matter at all when you swipe to scroll a large region – I was surprised to find myself happily using Outlook in touch-only mode. In particular, it’s my favorite OneNote device ever.</p>
+<p>By the end of this week when I install a couple of more apps, including the rest of my test C++ compilers, <strong>it will have fully replaced my previous notebook and my previous tablet, with roughly equal price and power as the former alone (4GB RAM, 128GB SSD + Micro SD slot, Intel Core i5-2467M) and roughly equal weight and touch friendliness as the latter alone (1.98lb vs. 1.44lb).</strong> Dear Windows team, my back thanks you.</p>
+<p>So, then, returning to the point – in our very near future, how much sense does it really make to <a href="http://blogs.adobe.com/conversations/2011/11/flash-focus.html">distinguish between browsers for “mobile devices” and “PCs,”</a> anyway? Convergence is already upon us and is only accelerating.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2012/04/24/mobile-vs-pc/feed/</wfw:commentRss>
+		<slash:comments>22</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Talk Video: Welcome to the Jungle</title>
+		<link>https://herbsutter.com/2012/04/23/talk-video-welcome-to-the-jungle/</link>
+				<comments>https://herbsutter.com/2012/04/23/talk-video-welcome-to-the-jungle/#comments</comments>
+				<pubDate>Mon, 23 Apr 2012 15:31:58 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Software Development]]></category>
+		<category><![CDATA[Talks & Events]]></category>
+		<category><![CDATA[Web]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.com/?p=1487</guid>
+				<description><![CDATA[Last month in Kansas City I gave a talk on &#8220;Welcome to the Jungle,&#8221; based on my recent essay of the same name (sequel to &#8220;The Free Lunch Is Over&#8221;) concerning the turn to mainstream heterogeneous distributed computing and the end of Moore’s Law. Perceptive Software has now made the talk available online [EOA: the talk itself starts six [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>Last month in Kansas City I gave a talk on &#8220;Welcome to the Jungle,&#8221; based on <a href="https://herbsutter.com/welcome-to-the-jungle/">my recent essay of the same name</a> (sequel to &#8220;The Free Lunch Is Over&#8221;) concerning the turn to mainstream heterogeneous distributed computing and the end of Moore’s Law.</p>
+<p>Perceptive Software has now made the talk available online <em>[<strong>EOA</strong>: the talk itself starts six minutes in]</em>:</p>
+<blockquote><p><strong><a href="http://shadow-technologies.tv/video/179">Welcome to the Jungle</a></strong></p>
+<p>In the twilight of Moore’s Law, the transitions to multicore processors, GPU computing, and HaaS cloud computing are not separate trends, but aspects of a single trend – mainstream computers from desktops to ‘smartphones’ are being permanently transformed into heterogeneous supercomputer clusters. Henceforth, a single compute-intensive application will need to harness different kinds of cores, in immense numbers, to get its job done. – The free lunch is over. Now welcome to the hardware jungle.</p></blockquote>
+<p>I hope you enjoy it.</p>
+<p>Warning: It&#8217;s two hours (with Q&amp;A) because of the broad and deep material. There&#8217;s a nice pause point between major sections at the one-hour mark that makes it convenient to split it into two one-hour lunchtime brownbag viewings.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2012/04/23/talk-video-welcome-to-the-jungle/feed/</wfw:commentRss>
+		<slash:comments>10</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>James Hamilton on reliability</title>
+		<link>https://herbsutter.com/2012/02/26/james-hamilton-on-reliability/</link>
+				<comments>https://herbsutter.com/2012/02/26/james-hamilton-on-reliability/#comments</comments>
+				<pubDate>Sun, 26 Feb 2012 21:59:16 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Software Development]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1394</guid>
+				<description><![CDATA[Don’t trust hardware or software; then you can build trustworthy hardware and software. James Hamilton on how to write reliable software in a world where anything that can fail, will fail.]]></description>
+								<content:encoded><![CDATA[<p>Don’t trust hardware or software; then you can build trustworthy hardware and software.</p>
+<p><a href="http://bit.ly/xgrhTK">James Hamilton on how to write reliable software</a> in a world where anything that can fail, will fail.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2012/02/26/james-hamilton-on-reliability/feed/</wfw:commentRss>
+		<slash:comments>2</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Welcome to the Jungle</title>
+		<link>https://herbsutter.com/2011/12/29/welcome-to-the-jungle/</link>
+				<comments>https://herbsutter.com/2011/12/29/welcome-to-the-jungle/#comments</comments>
+				<pubDate>Fri, 30 Dec 2011 01:53:11 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Opinion & Editorial]]></category>
+		<category><![CDATA[Software Development]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1271</guid>
+				<description><![CDATA[With so much happening in the computing world, now seemed like the right time to write “Welcome to the Jungle” – a sequel to my earlier “The Free Lunch Is Over” essay. Here’s the introduction: &#160; Welcome to the Jungle In the twilight of Moore’s Law, the transitions to multicore processors, GPU computing, and HaaS [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>With so much happening in the computing world, now seemed like the right time to write <a href="https://herbsutter.com/welcome-to-the-jungle/"><strong>“Welcome to the Jungle”</strong></a><strong> </strong>– a sequel to my earlier “The Free Lunch Is Over” essay. Here’s the introduction:</p>
+<p>&#160;</p>
+<blockquote>
+<h3><strong><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the Jungle</a></strong></h3>
+<p align="center"><em>In the twilight of Moore’s Law, the transitions to multicore processors, GPU computing, and HaaS cloud computing are not separate trends, but aspects of a single trend – mainstream computers from desktops to ‘smartphones’ are being permanently transformed into heterogeneous supercomputer clusters. Henceforth, a single compute-intensive application will need to harness different kinds of cores, in immense numbers, to get its job done.</em></p>
+<p align="center"><em>The free lunch is over. Now welcome to the hardware jungle.</em></p>
+<p>&#160;</p>
+<p>From 1975 to 2005, our industry accomplished a phenomenal mission: In 30 years, we put a personal computer on every desk, in every home, and in every pocket.</p>
+<p>In 2005, however, mainstream computing hit a wall. In <a href="http://www.gotw.ca/publications/concurrency-ddj.htm"><strong>“The Free Lunch Is Over”</strong> (December 2004)</a>, I described the reasons for the then-upcoming industry transition from single-core to multi-core CPUs in mainstream machines, why it would require changes throughout the software stack from operating systems to languages to tools, and why it would permanently affect the way we as software developers have to write our code if we want our applications to continue exploiting Moore’s transistor dividend.</p>
+<p>In 2005, our industry undertook a new mission: to put a personal parallel supercomputer on every desk, in every home, and in every pocket. 2011 was special: it’s the year that we completed the transition to parallel computing in all mainstream form factors, with the arrival of multicore tablets (e.g., iPad 2, Playbook, Kindle Fire, Nook Tablet) and smartphones (e.g., Galaxy S II, Droid X2, iPhone 4S). 2012 will see us continue to build out multicore with mainstream quad- and eight-core tablets (as Windows 8 brings a modern tablet experience to x86 as well as ARM), <a href="https://herbsutter.files.wordpress.com/2011/12/image_thumb99.png"><img style="background-image:none;padding-left:0;padding-right:0;display:inline;float:right;padding-top:0;border-width:0;margin:20px 0 0 10px;" title="image_thumb99" border="0" alt="image_thumb99" align="right" src="https://herbsutter.files.wordpress.com/2011/12/image_thumb99_thumb.png?w=480&#038;h=228" width="480" height="228" /></a>and the last single-core gaming console holdout will go multicore (as Nintendo’s Wii U replaces Wii).</p>
+<p>This time it took us just six years to deliver mainstream parallel computing in all popular form factors. And we know the transition to multicore is permanent, because multicore delivers compute performance that single-core cannot and there will always be mainstream applications that run better on a multi-core machine. There’s no going back.</p>
+<p>For the first time in the history of computing, mainstream hardware is no longer a single-processor von Neumann machine, and never will be again.</p>
+<p><em>That was the first act.&#160; . . .</em></p>
+</blockquote>
+<p>&#160;</p>
+<p>I hope you enjoy it.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2011/12/29/welcome-to-the-jungle/feed/</wfw:commentRss>
+		<slash:comments>10</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+
+		<media:content url="https://herbsutter.files.wordpress.com/2011/12/image_thumb99_thumb.png" medium="image">
+			<media:title type="html">image_thumb99</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Daniel Moth&#8217;s C++ AMP session is now online</title>
+		<link>https://herbsutter.com/2011/06/19/c-amp-overview/</link>
+				<comments>https://herbsutter.com/2011/06/19/c-amp-overview/#comments</comments>
+				<pubDate>Mon, 20 Jun 2011 00:58:18 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[C++]]></category>
+		<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Microsoft]]></category>
+		<category><![CDATA[Talks & Events]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.com/?p=597</guid>
+				<description><![CDATA[In my keynote on Wednesday, I highlighted just the top two important features in the C++ AMP programming model. That afternoon, my coding colleague and demo demigod Daniel Moth gave a 45-minute session covering the entire C++ AMP programming model that walked through all the features with more examples. Daniel&#8217;s talk is now also online [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>In my keynote on Wednesday, I highlighted just the top two important features in the C++ AMP programming model. That afternoon, my coding colleague and demo demigod Daniel Moth gave a 45-minute session covering the entire C++ AMP programming model that walked through all the features with more examples. Daniel&#8217;s talk is now <a href="http://channel9.msdn.com/Events/AMD-Fusion-Developer-Summit/AMD-Fusion-Developer-Summit-11/DanielMothAMP">also online at Channel 9</a>. I hope you enjoy it.</p>
+<p>Note: The <a href="http://ecn.channel9.msdn.com/content/DanielMoth_CppAMP_Intro.pdf">PDF slides</a> link is small but important &#8212; the screen isn&#8217;t easy to see in the video itself.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2011/06/19/c-amp-overview/feed/</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>C++ AMP keynote is online</title>
+		<link>https://herbsutter.com/2011/06/16/c-amp-keynote/</link>
+				<comments>https://herbsutter.com/2011/06/16/c-amp-keynote/#comments</comments>
+				<pubDate>Fri, 17 Jun 2011 00:21:25 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[C++]]></category>
+		<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Microsoft]]></category>
+		<category><![CDATA[Software Development]]></category>
+		<category><![CDATA[Talks & Events]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.com/?p=593</guid>
+				<description><![CDATA[Yesterday I had the privilege of talking about some of the work we&#8217;ve been doing to support massive parallelism on GPUs in the next version of Visual C++. The video of my talk announcing C++ AMP is now available on Channel 9. (Update: Here&#8217;s an alternate link; it seems to be posted twice.) The first 20 [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>Yesterday I had the privilege of talking about some of the work we&#8217;ve been doing to support massive parallelism on GPUs in the next version of Visual C++. The video of my talk announcing C++ AMP <strong><a href="http://channel9.msdn.com/posts/AFDS-Keynote-Herb-Sutter-Heterogeneous-Computing-and-C-AMP">is now available on Channel 9</a></strong>. (Update: Here&#8217;s an <a href="http://channel9.msdn.com/Events/AMD-Fusion-Developer-Summit/AMD-Fusion-Developer-Summit-11/KEYNOTE">alternate link</a>; it seems to be posted twice.)</p>
+<p>The first 20 minutes has nothing to do with C++ in particular or any platform in particular, but tries to make the case that the right way to view the &#8220;trends&#8221; of multicore computing, GPU computing, and cloud computing (HaaS) is that they are not three trends at all, but merely facets of the same single trend &#8212; heterogeneous parallel computing.</p>
+<p>If they are, then one programming model should be able to address them all. We think we&#8217;ve found one.</p>
+<p>The main reasons we decided to build a new model is that we believe there needs to be a single model that has all of the following attributes:</p>
+<ul>
+<li><strong>C++, not C:</strong> It should leverage C++&#8217;s power for strong abstraction without sacrificing performance, not just be a dialect of C.</li>
+<li><strong>Mainstream:</strong> It should be programmable by millions of developers, not just by a priesthood. Litmus test: Is the Hello World parallel GPU program a page and half, or a couple of lines?</li>
+<li><strong>Minimal:</strong> It adds just one general-purpose language extension that addresses not only the immediate problem (dealing with cores that can&#8217;t support full C++) but many others. With the right general-purpose extension, the rest can be done as just a library.</li>
+<li><strong>Portable:</strong> It allows shipping a single EXE that can use any combination of GPU vendors&#8217; hardware. The initial implementation uses DirectCompute and supports all devices that are DX11 capable; DirectCompute is just an implementation detail of the first release, and the model can (and I expect will) be implemented to directly talk to any interesting hardware.</li>
+<li><strong>General and future-proof:</strong> The initial release will focus on GPU computing, but it&#8217;s intended to enable people to write code for the GPU in a way that in the future we can recompile with few or no changes to spread across any and all accessible compute cores, including ones in the cloud.</li>
+<li><strong>Open:</strong> I mentioned that Microsoft intends to make the C++ AMP specification open, and encourages its implementation on other C++ compilers for any hardware or OS target. AMD announced that they will implement C++ AMP in their FSA reference compiler. NVidia also announced support.</li>
+</ul>
+<p>We&#8217;re really excited about this, and I hope you find the information in the talk to be useful. A prerelease implementation in Visual C++ that runs on Windows will be available later this year. More to come&#8230;</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2011/06/16/c-amp-keynote/feed/</wfw:commentRss>
+		<slash:comments>31</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Two More C&#038;B Sessions: C++0x Memory Model (Scott) and Exceptional C++0x (me)</title>
+		<link>https://herbsutter.com/2011/04/14/two-more-cnb-sessions/</link>
+				<comments>https://herbsutter.com/2011/04/14/two-more-cnb-sessions/#comments</comments>
+				<pubDate>Thu, 14 Apr 2011 18:35:00 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[C++]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Software Development]]></category>
+		<category><![CDATA[Talks & Events]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.com/?p=548</guid>
+				<description><![CDATA[Scott Meyers, Andrei Alexandrescu and I are continuing to craft and announce the technical program for C++ and Beyond (C&#38;B) 2011, and two more sessions are now posted. All talks are brand-new material created specifically for C&#38;B 2011. Here are short blurbs; follow the links for longer descriptions. Scott will give a great new talk [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>Scott Meyers, Andrei Alexandrescu and I are continuing to craft and announce the technical program for <strong><a href="http://cppandbeyond.com/">C++ and Beyond (C&amp;B) 2011</a></strong>, and two more sessions are now posted. All talks are brand-new material created specifically for C&amp;B 2011. Here are short blurbs; follow the links for longer descriptions.</p>
+<ul>
+<li>Scott will give a great new talk on <em><strong><a href="http://cppandbeyond.com/2011/04/11/session-announcement-the-c0x-memory-model-and-why-you-care/">&#8220;The C++0x Memory Model and Why You Care&#8221;</a></strong></em> that will cover topics of interest to anybody who cares about concurrency and parallel programming under C++0x: everything from compiler optimizations and memory access reorderings, to “sequenced before” and “happens before” relations, to atomic types and memory consistency models, and how they all relate to both correctness and performance. This is stuff that in a perfect world nobody should ever have to know, but in our actual world every modern C++ developer who cares about correct high-performance code has to understand it thoroughly.</li>
+<li>I&#8217;ll be giving a brand-new talk  <em><strong><a href="http://cppandbeyond.com/2011/04/12/session-announcement-exceptional-c0x-aka-c11/">&#8220;Exceptional C++0x (aka C++11)&#8221;</a></strong></em> that shows how the new features in C++0x change the way we solve problems, our C++ coding style, and even the way we think about our code. I&#8217;ll demonstrate that with code that works today on existing compilers, using selected familiar examples from my <em>Exceptional C++</em> books. This is not rehashed material, as I&#8217;ll assume you&#8217;re already familiar with the pre-C++0x solutions (I&#8217;ll provide links to read as refreshers before the course), and then we&#8217;ll analyze and solve them entirely the 21st-century C++ way and see why C++0x feels like a whole new fresh language that leads to different approaches, new and changed guidelines, and even better solutions. As Bjarne <a href="http://www2.research.att.com/~bs/C++0xFAQ.html">put it</a>: &#8220;Surprisingly, C++0x feels like a new language: The pieces just fit together better than they used to and I find a higher-level style of programming more natural than before and as efficient as ever.&#8221; This talk will show why &#8212; deeply, madly, and truly.</li>
+</ul>
+<p>The other two talks already announced are the following, which I <a href="https://herbsutter.com/2011/04/05/c-and-beyond-2011/">previously reported last week</a>:</p>
+<ul>
+<li>Andrei will be giving an in-depth talk on <strong><em><a href="http://cppandbeyond.com/2011/03/31/session-announcement-big/">“BIG: C++ Strategies, Data Structures, and Algorithms Aimed at Scalability.”</a></em></strong> Briefly, it’s about writing high-performance C++ code for  highly distributed architectures, focusing on translating C++’s strong modeling capabilities directly to great scaling and/or great savings, and finding the right but non-intuitive C++ techniques and data structures to get there.</li>
+<li>I’ll be giving a brand-new talk on <strong><em><a href="http://cppandbeyond.com/2011/04/02/session-announcement-c-and-the-gpu-and-beyond/">“C++ and the GPU… and Beyond.”</a></em></strong> I’ll cover the state of the art for using C++ (not just C) for <a href="http://en.wikipedia.org/wiki/GPGPU">general-purpose computation on graphics processing units (GPGPU)</a>. The first half of the talk discusses the most important issues and techniques to consider when using GPUs for high-performance computation, especially where we have to change our traditional advice for doing the same computation on the CPU. The second half focuses on upcoming C++ language and library extensions that bring key abstractions for GPGPU — and in time considerably more — directly into C++.</li>
+</ul>
+<p>I hope to see many of you there this August. Last year&#8217;s event sold out during the early-bird period, and although we&#8217;ve increased the attendance cap this year to make room for more, if you&#8217;re interested in coming you may want to <a href="http://cppandbeyond2011.eventbrite.com/">register</a> soon to reserve a place.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2011/04/14/two-more-cnb-sessions/feed/</wfw:commentRss>
+		<slash:comments>2</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Keynote at the AMD Fusion Developer Summit</title>
+		<link>https://herbsutter.com/2011/04/06/fusion/</link>
+				<comments>https://herbsutter.com/2011/04/06/fusion/#comments</comments>
+				<pubDate>Wed, 06 Apr 2011 19:52:35 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[C++]]></category>
+		<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Microsoft]]></category>
+		<category><![CDATA[Software Development]]></category>
+		<category><![CDATA[Talks & Events]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.com/?p=542</guid>
+				<description><![CDATA[In a couple of months, I&#8217;ll be giving a keynote at the AMD Fusion Developer&#8217;s Summit, which will be held on June 13-16, 2011, in Bellevue, WA, USA. Here&#8217;s my talk&#8217;s description as it appears on the conference website: AFDS Keynote: “Heterogeneous Parallelism at Microsoft” Herb Sutter, Microsoft Principal Architect, Native Languages Parallelism is not [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>In a couple of months, I&#8217;ll be giving a keynote at the <a href="http://developer.amd.com/afds/">AMD Fusion Developer&#8217;s Summit</a>, which will be held on June 13-16, 2011, in Bellevue, WA, USA.</p>
+<p>Here&#8217;s my talk&#8217;s description as it <a href="http://developer.amd.com/afds/pages/keynote.aspx">appears</a> on the conference website:</p>
+<blockquote><p><strong><a href="http://developer.amd.com/afds/pages/keynote.aspx">AFDS Keynote: “Heterogeneous Parallelism at Microsoft”</a></strong><br />
+<em>Herb Sutter, Microsoft Principal Architect, Native Languages</em></p>
+<p>Parallelism is not just in full bloom, but increasingly in full variety. We know that getting full computational performance out of most machines—nearly all desktops and laptops, most game consoles, and the newest smartphones—already means harnessing local parallel hardware, mainly in the form of multicore CPU processing. This is the commoditization of the supercomputer.</p>
+<p>More and more, however, getting that full performance can also mean using gradually ever-more-heterogeneous processing, from local GPGPU and Accelerated Processing Unit (APU) flavors to “often-on” remote parallel computing power in the form of elastic compute clouds. This is the generalization of the heterogeneous cluster in all its NUMA glory, and it’s appearing at all scales from on-die to on-machine to on-cloud.</p>
+<p>In this talk, Microsoft’s chief native languages architect shares a vision of what this will mean for native software on Microsoft platforms from servers to devices, and showcases upcoming innovations that bring access to increasingly heterogeneous compute resources — from vector units and multicore, to GPGPU and APU, to elastic cloud — directly into the world’s most popular native languages.</p></blockquote>
+<p>If you&#8217;re interested in high performance code for <a href="http://en.wikipedia.org/wiki/GPGPU">GPUs</a>, <a href="http://sites.amd.com/us/fusion/apu/Pages/fusion.aspx">APUs</a>, and other high-performance <a href="http://en.wikipedia.org/wiki/Three-letter_acronym">TLAs</a>, I hope to see you there.</p>
+<p>Note: This talk is related to, but different from, the <a href="http://cppandbeyond.com/2011/04/02/session-announcement-c-and-the-gpu-and-beyond/">GPU talk I&#8217;ll be presenting</a> in August at <em><a href="https://herbsutter.com/2011/04/05/c-and-beyond-2011/">C++ and Beyond 2011</a></em> (aka C&amp;B). You can expect the above keynote to be, well, keynote-y&#8230; oriented toward software product features and of course AMD&#8217;s hardware, with plenty of forward-looking industry vision style material. My <a href="http://cppandbeyond.com/2011/04/02/session-announcement-c-and-the-gpu-and-beyond/">August C&amp;B technical talk</a> will be just that, an in-depth performance-oriented and sometimes-gritty technical session that will also mention product-related and hardware-specific stuff but is primarily about heterogeneous hardware, with a more pragmatically focused forward-looking eye.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2011/04/06/fusion/feed/</wfw:commentRss>
+		<slash:comments>7</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Links I enjoyed reading this week</title>
+		<link>https://herbsutter.com/2010/03/13/links-i-enjoyed-reading-this-week/</link>
+				<comments>https://herbsutter.com/2010/03/13/links-i-enjoyed-reading-this-week/#comments</comments>
+				<pubDate>Sat, 13 Mar 2010 15:50:34 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Software Development]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/03/13/links-i-enjoyed-reading-this-week/</guid>
+				<description><![CDATA[Concurrency-related (more or less directly) Samples updated for ConcRT, PPL and Agents (Microsoft Parallel Programming blog) Update to the samples for the Visual Studio 2010 Release Candidate. Hmm, I suppose I should include a link to that too: Visual Studio 2010 and .NET Framework 4 Release Candidate (Microsoft) Freely downloadable, includes C++0x features like auto [&#8230;]]]></description>
+								<content:encoded><![CDATA[<h3>Concurrency-related (more or less directly)</h3>
+<p><a href="http://blogs.msdn.com/nativeconcurrency/archive/2010/03/10/samples-updated-for-concrt-ppl-and-agents.aspx"><strong>Samples updated for ConcRT, PPL and Agents</strong></a><strong> (Microsoft Parallel Programming blog)</strong>     <br />Update to the samples for the Visual Studio 2010 Release Candidate. Hmm, I suppose I should include a link to that too:</p>
+<ul>
+<li><strong><a href="http://msdn.microsoft.com/en-us/vstudio/dd582936.aspx">Visual Studio 2010 and .NET Framework 4 Release Candidate</a> (Microsoft)</strong>       <br />Freely downloadable, includes C++0x features like auto and lambdas and rvalue references (move semantics), nifty parallel programming libraries, and more. </li>
+</ul>
+<p><a href="http://techreport.com/articles.x/18581"><strong>Intel&#8217;s Core i7-980X Extreme processor</strong></a><strong> (The Tech Report)      <br /></strong>Desktop part with 12 hardware threads (6 cores x 2 threads/core), 32nm process, &gt;1.1B transistors.</p>
+<h3>General information/amusement</h3>
+<h3></h3>
+<h3></h3>
+<p><a href="http://blogs.msdn.com/oldnewthing/archive/2010/03/11/9976571.aspx"><strong>Application compatibility layers are there for the customer, not for the program</strong></a><strong> (Raymond Chen)      <br /></strong>You wouldn’t believe the backward-compatibility hoops we all need to <strike><em>jump through</em></strike> hold in the right place for older apps to jump through, and then the app developer asks for more…</p>
+<p><strong><a href="http://www.gizmag.com/first-commercially-available-jetpack/14423/">Jetpack to be commercially available soon?</a> (Gizmag)       <br /></strong>Yes, we see a story like this every few years. This one actually gets the flight time beyond just one minute. Now if we could only take the expected price down by one order of magnitude, and safety up by an order of magnitude or three…</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2010/03/13/links-i-enjoyed-reading-this-week/feed/</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Machine Architecture slides back online</title>
+		<link>https://herbsutter.com/2010/02/22/machine-architecture-slides-back-online/</link>
+				<comments>https://herbsutter.com/2010/02/22/machine-architecture-slides-back-online/#comments</comments>
+				<pubDate>Mon, 22 Feb 2010 21:47:01 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Software Development]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/02/22/machine-architecture-slides-back-online/</guid>
+				<description><![CDATA[A number of people reported that the PDF slides for my Machine Architecture talk were offline. It turns out that the NWCPP servers were recently moved and the link temporarily broken, but it’s now been restored. Links: Google video PDF slides (back again)]]></description>
+								<content:encoded><![CDATA[<p>A number of people reported that the PDF slides for my Machine Architecture talk were offline. It turns out that the NWCPP servers were recently moved and the link temporarily broken, but it’s now been restored.</p>
+<p>Links:</p>
+<ul>
+<li><a href="http://video.google.com/videoplay?docid=-4714369049736584770">Google video</a></li>
+<li><a href="http://www.nwcpp.org/Downloads/2007/Machine_Architecture_-_NWCPP.pdf">PDF slides</a> (back again)</li>
+</ul>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2010/02/22/machine-architecture-slides-back-online/feed/</wfw:commentRss>
+		<slash:comments>2</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Igor Ostrovsky and the Seven Cache Effects</title>
+		<link>https://herbsutter.com/2010/02/15/igor-ostrovsky-and-the-seven-cache-effects/</link>
+				<comments>https://herbsutter.com/2010/02/15/igor-ostrovsky-and-the-seven-cache-effects/#comments</comments>
+				<pubDate>Mon, 15 Feb 2010 15:44:26 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Software Development]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2010/02/15/igor-ostrovsky-and-the-seven-cache-effects/</guid>
+				<description><![CDATA[My colleague Igor Ostrovsky has written a useful summary of seven cache memory effects that every advanced developer should know about because of their performance impact, particularly as we strive to keep invisible bottlenecks out of parallel code. I’ve covered variations of Igor’s examples #1, #2, #3, and #6 in my Machine Architecture talk and [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>My colleague Igor Ostrovsky has written a useful <a href="http://igoro.com/archive/gallery-of-processor-cache-effects/">summary of seven cache memory effects</a> that every advanced developer should know about because of their performance impact, particularly as we strive to keep invisible bottlenecks out of parallel code.</p>
+<p>I’ve covered variations of Igor’s examples #1, #2, #3, and #6 in my <a href="http://video.google.com/videoplay?docid=-4714369049736584770#">Machine Architecture talk</a> and <a href="http://www.drdobbs.com/go-parallel/article/showArticle.jhtml?articleID=214100002">several</a> <a href="http://www.drdobbs.com/cpp/211800538">of my</a> <a href="http://www.drdobbs.com/go-parallel/article/showArticle.jhtml?articleID=217500206">articles</a>. His article provides a crisp and concise summary of these and three more kinds of cache effects along with simple and clear sample code and intriguing measurements (for example, see the detail in the graph for #5 and its analysis).</p>
+<p>Recommended.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2010/02/15/igor-ostrovsky-and-the-seven-cache-effects/feed/</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Effective Concurrency: Design for Manycore Systems</title>
+		<link>https://herbsutter.com/2009/08/11/effective-concurrency-design-for-manycore-systems/</link>
+				<comments>https://herbsutter.com/2009/08/11/effective-concurrency-design-for-manycore-systems/#comments</comments>
+				<pubDate>Tue, 11 Aug 2009 17:50:19 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Opinion & Editorial]]></category>
+		<category><![CDATA[Software Development]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/08/11/effective-concurrency-design-for-manycore-systems/</guid>
+				<description><![CDATA[This month’s Effective Concurrency column, Design for Manycore Systems, is now live on DDJ’s website. From the article: Why worry about “manycore” today? Dual- and quad-core computers are obviously here to stay for mainstream desktops and notebooks. But do we really need to think about &#34;many-core&#34; systems if we&#8217;re building a typical mainstream application right [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>This month’s <strong>Effective Concurrency</strong> column, <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=219200099">Design for Manycore Systems</a>, is now live on DDJ’s website.</p>
+<p>From the article:</p>
+<blockquote>
+<p><em>Why worry about “manycore” today?</em></p>
+<p>Dual- and quad-core computers are obviously here to stay for mainstream desktops and notebooks. But do we really need to think about &quot;many-core&quot; systems if we&#8217;re building a typical mainstream application right now? I find that, to many developers, &quot;many-core&quot; systems still feel fairly remote, and not an immediate issue to think about as they&#8217;re working on their current product.</p>
+<p>This column is about why it&#8217;s time right now for most of us to think about systems with lots of cores. In short: Software is the (only) gating factor; as that gate falls, hardware parallelism is coming more and sooner than many people yet believe. …</p>
+</blockquote>
+<p>I hope you enjoy it. Finally, here are links to previous Effective Concurrency columns:</p>
+<blockquote>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/200001985">The Pillars of Concurrency</a> (Aug 2007) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/201202924">How Much Scalability Do You Have or Need?</a> (Sep 2007) </p>
+<p><a href="http://ddj.com/cpp/201804238">Use Critical Sections (Preferably Locks) to Eliminate Races</a> (Oct 2007) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/202401098">Apply Critical Sections Consistently</a> (Nov 2007) </p>
+<p><a href="http://ddj.com/architect/202802983">Avoid Calling Unknown Code While Inside a Critical Section</a> (Dec 2007) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/204801163">Use Lock Hierarchies to Avoid Deadlock</a> (Jan 2008) </p>
+<p><a href="http://www.ddj.com/cpp/205900309">Break Amdahl’s Law!</a> (Feb 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/206100542">Going Superlinear</a> (Mar 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/206903306">Super Linearity and the Bigger Machine</a> (Apr 2008) </p>
+<p><a href="http://ddj.com/architect/207100682">Interrupt Politely</a> (May 2008) </p>
+<p><a href="http://ddj.com/architect/208200273">Maximize Locality, Minimize Contention</a> (Jun 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/208801371">Choose Concurrency-Friendly Data Structures</a> (Jul 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/209900973">The Many Faces of Deadlock</a> (Aug 2008) </p>
+<p><a href="http://www.ddj.com/cpp/210600279">Lock-Free Code: A False Sense of Security</a> (Sep 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/210604448">Writing Lock-Free Code: A Corrected Queue</a> (Oct 2008) </p>
+<p><a href="http://www.ddj.com/cpp/211601363">Writing a Generalized Concurrent Queue</a> (Nov 2008) </p>
+<p><a href="http://www.ddj.com/cpp/211800538">Understanding Parallel Performance</a> (Dec 2008)</p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/212201163">Measuring Parallel Performance: Optimizing a Concurrent Queue</a> (Jan 2009)</p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/212701484">volatile vs. volatile</a> (Feb 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=214100002">Sharing Is the Root of All Contention</a> (Mar 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=215900465">Use Threads Correctly = Isolation + Asynchronous Messages</a> (Apr 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=216500409">Use Thread Pools Correctly: Keep Tasks Short and Nonblocking</a> (Apr 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=217500206">Eliminate False Sharing</a> (May 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=217801299">Break Up and Interleave Work to Keep Threads Responsive</a> (Jun 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=218401447">The Power of “In Progress”</a> (Jul 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=219200099">Design for Manycore Systems</a> (Aug 2009)</p>
+</blockquote>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2009/08/11/effective-concurrency-design-for-manycore-systems/feed/</wfw:commentRss>
+		<slash:comments>5</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Effective Concurrency: Eliminate False Sharing</title>
+		<link>https://herbsutter.com/2009/05/15/effective-concurrency-eliminate-false-sharing/</link>
+				<comments>https://herbsutter.com/2009/05/15/effective-concurrency-eliminate-false-sharing/#comments</comments>
+				<pubDate>Fri, 15 May 2009 18:51:38 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[C# / .NET]]></category>
+		<category><![CDATA[C++]]></category>
+		<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Software Development]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/05/15/effective-concurrency-eliminate-false-sharing/</guid>
+				<description><![CDATA[This month’s Effective Concurrency column, “Eliminate False Sharing”, is now live on DDJ’s website. People keep writing asking me about my previous mentions of false sharing, even debating whether it’s really a problem. So this month I decided to treat it in depth, including: A compelling and realistic example where just changing a couple of [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>This month’s <strong>Effective Concurrency</strong> column, <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=217500206">“Eliminate False Sharing”</a><strong></strong>, is now live on DDJ’s website.</p>
+<p>People keep writing asking me about my previous mentions of false sharing, even debating whether it’s really a problem. So this month I decided to treat it in depth, including:</p>
+<ul>
+<li>A compelling and realistic example where just changing a couple of lines to remove false sharing takes an algorithm from zero scaling to perfect scaling – even when many threads are merely doing reads. Hopefully after this nobody will argue that false sharing isn’t a problem. :-)</li>
+<li>How your performance monitoring and analysis tools do and/or don’t help you uncover the problem, and how to use them effectively to identify the culprit. Short answer: CPU activity monitors aren’t very helpful, but cycles-per-instruction (CPI) and cache miss rate measurements attributed to specific lines of source code are your friend.</li>
+<li>The two ways to correct the code: Reduce the frequency of writes to the too-popular cache line, or add padding to move other data off the line.</li>
+<li>Reusable code in C++ and C#, and a note about Java, that you can use to use padding (and alignment if available) to put frequently-updated objects on their own cache lines.</li>
+</ul>
+<p>From the article:</p>
+<blockquote>
+<p>In two previous articles I pointed out the performance issue of false sharing (aka cache line ping-ponging), where threads use different objects but those objects happen to be close enough in memory that they fall on the same cache line, and the cache system treats them as a single lump that is effectively protected by a hardware write lock that only one core can hold at a time. … It’s easy to see why the problem arises when multiple cores are writing to different parts of the same cache line… In practice, however, it can be even more common to encounter a reader thread using what it thinks is read-only data still getting throttled by a writer thread updating a different but nearby memory location…</p>
+<p>A number of readers have asked for more information and examples on where false sharing arises and how to deal with it. … This month, let’s consider a concrete example that shows an algorithm <em>in extremis </em>due to false sharing distress, how to use tools to analyze the problem, and the two coding techniques we can use to eliminate false sharing trouble. …</p>
+</blockquote>
+<p>I hope you enjoy it. Finally, here are links to previous Effective Concurrency columns:</p>
+<blockquote>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/200001985">The Pillars of Concurrency</a> (Aug 2007) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/201202924">How Much Scalability Do You Have or Need?</a> (Sep 2007) </p>
+<p><a href="http://ddj.com/cpp/201804238">Use Critical Sections (Preferably Locks) to Eliminate Races</a> (Oct 2007) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/202401098">Apply Critical Sections Consistently</a> (Nov 2007) </p>
+<p><a href="http://ddj.com/architect/202802983">Avoid Calling Unknown Code While Inside a Critical Section</a> (Dec 2007) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/204801163">Use Lock Hierarchies to Avoid Deadlock</a> (Jan 2008) </p>
+<p><a href="http://www.ddj.com/cpp/205900309">Break Amdahl’s Law!</a> (Feb 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/206100542">Going Superlinear</a> (Mar 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/206903306">Super Linearity and the Bigger Machine</a> (Apr 2008) </p>
+<p><a href="http://ddj.com/architect/207100682">Interrupt Politely</a> (May 2008) </p>
+<p><a href="http://ddj.com/architect/208200273">Maximize Locality, Minimize Contention</a> (Jun 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/208801371">Choose Concurrency-Friendly Data Structures</a> (Jul 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/209900973">The Many Faces of Deadlock</a> (Aug 2008) </p>
+<p><a href="http://www.ddj.com/cpp/210600279">Lock-Free Code: A False Sense of Security</a> (Sep 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/210604448">Writing Lock-Free Code: A Corrected Queue</a> (Oct 2008) </p>
+<p><a href="http://www.ddj.com/cpp/211601363">Writing a Generalized Concurrent Queue</a> (Nov 2008) </p>
+<p><a href="http://www.ddj.com/cpp/211800538">Understanding Parallel Performance</a> (Dec 2008)</p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/212201163">Measuring Parallel Performance: Optimizing a Concurrent Queue</a> (Jan 2009)</p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/212701484">volatile vs. volatile</a> (Feb 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=214100002">Sharing Is the Root of All Contention</a> (Mar 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=215900465">Use Threads Correctly = Isolation + Asynchronous Messages</a> (Apr 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=216500409">“Use Thread Pools Correctly: Keep Tasks Short and Nonblocking”</a> (Apr 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=217500206">“Eliminate False Sharing”</a> (May 2009)</p>
+</blockquote>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2009/05/15/effective-concurrency-eliminate-false-sharing/feed/</wfw:commentRss>
+		<slash:comments>10</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Answer to &#034;16 Technologies&#034;: Engelbart and the Mother of All Demos</title>
+		<link>https://herbsutter.com/2009/01/08/answer-to-16-technologies-engelbart-and-the-mother-of-all-demos/</link>
+				<comments>https://herbsutter.com/2009/01/08/answer-to-16-technologies-engelbart-and-the-mother-of-all-demos/#comments</comments>
+				<pubDate>Thu, 08 Jan 2009 09:59:59 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Opinion & Editorial]]></category>
+		<category><![CDATA[Software Development]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/01/08/answer-to-16-technologies-engelbart-and-the-mother-of-all-demos/</guid>
+				<description><![CDATA[A few days ago I posted a challenge to name the researcher/team and approximate year each of the following 16 important technologies was first demonstrated. In brief, they were: The personal computer for dedicated individual use all day long. The mouse. Internetworks. Network service discovery. Live collaboration and desktop/app sharing. Hierarchical structure within a file [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>A few days ago <a href="https://herbsutter.wordpress.com/2009/01/05/16-important-technologies-who-demonstrated-each-one-first/">I posted a challenge</a> to name the researcher/team and approximate year each of the following 16 important technologies was first demonstrated. In brief, they were:</p>
+<ul>
+<li>The personal computer for dedicated individual use all day long.
+<li>The mouse.
+<li>Internetworks.
+<li>Network service discovery.
+<li>Live collaboration and desktop/app sharing.
+<li>Hierarchical structure within a file system and within a document.
+<li>Cut/copy/paste, with drag-and-drop.
+<li>Paper metaphor for word processing.
+<li>Advanced pattern search and macro search.
+<li>Keyword search and multiple weighted keyword search.
+<li>Catalog-based information retrieval.
+<li>Flexible interactive formatting and line drawing.
+<li>Hyperlinks within a document and across documents.
+<li>Tagging graphics, and parts of graphics, as hyperlinks.
+<li>Shared workgroup document collaboration with annotations etc.
+<li><em>Live</em> shared workgroup collaboration with live audio/video teleconference in a window. </li>
+</ul>
+<h4><strong>A single answer to all of the above: </strong><a href="http://en.wikipedia.org/wiki/Doug_Engelbart"><strong>Doug Engelbart</strong></a><strong> and his ARC team, in what is now known as </strong><a href="http://en.wikipedia.org/wiki/The_Mother_of_All_Demos"><strong>&#8220;The Mother of All Demos&#8221;</strong></a><strong>, on Monday, December 9, 1968.</strong></h4>
+<p><img style="margin:0 0 0 10px;" height="387" src="https://i1.wp.com/sloan.stanford.edu/MouseSite/dce1968conferenceannouncement.jpg" width="290" align="right">Last month, we marked the 40th anniversary of the famous <a href="http://en.wikipedia.org/wiki/The_Mother_of_All_Demos">Engelbart Demo</a>, a truly unique &#8220;Eureka!&#8221; moment in the history of computing. 40 years go, Engelbart and his visionary team foresaw &#8212; <em>and prototyped and demonstrated</em> &#8212; many essential details of what we take for granted as our commonplace computing environment today, including all of the above-listed technologies, most of them demonstrated for the first time in that talk.</p>
+<p>This talk would be noteworthy and historic just for being the first time a &#8220;mouse&#8221; was shown and called by that name. Yet the mouse was just one of over a dozen important innovations to be compellingly presented with working prototype implementations.</p>
+<p>Note: Yes, some of the individual technologies have earlier theoretical roots. I deliberately phrased the question to focus on implementations because <strong>it&#8217;s great to imagine a new idea, but it isn&#8217;t engineering until we prove it can work by actually building it.</strong> For example, consider hypertext: Vannevar Bush&#8217;s <a href="http://en.wikipedia.org/wiki/Memex">Memex</a>, vintage 1945, was a theorectical &#8220;proto-hypertext&#8221; system but it unfortunately remained theoretical, understandably so given the nascent state of computers at the time. <a href="http://en.wikipedia.org/wiki/Project_Xanadu">Project Xanadu</a>, started in 1960, pursued similar ideas but wasn&#8217;t demonstrated until 1972. The Engelbart Demo was the first time that hypertext was publicly shown in a working form, together with a slew of other important working innovations that combined to deliver an unprecedented <em>tour de force</em>. What made it compelling wasn&#8217;t just the individual ideas, but the working demonstrations to show that the ideas worked and how they could combine and interact in wonderful ways.</p>
+<h4><strong>Recommended viewing</strong></h4>
+<p>You can watch the 100-minute talk <a href="http://sloan.stanford.edu/MouseSite/1968Demo.html">here (Stanford University)</a> in sections with commentary, and <a href="http://video.google.com/videoplay?docid=-8734787622017763097">here (Google Video)</a> all in one go.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2009/01/08/answer-to-16-technologies-engelbart-and-the-mother-of-all-demos/feed/</wfw:commentRss>
+		<slash:comments>10</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+
+		<media:content url="http://sloan.stanford.edu/MouseSite/dce1968conferenceannouncement.jpg" medium="image" />
+	</item>
+		<item>
+		<title>16 Important Technologies: Who demonstrated each one first?</title>
+		<link>https://herbsutter.com/2009/01/05/16-important-technologies-who-demonstrated-each-one-first/</link>
+				<comments>https://herbsutter.com/2009/01/05/16-important-technologies-who-demonstrated-each-one-first/#comments</comments>
+				<pubDate>Mon, 05 Jan 2009 09:48:15 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Opinion & Editorial]]></category>
+		<category><![CDATA[Software Development]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/01/05/16-important-technologies-who-demonstrated-each-one-first/</guid>
+				<description><![CDATA[We enjoy such an abundance of computing riches that it&#8217;s easy to take wonderful technological ideas for granted. Yet so many of the pieces of our modern computing experience that we consider routine today were at one time unimaginable. After all, back in the early days of computing, we were still discovering what these newfangled [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>We enjoy such an abundance of computing riches that it&#8217;s easy to take wonderful technological ideas for granted. Yet so many of the pieces of our modern computing experience that we consider routine today were at one time unimaginable. After all, back in the early days of computing, we were still discovering what these newfangled room-filling gadgets might eventually become capable of &#8212; who could have known then what using computers would be like today?</p>
+<p>Of course, we have these technologies today because some visionaries did know, did imagine them&#8230; and, best of all, built and demonstrated them.</p>
+<p>Hence today&#8217;s challenge:</p>
+<p><span style="color:#008040;"><strong>Quiz: </strong>For each of the following 16 technologies that have become commonplace in our modern computing experience, give the researcher/team and approximate year that a working prototype was first demonstrated. How many can you answer <em>without</em> a web search?</span></p>
+<ul>
+<li><strong>The personal computer</strong> for dedicated individual use, that one person can have at their disposal all day long. <em>(Hint: Before the </em><a href="http://en.wikipedia.org/wiki/Altair_8800"><em>Altair</em></a><em> in 1975 and </em><a href="http://en.wikipedia.org/wiki/Apple_I"><em>Apple I</em></a><em> in 1976.)</em></li>
+<li><strong>Mouse input with a graphical pointer.</strong> <em>(Hint: Before the <a href="http://en.wikipedia.org/wiki/Xerox_Alto">Xerox Alto</a> at Xerox PARC in 1973.)</em></li>
+<li><strong>Internetworks</strong> across campuses and cities. <em>(Hint: Before <a href="http://en.wikipedia.org/wiki/Ethernet">Ethernet</a> at Xerox PARC (again) in 1973.)</em></li>
+<li><strong>Discovery of &#8216;who&#8217;s got what service&#8217; in an internetwork.</strong></li>
+<li><strong>Using internetworks for live collaboration</strong>, not just file sharing. <em>(Hint: Before </em><a href="http://en.wikipedia.org/wiki/Remote_Desktop_Connection#Remote_Desktop_Connection"><em>RDP</em></a><em> and </em><a href="http://en.wikipedia.org/wiki/Comparison_of_remote_desktop_software"><em>others</em></a><em>.)</em></li>
+<li><strong>Hierarchical structure</strong> within a file system and within a document. <em>(Hint: Before </em><a href="http://en.wikipedia.org/wiki/Unix"><em>Unix</em></a><em>.)</em></li>
+<li><strong>Cut/copy/paste</strong>, with drag-and-drop.</li>
+<li><strong>Paper metaphor for word processing</strong>, starting with a blank piece of paper and the applying  formatting and navigating levels in the structure of text.</li>
+<li><strong>Advanced pattern search and macro search</strong> within documents. <em>(Hint: Before MIT&#8217;s </em><a href="http://en.wikipedia.org/wiki/Emacs"><em>Emacs</em></a><em>.)</em></li>
+<li><strong>Keyword search and multiple weighted keyword search.</strong> <em>(Hint: Long before <strong><a title="You don't really need a link for Google, do you?" href="http://www.youtube.com/watch?v=Yu_moia-oVI">Google</a></strong> (<a title="You clicked a link for Google?! Really??" href="http://www.yougotrickrolled.com/">alternate link</a>).)</em></li>
+<li>Information retrieval through <strong>indirect construction of a catalog.</strong></li>
+<li><strong>Flexible interactive formatting and line drawing.</strong></li>
+<li><strong>Hyperlinks </strong>within a document and across documents, and &#8220;jumping on a link&#8221; to navigate. <em>(Hint: Before </em><a href="http://www.w3.org/People/Berners-Lee/"><em>Tim Berners-Lee</em></a><em> invented the </em><a href="http://www.w3.org/People/Berners-Lee/WorldWideWeb.html"><em>World Wide Web</em></a><em> in 1989-1990.) (Hint&#8217;: Yes, before </em><a href="http://en.wikipedia.org/wiki/HyperCard"><em>HyperCard</em></a><em> too.)</em></li>
+<li><strong>Tagging graphics, and parts of graphics, as hyperlinks.</strong> <em>(Hint: Before </em><a href="http://www.flickr.com"><em>Flickr</em></a><em>.)</em></li>
+<li><strong>Workgroup collaboration on a document, including collaborative annotations,</strong> allowing members of a group to use and modify a document. <em>(Hint: Before </em><a href="http://en.wikipedia.org/wiki/IBM_Lotus_Notes"><em>Lotus Notes</em></a><em> and </em><a href="http://en.wikipedia.org/wiki/Wiki"><em>Ward Cunningham&#8217;s Wikis</em></a><em>.)</em></li>
+<li>The next step up from that: <strong>Live collaboration on a document with screen sharing</strong> on the two writers&#8217; computers so they can see what the other is doing &#8212; <strong>with live audio/video teleconference in a window </strong>at the same time. <em>(Hint: Not </em><a href="http://en.wikipedia.org/wiki/Skype"><em>Skype</em></a><em> or </em><a href="http://en.wikipedia.org/wiki/Livemeeting"><em>LiveMeeting</em></a><em>.)</em></li>
+</ul>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2009/01/05/16-important-technologies-who-demonstrated-each-one-first/feed/</wfw:commentRss>
+		<slash:comments>13</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Research Firms Are Good At Research, Not Technology Predictions</title>
+		<link>https://herbsutter.com/2008/07/21/research-firms-are-good-at-research-not-technology-predictions/</link>
+				<comments>https://herbsutter.com/2008/07/21/research-firms-are-good-at-research-not-technology-predictions/#comments</comments>
+				<pubDate>Mon, 21 Jul 2008 15:25:43 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Opinion & Editorial]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2008/07/21/research-firms-are-good-at-research-not-technology-predictions/</guid>
+				<description><![CDATA[This story has been picked up semi-widely since last night. I&#8217;m sure this Steven Prentice they quote is a fine (Gartner) Fellow, but really: The computer mouse is set to die out in the next five years and will be usurped by touch screens and facial recognition, analysts believe. Seriously, does anyone who uses computers [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p><a href="http://www.pcauthority.com.au/News/117291,computer-mouse-heading-for-extinction.aspx">This story</a> has been picked up semi-widely since last night. I&#8217;m sure this Steven Prentice they quote is a fine (Gartner) Fellow, but really:</p>
+<blockquote>
+<p>The computer mouse is set to die out in the next five years and will be usurped by touch screens and facial recognition, analysts believe.</p>
+</blockquote>
+<p>Seriously, does anyone who uses computers daily really believe this kind of prediction just because someone at Gartner says so? Dude, sanity check: 1. What functions do you use your mouse for? 2. How many of those functions can be done by pointing at your screen or smiling at the camera: a) at all; and b) with equivalent high precision and low arm fatigue? Of course the mouse, including direct equivalents like the touchpad/trackpad, will be replaced someday. But to notice that people like to turn and shake their Wii controllers and iPhones and then make the leap to conclude that this will replace mice outright in the short term seems pretty thin even for Gartner.</p>
+<p>When you read a report from Gartner, Forrester, IDC and their brethren research firms, remember that you&#8217;re either getting real-world data (aka research) or a single analyst&#8217;s personal predictions (aka crystal-ball gazing). Research firms are good at what they&#8217;re good at, namely research:</p>
+<ul>
+<li>They&#8217;re &#8220;decent&#8221; at compiling current industry market data. Grade: A.</li>
+<li>They&#8217;re &#8220;pretty okay&#8221; when they limit themselves to simple short-term extrapolation of that data, such as two-year projections of cost changes of high-speed networking in Canada or cell phone penetration in India. Grade: A-.</li>
+</ul>
+<p>But when they try bigger technology movement predictions like &#8220;X will replace Y in Z years&#8221; they average somewhere around &#8220;spotty,&#8221; and on their off days they dip down into &#8220;I think you forgot to <a href="http://en.wikipedia.org/wiki/Sanity_test">sanity check</a> that sound bite&#8221; territory. It&#8217;s a pity that some venture capitalists take the research analysts&#8217; word as gospel. Reliability of technology shift predictions: D+.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2008/07/21/research-firms-are-good-at-research-not-technology-predictions/feed/</wfw:commentRss>
+		<slash:comments>6</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Kindling</title>
+		<link>https://herbsutter.com/2008/07/16/kindling/</link>
+				<comments>https://herbsutter.com/2008/07/16/kindling/#comments</comments>
+				<pubDate>Thu, 17 Jul 2008 01:16:45 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Opinion & Editorial]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2008/07/16/kindling/</guid>
+				<description><![CDATA[Two weeks ago, I broke down and bought a Kindle. I like it: It&#8217;s a good and well-designed reader, and the experience is much better than the other e-book reading I&#8217;ve done before on phones and PDAs. I like how when you bookmark a page, you can see it&#8230; the corner of the page gets [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>Two weeks ago, I broke down and bought a <a href="http://en.wikipedia.org/wiki/Kindle">Kindle</a>. I like it:</p>
+<ul>
+<li>It&#8217;s a good and well-designed reader, and the experience is much better than the other e-book reading I&#8217;ve done before on phones and PDAs. I like how when you bookmark a page, you can see it&#8230; the corner of the page gets a little dog-ear. [1]</li>
+<li>It&#8217;s got a nice <a href="http://en.wikipedia.org/wiki/Electronic_paper">e-paper</a> screen that uses ambient light, not backlight, which makes it readable anywhere just like a printed page &#8212; it&#8217;s even better, not worse, in direct sunlight.</li>
+<li>It&#8217;s light and thin and sturdy. Sure beats carrying three or four books on a trip.</li>
+<li>It has great battery life. I&#8217;ve only charged it once so far, when I first received it&#8230; since then I&#8217;ve had it for 11 days and read a full book and a half, and it still has 75% of its first charge left. (It helps that I turn the wireless off unless I&#8217;m actively using it.)</li>
+<li>Fast, free wireless everywhere in the U.S., without computers or WiFi.</li>
+</ul>
+<p>But today, it transformed my reading experience.</p>
+<p>This morning, I was unsuspectingly reading my feeds in Google Reader as usual, blissfully unaware that the way I read books was about to change. Among other articles, I noticed that Slashdot ran a <a href="http://books.slashdot.org/article.pl?sid=08/07/16/1330221">book review of <em>Inside Steve&#8217;s Brain</em></a> (that&#8217;s Jobs, not Wozniak or Ballmer). The review made me want to read the book. That&#8217;s when the new reality started, because I was interested in the book <em>now</em>, and had time to start reading it <em>now:</em></p>
+<ul>
+<li>Normally, I would have ordered it from Amazon and waited for it to arrive. But what usually happens then is that the book arrives a week later, and when it gets here I don&#8217;t have time to start it right away or I don&#8217;t quite feel like that kind of book just at the moment&#8230; and it goes on a shelf, with a 70% probability of being picked up at some point in the future.</li>
+<li>Today, I searched for the book title on my Kindle, clicked &#8220;Buy&#8221;, and a few minutes later started reading <em><a href="http://www.amazon.com/Inside-Steves-Brain/dp/B0016H97LY/ref=sr_1_1?ie=UTF8&amp;s=digital-text&amp;qid=1216255732&amp;sr=1-1">Inside Steve&#8217;s Brain</a></em> while eating lunch. [2]</li>
+</ul>
+<p>That convenience isn&#8217;t merely instant gratification, it&#8217;s transformative. I suspect I&#8217;m going to be reading even more books now, even though I have a few little nits with the device, such as that the next and previous page buttons are a little too easy to press in some positions.</p>
+<p>In other news, the Kindle also supports reading blogs and newspapers and some web surfing, but those are less compelling for me because I tend to do those things in the context of work, which means I&#8217;m already sitting at a computer with a bigger color screen and full keyboard. Maybe someday I&#8217;ll do it on e-paper. Until then, just living inside a virtual bookstore is plenty for me. Kindle + the Amazon Kindle store = iPod + iTunes for books. [3]</p>
+<p>Here&#8217;s a <a href="http://www.macworld.com/article/61186/2007/11/kindle.html">useful summary article</a> on Kindle features from a prospective user&#8217;s point of view.</p>
+<h3>Notes</h3>
+<p>1. The first two books I downloaded? <em><a href="http://www.amazon.com/Design-Everyday-Things-Donald-Norman/dp/0385267746">The Design of Everyday Things</a></em>, which was interestingly apropros to read on a new device like the Kindle with its nice dog-ear feedback and other well-designed features, and <a href="http://www.amazon.com/Foundation/dp/B000FC1PWA/ref=sr_1_1?ie=UTF8&amp;s=digital-text&amp;qid=1216255446&amp;sr=1-1"><em>Foundation</em></a>, which I hadn&#8217;t read in ages.</p>
+<p>2. And it cost less than half what the dead-tree version would (though the latter was hardcover).</p>
+<p>3. Caveat: I&#8217;m not actually an iPod owner, and I hate how Apple keeps insisting on installing iTunes on my computer just because I have Safari or QuickTime installed <span style="color:#808080;">(mutter grumble evil product-tying monopolies mutter grumble :-) )</span>. But apparently everyone else loves them, and they have indeed changed their industry.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2008/07/16/kindling/feed/</wfw:commentRss>
+		<slash:comments>10</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Quad-core a &#034;waste of electricity&#034;?</title>
+		<link>https://herbsutter.com/2008/04/18/quad-core-a-waste-of-electricity/</link>
+				<comments>https://herbsutter.com/2008/04/18/quad-core-a-waste-of-electricity/#comments</comments>
+				<pubDate>Fri, 18 Apr 2008 18:10:52 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[C++]]></category>
+		<category><![CDATA[Concurrency]]></category>
+		<category><![CDATA[Hardware]]></category>
+		<category><![CDATA[Software Development]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=86</guid>
+				<description><![CDATA[Jeff Atwood wrote: In my opinion, quad-core CPUs are still a waste of electricity unless you’re putting them in a server. Four cores on the desktop is great for bragging rights and mathematical superiority (yep, 4 &#62; 2), but those four cores provide almost no benchmarkable improvement in the type of applications most people use. [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p>Jeff Atwood <a href="http://www.codinghorror.com/blog/archives/001102.html">wrote</a>:</p>
+<blockquote><p>In my opinion, quad-core CPUs are still a <a href="http://www.codinghorror.com/blog/archives/000942.html">waste of electricity</a> unless you’re putting them in a server. Four cores on the desktop is great for bragging rights and mathematical superiority (yep, 4 &gt; 2), but those four cores <a href="http://www.codinghorror.com/blog/archives/000655.html">provide almost no benchmarkable improvement</a> in the type of applications most people use. Including software development tools.</p></blockquote>
+<p>Really? You must not be using the right tools. :-) For example, here are three I’m familiar with:</p>
+<table border="0" cellspacing="10" cellpadding="10" width="507">
+<tbody>
+<tr>
+<td width="485" valign="top"><a href="http://msdn2.microsoft.com/en-us/library/bb385193.aspx"><img style="border-width:0;margin:5px 0 0 10px;" src="https://herbsutter.files.wordpress.com/2008/04/image.png?w=240&#038;h=68" border="0" alt="image" width="240" height="68" align="right" /></a> <strong>Visual C++ 2008</strong>’s <a href="http://msdn2.microsoft.com/en-us/library/bb385193.aspx">/MP flag</a> tells the compiler to compile files in the same project in parallel. I typically get linear speedups on the compile phase. The link phase is still sequential, but on most projects compilation dominates.</td>
+</tr>
+<tr>
+<td width="485" valign="top"><a href="http://msdn2.microsoft.com/en-us/library/9h3z1a69.aspx"><img style="margin:5px 10px 5px 0;" src="https://herbsutter.files.wordpress.com/2008/04/image1.png?w=240&#038;h=43" border="0" alt="image" width="240" height="43" align="left" /></a>Since <strong>Visual Studio 2005</strong> we’ve supported <a href="http://msdn2.microsoft.com/en-us/library/9h3z1a69.aspx">parallel project builds</a> in Batch Build mode, where you can build multiple subprojects in parallel (e.g., compile your release and debug builds in parallel), though that feature didn’t let you compile multiple files in the same project in parallel. (As I’ve blogged about <a href="https://herbsutter.wordpress.com/2007/08/08/visual-c-qa/">before</a>, Visual C++ 2005 actually already shipped with the /MP feature, but it was undocumented.)</td>
+</tr>
+<tr>
+<td width="485" valign="top"><a href="http://msdn2.microsoft.com/en-us/library/bb687899.aspx"><img style="border-width:0;margin:5px 0 0 10px;" src="https://herbsutter.files.wordpress.com/2008/04/image2.png?w=240&#038;h=73" border="0" alt="image" width="240" height="73" align="right" /></a> <strong>Excel 2007</strong> does <a href="http://msdn2.microsoft.com/en-us/library/bb687899.aspx">parallel recalculation</a>. Assuming the spreadsheet is large and doesn’t just contain sequential dependencies between cells, it usually scales linearly up to at least 8 cores (the most I heard that was tested before shipping). I&#8217;m told that customers who are working on big financial spreadsheets love it.</td>
+</tr>
+<tr>
+<td width="485"><a href="https://herbsutter.files.wordpress.com/2008/04/image3.png"><img style="border-width:0;margin:5px 20px 0 0;" src="https://herbsutter.files.wordpress.com/2008/04/image-thumb.png?w=240&#038;h=71" border="0" alt="image" width="240" height="71" align="left" /></a>&#8230; <a href="http://msdn2.microsoft.com/en-us/library/bb204834(VS.85).aspx">And</a> <a href="http://arstechnica.com/articles/paedia/cpu/valve-multicore.ars/2">need I</a> <a href="http://www.anandtech.com/tradeshows/showdoc.aspx?i=2868&amp;p=5">mention</a> <a href="http://www.anandtech.com/tradeshows/showdoc.aspx?i=2868&amp;p=7">games</a>? (This is just a snarky comment&#8230; Jeff already correctly <a href="http://www.codinghorror.com/blog/archives/000942.html">noted</a> that &#8220;rendering, encoding, or scientific applications&#8221; are often scalable today.)</td>
+</tr>
+</tbody>
+</table>
+<p>And of course, even if you&#8217;re having a terrible day and not a single one of your applications can use more than one core, you can still see real improvement on CPU-intensive multi-application workloads on a multicore machine today, such as by being able to run other foreground applications at full speed while encoding a movie in the background.</p>
+<p>Granted, as I’ve <a href="https://herbsutter.wordpress.com/2008/02/01/how-parallelism-demos-are-useful/">said before</a>, we do need to see examples of <em>manycore</em> (e.g., &gt;10 cores) exploiting <em>mainstream</em> applications (e.g., something your dad might use). But it’s overreaching to claim that there are no multicore (e.g., &lt;10 cores) exploiting applications at all, not even development tools. We may not yet have achieved the mainstream manycore killer app, but it isn&#8217;t like we have nothing to show at all. We have started out on the road that will take us there.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2008/04/18/quad-core-a-waste-of-electricity/feed/</wfw:commentRss>
+		<slash:comments>26</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+
+		<media:content url="https://herbsutter.files.wordpress.com/2008/04/image.png" medium="image">
+			<media:title type="html">image</media:title>
+		</media:content>
+
+		<media:content url="https://herbsutter.files.wordpress.com/2008/04/image1.png" medium="image">
+			<media:title type="html">image</media:title>
+		</media:content>
+
+		<media:content url="https://herbsutter.files.wordpress.com/2008/04/image2.png" medium="image">
+			<media:title type="html">image</media:title>
+		</media:content>
+
+		<media:content url="https://herbsutter.files.wordpress.com/2008/04/image-thumb.png" medium="image">
+			<media:title type="html">image</media:title>
+		</media:content>
+	</item>
+		<item>
+		<title>Welcome to Silicon Miami: The System-On-a-Chip Evolution</title>
+		<link>https://herbsutter.com/2007/03/05/welcome-to-silicon-miami-the-system-on-a-chip-evolution/</link>
+				<comments>https://herbsutter.com/2007/03/05/welcome-to-silicon-miami-the-system-on-a-chip-evolution/#comments</comments>
+				<pubDate>Mon, 30 Nov -0001 00:00:00 +0000</pubDate>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+				<category><![CDATA[Hardware]]></category>
+
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2007/03/05/welcome-to-silicon-miami-the-system-on-a-chip-evolution/</guid>
+				<description><![CDATA[A lot of people seem to have opinions about whether hardware trends are generally moving things on-chip or off-chip. I just saw another discussion about this on Slashdot today. Here&#8217;s part of the summary of that article: &#34;In the near future the Central Processing Unit (CPU) will not be as central anymore. AMD has announced [&#8230;]]]></description>
+								<content:encoded><![CDATA[<p><a href="http://tk3.storage.msn.com/x1pGg9EMswqL--axpC8Xtvu2niS7v1XBd1b0SDdRXL33Wz6tl-41zMo6R-f3LnmcBNFNHhzaVIqAsMJZUJch5Cwx_v92sz5BdNe6jdxxgUraAA3tJ8XoBx9DV4Ej8Rg9A3J0XLJM8zmib27qosGOOKZgtZ4Bu3vQMyh"><img style="border-width:0;" height="300" src="http://tk3.storage.msn.com/x1pGg9EMswqL--axpC8Xtvu2niS7v1XBd1b0SDdRXL33Wyx2f8s1FCee4420z1Ulo0j1fcQ_rYQj8qmS3PTqTdmf_ZC3FGlrZ6uXcFn4hNETVLMI7BliGPIQl6KV-6HEYq9jMs-NnasGXGRV-CawRb_8A" width="196" align="right" border="0" /></a> A lot of people seem to have opinions about whether hardware trends are generally moving things on-chip or off-chip. I just saw another discussion about this <a href="http://hardware.slashdot.org/article.pl?sid=07/03/05/121213">on Slashdot</a> today. Here&#8217;s part of the summary of that article:</p>
+<blockquote>
+<p>&quot;In the near future the Central Processing Unit (CPU) will not be as central anymore. AMD has announced the Torrenza platform that revives the concept op [sic] co-processors. Intel is also taking steps in this direction with the announcement of the CSI. With these technologies in the future we can put special chips (GPU&#8217;s, APU&#8217;s, etc. etc.) directly on the motherboard in a special socket. Hardware.Info has published a <a href="http://www.hardware.info/en-UK/articles/amdnY2pvZGma/The_CPU_redefined_AMD_Torrenza_and_Intel_CSI/">clear introduction to AMD Torrenza and Intel CSI</a> and sneak peaks [sic] into the future of processors.&quot;</p>
+</blockquote>
+<p>Sloppy spelling aside (and, sigh, a good example of why not to live on on spell-check alone), is this a real trend?
+</p>
+<p>Of course it is. But the exact reverse trend is also real, and I happen to think the reverse trend is more likely to dominate in the medium term. I&#8217;ll briefly explain why, and support why I think the above is highlighting the wrong trend and making the wrong prediction.</p>
+<h1>Two Trends, Both Repeating Throughout (Computer) History</h1>
+</p>
+<p>Those who&#8217;ve been watching, or simply using, CPUs for years have probably seen both of the following apposite [NB, this spelling is intentional] trends, sometimes at the same time for different hardware functions:</p>
+<ul>
+<li><em>Stuff moves off the CPU.</em> For example, first the graphics are handled by the CPU; then they&#8217;re moved off to a separate GPU for better efficiency.
+</li>
+<li><em>Stuff moves onto the CPU.</em> For example, first the FPU is a coprocessor; then it&#8217;s moved onto the CPU for better efficiency.</li>
+</ul>
+<p>The truth is, the wheel turns. It can turn in different directions at the same time for different parts of the hardware. Just because we&#8217;re happening to look at a &quot;move off the chip&quot; moment for one set of components does not a trend make.
+</p>
+<p>Consider <em>why</em> things move on or off the CPU:</p>
+<ul>
+<li>When the CPU is already pretty busy much of the time and doesn&#8217;t have much spare capacity, people start making noises about moving this or that off &quot;for better efficiency,&quot; and they&#8217;re right.
+</li>
+<li>When the CPU is already pretty idle most of the time, or system cost is an issue, people start making the reverse noises &quot;for better efficiency,&quot; and they&#8217;re right. (Indeed, if you read <a href="http://www.foundersatwork.com/stevewozniak.html">the Woz interview</a> that I <a href="http://herbsutter.spaces.live.com/blog/cns!2D4327CC297151BB!155.entry">blogged about recently</a>, you&#8217;ll notice how he repeatedly emphasizes his wonderful adventures in the art of the latter &#8212; namely, doing more with fewer chips. It led directly to the success of the personal computer, years before it would otherwise likely have happened. Thanks, Woz.)</li>
+</ul>
+<p>Add to the mix that general-purpose CPUs by definition can&#8217;t be as efficient as special-purpose chips, even when they can do comparable work, and we can better appreciate the balanced forces in play and how they can tip one way or another at different times and for different hardware features.</p>
+<h1>What&#8217;s New or Different Now?</h1>
+</p>
+<p>So now mix in the current <a href="http://www.gotw.ca/publications/concurrency-ddj.htm">sea change</a> away from ever-faster uniprocessors and toward processors with many, but not as remarkably faster, cores. Will this sway the long-term trend toward on-processor designs or toward co-processor designs?
+</p>
+<p>The first thing that might occur to us is that there&#8217;s still a balance of forces. Specifically, we might consider these effects that I mentioned in the <a href="http://www.gotw.ca/publications/concurrency-ddj.htm">Free Lunch</a> paper:</p>
+<ul>
+<li><em>On the one hand, this is a force in favor of coprocessors, thus moving work off the CPU.</em> A single core isn&#8217;t getting faster the way it used to, and we software folks are gluttons for CPU cycles and are always asking the hardware to do more stuff; after all, we hardly ever remove software features. Therefore for many programs CPU cycles are more dear, so we&#8217;ll want to use them for the program&#8217;s code as much as we can instead of frittering them away on other work. (This reasoning applies mainly to single-threaded programs and non-scaleable multi-threaded programs, of course.)
+</li>
+<li><em>On the other hand, this is also a force against coprocessors, for moving work onto the CPU.</em> We&#8217;re now getting a bunch (and soon many bunches) of cores, not just one. Until software gets its act together and we start seeing more mainstream manycore-exploiting applications, we&#8217;re going to be enjoying a minor embarrassment of riches in terms of spare CPU capacity, and presumably we&#8217;ll be happy using those otherwise idle cores to do work that expensive secondary chips might otherwise do. At least until we have applications ready to soak up all those cycles.</li>
+</ul>
+<p>So are the forces still in balance, as they have ever been? Are we just going see more on-the-chip / off-the-chip cycles?
+</p>
+<p>In part yes, but the above analysis is looking more at symptoms than at causes &#8212; the reasons <em>why</em> things are happening. The real point is more fundamental, and at the heart of why the free lunch is over:</p>
+<ul>
+<li><strong>On the gripping hand, the fundamental reason <em>why</em> we&#8217;re getting so many cores on a chip is because CPU designers don&#8217;t know what to do with all those transistors. </strong>Moore&#8217;s Law is still happily handing out a doubling of transistors per chip every 18 months or so (and will keep doing that for probably at least another decade, thank you, despite recurring &#8216;Moore&#8217;s Law is dead!&#8217; discussion threads on popular forums). That&#8217;s the main reason why we&#8217;re getting multicore parts: About five years ago, commodity CPU designers pretty much finished mining the &quot;make the chip more complex to run single-threaded code faster&quot; path that they had been mining to good effect for 30 years (there will be more gains there, but more incremental than exponential), and so we&#8217;re on the road to manycore instead.</li>
+</ul>
+<p><strong>But we&#8217;re also on the road to doing other things with all those transistors, besides just manycore.</strong> After all, manycore isn&#8217;t the only, or necessarily the best, use for all those gates. Now, I said &quot;all&quot; deliberately: To be sure you don&#8217;t get me wrong, let me emphasize that manycore <em>is</em> a wonderful new world and a great use for <em>many</em> of those transistors and we should be eagerly excited about that; it&#8217;s just not the only or best use for <em>all</em> of those transistors.</p>
+<h1>What Will Dominate Over the Next Decade? More On-CPU Than Off-CPU</h1>
+</p>
+<p>It&#8217;s no coincidence that companies like <a href="http://www.amd.com/us-en/">AMD</a> are <a href="http://www.engadget.com/2006/10/25/amd-and-ati-finally-tie-the-knot-embark-on-fusion-honeymoon/">buying</a> companies like <a href="http://ati.amd.com/">ATI</a>. I&#8217;m certainly not going out on much of a limb to predict the following:</p>
+<ul>
+<li><em>Of course</em> we&#8217;ll see some GPUs move on-chip. It&#8217;s a great way to soak up transistors and increase bandwidth between the CPU and GPU. Knowing how long CPU design/production pipelines are, don&#8217;t expect to see this in earnest for about 3-5 years. But do expect to see it.
+</li>
+<li><em>Of course</em> we&#8217;ll see some NICs move on-chip. It&#8217;s a great way to soak up transistors and increase bandwidth between the CPU and NIC.
+</li>
+<li><em>Of course</em> we&#8217;ll see some [crypto, security checking, etc., and probably waffle-toasting, and shirt ironing] work move on-chip.</li>
+</ul>
+<p><strong>Think &quot;system on a chip&quot; (SoC).</strong> By the way, I&#8217;m not claiming to make any earth-shattering observation here. All of this is based on public information and/or fairly obvious inference, and I&#8217;m sure it has been pointed out by others. Much of it already appears on various CPU vendors&#8217; official roadmaps.
+</p>
+<p>There are just too many transistors available, and located too conveniently close to the CPU cores, to not want to take advantage of them. Just think of it in real estate terms: It&#8217;s all about &quot;location, location, location.&quot; And when you have a low-rent location (those transistors are keep getting cheaper) in prime beachfront property (on-chip), <em>of course</em> there&#8217;ll be a mad rush to buy up the property and a construction boom to build high-rises on the beachfront (think silicon Miami) until the property values reach supply-demand equilibrium again (we get to balanced SoC chips that evenly spend those enormous transistor budgets, the same way we&#8217;ve already reached balanced traditional systems). It&#8217;s a bit like predicting that rain will fall downward. And it doesn&#8217;t really matter whether we think skyscrapers on the beach are aesthetically pleasing or not.
+</p>
+<p>Yes, the on-chip/off-chip wheel will definitely keep turning. Don&#8217;t quote this five years from now and say it was wrong by pointing at some new coprocessor where some work moved off-chip; of course that will happen too. And so will the reverse. That both of those trends will continue isn&#8217;t really news, at least not to anyone who&#8217;s been working with computers for the past couple of decades. It&#8217;s just part of the normal let&#8217;s-build-a-balanced-system design cycle as software demands evolve and different hardware parts progress at different speeds.
+</p>
+<p>The news lies in the balance between the trends: The one by far most likely to dominate over the next decade will be for now-separate parts to move onto the CPU, not away from it. Pundit commentary notwithstanding, the real estate is just too cheap. Miami, here we come.</p>
+]]></content:encoded>
+							<wfw:commentRss>https://herbsutter.com/2007/03/05/welcome-to-silicon-miami-the-system-on-a-chip-evolution/feed/</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+						
+		<media:content url="https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=96&#38;d=identicon&#38;r=G" medium="image">
+			<media:title type="html">Herb Sutter</media:title>
+		</media:content>
+
+		<media:content url="http://tk3.storage.msn.com/x1pGg9EMswqL--axpC8Xtvu2niS7v1XBd1b0SDdRXL33Wyx2f8s1FCee4420z1Ulo0j1fcQ_rYQj8qmS3PTqTdmf_ZC3FGlrZ6uXcFn4hNETVLMI7BliGPIQl6KV-6HEYq9jMs-NnasGXGRV-CawRb_8A" medium="image" />
+	</item>
+	</channel>
+</rss>

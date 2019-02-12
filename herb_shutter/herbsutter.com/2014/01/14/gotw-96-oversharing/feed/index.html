@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #96: Oversharing	</title>
+	<atom:link href="https://herbsutter.com/2014/01/14/gotw-96-oversharing/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: xiongzou				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-15025</link>
+		<dc:creator><![CDATA[xiongzou]]></dc:creator>
+		<pubDate>Thu, 13 Feb 2014 09:18:27 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-15025</guid>
+					<description><![CDATA[if we assume that Herb only wants thread 1 reads and thread 2 writes. we can make the variable itself an active object that when write, it will duplicate its latest state and enqueue it into a threading safe queue, when read, dequeue from the queue and process the copy of the latest state.
+
+To have a better simulation of the synchronous read/write locks between two threads, make sure reading thread only process latest state if there are multiple states in the queue. Maybe a stack with sequence number in each duplicated states can help to speed up the performance.]]></description>
+		<content:encoded><![CDATA[<p>if we assume that Herb only wants thread 1 reads and thread 2 writes. we can make the variable itself an active object that when write, it will duplicate its latest state and enqueue it into a threading safe queue, when read, dequeue from the queue and process the copy of the latest state.</p>
+<p>To have a better simulation of the synchronous read/write locks between two threads, make sure reading thread only process latest state if there are multiple states in the queue. Maybe a stack with sequence number in each duplicated states can help to speed up the performance.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michael Golub				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14165</link>
+		<dc:creator><![CDATA[Michael Golub]]></dc:creator>
+		<pubDate>Mon, 20 Jan 2014 16:27:59 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14165</guid>
+					<description><![CDATA[1. a. Increased ratio between boilerplate code and actual logic makes code more complex.
+1. b. If boilerplate code is forgotten problem is not seen immediately. Such buggy code will compile and pass unit tests.
+1. c. With example as-is we can not have multiple readers simultaneously. If shared object is overly large (bad design anyway) with independently modifiable members we have sub-optimal lock granularity.
+2. It requires a change in algorithm that uses shared object. If algorithm relies on sharing and modification to work data should be physically shared and modifiable. Or algorithm that works on once shared data must be changed.
+3. Make shared object internally synchronized. Mark methods that modify shared data as const. Thanks to knowledge of internal structure may be more efficient. Can be hard to implement in practice.]]></description>
+		<content:encoded><![CDATA[<p>1. a. Increased ratio between boilerplate code and actual logic makes code more complex.<br />
+1. b. If boilerplate code is forgotten problem is not seen immediately. Such buggy code will compile and pass unit tests.<br />
+1. c. With example as-is we can not have multiple readers simultaneously. If shared object is overly large (bad design anyway) with independently modifiable members we have sub-optimal lock granularity.<br />
+2. It requires a change in algorithm that uses shared object. If algorithm relies on sharing and modification to work data should be physically shared and modifiable. Or algorithm that works on once shared data must be changed.<br />
+3. Make shared object internally synchronized. Mark methods that modify shared data as const. Thanks to knowledge of internal structure may be more efficient. Can be hard to implement in practice.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: duhonedd				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14149</link>
+		<dc:creator><![CDATA[duhonedd]]></dc:creator>
+		<pubDate>Fri, 17 Jan 2014 18:06:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14149</guid>
+					<description><![CDATA[1) The primary problem is that it is too easy for a  user of some_obj to forget, or not even realize that synchronization is required. Especially as a program gets very large. some_obj will be relying on a comment that programmers won&#039;t read to inform them that synchronization is needed. On the plus side, by not embedding synchronization into some_obj&#039;s class, you wont have to pay for it if you don&#039;t need it on some_obj2.
+
+2, 3) The main goal is to make sure users can&#039;t accidently use a shared object without synchronization, and hopefully to at the same time not require it if another instance is used strictly internally somewhere that is already internally synchronized. It would also be nice if the maintainer of the class of some_obj didn&#039;t have to think about synchronization, keep concerns separated. For this I like the handle body idiom. No classes provide synchronization directly, instead a family of thread safe handles can be used to wrap an instance in, when needed. We can also make use of this handle to cleanly synchronize when we need to make multiple calls to some_obj atomicly. Code is below.
+
+
+&lt;pre&gt;
+&lt;code&gt;
+template&#038;lttypename T&#038;gt
+class Shared
+{
+public:
+    void Lock(std::function&#038;ltvoid (T&#038; _instance)&#038;gt _work)
+    {
+        std::lock_guard&#038;ltstd::mutex7gt lock(m_mutex);
+        _work(m_instance);
+    }
+private:
+    std::mutex m_mutex;
+    T m_instance;
+};
+
+Shared&#038;ltFoo&#038;gt some_obj;
+some_obj.Lock([](auto _instance){
+    _instance.foo1();
+    _instance.foo2();
+});
+&lt;/code&gt;
+&lt;/pre&gt;]]></description>
+		<content:encoded><![CDATA[<p>1) The primary problem is that it is too easy for a  user of some_obj to forget, or not even realize that synchronization is required. Especially as a program gets very large. some_obj will be relying on a comment that programmers won&#8217;t read to inform them that synchronization is needed. On the plus side, by not embedding synchronization into some_obj&#8217;s class, you wont have to pay for it if you don&#8217;t need it on some_obj2.</p>
+<p>2, 3) The main goal is to make sure users can&#8217;t accidently use a shared object without synchronization, and hopefully to at the same time not require it if another instance is used strictly internally somewhere that is already internally synchronized. It would also be nice if the maintainer of the class of some_obj didn&#8217;t have to think about synchronization, keep concerns separated. For this I like the handle body idiom. No classes provide synchronization directly, instead a family of thread safe handles can be used to wrap an instance in, when needed. We can also make use of this handle to cleanly synchronize when we need to make multiple calls to some_obj atomicly. Code is below.</p>
+<pre>
+<code>
+template&amp;lttypename T&amp;gt
+class Shared
+{
+public:
+    void Lock(std::function&amp;ltvoid (T&amp; _instance)&amp;gt _work)
+    {
+        std::lock_guard&amp;ltstd::mutex7gt lock(m_mutex);
+        _work(m_instance);
+    }
+private:
+    std::mutex m_mutex;
+    T m_instance;
+};
+
+Shared&amp;ltFoo&amp;gt some_obj;
+some_obj.Lock([](auto _instance){
+    _instance.foo1();
+    _instance.foo2();
+});
+</code>
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bartosz Milewski				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14145</link>
+		<dc:creator><![CDATA[Bartosz Milewski]]></dc:creator>
+		<pubDate>Thu, 16 Jan 2014 22:17:53 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14145</guid>
+					<description><![CDATA[Question 3. If the variable is not physically shared, then threads won&#039;t be able to see each other&#039;s writes. But if that&#039;s okay, then you can give each thread its own private copy to read and modify and then, at a later time, collect the results and merge them, a la map/reduce. Is that what you had in mind?]]></description>
+		<content:encoded><![CDATA[<p>Question 3. If the variable is not physically shared, then threads won&#8217;t be able to see each other&#8217;s writes. But if that&#8217;s okay, then you can give each thread its own private copy to read and modify and then, at a later time, collect the results and merge them, a la map/reduce. Is that what you had in mind?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bartosz Milewski				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14144</link>
+		<dc:creator><![CDATA[Bartosz Milewski]]></dc:creator>
+		<pubDate>Thu, 16 Jan 2014 20:50:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14144</guid>
+					<description><![CDATA[Question 2. Except for trivial cases, data has to be passed between threads. There are many ways to do it and some of them don&#039;t require additional synchronization. I&#039;m saying &quot;additional&quot; because there are two synchronization points in the life of every thread: its creation and its destruction. 
+
+So you can create data before you pass it to the thread constructor and, if you can guarantee that you won&#039;t access it afterwards, the thread is free to use it without synchronization. Similarly, a thread may create and manipulate data before it returns it (e.g., through a future) to the caller. The best guarantee of non-access is provided by move semantics. When you move your data to the constructor of the thread, or move it back from the thread, you are guaranteed that there is only one thread at a time that can access it. 
+
+Another way to avoid synchronization is to use immutable data. In that case many threads may access the same data concurrently without synchronization. You have to make sure though that the data was created before the threads were started (or there is some other &quot;happens before&quot; edge between creation and use), because data creation almost always involves mutation.]]></description>
+		<content:encoded><![CDATA[<p>Question 2. Except for trivial cases, data has to be passed between threads. There are many ways to do it and some of them don&#8217;t require additional synchronization. I&#8217;m saying &#8220;additional&#8221; because there are two synchronization points in the life of every thread: its creation and its destruction. </p>
+<p>So you can create data before you pass it to the thread constructor and, if you can guarantee that you won&#8217;t access it afterwards, the thread is free to use it without synchronization. Similarly, a thread may create and manipulate data before it returns it (e.g., through a future) to the caller. The best guarantee of non-access is provided by move semantics. When you move your data to the constructor of the thread, or move it back from the thread, you are guaranteed that there is only one thread at a time that can access it. </p>
+<p>Another way to avoid synchronization is to use immutable data. In that case many threads may access the same data concurrently without synchronization. You have to make sure though that the data was created before the threads were started (or there is some other &#8220;happens before&#8221; edge between creation and use), because data creation almost always involves mutation.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: sbohmann				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14138</link>
+		<dc:creator><![CDATA[sbohmann]]></dc:creator>
+		<pubDate>Thu, 16 Jan 2014 00:35:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14138</guid>
+					<description><![CDATA[@Bartosz true :) but what is in my opinion often underrated is that even in the absence of any kind of threads, shared mutable values can break a human mind&#039;s limits of understanding the consequences of possible interference quite easily...
+
+Coroutines are just a classic example, but they are also not a precondition for creating mind-boggling complexity.
+
+Even in the simplest of purely procedural single-threaded programs without event loops driving coroutines etc. can you do that by modifying global variables.
+
+And shared mutable state has a lot in common with non-const global variables.
+
+The only basic difference is that you know for sure that such globals are visible and writable from everywhere, whereas in the case of shared mutable state, in the general case you must assume that they are visible and writable from anywhere, which isn&#039;t much of a difference.
+
+But luckily, shared mutable state at least allows you to encapsulate it in a business logic that defines clear and concise rules for modification, thus artificially limiting your system&#039;s complexity, which most of developing non-trivial systems is about after all :)
+
+Btw., @Herb, thanks for these wonderful questions, and I&#039;m really looking forward to your answer! :)]]></description>
+		<content:encoded><![CDATA[<p>@Bartosz true :) but what is in my opinion often underrated is that even in the absence of any kind of threads, shared mutable values can break a human mind&#8217;s limits of understanding the consequences of possible interference quite easily&#8230;</p>
+<p>Coroutines are just a classic example, but they are also not a precondition for creating mind-boggling complexity.</p>
+<p>Even in the simplest of purely procedural single-threaded programs without event loops driving coroutines etc. can you do that by modifying global variables.</p>
+<p>And shared mutable state has a lot in common with non-const global variables.</p>
+<p>The only basic difference is that you know for sure that such globals are visible and writable from everywhere, whereas in the case of shared mutable state, in the general case you must assume that they are visible and writable from anywhere, which isn&#8217;t much of a difference.</p>
+<p>But luckily, shared mutable state at least allows you to encapsulate it in a business logic that defines clear and concise rules for modification, thus artificially limiting your system&#8217;s complexity, which most of developing non-trivial systems is about after all :)</p>
+<p>Btw., @Herb, thanks for these wonderful questions, and I&#8217;m really looking forward to your answer! :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bartosz Milewski				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14137</link>
+		<dc:creator><![CDATA[Bartosz Milewski]]></dc:creator>
+		<pubDate>Wed, 15 Jan 2014 18:34:01 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14137</guid>
+					<description><![CDATA[These are good questions with some obvious and non-obvious answers. Obviously, having to worry about one more thing adds complexity and fragility to your code. But what is it specifically about mutable shared variables that makes them hard to manage? Two things come to mind: non-locality and non-determinism. Just like gotos, mutable variables introduce dependencies between remote parts of code. When you&#039;re reading a shared variable you are seeing the result of a write that happened in any of the threads that have access to it. And the threads can interleave differently every time you run your program. That makes both reasoning and testing of concurrent programs orders of magnitude harder. When we write code, we usually have one or two scenarios of execution in mind; with concurrent code that number is just not realistic. I&#039;ve seen people arguing that a certain combination of event cannot happen only because they eliminated the few scenarios of execution that came to their minds. But there were other (often rare) disastrous scenarios that didn&#039;t cross their mind. In concurrent programming the scenario generator in our minds just cannot keep up.]]></description>
+		<content:encoded><![CDATA[<p>These are good questions with some obvious and non-obvious answers. Obviously, having to worry about one more thing adds complexity and fragility to your code. But what is it specifically about mutable shared variables that makes them hard to manage? Two things come to mind: non-locality and non-determinism. Just like gotos, mutable variables introduce dependencies between remote parts of code. When you&#8217;re reading a shared variable you are seeing the result of a write that happened in any of the threads that have access to it. And the threads can interleave differently every time you run your program. That makes both reasoning and testing of concurrent programs orders of magnitude harder. When we write code, we usually have one or two scenarios of execution in mind; with concurrent code that number is just not realistic. I&#8217;ve seen people arguing that a certain combination of event cannot happen only because they eliminated the few scenarios of execution that came to their minds. But there were other (often rare) disastrous scenarios that didn&#8217;t cross their mind. In concurrent programming the scenario generator in our minds just cannot keep up.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: cartec69				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14128</link>
+		<dc:creator><![CDATA[cartec69]]></dc:creator>
+		<pubDate>Tue, 14 Jan 2014 22:32:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14128</guid>
+					<description><![CDATA[3. If the shared variable can be completely internally synchronized in a lock-free manner, then it can neither contribute to data races nor introduce potential deadlock.]]></description>
+		<content:encoded><![CDATA[<p>3. If the shared variable can be completely internally synchronized in a lock-free manner, then it can neither contribute to data races nor introduce potential deadlock.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Sebastian Bohmann				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14127</link>
+		<dc:creator><![CDATA[Sebastian Bohmann]]></dc:creator>
+		<pubDate>Tue, 14 Jan 2014 21:54:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14127</guid>
+					<description><![CDATA[ad 3. in case a mutable datum is required that may be changed from different parts of a system, be it within the same thread or across multiple threads, opposed to just safely sharing values, which is easily done by choosing an appropriate technique as described above, it really gets more interesting :)
+
+Such a capability demands a core requirement of your project for becoming a necessity.
+
+And implementing it demands thinking about to what end it shall be implemented first. Software transactional memory is oft cited as a technological approach but that does not cover the complexities inherent to the situation from which the need usually emerges in the first place.
+
+When there is a centrally stored value that requires manipulation from various places, various threads, and various sub-domains of a projects aim, it is usually not independent from other parts of a common business logic :)
+
+Therefore, this case is in my honest opinion the hardest to phrase a general technological approach for and thus a bit out of reach of a discussion on a somewhat language- and platform-centric discussion ;)]]></description>
+		<content:encoded><![CDATA[<p>ad 3. in case a mutable datum is required that may be changed from different parts of a system, be it within the same thread or across multiple threads, opposed to just safely sharing values, which is easily done by choosing an appropriate technique as described above, it really gets more interesting :)</p>
+<p>Such a capability demands a core requirement of your project for becoming a necessity.</p>
+<p>And implementing it demands thinking about to what end it shall be implemented first. Software transactional memory is oft cited as a technological approach but that does not cover the complexities inherent to the situation from which the need usually emerges in the first place.</p>
+<p>When there is a centrally stored value that requires manipulation from various places, various threads, and various sub-domains of a projects aim, it is usually not independent from other parts of a common business logic :)</p>
+<p>Therefore, this case is in my honest opinion the hardest to phrase a general technological approach for and thus a bit out of reach of a discussion on a somewhat language- and platform-centric discussion ;)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Ralph Tandetzky				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14126</link>
+		<dc:creator><![CDATA[Ralph Tandetzky]]></dc:creator>
+		<pubDate>Tue, 14 Jan 2014 21:38:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14126</guid>
+					<description><![CDATA[Without looking at previous answers:
+
+1. Why do mutable shared variables like some_obj make your code:
+	(a) more complex?
+
+Because it means that in almost all cases there must be a mutex associated with the variable. Often other invariants need to be established in order to reason about the behaviour of some code. Different implementations of concurrent queues are classic examples of this. 
+
+	(b) more brittle?
+
+It is hard to reason about shared state because it implies interdependencies of different parts of a program. Therefore, the code and logic of the application is usually not found in one place which makes the code harder to reason about. Often, when extending the functionality of a component more state needs to be added and it must be decided whether to protect the new state with the same mutex as well. 
+
+	(c) less scalable?
+
+Sharing is the root of contention. When many different threads are fighting for one mutex then this may easily lead to a performance bottleneck. If a thread is holding a mutex half of the time in a tight loop, then having multiple threads trying to do the same thing will at most double the performance. But multithreading might even worsen performance. Therefore, mutexes should be held only during very short actions which make some work take effect. For example such a short action might be changing a pointer or incrementing or decrementing a counter, etc. 
+
+When programming for the strong exception guarantee the technique of the red line of often employed, where the actual work is done on the side (without side effects) in a first phase and in a second phase that work is committed by performing some non-throwing mutating operations which are usually cheap to perform (like a swap or a move). Often multithreaded code uses the same technique with the difference that the mutex is held during the commit phase. Designing the code that way can be a hard task. We get scalability at the price of brittleness and complexity. 
+
+
+2. Give an example of how the code that uses a mutable shared variable like some_obj can be changed so that the variable is:
+(a) not shared.
+(b) not mutable.
+
+Simple. Make a copy. Since the concurrency revolution it is often better to avoid contention via references or pointers to shared objects but instead make copies. The function &lt;code&gt;code_that_modifies()&lt;/code&gt; can be changed to have the signature
+[code]
+	some_type code_that_modifies( some_type some_obj );
+[/code]
+That way an object can be moved into the function which might be cheaper and exception-safer. That very same object can also be moved out of the function as a return value. In an ideal case the function will have approximately the same performance as the original, if not even better. Better, I say? --- Yes, because there&#039;s less indirection!
+
+A second technique on top of that is to replace a variable of &lt;code&gt;some_type&lt;/code&gt; by a &lt;code&gt;shared_ptr&lt;/code&gt; to a &lt;code&gt;const some_type&lt;/code&gt;. The pointee is immutable, but the pointer can be changed in a commit action while holding a mutex as mentioned above. This shortens the time the mutex is held. If the &lt;code&gt;shared_ptr&lt;/code&gt; is the only variable protected by the mutex, then we might even be tempted to use atomic operations on shared_ptr as provided by the standard library and go without mutex. 
+
+These techniques might not always be practical, because copying and moving might be expensive or impossible. 
+
+
+3. Let’s say we’re in a situation where we can’t apply the techniques from the answers to #2, so that the variable itself must remain shared and apparently mutable. Is there any way that the internal implementation of the variable can make the variable be physically not shared and/or not mutable, so that the calling code can treat it as a logically shared-and-mutable object yet not need to perform external synchronization? If so, explain. If not, why not?
+
+Sorry, Herb, I don&#039;t understand what you have in mind with this question. What do you mean by *physically*? I&#039;m thinking of thread-local storage in order to get variables that are physically not shared yet behave like one object (in object oriented design I have not found thread-local storage very helpful though). Alternatively, I&#039;m thinking of a copy-on-write template class which makes sure that the data is immutable unless there is only one unique reference to it. 
+
+Otherwise, I would say, it&#039;s not possible because I&#039;m out of ideas. ;)]]></description>
+		<content:encoded><![CDATA[<p>Without looking at previous answers:</p>
+<p>1. Why do mutable shared variables like some_obj make your code:<br />
+	(a) more complex?</p>
+<p>Because it means that in almost all cases there must be a mutex associated with the variable. Often other invariants need to be established in order to reason about the behaviour of some code. Different implementations of concurrent queues are classic examples of this. </p>
+<p>	(b) more brittle?</p>
+<p>It is hard to reason about shared state because it implies interdependencies of different parts of a program. Therefore, the code and logic of the application is usually not found in one place which makes the code harder to reason about. Often, when extending the functionality of a component more state needs to be added and it must be decided whether to protect the new state with the same mutex as well. </p>
+<p>	(c) less scalable?</p>
+<p>Sharing is the root of contention. When many different threads are fighting for one mutex then this may easily lead to a performance bottleneck. If a thread is holding a mutex half of the time in a tight loop, then having multiple threads trying to do the same thing will at most double the performance. But multithreading might even worsen performance. Therefore, mutexes should be held only during very short actions which make some work take effect. For example such a short action might be changing a pointer or incrementing or decrementing a counter, etc. </p>
+<p>When programming for the strong exception guarantee the technique of the red line of often employed, where the actual work is done on the side (without side effects) in a first phase and in a second phase that work is committed by performing some non-throwing mutating operations which are usually cheap to perform (like a swap or a move). Often multithreaded code uses the same technique with the difference that the mutex is held during the commit phase. Designing the code that way can be a hard task. We get scalability at the price of brittleness and complexity. </p>
+<p>2. Give an example of how the code that uses a mutable shared variable like some_obj can be changed so that the variable is:<br />
+(a) not shared.<br />
+(b) not mutable.</p>
+<p>Simple. Make a copy. Since the concurrency revolution it is often better to avoid contention via references or pointers to shared objects but instead make copies. The function <code>code_that_modifies()</code> can be changed to have the signature</p>
+<pre class="brush: plain; title: ; notranslate">
+	some_type code_that_modifies( some_type some_obj );
+</pre>
+<p>That way an object can be moved into the function which might be cheaper and exception-safer. That very same object can also be moved out of the function as a return value. In an ideal case the function will have approximately the same performance as the original, if not even better. Better, I say? &#8212; Yes, because there&#8217;s less indirection!</p>
+<p>A second technique on top of that is to replace a variable of <code>some_type</code> by a <code>shared_ptr</code> to a <code>const some_type</code>. The pointee is immutable, but the pointer can be changed in a commit action while holding a mutex as mentioned above. This shortens the time the mutex is held. If the <code>shared_ptr</code> is the only variable protected by the mutex, then we might even be tempted to use atomic operations on shared_ptr as provided by the standard library and go without mutex. </p>
+<p>These techniques might not always be practical, because copying and moving might be expensive or impossible. </p>
+<p>3. Let’s say we’re in a situation where we can’t apply the techniques from the answers to #2, so that the variable itself must remain shared and apparently mutable. Is there any way that the internal implementation of the variable can make the variable be physically not shared and/or not mutable, so that the calling code can treat it as a logically shared-and-mutable object yet not need to perform external synchronization? If so, explain. If not, why not?</p>
+<p>Sorry, Herb, I don&#8217;t understand what you have in mind with this question. What do you mean by *physically*? I&#8217;m thinking of thread-local storage in order to get variables that are physically not shared yet behave like one object (in object oriented design I have not found thread-local storage very helpful though). Alternatively, I&#8217;m thinking of a copy-on-write template class which makes sure that the data is immutable unless there is only one unique reference to it. </p>
+<p>Otherwise, I would say, it&#8217;s not possible because I&#8217;m out of ideas. ;)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: sbohmann				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14125</link>
+		<dc:creator><![CDATA[sbohmann]]></dc:creator>
+		<pubDate>Tue, 14 Jan 2014 21:10:31 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14125</guid>
+					<description><![CDATA[P.S. please forgive my orthography - it makes me cringe to read my posts but I&#039;m writing on my iPad with autocorrect turned off because turning it off looked like a a smart idea at some point ;)]]></description>
+		<content:encoded><![CDATA[<p>P.S. please forgive my orthography &#8211; it makes me cringe to read my posts but I&#8217;m writing on my iPad with autocorrect turned off because turning it off looked like a a smart idea at some point ;)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: sbohmann				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14124</link>
+		<dc:creator><![CDATA[sbohmann]]></dc:creator>
+		<pubDate>Tue, 14 Jan 2014 21:01:48 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14124</guid>
+					<description><![CDATA[ad my response to 3.: such a mutable, but thread-safe and internally immutable and internally ref counted data wrapper can very easily be made immutable by making it const, e.g. for holding it in a persistent collection. it&#039;s possible because its mutability is VERY shallow :)
+
+Deeper mutability would in almost all cases be a show stopper here.
+
+About std::string: when the part of a persisten collection that holds a string instance is modified (i.e. replaced) in the course of a persistent update (i.e. creation of an updated instance), the string will be copied.
+
+therefore, if strings tends to be large in such a scenario, it may make sense to wrap it as in my response to 3., especially if mutability is NOT required - the wrapped string then behaves somewhat like a Java or C# string, i.e., its value is immutable (the embedded reference only if const), and copying it is practically free, which is just what persistent collections crave when it comes to their elemt types :)]]></description>
+		<content:encoded><![CDATA[<p>ad my response to 3.: such a mutable, but thread-safe and internally immutable and internally ref counted data wrapper can very easily be made immutable by making it const, e.g. for holding it in a persistent collection. it&#8217;s possible because its mutability is VERY shallow :)</p>
+<p>Deeper mutability would in almost all cases be a show stopper here.</p>
+<p>About std::string: when the part of a persisten collection that holds a string instance is modified (i.e. replaced) in the course of a persistent update (i.e. creation of an updated instance), the string will be copied.</p>
+<p>therefore, if strings tends to be large in such a scenario, it may make sense to wrap it as in my response to 3., especially if mutability is NOT required &#8211; the wrapped string then behaves somewhat like a Java or C# string, i.e., its value is immutable (the embedded reference only if const), and copying it is practically free, which is just what persistent collections crave when it comes to their elemt types :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Sebastian Bohmann				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14122</link>
+		<dc:creator><![CDATA[Sebastian Bohmann]]></dc:creator>
+		<pubDate>Tue, 14 Jan 2014 20:27:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14122</guid>
+					<description><![CDATA[3. if the variable is of a class type, not a pointer, the internal representation may be a reference counted smart pointer to an immutable value or persistent collection. Plus, the reference counted smart pointer should either be thread-safe, else it must be guarded in the assignment op + copy c&#039;tor.
+
+Just another variant on the pimpl idiom with a ref counting smart pointer :)]]></description>
+		<content:encoded><![CDATA[<p>3. if the variable is of a class type, not a pointer, the internal representation may be a reference counted smart pointer to an immutable value or persistent collection. Plus, the reference counted smart pointer should either be thread-safe, else it must be guarded in the assignment op + copy c&#8217;tor.</p>
+<p>Just another variant on the pimpl idiom with a ref counting smart pointer :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: StackedCrooked				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14120</link>
+		<dc:creator><![CDATA[StackedCrooked]]></dc:creator>
+		<pubDate>Tue, 14 Jan 2014 19:43:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14120</guid>
+					<description><![CDATA[[code]
+1a. - the logic is polluted with mutexes and locks. this reduces readability.
+
+1b. - possible to forget to lock leading to data races
+
+    - possible deadlocks. for example:
+        - high-level code calls low-level code while holding the lock
+        - low level code invokes callback to high-level function which tries to lock
+    - possibility of lifetime bugs (object which is destroyed in one thread
+      while another thread is reading from it)    
+      
+1c. - locking prevents parallelism
+
+2a. - writer thread owns the object and reader receives copies.
+    - if your application has  a message loop then a thread can run in the
+      background and send updated copies to the main thread via &#034;post&#034; events
+      (concurrent_queues can be used to for a more general solution)
+      
+2b. - using techniques from (pure) functional programming languages where you
+      never change the object but always pass updated copies back and forth.        
+      
+3b. I&#039;m not sure what you have in mind. But here a few wild guesses:
+    - maybe using software transactional memory? (not sure if transactions count
+      as external synchronization)
+    - perhaps a proxy type which stores a private copy of the real object? (state
+      changes could be communicated to other proxies using some kind of
+      messaging system.)
+[/code]]]></description>
+		<content:encoded><![CDATA[<pre class="brush: plain; title: ; notranslate">
+1a. - the logic is polluted with mutexes and locks. this reduces readability.
+
+1b. - possible to forget to lock leading to data races
+
+    - possible deadlocks. for example:
+        - high-level code calls low-level code while holding the lock
+        - low level code invokes callback to high-level function which tries to lock
+    - possibility of lifetime bugs (object which is destroyed in one thread
+      while another thread is reading from it)    
+      
+1c. - locking prevents parallelism
+
+2a. - writer thread owns the object and reader receives copies.
+    - if your application has  a message loop then a thread can run in the
+      background and send updated copies to the main thread via &quot;post&quot; events
+      (concurrent_queues can be used to for a more general solution)
+      
+2b. - using techniques from (pure) functional programming languages where you
+      never change the object but always pass updated copies back and forth.        
+      
+3b. I'm not sure what you have in mind. But here a few wild guesses:
+    - maybe using software transactional memory? (not sure if transactions count
+      as external synchronization)
+    - perhaps a proxy type which stores a private copy of the real object? (state
+      changes could be communicated to other proxies using some kind of
+      messaging system.)
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: sbohmann				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14118</link>
+		<dc:creator><![CDATA[sbohmann]]></dc:creator>
+		<pubDate>Tue, 14 Jan 2014 17:30:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14118</guid>
+					<description><![CDATA[1.a. because interdependencies between otherwise independent parts of the code arise - not only in the face of multiple threads but also in the face of - at first glance more innocent - coroutines.
+
+1.b. because these interdependencies may manifest as side-effects of entirely unrelated things happening in other parts of code. Plus, these are often hard to find and almost always hard to debug when they emerge. Race conditions are but one popular example...
+
+1.c. because wait states emerge that take up more and more time with increasing lock contention. Making data that is shared between vast parts of a project a source of lock contention can easily lead to a huge amount thereof. Throwing a vast number of threads at the problem won&#039;t work because they always consume space (for their stacks, plus indirectly on the heap (yes, &quot;free store&quot; in C++)) and time because of the great price of context switches. Plus, making more threads wait all the time for the same resources wouldn&#039;t help much in any case.
+
+2.a. make copies. Defensive copying is not the brightest idea in most cases but may actually help if there are more or less outlandish reasons that make them the only feasible approach (like an existing code base that just can&#039;t be adapted, or, in the worst case, political reasons).
+
+2.b. use persistent collections plus immutable data objects, like custom classes, or const std::string etc. Immutable data is friendly to reference counting, and reference counting is well compatible with most of these non-circular tree-based persistent (i.e. immutable with low-cost copying) data structures. I really hope they will pop up in the STL as soon as possible so I can replace my home-brewn implementations (because the STL is ALWAYS more thoroughly tested :D)]]></description>
+		<content:encoded><![CDATA[<p>1.a. because interdependencies between otherwise independent parts of the code arise &#8211; not only in the face of multiple threads but also in the face of &#8211; at first glance more innocent &#8211; coroutines.</p>
+<p>1.b. because these interdependencies may manifest as side-effects of entirely unrelated things happening in other parts of code. Plus, these are often hard to find and almost always hard to debug when they emerge. Race conditions are but one popular example&#8230;</p>
+<p>1.c. because wait states emerge that take up more and more time with increasing lock contention. Making data that is shared between vast parts of a project a source of lock contention can easily lead to a huge amount thereof. Throwing a vast number of threads at the problem won&#8217;t work because they always consume space (for their stacks, plus indirectly on the heap (yes, &#8220;free store&#8221; in C++)) and time because of the great price of context switches. Plus, making more threads wait all the time for the same resources wouldn&#8217;t help much in any case.</p>
+<p>2.a. make copies. Defensive copying is not the brightest idea in most cases but may actually help if there are more or less outlandish reasons that make them the only feasible approach (like an existing code base that just can&#8217;t be adapted, or, in the worst case, political reasons).</p>
+<p>2.b. use persistent collections plus immutable data objects, like custom classes, or const std::string etc. Immutable data is friendly to reference counting, and reference counting is well compatible with most of these non-circular tree-based persistent (i.e. immutable with low-cost copying) data structures. I really hope they will pop up in the STL as soon as possible so I can replace my home-brewn implementations (because the STL is ALWAYS more thoroughly tested :D)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Guru of the Week 95 : Thread Safety and Synchronization &#124; C++, Qt, OpenGL, CUDA				</title>
+				<link>https://herbsutter.com/2014/01/14/gotw-96-oversharing/#comment-14117</link>
+		<dc:creator><![CDATA[Guru of the Week 95 : Thread Safety and Synchronization &#124; C++, Qt, OpenGL, CUDA]]></dc:creator>
+		<pubDate>Tue, 14 Jan 2014 17:24:51 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2414#comment-14117</guid>
+					<description><![CDATA[[&#8230;] Il a également posté les questions du prochain GotW : GotW #96: Oversharing. [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Il a également posté les questions du prochain GotW : GotW #96: Oversharing. [&#8230;]</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

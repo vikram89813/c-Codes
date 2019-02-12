@@ -1,0 +1,571 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Reader Q&amp;A: How to write a CAS loop using std::atomics | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965478&amp;back=https%3A%2F%2Fherbsutter.com%2F2012%2F08%2F31%2Freader-qa-how-to-write-a-cas-loop-using-stdatomics%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Reader Q&amp;A: How to write a CAS loop using&nbsp;std::atomics Comments Feed" href="https://herbsutter.com/2012/08/31/reader-qa-how-to-write-a-cas-loop-using-stdatomics/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='C&amp;B Panel: Alexandrescu, Meyers, Sutter on Static If, C++11, and&nbsp;Metaprogramming' href='https://herbsutter.com/2012/08/21/cb-panel/' />
+<link rel='next' title='VC++ 2012 Desktop Express&nbsp;(Free)' href='https://herbsutter.com/2012/09/12/vc-2012-desktop-expres-free/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2012/08/31/reader-qa-how-to-write-a-cas-loop-using-stdatomics/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-pN' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2012%2F08%2F31%2Freader-qa-how-to-write-a-cas-loop-using-stdatomics%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2012%2F08%2F31%2Freader-qa-how-to-write-a-cas-loop-using-stdatomics%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Reader Q&amp;A: How to write a CAS loop using std::atomics" />
+<meta property="og:url" content="https://herbsutter.com/2012/08/31/reader-qa-how-to-write-a-cas-loop-using-stdatomics/" />
+<meta property="og:description" content="The following is not intended to be a complete treatise on atomics, but just an answer to a specific question. A colleague asked: How should one write the following “conditional interlocked” functi…" />
+<meta property="article:published_time" content="2012-09-01T00:43:58+00:00" />
+<meta property="article:modified_time" content="2012-09-02T14:35:59+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965478" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Reader Q&amp;A: How to write a CAS loop using&nbsp;std::atomics" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="The following is not intended to be a complete treatise on atomics, but just an answer to a specific question. A colleague asked: How should one write the following “conditional interlocked” function in the new C++ atomic&lt;&gt; style? // if (*plValue &gt;= 0) *plValue += lAdd ; return the original value LONG MpInterlockedAddNonNegative(__inout LONG volatile*&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2012/08/31/reader-qa-how-to-write-a-cas-loop-using-stdatomics/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-1599 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2012/08/21/cb-panel/" rel="prev">C&amp;B Panel: Alexandrescu, Meyers, Sutter on Static If, C++11, and&nbsp;Metaprogramming</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2012/09/12/vc-2012-desktop-expres-free/" rel="next">VC++ 2012 Desktop Express&nbsp;(Free)</a> &raquo;</div>
+			</div>
+			
+			<div class="post-1599 post type-post status-publish format-standard hentry category-c category-concurrency" id="post-1599">
+				<div class="posttitle">
+					<h2>Reader Q&amp;A: How to write a CAS loop using&nbsp;std::atomics</h2>
+					<p class="post-info">2012-08-31 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>The following is not intended to be a complete treatise on atomics, but just an answer to a specific question.</p>
+<p>A colleague asked:</p>
+<blockquote>
+<p>How should one write the following “conditional interlocked” function in the new C++ atomic&lt;&gt; style?</p>
+<pre class="brush: cpp; auto-links: true; collapse: false; first-line: 1; gutter: false; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true;">// if (*plValue &gt;= 0) *plValue += lAdd  ; return the original value
+
+LONG MpInterlockedAddNonNegative(__inout LONG volatile* plValue,  __in  LONG const  lAdd) 
+{ 
+    LONG lValue = 0; 
+    for (;;)  {
+
+        lValue = *plValue; // volatile plValue suppress compile optimizations in which</pre>
+<p>&#160;</p>
+<pre class="brush: cpp; auto-links: true; collapse: false; first-line: 1; gutter: false; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true;">                           // lValue is optimized out hence MT correctness is broken
+
+        if (lValue &lt; 0)   break;
+
+        if (lValue == InterlockedCompareExchange(plValue, lValue + lAdd, lValue)) { 
+            break; 
+        } 
+    }
+
+    return lValue; 
+}</pre>
+</blockquote>
+<p>Note: ISO C/C++ volatile is not for inter-thread communication,[*] but this is legacy code that predates std::atomics and was using a combination of platform-specific volatile semantics and Windows InterlockedXxx APIs.</p>
+<p>The answer is to use a CAS loop (see code at top), which for std::atomics is spelled compare_exchange:</p>
+<ul>
+<li>Use compare_exchange_weak by default when looping on this which generally naturally tolerates spurious failures. </li>
+<li>Use compare_exchange_strong for single tests when you generally don’t want spurious failures. </li>
+<li>Usage note: In the code at top we save an explicit reload from ‘a’ in the loop because compare_exchange helpfully (or “helpfully” – this took me a while to discover and remember) stores the actual value in the ‘expected’ value slot on failure. This actually makes loops simpler, though some of us are still have different feelings on different days about whether this subtlety was a good idea… anyway, it’s in the standard. </li>
+</ul>
+<p>For the std::atomic version, roughly (compiling in my head), and generalizing to any numeric type just because I’m in the habit, and renaming for symmetry with atomic&lt;T&gt;::fetch_add(), I think this is what you want:</p>
+<pre class="brush: cpp; auto-links: true; collapse: false; first-line: 1; gutter: false; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true;">template&lt;typename T&gt;
+T fetch_add_if_nonnegative( std::atomic&lt;T&gt;&amp; a,  T val ) {
+    T old = a;
+    while( old &gt;= 0 &amp;&amp; !a.compare_exchange_weak( old, old+val ) )
+        { }
+    return old;
+}</pre>
+<p>Because the only test in your loop was to break on negative values, it naturally migrated into the loop condition. If you want to do more work, then follow the general pattern which is the following (pasting from the standard, 29.6.5/23 – and note that the explicit “.load()” is unnecessary but some people including the author of this clause of the standard prefer to be pedantically explicit :) ):</p>
+<blockquote>
+<p>[ <em>Example: </em>the expected use of the compare-and-exchange operations is as follows.</p>
+<p>The compare-and-exchange operations will update expected when another iteration of the loop is needed.</p>
+<p>expected = current.load();</p>
+<p>do {</p>
+<p>desired = function(expected);</p>
+<p>} while (!current.compare_exchange_weak(expected, desired));</p>
+<p><em>—end example </em>]</p>
+</blockquote>
+<p>So the direct implementation of your function in the general pattern would be:</p>
+<pre class="brush: cpp; auto-links: true; collapse: false; first-line: 1; gutter: false; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true;">T old = a; 
+do { 
+    if( old &lt; 0 ) break; 
+} while(!a.compare_exchange_weak( old, old+val ) )</pre>
+<p>
+  <br />but since that easily moves into the loop test I just did this instead in the code at top:</p>
+<p></p>
+<pre class="brush: cpp; auto-links: true; collapse: false; first-line: 1; gutter: false; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true;">T old = a; 
+while( old &gt;= 0 &amp;&amp; !a.compare_exchange_weak( old, old+val ) ) 
+    { }</pre>
+<p>and hoping that no one will discover and point out that I’ve somehow written a subtle bug by trying to make the code cuter just before leaving for a holiday weekend.</p>
+<p>&#160;</p>
+<p>[*] Here’s the difference between <strong>ISO C/C++ volatile vs. std::atomic&lt;T&gt;/atomic_T:</strong> ISO C/C++ volatile is intended to be used only for things like hardware access and setjmp/longjmp safety, to express that the variable is in storage that is not guaranteed to follow the C++11 memory model (e.g., the compiler can’t make any assumptions about it). It has nothing to do with inter-thread communication – the proper tool for that is std::atomic&lt;T&gt; which for C compatibility can also be spelled atomic_T (note that in Java and C# this is called volatile which adds to the confusion). For more, see my article <a href="https://herbsutter.com/2009/01/12/effective-concurrency-volatile-vs-volatile/">“volatile vs. volatile”</a> and Hans Boehm’s ISO C++ paper <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n2016.html">“Should volatile Acquire Atomicity and Thread Visibility Semantics?”</a>.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a> | 											13 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">13 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-18691">
+		<div id="div-comment-18691">
+		<div class="cmtinfo"><em> on <a href="#comment-18691" title="">2014-04-17 at 7:44 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/bc82330d86947480cb1cea43dc2263fb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Vladimir Batov</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_18691"></div><p>Herb, feel free to ignore my previous comment. Found the place (that I missed the first time around, apologies) where you clearly state that for unique_ptr &#8220;You still need to write the visible class’ destructor yourself&#8221;&#8230; and, I believe, it is equally applicable for copy constructor and op=(). So, with that &#8220;hassle&#8221; I personally find unique_ptr usefullness quite questionale in the context of pimpl. But that&#8217;s quite another matter. All the best,<br />
+Vladimir.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-18690">
+		<div id="div-comment-18690">
+		<div class="cmtinfo"><em> on <a href="#comment-18690" title="">2014-04-17 at 6:24 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/bc82330d86947480cb1cea43dc2263fb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Vladimir Batov</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_18690"></div><p>Herb, &#8216;ve come across your updated Pimpl-related GotW#100. There it says that &#8220;the most appropriate choice is to hold the Pimpl object by unique_ptr&#8221;. Very tempting indeed. However, I am under strong suspicion it won&#8217;t work. Unlike shared_ptr, unique_ptr does not implement the incomplete-type management technique (for efficiency reasons) and, consequently, requires the internal implementation class to be a complete/visible/known type, i.e. it won&#8217;t compile with only a forward declaration&#8230; that IMO beats the whole purpose of Pimpl, i.e. implementation hiding. I&#8217;d love to be wrong but gcc-4.8 only confirmed my expectations.</p>
+<p>Regards,<br />
+Vladimir.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-18420">
+		<div id="div-comment-18420">
+		<div class="cmtinfo"><em> on <a href="#comment-18420" title="">2014-04-11 at 11:57 pm</a></em>  <cite><a href='http://www.51main.com/?p=26' rel='external nofollow' class='url'>Reader Q&amp;A: Is std::atomic_compare_exchange_* implementable?Main FunctionMain Function</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_18420"></div><p>[&#8230;] bool compare_exchange_???(T&amp; expected, T desired, &#8230;);I notice you have mentioned (here reader-qa-how-to-write-a-cas-loop-using-stdatomics) that the committee had doubts whether it was a good idea. Your quote [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-18101">
+		<div id="div-comment-18101">
+		<div class="cmtinfo"><em> on <a href="#comment-18101" title="">2014-04-03 at 7:56 pm</a></em>  <cite><a href='http://www.51main.com/?p=793' rel='external nofollow' class='url'>Reader Q&amp;A: Is std::atomic_compare_exchange_* implementable? | 51Main</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_18101"></div><p>[&#8230;] bool compare_exchange_???(T&amp; expected, T desired, &#8230;);I notice you have mentioned (here reader-qa-how-to-write-a-cas-loop-using-stdatomics) that the committee had doubts whether it was a good idea. Your quote [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-15454">
+		<div id="div-comment-15454">
+		<div class="cmtinfo"><em> on <a href="#comment-15454" title="">2014-02-19 at 10:31 am</a></em> <img alt='' src='https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://herbsutter.com/2014/02/19/reader-qa-is-stdatomic_compare_exchange_-implementable/' rel='external nofollow' class='url'>Reader Q&amp;A: Is std::atomic_compare_exchange_* implementable? | Sutter’s Mill</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15454"></div><p>[&#8230;] bool compare_exchange_???(T&amp; expected, T desired, &#8230;);I notice you have mentioned (here reader-qa-how-to-write-a-cas-loop-using-stdatomics) that the committee had doubts whether it was a good idea. Your quote [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-6028">
+		<div id="div-comment-6028">
+		<div class="cmtinfo"><em> on <a href="#comment-6028" title="">2012-09-05 at 4:20 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/e299130ca0c90fe7526a047bb79a8436?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Paul Coccoli</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_6028"></div><p>Am I right in that the behavior of the &#8216;expected&#8217; argument to compare_exchange is analogous to the behavior of the GCC intrinsic __sync_val_compare_and_swap()?  That intrinsic returns the value it found at the memory location, instead of a boolean, and therefore makes an explicit reload unnecessary, IIUC.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-6027">
+		<div id="div-comment-6027">
+		<div class="cmtinfo"><em> on <a href="#comment-6027" title="">2012-09-05 at 3:39 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6d8d320adbe60eb7eb65e78cf2cff6ef?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Joe</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_6027"></div><p>Would it be even better to do the initial load using a.load(std::memory_order_relaxed) ?  That would probably be most equivalent to the original implementation, wouldn&#8217;t it?  It would also save you from the unnecessary synchronization on the load, and just rely on the CAS to keeps things atomic.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-6011">
+		<div id="div-comment-6011">
+		<div class="cmtinfo"><em> on <a href="#comment-6011" title="">2012-09-04 at 6:16 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/5484394bc9bbbabcd90831372fffae29?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.cassidiancommunications.com' rel='external nofollow' class='url'>Javier Estrada</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_6011"></div><p>Herb, where&#8217;s the book ;-)</p>
+<p>With the amount of work in my plate I rather read this emerging good advice and good practices in book form.</p>
+<p>Cheers,<br />
+&#8211;Javier</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-6001">
+		<div id="div-comment-6001">
+		<div class="cmtinfo"><em> on <a href="#comment-6001" title="">2012-09-03 at 8:29 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_6001"></div><p>@Amir: It must have taken time to refresh the front page &#8212; it looks okay to me now.</p>
+<p>@Pizer: The operation is a RMW (read-modify-write). So you have to do an initial load (which is atomic in itself), then the work (in this case a test since we need do nothing if the value is less than 0), then the update write (which is also atomic) &#8212; and to make it all atomic, the update write has to test that the value hasn&#8217;t changed, and if it has then do nothing (we&#8217;re not atomic) and retry (until the whole transaction is atomic, not interleaved with something else). Note that, as the commentary says, the compare_exchange will again reload the current value on failure so you don&#8217;t have to write an explicit equivalent &#8220;old = a;&#8221; inside the loop &#8212; this is kind of subtle, but it&#8217;s the way it was specified because it gives a slight performance advantage.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5996">
+		<div id="div-comment-5996">
+		<div class="cmtinfo"><em> on <a href="#comment-5996" title="">2012-09-03 at 12:34 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ea2290c08b1e545167a444c6634a3e19?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Amir</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5996"></div><p>In the version that appears on the front page, you still have the  &#8220;if( old &gt;= 0 ) break&#8221; condition.<br />
+Sigh&#8230;I thought I was be the first one who noticed the bug :-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5995">
+		<div id="div-comment-5995">
+		<div class="cmtinfo"><em> on <a href="#comment-5995" title="">2012-09-02 at 11:38 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/16b8a9971551c67422fea478a6e73bae?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/pizer' rel='external nofollow' class='url'>pizer</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5995"></div><p>I don&#8217;t understand why you put the old=a assignment out of the loop. Could you shed some more light on this, please? To me, it seems that it breaks the &#8220;atomicity&#8221; of the operation.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5992">
+		<div id="div-comment-5992">
+		<div class="cmtinfo"><em> on <a href="#comment-5992" title="">2012-09-02 at 6:35 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5992"></div><p>@MF: You&#8217;re right. Fixed, thanks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5989">
+		<div id="div-comment-5989">
+		<div class="cmtinfo"><em> on <a href="#comment-5989" title="">2012-09-02 at 12:30 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9ad2256c29280cd246b535487048848c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>MF</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5989"></div><p>I hate to disappoint you on your holiday, but I think you have reversed the &#8216;old &gt;= 0&#8217; test between the second to last and the last version.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2012/08/31/reader-qa-how-to-write-a-cas-loop-using-stdatomics/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-bc82330d86947480cb1cea43dc2263fb">
+	</div>
+	<div class="grofile-hash-map-e299130ca0c90fe7526a047bb79a8436">
+	</div>
+	<div class="grofile-hash-map-6d8d320adbe60eb7eb65e78cf2cff6ef">
+	</div>
+	<div class="grofile-hash-map-5484394bc9bbbabcd90831372fffae29">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-ea2290c08b1e545167a444c6634a3e19">
+	</div>
+	<div class="grofile-hash-map-16b8a9971551c67422fea478a6e73bae">
+	</div>
+	<div class="grofile-hash-map-9ad2256c29280cd246b535487048848c">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_18691={"id":468178,"unique_id":"wp-comment-18691","title":"Herb%2C%20feel%20free%20to%20ignore%20my%20previous%20comment.%20Found%20the%20place%20%28that%20I%20missed%20the%20first%20time%20around%2C%20apologies%29%20where%20you%20clearly%20state%20that%20for%20unique_ptr%20%26quot%3BYou%20still%20need%20to%20write%20the%20visible%20cl...","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-18691","item_id":"_comm_18691"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_18691 == 'undefined' ){PDRTJS_468178_comm_18691 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_18691 );}}PDRTJS_settings_468178_comm_18690={"id":468178,"unique_id":"wp-comment-18690","title":"Herb%2C%20%26%23039%3Bve%20come%20across%20your%20updated%20Pimpl-related%20GotW%23100.%20There%20it%20says%20that%20%26quot%3Bthe%20most%20appropriate%20choice%20is%20to%20hold%20the%20Pimpl%20object%20by%20unique_ptr%26quot%3B.%20Very%20tempting%20indeed.%20However%2C%20I%20am%20under%20st...","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-18690","item_id":"_comm_18690"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_18690 == 'undefined' ){PDRTJS_468178_comm_18690 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_18690 );}}PDRTJS_settings_468178_comm_18420={"id":468178,"unique_id":"wp-comment-18420","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20bool%20compare_exchange_%3F%3F%3F%28T%26amp%3B%20expected%2C%20T%20desired%2C%20%26%238230%3B%29%3BI%20notice%20you%20have%20mentioned%20%28here%20reader-qa-how-to-write-a-cas-loop-using-stdatomics%29%20that%20the%20committee%20had%20doubts%20whethe...","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-18420","item_id":"_comm_18420"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_18420 == 'undefined' ){PDRTJS_468178_comm_18420 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_18420 );}}PDRTJS_settings_468178_comm_18101={"id":468178,"unique_id":"wp-comment-18101","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20bool%20compare_exchange_%3F%3F%3F%28T%26amp%3B%20expected%2C%20T%20desired%2C%20%26%238230%3B%29%3BI%20notice%20you%20have%20mentioned%20%28here%20reader-qa-how-to-write-a-cas-loop-using-stdatomics%29%20that%20the%20committee%20had%20doubts%20whethe...","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-18101","item_id":"_comm_18101"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_18101 == 'undefined' ){PDRTJS_468178_comm_18101 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_18101 );}}PDRTJS_settings_468178_comm_15454={"id":468178,"unique_id":"wp-comment-15454","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20bool%20compare_exchange_%3F%3F%3F%28T%26amp%3B%20expected%2C%20T%20desired%2C%20%26%238230%3B%29%3BI%20notice%20you%20have%20mentioned%20%28here%20reader-qa-how-to-write-a-cas-loop-using-stdatomics%29%20that%20the%20committee%20had%20doubts%20whethe...","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-15454","item_id":"_comm_15454"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15454 == 'undefined' ){PDRTJS_468178_comm_15454 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15454 );}}PDRTJS_settings_468178_comm_6028={"id":468178,"unique_id":"wp-comment-6028","title":"Am%20I%20right%20in%20that%20the%20behavior%20of%20the%20%26%23039%3Bexpected%26%23039%3B%20argument%20to%20compare_exchange%20is%20analogous%20to%20the%20behavior%20of%20the%20GCC%20intrinsic%20__sync_val_compare_and_swap%28%29%3F%20%20That%20intrinsic%20returns%20the%20value%20i...","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-6028","item_id":"_comm_6028"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_6028 == 'undefined' ){PDRTJS_468178_comm_6028 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_6028 );}}PDRTJS_settings_468178_comm_6027={"id":468178,"unique_id":"wp-comment-6027","title":"Would%20it%20be%20even%20better%20to%20do%20the%20initial%20load%20using%20a.load%28std%3A%3Amemory_order_relaxed%29%20%3F%20%20That%20would%20probably%20be%20most%20equivalent%20to%20the%20original%20implementation%2C%20wouldn%26%23039%3Bt%20it%3F%20%20It%20would%20also%20save%20y...","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-6027","item_id":"_comm_6027"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_6027 == 'undefined' ){PDRTJS_468178_comm_6027 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_6027 );}}PDRTJS_settings_468178_comm_6011={"id":468178,"unique_id":"wp-comment-6011","title":"Herb%2C%20where%26%23039%3Bs%20the%20book%20%3B-%29With%20the%20amount%20of%20work%20in%20my%20plate%20I%20rather%20read%20this%20emerging%20good%20advice%20and%20good%20practices%20in%20book%20form.Cheers%2C--Javier...","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-6011","item_id":"_comm_6011"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_6011 == 'undefined' ){PDRTJS_468178_comm_6011 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_6011 );}}PDRTJS_settings_468178_comm_6001={"id":468178,"unique_id":"wp-comment-6001","title":"%40Amir%3A%20It%20must%20have%20taken%20time%20to%20refresh%20the%20front%20page%20--%20it%20looks%20okay%20to%20me%20now.%40Pizer%3A%20The%20operation%20is%20a%20RMW%20%28read-modify-write%29.%20So%20you%20have%20to%20do%20an%20initial%20load%20%28which%20is%20atomic%20in%20itsel...","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-6001","item_id":"_comm_6001"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_6001 == 'undefined' ){PDRTJS_468178_comm_6001 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_6001 );}}PDRTJS_settings_468178_comm_5996={"id":468178,"unique_id":"wp-comment-5996","title":"In%20the%20version%20that%20appears%20on%20the%20front%20page%2C%20you%20still%20have%20the%20%20%26quot%3Bif%28%20old%20%26gt%3B%3D%200%20%29%20break%26quot%3B%20condition.Sigh...I%20thought%20I%20was%20be%20the%20first%20one%20who%20noticed%20the%20bug%20%3A-%29...","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-5996","item_id":"_comm_5996"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5996 == 'undefined' ){PDRTJS_468178_comm_5996 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5996 );}}PDRTJS_settings_468178_comm_5995={"id":468178,"unique_id":"wp-comment-5995","title":"I%20don%26%23039%3Bt%20understand%20why%20you%20put%20the%20old%3Da%20assignment%20out%20of%20the%20loop.%20Could%20you%20shed%20some%20more%20light%20on%20this%2C%20please%3F%20To%20me%2C%20it%20seems%20that%20it%20breaks%20the%20%26quot%3Batomicity%26quot%3B%20of%20the%20operation....","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-5995","item_id":"_comm_5995"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5995 == 'undefined' ){PDRTJS_468178_comm_5995 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5995 );}}PDRTJS_settings_468178_comm_5992={"id":468178,"unique_id":"wp-comment-5992","title":"%40MF%3A%20You%26%23039%3Bre%20right.%20Fixed%2C%20thanks....","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-5992","item_id":"_comm_5992"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5992 == 'undefined' ){PDRTJS_468178_comm_5992 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5992 );}}PDRTJS_settings_468178_comm_5989={"id":468178,"unique_id":"wp-comment-5989","title":"I%20hate%20to%20disappoint%20you%20on%20your%20holiday%2C%20but%20I%20think%20you%20have%20reversed%20the%20%26%23039%3Bold%20%26gt%3B%3D%200%26%23039%3B%20test%20between%20the%20second%20to%20last%20and%20the%20last%20version....","permalink":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/#comment-5989","item_id":"_comm_5989"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5989 == 'undefined' ){PDRTJS_468178_comm_5989 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5989 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F08%2F31%2Freader-qa-how-to-write-a-cas-loop-using-stdatomics%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2012\/08\/31\/reader-qa-how-to-write-a-cas-loop-using-stdatomics\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2012%2F08%2F31%2Freader-qa-how-to-write-a-cas-loop-using-stdatomics%2F","postID":"1599","shortlink":"https:\/\/wp.me\/peb5Y-pN","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/1599","statsLink":"https:\/\/wordpress.com\/stats\/post\/1599\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F08%2F31%2Freader-qa-how-to-write-a-cas-loop-using-stdatomics%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'1599','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sajNYa3VnLX5PX2MrR3FkWHdMQj96Y0JwLWFITyxJN3F6a1FfQW1sMGFdLUUtQU50dVNRdm5lST9XZ2lXYVQyMGkzeFZKMldUdURXOS8yJjhsVnxvTkMxLVZ+M3NJeWovWmxtaV0sfjE9OXNMUyUyPUxJYkhZOT0mQi9+LFFjeWhxWGRidFRoT24sMG1DdC9RcGt4REM9PSZ2R29uTiYsaDRFPVkxakZTOEhjKzQ/fFRDQ0Fzcy5qNWdzbXZlekF+SlJnfGpp'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '1599' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

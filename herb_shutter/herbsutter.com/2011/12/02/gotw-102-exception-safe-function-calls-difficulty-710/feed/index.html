@@ -1,0 +1,1120 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #102: Exception-Safe Function Calls (Difficulty: 7/10)	</title>
+	<atom:link href="https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: deft_code				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4637</link>
+		<dc:creator><![CDATA[deft_code]]></dc:creator>
+		<pubDate>Fri, 30 Dec 2011 21:43:56 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4637</guid>
+					<description><![CDATA[@Xeo did you explicitly omit a new expression in the the return statement?
+
+Is that a new feature of std::unique or just a typo?]]></description>
+		<content:encoded><![CDATA[<p>@Xeo did you explicitly omit a new expression in the the return statement?</p>
+<p>Is that a new feature of std::unique or just a typo?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Xeo				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4630</link>
+		<dc:creator><![CDATA[Xeo]]></dc:creator>
+		<pubDate>Fri, 30 Dec 2011 02:52:31 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4630</guid>
+					<description><![CDATA[Sheesh, damn markup. Let&#039;s try that again for the make_unique code:
+
+
+[sourcecode language=&quot;cpp&quot;]
+#include &#060;memory&#062;
+#include &#060;utility&#062;
+
+template&#060;class T, class D = std::default_delete&#060;T&#062;, class... Args&#062;
+std::unique_ptr&#060;T,D&#062; make_unique(Args&#038;&#038;... args){
+    return std::unique_ptr&#060;T,D&#062;{ std::forward&#060;Args&#062;(args)... };
+}
+[/sourcecode]]]></description>
+		<content:encoded><![CDATA[<p>Sheesh, damn markup. Let&#8217;s try that again for the make_unique code:</p>
+<pre class="brush: cpp; title: ; notranslate">
+#include &lt;memory&gt;
+#include &lt;utility&gt;
+
+template&lt;class T, class D = std::default_delete&lt;T&gt;, class... Args&gt;
+std::unique_ptr&lt;T,D&gt; make_unique(Args&amp;&amp;... args){
+    return std::unique_ptr&lt;T,D&gt;{ std::forward&lt;Args&gt;(args)... };
+}
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Xeo				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4629</link>
+		<dc:creator><![CDATA[Xeo]]></dc:creator>
+		<pubDate>Fri, 30 Dec 2011 02:37:06 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4629</guid>
+					<description><![CDATA[@Jonathan, @Andrzej:
+
+&lt;em&gt;&lt;strong&gt;Never&lt;/strong&gt;&lt;/em&gt; return a &lt;em&gt;T&#038;&#038;&lt;/em&gt; when you actually return a temporary. This is the same issue as this one:
+
+&lt;code&gt;
+int const&#038; f(){
+    return 5;
+}
+
+int main(){
+    int i = f();
+}
+&lt;/code&gt;
+
+And as MSVC10 rightly warns me here, you are returning a reference to a &lt;em&gt;temporary&lt;/em&gt; here. This doesn&#039;t change with rvalue references, they are &lt;em&gt;still just references&lt;/em&gt;. Just leave it as is, with a value return.
+
+On Topic:
+#1 a: In C++11 terms, both &lt;em&gt;expr1&lt;/em&gt; and &lt;em&gt;expr2&lt;/em&gt; are sequenced before &lt;em&gt;f&lt;/em&gt;, but are unsequenced relative to each other, i.e. they can both be evaluated in any order.
+#1 b: Not really that different. &lt;em&gt;expr1&lt;/em&gt; and &lt;em&gt;expr2&lt;/em&gt;, aswell as &lt;em&gt;g&lt;/em&gt; and &lt;em&gt;h&lt;/em&gt; are sequenced before &lt;em&gt;f&lt;/em&gt;, while &lt;em&gt;expr1&lt;/em&gt; is sequenced before &lt;em&gt;g&lt;/em&gt; and &lt;em&gt;expr2&lt;/em&gt; is sequenced before &lt;em&gt;h&lt;/em&gt;. I&#039;m not totally sure about this last part, but all other cases should be unsequenced, e.g. &lt;em&gt;expr1&lt;/em&gt; could get evaluated before &lt;em&gt;h&lt;/em&gt;, or it might aswell get evaluated after &lt;em&gt;expr2&lt;/em&gt;.
+
+#2: Same as #1 a, just with actual expressions instead of placeholders (&lt;em&gt;new T1&lt;/em&gt; == &lt;em&gt;expr1&lt;/em&gt;, &lt;em&gt;new T2&lt;/em&gt; == &lt;em&gt;expr2&lt;/em&gt;).
+
+#3: Same as #1 b really (&lt;em&gt;new T1&lt;/em&gt; == &lt;em&gt;expr1&lt;/em&gt;, &lt;em&gt;new T2&lt;/em&gt; == &lt;em&gt;expr2&lt;/em&gt; and &lt;em&gt;std::unique_ptr&#060;T1&#062;{ expr1 }&lt;/em&gt; == &lt;em&gt;g&lt;/em&gt;, &lt;em&gt;std::unique_ptr&#060;T2&#062;{ expr2 }&lt;/em&gt; == &lt;em&gt;h&lt;/em&gt;.
+
+#4
+&lt;code&gt;
+#include 
+#include 
+
+template&#060;class T, class D = std::default_deleter, class... Args&#062;
+std::unique_ptr make_unique(Args&#038;&#038;... args){
+    return std::unique_ptr{ std::forward(args)... };
+}
+&lt;/code&gt;
+
+Now, #4 is again the same as #1 a w.r.t. sequencing, but it has an important difference: The &lt;em&gt;new&lt;/em&gt; expressions are explicitly sequenced, since they are part of a function call. They can&#039;t be magically sequenced before actually being bound to a std::unique_ptr.
+
+(I hope that I got the standard terminology right.)]]></description>
+		<content:encoded><![CDATA[<p>@Jonathan, @Andrzej:</p>
+<p><em><strong>Never</strong></em> return a <em>T&amp;&amp;</em> when you actually return a temporary. This is the same issue as this one:</p>
+<p><code><br />
+int const&amp; f(){<br />
+    return 5;<br />
+}</p>
+<p>int main(){<br />
+    int i = f();<br />
+}<br />
+</code></p>
+<p>And as MSVC10 rightly warns me here, you are returning a reference to a <em>temporary</em> here. This doesn&#8217;t change with rvalue references, they are <em>still just references</em>. Just leave it as is, with a value return.</p>
+<p>On Topic:<br />
+#1 a: In C++11 terms, both <em>expr1</em> and <em>expr2</em> are sequenced before <em>f</em>, but are unsequenced relative to each other, i.e. they can both be evaluated in any order.<br />
+#1 b: Not really that different. <em>expr1</em> and <em>expr2</em>, aswell as <em>g</em> and <em>h</em> are sequenced before <em>f</em>, while <em>expr1</em> is sequenced before <em>g</em> and <em>expr2</em> is sequenced before <em>h</em>. I&#8217;m not totally sure about this last part, but all other cases should be unsequenced, e.g. <em>expr1</em> could get evaluated before <em>h</em>, or it might aswell get evaluated after <em>expr2</em>.</p>
+<p>#2: Same as #1 a, just with actual expressions instead of placeholders (<em>new T1</em> == <em>expr1</em>, <em>new T2</em> == <em>expr2</em>).</p>
+<p>#3: Same as #1 b really (<em>new T1</em> == <em>expr1</em>, <em>new T2</em> == <em>expr2</em> and <em>std::unique_ptr&lt;T1&gt;{ expr1 }</em> == <em>g</em>, <em>std::unique_ptr&lt;T2&gt;{ expr2 }</em> == <em>h</em>.</p>
+<p>#4<br />
+<code><br />
+#include<br />
+#include </p>
+<p>template&lt;class T, class D = std::default_deleter, class... Args&gt;<br />
+std::unique_ptr make_unique(Args&amp;&amp;... args){<br />
+    return std::unique_ptr{ std::forward(args)... };<br />
+}<br />
+</code></p>
+<p>Now, #4 is again the same as #1 a w.r.t. sequencing, but it has an important difference: The <em>new</em> expressions are explicitly sequenced, since they are part of a function call. They can&#8217;t be magically sequenced before actually being bound to a std::unique_ptr.</p>
+<p>(I hope that I got the standard terminology right.)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: David Svoboda				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4593</link>
+		<dc:creator><![CDATA[David Svoboda]]></dc:creator>
+		<pubDate>Sat, 17 Dec 2011 02:18:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4593</guid>
+					<description><![CDATA[I&#039;ll take a stab at this...
+
+1. The order of evaluations is unspecified. C99 allows expr1 and expr2 to be evaluated simultaneously.  (Not sure what C1x, C++03, or C++11 say, but I&#039;ll assume the answer is the same.)    I believe on x86 platforms the latter arguments get evaluated first, but that is a mere implementation detail :)
+
+CERT addresses this issue in some depth (and I&#039;d like more!) in the CERT C &#038; C++ rules:
+	EXP30-C. Do not depend on order of evaluation between sequence points
+	https://www.securecoding.cert.org/confluence/x/ZwE
+	EXP30-CPP. Do not depend on order of evaluation between sequence points
+	https://www.securecoding.cert.org/confluence/x/fYAyAQ
+IIRC WG14 wanted to eliminate sequence points from C1x but it never happened.
+
+The examples raise more interesting questions though. While you said nothing of separate execution threads, the problem of determining which of two threads does execution first is very similar to the problem of which expression gets evaluated first.  If expr1 and expr2 did both manipulate some global variable, you could have race conditions on the variable. I suspect this bears partly on your next question.
+
+I&#039;ll conclude up by saying that this is not a problem in Java because Java explicitly specifies that the first expression in a function argument list finishes being executed before the second begins. That saves Java programs from most (all?) of the headaches this puzzle is about.
+
+
+2. The code definitely has some problems and probably has others. As pointed out above, if there is insufficient memory to allocate both objects, then a bad_alloc exception can be thrown while the other object is successfully allocated, causeing a memory leak.  But even if operator new never fails, I don&#039;t think this code is safe, or is at best non-portable. As noted earlier, the order of the operator new&#039;s is unspecified. While operator new&#039;s implementation is also unspecified, I&#039;m not convinced that it&#039;s safe to have these two invocations that could (theoretically) be intertwined. I&#039;m pretty sure that its unsafe to have two threads invoke operator new simultaneously under C++03 and POSIX threads. Not sure if Windows threads or C++11 threads permit this.
+
+3. The code tries to mitigate the first problem cited above and fails, because of the second problem. Wrapping the new expressions in unique_ptr solves the memory leak. But not in the way the code is done because the order of evaluation is still unspecified.  
+
+4. This code would have mitigated both problems:
+
+{
+	//  At some call site:
+	auto t1_ptr = std::unique_ptr( new T1 );
+	auto t2_ptr = std::unique_ptr( new T2 );
+	f( t1_ptr, t2_ptr);
+} // both ptrs released
+
+I don&#039;t think you can mitigate the problem using a single line of code that looks like f(... , ...). Well, maybe you could if you use static/global variables, but the code would certainly be ugly and your manager would shoot you if he saw such code in production software :)]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;ll take a stab at this&#8230;</p>
+<p>1. The order of evaluations is unspecified. C99 allows expr1 and expr2 to be evaluated simultaneously.  (Not sure what C1x, C++03, or C++11 say, but I&#8217;ll assume the answer is the same.)    I believe on x86 platforms the latter arguments get evaluated first, but that is a mere implementation detail :)</p>
+<p>CERT addresses this issue in some depth (and I&#8217;d like more!) in the CERT C &amp; C++ rules:<br />
+	EXP30-C. Do not depend on order of evaluation between sequence points<br />
+	<a href="https://www.securecoding.cert.org/confluence/x/ZwE" rel="nofollow">https://www.securecoding.cert.org/confluence/x/ZwE</a><br />
+	EXP30-CPP. Do not depend on order of evaluation between sequence points<br />
+	<a href="https://www.securecoding.cert.org/confluence/x/fYAyAQ" rel="nofollow">https://www.securecoding.cert.org/confluence/x/fYAyAQ</a><br />
+IIRC WG14 wanted to eliminate sequence points from C1x but it never happened.</p>
+<p>The examples raise more interesting questions though. While you said nothing of separate execution threads, the problem of determining which of two threads does execution first is very similar to the problem of which expression gets evaluated first.  If expr1 and expr2 did both manipulate some global variable, you could have race conditions on the variable. I suspect this bears partly on your next question.</p>
+<p>I&#8217;ll conclude up by saying that this is not a problem in Java because Java explicitly specifies that the first expression in a function argument list finishes being executed before the second begins. That saves Java programs from most (all?) of the headaches this puzzle is about.</p>
+<p>2. The code definitely has some problems and probably has others. As pointed out above, if there is insufficient memory to allocate both objects, then a bad_alloc exception can be thrown while the other object is successfully allocated, causeing a memory leak.  But even if operator new never fails, I don&#8217;t think this code is safe, or is at best non-portable. As noted earlier, the order of the operator new&#8217;s is unspecified. While operator new&#8217;s implementation is also unspecified, I&#8217;m not convinced that it&#8217;s safe to have these two invocations that could (theoretically) be intertwined. I&#8217;m pretty sure that its unsafe to have two threads invoke operator new simultaneously under C++03 and POSIX threads. Not sure if Windows threads or C++11 threads permit this.</p>
+<p>3. The code tries to mitigate the first problem cited above and fails, because of the second problem. Wrapping the new expressions in unique_ptr solves the memory leak. But not in the way the code is done because the order of evaluation is still unspecified.  </p>
+<p>4. This code would have mitigated both problems:</p>
+<p>{<br />
+	//  At some call site:<br />
+	auto t1_ptr = std::unique_ptr( new T1 );<br />
+	auto t2_ptr = std::unique_ptr( new T2 );<br />
+	f( t1_ptr, t2_ptr);<br />
+} // both ptrs released</p>
+<p>I don&#8217;t think you can mitigate the problem using a single line of code that looks like f(&#8230; , &#8230;). Well, maybe you could if you use static/global variables, but the code would certainly be ugly and your manager would shoot you if he saw such code in production software :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jim Park				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4585</link>
+		<dc:creator><![CDATA[Jim Park]]></dc:creator>
+		<pubDate>Wed, 14 Dec 2011 18:25:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4585</guid>
+					<description><![CDATA[I put the ellipsis in the wrong place. Here&#039;s a revision:
+
+&lt;code&gt;
+template&#160;&#060;&#160;typename&#160;Type,&#160;typename...&#160;Args&#160;&#062;
+typename&#160;std::enable_if&#060;&#160;std::is_array&#060;Type&#062;::value&#160;==&#160;false,&#160;std::unique_ptr&#060;Type&#062;&#160;&#062;::type
+&#160;&#160;&#160;make_unique(Args&#038;&#038;&#160;...args)
+{
+&#160;&#160;&#160;return&#160;std::unique_ptr&#060;Type&#062;(&#160;new&#160;Type(std::forward&#060;Args&#062;(args)...)&#160;);
+}
+
+//&#160;Array&#160;specialization
+template&#160;&#060;&#160;typename&#160;Type&#160;&#062;
+typename&#160;std::enable_if&#060;&#160;std::is_array&#060;Type&#062;::value,&#160;std::unique_ptr&#060;Type&#062;&#160;&#062;::type
+&#160;&#160;&#160;make_unique(&#160;size_t&#160;size&#160;)
+{
+&#160;&#160;&#160;return&#160;std::unique_ptr&#060;Type&#062;(&#160;new&#160;typename&#160;std::remove_extent&#060;Type&#062;::type&#160;[&#160;size&#160;]&#160;);
+}
+&lt;/code&gt;]]></description>
+		<content:encoded><![CDATA[<p>I put the ellipsis in the wrong place. Here&#8217;s a revision:</p>
+<p><code><br />
+template&nbsp;&lt;&nbsp;typename&nbsp;Type,&nbsp;typename...&nbsp;Args&nbsp;&gt;<br />
+typename&nbsp;std::enable_if&lt;&nbsp;std::is_array&lt;Type&gt;::value&nbsp;==&nbsp;false,&nbsp;std::unique_ptr&lt;Type&gt;&nbsp;&gt;::type<br />
+&nbsp;&nbsp;&nbsp;make_unique(Args&amp;&amp;&nbsp;...args)<br />
+{<br />
+&nbsp;&nbsp;&nbsp;return&nbsp;std::unique_ptr&lt;Type&gt;(&nbsp;new&nbsp;Type(std::forward&lt;Args&gt;(args)...)&nbsp;);<br />
+}</p>
+<p>//&nbsp;Array&nbsp;specialization<br />
+template&nbsp;&lt;&nbsp;typename&nbsp;Type&nbsp;&gt;<br />
+typename&nbsp;std::enable_if&lt;&nbsp;std::is_array&lt;Type&gt;::value,&nbsp;std::unique_ptr&lt;Type&gt;&nbsp;&gt;::type<br />
+&nbsp;&nbsp;&nbsp;make_unique(&nbsp;size_t&nbsp;size&nbsp;)<br />
+{<br />
+&nbsp;&nbsp;&nbsp;return&nbsp;std::unique_ptr&lt;Type&gt;(&nbsp;new&nbsp;typename&nbsp;std::remove_extent&lt;Type&gt;::type&nbsp;[&nbsp;size&nbsp;]&nbsp;);<br />
+}<br />
+</code></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jim Park				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4584</link>
+		<dc:creator><![CDATA[Jim Park]]></dc:creator>
+		<pubDate>Wed, 14 Dec 2011 18:22:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4584</guid>
+					<description><![CDATA[Woops, I put the parenthesis around the ellipses in the wrong place... Here&#039;s a correction:
+
+&lt;strong&gt;&lt;/strong&gt; meta-tag. E.g. if that is correct, then you can write, or paste,
+
+&lt;blockquote&gt;
+&lt;code&gt;[sourcecode language=&quot;cpp&quot;][/sourcecode]
+template nbsp;&#060; nbsp;typename nbsp;Type, nbsp;typename... nbsp;Args nbsp;&#062;
+typename nbsp;std::enable_if&#060; nbsp;std::is_array&#060;Type&#062;::value nbsp;== nbsp;false, nbsp;std::unique_ptr&#060;Type&#062; nbsp;&#062;::type
+ nbsp; nbsp; nbsp;make_unique(Args&#038;&#038; nbsp;...args)
+{
+ nbsp; nbsp; nbsp;return nbsp;std::unique_ptr&#060;Type&#062;( nbsp;new nbsp;Type(std::forward&#060;Args&#062;(args)...) nbsp;);
+}
+
+// nbsp;Array nbsp;specialization
+template nbsp;&#060; nbsp;typename nbsp;Type nbsp;&#062;
+typename nbsp;std::enable_if&#060; nbsp;std::is_array&#060;Type&#062;::value, nbsp;std::unique_ptr&#060;Type&#062; nbsp;&#062;::type
+ nbsp; nbsp; nbsp;make_unique( nbsp;size_t nbsp;size nbsp;)
+{
+ nbsp; nbsp; nbsp;return nbsp;std::unique_ptr&#060;Type&#062;( nbsp;new nbsp;typename nbsp;std::remove_extent&#060;Type&#062;::type nbsp;[ nbsp;size nbsp;] nbsp;);
+}
+
+&lt;/strong&gt;]]></description>
+		<content:encoded><![CDATA[<p>Woops, I put the parenthesis around the ellipses in the wrong place&#8230; Here&#8217;s a correction:</p>
+<p><strong></strong> meta-tag. E.g. if that is correct, then you can write, or paste,</p>
+<blockquote><p>
+<code><br />
+template nbsp;&lt; nbsp;typename nbsp;Type, nbsp;typename... nbsp;Args nbsp;&gt;<br />
+typename nbsp;std::enable_if&lt; nbsp;std::is_array&lt;Type&gt;::value nbsp;== nbsp;false, nbsp;std::unique_ptr&lt;Type&gt; nbsp;&gt;::type<br />
+ nbsp; nbsp; nbsp;make_unique(Args&amp;&amp; nbsp;...args)<br />
+{<br />
+ nbsp; nbsp; nbsp;return nbsp;std::unique_ptr&lt;Type&gt;( nbsp;new nbsp;Type(std::forward&lt;Args&gt;(args)...) nbsp;);<br />
+}</p>
+<p>// nbsp;Array nbsp;specialization<br />
+template nbsp;&lt; nbsp;typename nbsp;Type nbsp;&gt;<br />
+typename nbsp;std::enable_if&lt; nbsp;std::is_array&lt;Type&gt;::value, nbsp;std::unique_ptr&lt;Type&gt; nbsp;&gt;::type<br />
+ nbsp; nbsp; nbsp;make_unique( nbsp;size_t nbsp;size nbsp;)<br />
+{<br />
+ nbsp; nbsp; nbsp;return nbsp;std::unique_ptr&lt;Type&gt;( nbsp;new nbsp;typename nbsp;std::remove_extent&lt;Type&gt;::type nbsp;[ nbsp;size nbsp;] nbsp;);<br />
+}</p>
+<p></code></p></blockquote>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jim Park				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4583</link>
+		<dc:creator><![CDATA[Jim Park]]></dc:creator>
+		<pubDate>Wed, 14 Dec 2011 15:51:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4583</guid>
+					<description><![CDATA[std::unique_ptr can hold arrays, too. So if you were to account for that, since template functions do not have partial specialization, we use SFINAE via std::enable_if&#060;&#062;.
+
+&lt;code&gt;[sourcecode language=&quot;cpp&quot;][/sourcecode]
+template &#060; typename Type, typename... Args &#062;
+typename std::enable_if&#060;std::is_array&#060;Type&#062;::value == false, std::unique_ptr&#060;Type&#062; &#062;::type
+   make_unique(Args&#038;&#038; ...args)
+{
+   return std::unique_ptr&#060;Type&#062;( new Type(std::forward&#060;Args&#062;(args))... );
+}
+
+// Array specialization
+template &#060; typename Type &#062;
+typename std::enable_if&#060;std::is_array&#060;Type&#062;::value, std::unique_ptr&#060;Type&#062; &#062;::type
+   make_unique( size_t size )
+{
+   return std::unique_ptr&#060;Type&#062;( new typename std::remove_extent&#060;Type&#062;::type [ size ] );
+}
+&lt;/code&gt;]]></description>
+		<content:encoded><![CDATA[<p>std::unique_ptr can hold arrays, too. So if you were to account for that, since template functions do not have partial specialization, we use SFINAE via std::enable_if&lt;&gt;.</p>
+<p><code><br />
+template &lt; typename Type, typename... Args &gt;<br />
+typename std::enable_if&lt;std::is_array&lt;Type&gt;::value == false, std::unique_ptr&lt;Type&gt; &gt;::type<br />
+   make_unique(Args&amp;&amp; ...args)<br />
+{<br />
+   return std::unique_ptr&lt;Type&gt;( new Type(std::forward&lt;Args&gt;(args))... );<br />
+}</p>
+<p>// Array specialization<br />
+template &lt; typename Type &gt;<br />
+typename std::enable_if&lt;std::is_array&lt;Type&gt;::value, std::unique_ptr&lt;Type&gt; &gt;::type<br />
+   make_unique( size_t size )<br />
+{<br />
+   return std::unique_ptr&lt;Type&gt;( new typename std::remove_extent&lt;Type&gt;::type [ size ] );<br />
+}<br />
+</code></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marat Abrarov				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4577</link>
+		<dc:creator><![CDATA[Marat Abrarov]]></dc:creator>
+		<pubDate>Tue, 13 Dec 2011 08:20:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4577</guid>
+					<description><![CDATA[...
+and the 
+&lt;blockquote&gt;
+&lt;code&gt;[sourcecode language=&quot;cpp&quot;][/sourcecode]
+unique_ptr&#060;T1&#062; arg1(new T1);
+unique_ptr&#060;T2&#062; arg2(new T2);
+f(std::move(arg1), std::move(arg2));
+&lt;/code&gt;
+&lt;/blockquote&gt;
+seems to be preferable because of custom deleter awareness.]]></description>
+		<content:encoded><![CDATA[<p>&#8230;<br />
+and the </p>
+<blockquote><p>
+<code><br />
+unique_ptr&lt;T1&gt; arg1(new T1);<br />
+unique_ptr&lt;T2&gt; arg2(new T2);<br />
+f(std::move(arg1), std::move(arg2));<br />
+</code>
+</p></blockquote>
+<p>seems to be preferable because of custom deleter awareness.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marat Abrarov				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4576</link>
+		<dc:creator><![CDATA[Marat Abrarov]]></dc:creator>
+		<pubDate>Tue, 13 Dec 2011 08:00:16 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4576</guid>
+					<description><![CDATA[#3. It seems that there are more than one right solution here:
+&lt;code&gt;[sourcecode language=&quot;cpp&quot;][/sourcecode]
+unique_ptr&#060;T1&#062; arg1(new T1);
+unique_ptr&#060;T2&#062; arg2(new T2);
+f(arg1.release(), arg2.release());
+&lt;/code&gt;
+and 
+&lt;code&gt;[sourcecode language=&quot;cpp&quot;][/sourcecode]
+unique_ptr&#060;T1&#062; arg1(new T1);
+unique_ptr&#060;T2&#062; arg2(new T2);
+f(std::move(arg1), std::move(arg2));
+&lt;/code&gt;]]></description>
+		<content:encoded><![CDATA[<p>#3. It seems that there are more than one right solution here:<br />
+<code><br />
+unique_ptr&lt;T1&gt; arg1(new T1);<br />
+unique_ptr&lt;T2&gt; arg2(new T2);<br />
+f(arg1.release(), arg2.release());<br />
+</code><br />
+and<br />
+<code><br />
+unique_ptr&lt;T1&gt; arg1(new T1);<br />
+unique_ptr&lt;T2&gt; arg2(new T2);<br />
+f(std::move(arg1), std::move(arg2));<br />
+</code></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Seb				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4574</link>
+		<dc:creator><![CDATA[Seb]]></dc:creator>
+		<pubDate>Tue, 13 Dec 2011 07:26:26 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4574</guid>
+					<description><![CDATA[Thanks Herb for your work ! and sorry for the inconvenience ! Indeed update GotW with the new specification from c++11 is a pretty nice idea !]]></description>
+		<content:encoded><![CDATA[<p>Thanks Herb for your work ! and sorry for the inconvenience ! Indeed update GotW with the new specification from c++11 is a pretty nice idea !</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4573</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Tue, 13 Dec 2011 00:01:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4573</guid>
+					<description><![CDATA[@Patrick, @Seb: Yes, this is a C++11 update to GotW #56. I&#039;m going to be writing both brand-new GotWs as well as C++11-era revisions of older GotWs.]]></description>
+		<content:encoded><![CDATA[<p>@Patrick, @Seb: Yes, this is a C++11 update to GotW #56. I&#8217;m going to be writing both brand-new GotWs as well as C++11-era revisions of older GotWs.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jonathan Ou-yang				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4570</link>
+		<dc:creator><![CDATA[Jonathan Ou-yang]]></dc:creator>
+		<pubDate>Mon, 12 Dec 2011 09:42:55 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4570</guid>
+					<description><![CDATA[@Andrzej:  Thanks for the explanation.  Never heard of xvalue and prvalue (gotta read up on that in the future), but the part &quot;Rvalue reference is still a reference and the same safety rules for references apply&quot; really hit it home for me.  I did an experiment with the following code:
+
+[sourcecode language=&quot;cpp&quot;]
+T1&#038;&#038; make_T1()
+{
+     return T1();
+}
+
+auto t = make_T1();
+[/sourcecode]
+
+and the invocation sequence is:
+
+1.  temporary T1&#039;s constructor.
+2.  temporary T1&#039;s destructor (the function make_T1() returns a copy of the temporary&#039;s reference and destroys the temporary).
+3.  t&#039;s move constructor on the return value (which is a rvalue reference).
+
+By the time step 3 is called, the temporary T1 is already gone.  Dangling reference.  This is what you would expect if the function declaration was:
+
+[sourcecode language=&quot;cpp&quot;]
+T1&#038; make_T1()
+[/sourcecode]
+
+where step 3 was instead t&#039;s copy constructor.
+
+But with rvalue references I somehow thought the invocation sequence would&#039;ve been 1, 3, then 2.  Good to clear that up!  Thanks.]]></description>
+		<content:encoded><![CDATA[<p>@Andrzej:  Thanks for the explanation.  Never heard of xvalue and prvalue (gotta read up on that in the future), but the part &#8220;Rvalue reference is still a reference and the same safety rules for references apply&#8221; really hit it home for me.  I did an experiment with the following code:</p>
+<pre class="brush: cpp; title: ; notranslate">
+T1&amp;&amp; make_T1()
+{
+     return T1();
+}
+
+auto t = make_T1();
+</pre>
+<p>and the invocation sequence is:</p>
+<p>1.  temporary T1&#8217;s constructor.<br />
+2.  temporary T1&#8217;s destructor (the function make_T1() returns a copy of the temporary&#8217;s reference and destroys the temporary).<br />
+3.  t&#8217;s move constructor on the return value (which is a rvalue reference).</p>
+<p>By the time step 3 is called, the temporary T1 is already gone.  Dangling reference.  This is what you would expect if the function declaration was:</p>
+<pre class="brush: cpp; title: ; notranslate">
+T1&amp; make_T1()
+</pre>
+<p>where step 3 was instead t&#8217;s copy constructor.</p>
+<p>But with rvalue references I somehow thought the invocation sequence would&#8217;ve been 1, 3, then 2.  Good to clear that up!  Thanks.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Andrzej Krzemieński				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4569</link>
+		<dc:creator><![CDATA[Andrzej Krzemieński]]></dc:creator>
+		<pubDate>Mon, 12 Dec 2011 08:56:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4569</guid>
+					<description><![CDATA[@Jonathan: either function:
+[code]
+std::unique_ptr&#060;T&#062;&#038;&#038; make_unique(Args…arg) 
+[/code]
+or 
+[code]
+std::unique_ptr&#060;T&#062; make_unique(Args…arg) 
+[/code]
+equally well triggers the move semantics: calling the former is an xvalue; calling the second is a prvalue; but xvalues and prvalues are both rvalues which bind to rvalue reference.
+However, the variant that returns an rvalue reference is dangerous. Rvalue reference is still a reference and the same safety rules for references apply: you should not return references to automatic objects created inside your functions.]]></description>
+		<content:encoded><![CDATA[<p>@Jonathan: either function:</p>
+<pre class="brush: plain; title: ; notranslate">
+std::unique_ptr&lt;T&gt;&amp;&amp; make_unique(Args…arg) 
+</pre>
+<p>or </p>
+<pre class="brush: plain; title: ; notranslate">
+std::unique_ptr&lt;T&gt; make_unique(Args…arg) 
+</pre>
+<p>equally well triggers the move semantics: calling the former is an xvalue; calling the second is a prvalue; but xvalues and prvalues are both rvalues which bind to rvalue reference.<br />
+However, the variant that returns an rvalue reference is dangerous. Rvalue reference is still a reference and the same safety rules for references apply: you should not return references to automatic objects created inside your functions.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Seb				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4568</link>
+		<dc:creator><![CDATA[Seb]]></dc:creator>
+		<pubDate>Mon, 12 Dec 2011 07:31:31 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4568</guid>
+					<description><![CDATA[Is it the same problem as this : http://gotw.ca/gotw/056.htm ?]]></description>
+		<content:encoded><![CDATA[<p>Is it the same problem as this : <a href="http://gotw.ca/gotw/056.htm" rel="nofollow">http://gotw.ca/gotw/056.htm</a> ?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jonathan Ou-yang				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4567</link>
+		<dc:creator><![CDATA[Jonathan Ou-yang]]></dc:creator>
+		<pubDate>Mon, 12 Dec 2011 06:19:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4567</guid>
+					<description><![CDATA[@Alf:  I had a similar answer to #4 as you, but instead of returning a plain std::unique_ptr for the make_unique() function, I had the return type as std::unique_ptr&#038;&#038;.  That is, my function looked like this:
+
+std::unique_ptr&#038;&#038; make_unique(Args...arg)  
+
+Isn&#039;t it better to do that so you get move semantics when you&#039;re calling f( make_unique() )?]]></description>
+		<content:encoded><![CDATA[<p>@Alf:  I had a similar answer to #4 as you, but instead of returning a plain std::unique_ptr for the make_unique() function, I had the return type as std::unique_ptr&amp;&amp;.  That is, my function looked like this:</p>
+<p>std::unique_ptr&amp;&amp; make_unique(Args&#8230;arg)  </p>
+<p>Isn&#8217;t it better to do that so you get move semantics when you&#8217;re calling f( make_unique() )?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: So, you think you know C++?				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4565</link>
+		<dc:creator><![CDATA[So, you think you know C++?]]></dc:creator>
+		<pubDate>Sat, 10 Dec 2011 12:00:26 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4565</guid>
+					<description><![CDATA[[...] GotW #102: Exception-Safe Function Calls (Difficulty: 7/10) [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] GotW #102: Exception-Safe Function Calls (Difficulty: 7/10) [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Patrick V Hines				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4562</link>
+		<dc:creator><![CDATA[Patrick V Hines]]></dc:creator>
+		<pubDate>Fri, 09 Dec 2011 13:39:39 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4562</guid>
+					<description><![CDATA[I thought you were going crazy and reposted a recent GotW, glad it was just me.  I had a problem with one of these at work about three weeks ago and found the solution in your GotW.  Turns out it was a similar-but-old one I found in a web search:  http://www.gotw.ca/gotw/056.htm.  Question:  the difficulty dropped from 8/10 to 7/10 - did we all get smarter?  I know I did after reading it, thanks Herb for your work in the community.]]></description>
+		<content:encoded><![CDATA[<p>I thought you were going crazy and reposted a recent GotW, glad it was just me.  I had a problem with one of these at work about three weeks ago and found the solution in your GotW.  Turns out it was a similar-but-old one I found in a web search:  <a href="http://www.gotw.ca/gotw/056.htm" rel="nofollow">http://www.gotw.ca/gotw/056.htm</a>.  Question:  the difficulty dropped from 8/10 to 7/10 &#8211; did we all get smarter?  I know I did after reading it, thanks Herb for your work in the community.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Andrzej Krzemieński				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4549</link>
+		<dc:creator><![CDATA[Andrzej Krzemieński]]></dc:creator>
+		<pubDate>Mon, 05 Dec 2011 23:24:02 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4549</guid>
+					<description><![CDATA[@Michal: I am not sure if I understand your question, so pardon me if my answer is a bit off-topic. The brace notation is allowed for a number of contexts where the type of the initialized object can be easily deduced: 
+* return expression,
+* assignment expression,
+* argument of operator[],
+* function call argument:
+
+~~~
+struct Rational{ int num, den; };
+
+struct Container{
+  ...
+  Rational operator[]( Rational r ) {
+    return {2, 3};
+  }
+}
+
+void test( Rational x );
+
+Rational r1;
+r1 = {1, 2};
+Container c;
+r1 = c[{4, 5}];
+test({3, 7});
+~~~]]></description>
+		<content:encoded><![CDATA[<p>@Michal: I am not sure if I understand your question, so pardon me if my answer is a bit off-topic. The brace notation is allowed for a number of contexts where the type of the initialized object can be easily deduced:<br />
+* return expression,<br />
+* assignment expression,<br />
+* argument of operator[],<br />
+* function call argument:</p>
+<p>~~~<br />
+struct Rational{ int num, den; };</p>
+<p>struct Container{<br />
+  &#8230;<br />
+  Rational operator[]( Rational r ) {<br />
+    return {2, 3};<br />
+  }<br />
+}</p>
+<p>void test( Rational x );</p>
+<p>Rational r1;<br />
+r1 = {1, 2};<br />
+Container c;<br />
+r1 = c[{4, 5}];<br />
+test({3, 7});<br />
+~~~</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michal Mocny				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4543</link>
+		<dc:creator><![CDATA[Michal Mocny]]></dc:creator>
+		<pubDate>Sun, 04 Dec 2011 15:02:54 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4543</guid>
+					<description><![CDATA[@Andrzej, @Herb: That sucks, the notation is allowed for return values right?  Seems to be an odd duality there..]]></description>
+		<content:encoded><![CDATA[<p>@Andrzej, @Herb: That sucks, the notation is allowed for return values right?  Seems to be an odd duality there..</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4534</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sat, 03 Dec 2011 16:11:56 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4534</guid>
+					<description><![CDATA[@Andrzej: Good catch, thanks. Fixed. I wish that decision had gone the other way; it&#039;s an explicit request to construct something.]]></description>
+		<content:encoded><![CDATA[<p>@Andrzej: Good catch, thanks. Fixed. I wish that decision had gone the other way; it&#8217;s an explicit request to construct something.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Andrzej Krzemieński				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4521</link>
+		<dc:creator><![CDATA[Andrzej Krzemieński]]></dc:creator>
+		<pubDate>Sat, 03 Dec 2011 10:21:30 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4521</guid>
+					<description><![CDATA[Note that example 3 (with shared_ptr and brace-initialization syntax) does not compile in C++11. The new initialization syntax cannot be used this way to trigger the explicit constructor. (At some point the Committee considered allowing this usage, but the final standard prohibits it):
+
+8.5 p. 15:
+The initialization that occurs in the forms
+T x(a);
+T x{a};
+as well as in new expressions (5.3.4), static_cast expressions (5.2.9), functional notation type conversions
+(5.2.3), and base and member initializers (12.6.2) is called direct-initialization.
+
+12.3.1 p. 2:
+An explicit constructor constructs objects just like non-explicit constructors, but does so only where the
+direct-initialization syntax (8.5) or where casts (5.2.9, 5.4) are explicitly used. A default constructor
+may be an explicit constructor; such a constructor will be used to perform default-initialization or value-initialization
+(8.5).
+
+Regards,
+&#038;rzej]]></description>
+		<content:encoded><![CDATA[<p>Note that example 3 (with shared_ptr and brace-initialization syntax) does not compile in C++11. The new initialization syntax cannot be used this way to trigger the explicit constructor. (At some point the Committee considered allowing this usage, but the final standard prohibits it):</p>
+<p>8.5 p. 15:<br />
+The initialization that occurs in the forms<br />
+T x(a);<br />
+T x{a};<br />
+as well as in new expressions (5.3.4), static_cast expressions (5.2.9), functional notation type conversions<br />
+(5.2.3), and base and member initializers (12.6.2) is called direct-initialization.</p>
+<p>12.3.1 p. 2:<br />
+An explicit constructor constructs objects just like non-explicit constructors, but does so only where the<br />
+direct-initialization syntax (8.5) or where casts (5.2.9, 5.4) are explicitly used. A default constructor<br />
+may be an explicit constructor; such a constructor will be used to perform default-initialization or value-initialization<br />
+(8.5).</p>
+<p>Regards,<br />
+&amp;rzej</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4519</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Sat, 03 Dec 2011 06:44:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4519</guid>
+					<description><![CDATA[For others who want to post code in their answers/responses (I&#039;m a bit late discovering things, so my own answer was quite a bit short of perfect!):
+
+This seems to be a WordPress blog, and it seems to support the WordPress &lt;strong&gt;[sourcecode]&lt;/strong&gt; meta-tag. E.g. if that is correct, then you can write, or paste,
+
+&lt;blockquote&gt;
+&lt;code&gt;[sourcecode language=&quot;cpp&quot;]
+#include &#060;iostream&#062;
+using namespace std;
+int main()
+{ cout &#060;&#060;&quot;Hello!&quot; &#060;&#060; endl; }
+[/sourcecode]
+&lt;/code&gt;
+&lt;/blockquote&gt;
+
+and have it render as
+
+[sourcecode language=&quot;cpp&quot;]
+#include &#060;iostream&#062;
+using namespace std;
+int main()
+{ cout &#060;&#060; &#034;Hello!&#034; &#060;&#060; endl; }
+[/sourcecode]
+
+Cheers, &#038; hoping this is deleted if it&#039;s wrong &#8230;]]></description>
+		<content:encoded><![CDATA[<p>For others who want to post code in their answers/responses (I&#8217;m a bit late discovering things, so my own answer was quite a bit short of perfect!):</p>
+<p>This seems to be a WordPress blog, and it seems to support the WordPress <strong></p>
+<pre class="brush: plain; title: ; notranslate">&lt;/strong&gt; meta-tag. E.g. if that is correct, then you can write, or paste,
+
+&lt;blockquote&gt;
+&lt;code&gt;[sourcecode language=&quot;cpp&quot;]
+#include &amp;lt;iostream&amp;gt;
+using namespace std;
+int main()
+{ cout &amp;lt;&amp;lt;&quot;Hello!&quot; &amp;lt;&amp;lt; endl; }
+</pre>
+<p>and have it render as</p>
+<pre class="brush: cpp; title: ; notranslate">
+#include &lt;iostream&gt;
+using namespace std;
+int main()
+{ cout &lt;&lt; &quot;Hello!&quot; &lt;&lt; endl; }
+</pre>
+<p>Cheers, &amp; hoping this is deleted if it&#8217;s wrong &hellip;</strong></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4517</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Sat, 03 Dec 2011 06:25:39 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4517</guid>
+					<description><![CDATA[@Marat Abrarov:
+
+You wrote:
+
+&quot;&lt;code&gt;
+unique_ptr&#060;T1&#062; arg1( new T1 );
+f( arg1.release(), unique_ptr&#060;T2&#062;( new T2 ).release() );
+&lt;/code&gt;
+has the same problem as #2 and #3.
+&quot;
+
+You&#039;re right, thanks.
+
+If the first &lt;code&gt;release()&lt;/code&gt; is evaluated first, and &lt;code&gt;T2::T2&lt;/code&gt; throws, one has a leak.
+
+However I did not realize that until I had posted, and I could not find any edit button. :-(
+
+By the way, here I used HTML symbolic entities like &lt;code&gt;&#038;lt;&lt;/code&gt; to avoid the collapsing of things enclosed by &#060; and &#062;.
+
+Cheers,]]></description>
+		<content:encoded><![CDATA[<p>@Marat Abrarov:</p>
+<p>You wrote:</p>
+<p>&#8220;<code><br />
+unique_ptr&lt;T1&gt; arg1( new T1 );<br />
+f( arg1.release(), unique_ptr&lt;T2&gt;( new T2 ).release() );<br />
+</code><br />
+has the same problem as #2 and #3.<br />
+&#8221;</p>
+<p>You&#8217;re right, thanks.</p>
+<p>If the first <code>release()</code> is evaluated first, and <code>T2::T2</code> throws, one has a leak.</p>
+<p>However I did not realize that until I had posted, and I could not find any edit button. :-(</p>
+<p>By the way, here I used HTML symbolic entities like <code>&amp;lt;</code> to avoid the collapsing of things enclosed by &lt; and &gt;.</p>
+<p>Cheers,</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marat Abrarov				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4516</link>
+		<dc:creator><![CDATA[Marat Abrarov]]></dc:creator>
+		<pubDate>Sat, 03 Dec 2011 06:06:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4516</guid>
+					<description><![CDATA[&#062; The only right solution seems to be (only because of unique_ptr::release() is nothrow):
+&#062;  unique_ptr arg1( new T1 );
+&#062;  unique_ptr arg1( new T2 );
+&#062;  f( arg1.release(), arg2.release() );
+and because of constructor unique_ptr::unique_ptr(T*) is nothrow.]]></description>
+		<content:encoded><![CDATA[<p>&gt; The only right solution seems to be (only because of unique_ptr::release() is nothrow):<br />
+&gt;  unique_ptr arg1( new T1 );<br />
+&gt;  unique_ptr arg1( new T2 );<br />
+&gt;  f( arg1.release(), arg2.release() );<br />
+and because of constructor unique_ptr::unique_ptr(T*) is nothrow.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marat Abrarov				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4515</link>
+		<dc:creator><![CDATA[Marat Abrarov]]></dc:creator>
+		<pubDate>Sat, 03 Dec 2011 05:59:43 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4515</guid>
+					<description><![CDATA[#1 and #2 are trivial.
+#3 has the same problem as #2. But declaration of function &quot;f&quot; at #3 has different (better) semantic then #2. At #3 f&#039;s declaration explicitly moves ownership of it&#039;s args to the callee. This is the reason I like smart pointers (and prefer over the raw ones) - an interface with smart pointers seems to be more self-describing. As Boost.SmartPtr best practices says: &quot;Avoid using unnamed shared_ptr temporaries to save typing&quot; (it can be extended to almost every smart pointer).
+
+To Alf P. Steinbach:
+    unique_ptr arg1( new T1 );
+    f( arg1.release(), unique_ptr( new T2 ).release() );
+has the same problem as #2 and #3.
+
+The only right solution seems to be (only because of unique_ptr::release() is nothrow):
+    unique_ptr arg1( new T1 );
+    unique_ptr arg1( new T2 );
+    f( arg1.release(), arg2.release() );]]></description>
+		<content:encoded><![CDATA[<p>#1 and #2 are trivial.<br />
+#3 has the same problem as #2. But declaration of function &#8220;f&#8221; at #3 has different (better) semantic then #2. At #3 f&#8217;s declaration explicitly moves ownership of it&#8217;s args to the callee. This is the reason I like smart pointers (and prefer over the raw ones) &#8211; an interface with smart pointers seems to be more self-describing. As Boost.SmartPtr best practices says: &#8220;Avoid using unnamed shared_ptr temporaries to save typing&#8221; (it can be extended to almost every smart pointer).</p>
+<p>To Alf P. Steinbach:<br />
+    unique_ptr arg1( new T1 );<br />
+    f( arg1.release(), unique_ptr( new T2 ).release() );<br />
+has the same problem as #2 and #3.</p>
+<p>The only right solution seems to be (only because of unique_ptr::release() is nothrow):<br />
+    unique_ptr arg1( new T1 );<br />
+    unique_ptr arg1( new T2 );<br />
+    f( arg1.release(), arg2.release() );</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4513</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Sat, 03 Dec 2011 03:50:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4513</guid>
+					<description><![CDATA[As I wrote earlier, it&#039;s splendid that you&#039;re continuing the GOTW series.
+
+It would be even nicer if you would allow and encourage general discussion, as you did in former times, by posting these questions to a discussion-oriented forum such as (you did) [comp.lang.c++].
+
+That would also solve the problem of formatting of responses.
+
+That said,
+
+  #1:
+
+the arguments of a function call are fully evaluated before a function is called, but apart from that the order of evaluation is up to the compiler. It&#039;s unclear what you&#039;re asking for above that. But as an example, by this rule, for the call &lt;code&gt;f( g( expr1 ), h( expr2 ) )&lt;/code&gt; the &lt;code&gt;g&lt;/code&gt; and &lt;code&gt;h&lt;/code&gt; calls occur in some unspecified order before the call of &lt;code&gt;f&lt;/code&gt;, and for example, both or just one of &lt;code&gt;expr1&lt;/code&gt; and &lt;code&gt;expr2&lt;/code&gt; may have been evaluated when &lt;code&gt;g&lt;/code&gt; is called.
+
+  #2:
+
+For the call &lt;code&gt;f( new T1, new T2 );&lt;/code&gt; one may have a memory leak if either of the &lt;code&gt;T1&lt;/code&gt; or &lt;code&gt;T2&lt;/code&gt; constructors throw.
+
+&quot;May&quot;: it&#039;s in principle possible to define e.g. class-specific allocation functions that e.g. always allocate the same memory, but that would be pretty unusual and brittle, so let&#039;s ignore that possibility.
+
+A fix for the general case depends on what guarantees &lt;code&gt;f&lt;/code&gt; offers. Assuming that &lt;code&gt;f&lt;/code&gt; guarantees to take ownership of the objects, and guarantees to not leak them if it fails, then all that&#039;s needed is to allocate at least one of them before the function call, and use RAII cleanup. E.g.,
+
+&lt;pre&gt;
+    unique_ptr arg1( new T1 );
+    f( arg1.release(), unique_ptr( new T2 ).release() );
+&lt;/pre&gt;
+
+That looks a bit assymetric, and it is. I don&#039;t know what&#039;s best: to call the reader&#039;s attention to this by intentionally showing the assymetric nature of the thing, or trying to make it look more safe and symmetric by creating both argument objects before the call. I guess, however, that a reader of code will react negatively to such asymmetry, thus it would probably be better to write &#8230;
+
+&lt;pre&gt;
+    unique_ptr arg1( new T1 );
+    unique_ptr arg1( new T2 );
+    f( arg1.release(), arg2.release() );
+&lt;/pre&gt;
+
+
+  #3:
+
+With &lt;code&gt;f&lt;/code&gt; changed to
+
+&lt;pre&gt;
+    void f( unique_ptr, unique_ptr )
+&lt;/pre&gt;
+
+the exact same exception problem remains. And dang if I don&#039;t seem to recall that this has been discussed in some earlier GOTW. Anyway, now as of 2011 it&#039;s a well-known problem, perhaps in part thanks to your GOTW efforts.
+
+The problem is that for an actual call with &lt;code&gt;new&lt;/code&gt;-expressions as actual arguments, the compiler may choose to generate code that evaluates both &lt;code&gt;new&lt;/code&gt;-expressions before invoking the &lt;code&gt;unique_ptr&lt;/code&gt; constructors.
+
+  #4:
+
+The question calls for a &lt;code&gt;make_unique&lt;/code&gt; facility, and in C++11 that&#039;s either trivial (for the case of a maker function that just addresses the current problem) or quite complex (for the general case).
+
+The trivial:
+
+&lt;pre&gt;
+  template&#060; class Type, class Deleter = std::default_delete, class... Args &#062;
+  std::unique_ptr make_unique( Args... args )
+  {
+      return std::unique_ptr( new Type( args... ) );
+  }
+&lt;/pre&gt;
+
+The call of &lt;code&gt;f&lt;/code&gt; then becomes
+
+&lt;pre&gt;
+    void f( make_unique_ptr(), make_unique_ptr() )
+&lt;/pre&gt;
+
+which is safe, since a function call (here call of &lt;code&gt;make_unique&lt;/code&gt;) must complete before anything else happens.
+
+The complexity enters the picture when one wishes support for arrays and for custom deleter values (not just custom deleter type).
+
+One would not, or I would not, want to code up that.
+
+So, it is a bit surprising that this function did not make into the C++11 standard, while `make_shared` did.
+
+
+
+  #5 (by Alf):
+
+Is this a &lt;em&gt;good&lt;/em&gt; solution to the given problem?
+
+It&#039;s ingenious, yes, and it&#039;s a Very&#8482; nice tool to have in general (to wit, the `make_shared` function&#039;s popularity).
+
+As a solution to the given problem it relies on a convention, that whoever calls &lt;code&gt;f&lt;/code&gt; should remember to use &lt;code&gt;make_unique&lt;/code&gt;. And it&#039;s rather easy to forget to apply conventions, or to apply them incorrectly or only partially. Thus,  as a solution to the given problem it&#039;s rather brittle.
+
+  #6 (by Alf):
+
+But is there any alternative?
+
+Yes, in addition to introducing the &lt;code&gt;make_unique&lt;/code&gt; function (which is very useful in general) the function &lt;code&gt;f&lt;/code&gt; should be be made safe. It should ideally be made near to impossible to use incorrectly or to use in an unsafe way. And with the original &lt;code&gt;f&lt;/code&gt; as the basic functionality that somehow &quot;must&quot; result, making it safe involves &lt;em&gt;imposing sequencing on the client code&#039;s argument evaluation&lt;/em&gt;.
+
+Given the freedom the compiler has wrt. argument evaluation such sequencing cannot be imposed with both arguments specified directly.
+
+The problem with &lt;code&gt;unique_ptr&lt;/code&gt; in that respect, is that it allows direct construction of a &lt;code&gt;unique_ptr&lt;/code&gt;, without using the &lt;code&gt;make_unique&lt;/code&gt; function.
+
+There are many possible solutions, including the functional one of replacing f(x,y) with f(x)(y), but one simple solution that also yields fairly concise and readable notation (which I feel is pretty important!), is to just define a wrapper class for &lt;code&gt;unique_ptr&lt;/code&gt;, a wrapper class for this special usage. A separate factory function is then not needed, since a constructor can do that job. It can look like this:
+
+&lt;pre&gt;
+template
+class DynArg
+{
+private:
+    std::unique_ptr     p_;
+
+public:
+    std::unique_ptr value()
+    {
+        return std::move( p_ );
+    }
+    
+    template
+    DynArg( Args... args )
+        : p_( new Type( args... ) )
+    {}
+    
+    DynArg( DynArg&#038;&#038; other )
+        : p_( std::move( other.p_ ) )
+    {}
+};
+&lt;/pre&gt;
+
+And a wrapper for the original function can then look like
+
+&lt;pre&gt;
+void f( DynArg a1, DynArg a2 )
+{
+    original::f( a1.value().release(), a2.value().release() );
+}
+&lt;/pre&gt;
+
+with a call like, for example,
+
+&lt;pre&gt;
+    f( DynArg( 1 ), DynArg( 3.14 ) );
+&lt;/pre&gt;
+
+The wrapper function definition above has the arguments passed by value because that&#039;s most natural when one is familiar with a host of different smart pointers that are passed by value. Still, in C++11 one could perhaps guarantee some micro-efficiency by passing as rvalue references (avoiding moves). I like it simple, though.]]></description>
+		<content:encoded><![CDATA[<p>As I wrote earlier, it&#8217;s splendid that you&#8217;re continuing the GOTW series.</p>
+<p>It would be even nicer if you would allow and encourage general discussion, as you did in former times, by posting these questions to a discussion-oriented forum such as (you did) [comp.lang.c++].</p>
+<p>That would also solve the problem of formatting of responses.</p>
+<p>That said,</p>
+<p>  #1:</p>
+<p>the arguments of a function call are fully evaluated before a function is called, but apart from that the order of evaluation is up to the compiler. It&#8217;s unclear what you&#8217;re asking for above that. But as an example, by this rule, for the call <code>f( g( expr1 ), h( expr2 ) )</code> the <code>g</code> and <code>h</code> calls occur in some unspecified order before the call of <code>f</code>, and for example, both or just one of <code>expr1</code> and <code>expr2</code> may have been evaluated when <code>g</code> is called.</p>
+<p>  #2:</p>
+<p>For the call <code>f( new T1, new T2 );</code> one may have a memory leak if either of the <code>T1</code> or <code>T2</code> constructors throw.</p>
+<p>&#8220;May&#8221;: it&#8217;s in principle possible to define e.g. class-specific allocation functions that e.g. always allocate the same memory, but that would be pretty unusual and brittle, so let&#8217;s ignore that possibility.</p>
+<p>A fix for the general case depends on what guarantees <code>f</code> offers. Assuming that <code>f</code> guarantees to take ownership of the objects, and guarantees to not leak them if it fails, then all that&#8217;s needed is to allocate at least one of them before the function call, and use RAII cleanup. E.g.,</p>
+<pre>
+    unique_ptr arg1( new T1 );
+    f( arg1.release(), unique_ptr( new T2 ).release() );
+</pre>
+<p>That looks a bit assymetric, and it is. I don&#8217;t know what&#8217;s best: to call the reader&#8217;s attention to this by intentionally showing the assymetric nature of the thing, or trying to make it look more safe and symmetric by creating both argument objects before the call. I guess, however, that a reader of code will react negatively to such asymmetry, thus it would probably be better to write &hellip;</p>
+<pre>
+    unique_ptr arg1( new T1 );
+    unique_ptr arg1( new T2 );
+    f( arg1.release(), arg2.release() );
+</pre>
+<p>  #3:</p>
+<p>With <code>f</code> changed to</p>
+<pre>
+    void f( unique_ptr, unique_ptr )
+</pre>
+<p>the exact same exception problem remains. And dang if I don&#8217;t seem to recall that this has been discussed in some earlier GOTW. Anyway, now as of 2011 it&#8217;s a well-known problem, perhaps in part thanks to your GOTW efforts.</p>
+<p>The problem is that for an actual call with <code>new</code>-expressions as actual arguments, the compiler may choose to generate code that evaluates both <code>new</code>-expressions before invoking the <code>unique_ptr</code> constructors.</p>
+<p>  #4:</p>
+<p>The question calls for a <code>make_unique</code> facility, and in C++11 that&#8217;s either trivial (for the case of a maker function that just addresses the current problem) or quite complex (for the general case).</p>
+<p>The trivial:</p>
+<pre>
+  template&lt; class Type, class Deleter = std::default_delete, class... Args &gt;
+  std::unique_ptr make_unique( Args... args )
+  {
+      return std::unique_ptr( new Type( args... ) );
+  }
+</pre>
+<p>The call of <code>f</code> then becomes</p>
+<pre>
+    void f( make_unique_ptr(), make_unique_ptr() )
+</pre>
+<p>which is safe, since a function call (here call of <code>make_unique</code>) must complete before anything else happens.</p>
+<p>The complexity enters the picture when one wishes support for arrays and for custom deleter values (not just custom deleter type).</p>
+<p>One would not, or I would not, want to code up that.</p>
+<p>So, it is a bit surprising that this function did not make into the C++11 standard, while `make_shared` did.</p>
+<p>  #5 (by Alf):</p>
+<p>Is this a <em>good</em> solution to the given problem?</p>
+<p>It&#8217;s ingenious, yes, and it&#8217;s a Very&trade; nice tool to have in general (to wit, the `make_shared` function&#8217;s popularity).</p>
+<p>As a solution to the given problem it relies on a convention, that whoever calls <code>f</code> should remember to use <code>make_unique</code>. And it&#8217;s rather easy to forget to apply conventions, or to apply them incorrectly or only partially. Thus,  as a solution to the given problem it&#8217;s rather brittle.</p>
+<p>  #6 (by Alf):</p>
+<p>But is there any alternative?</p>
+<p>Yes, in addition to introducing the <code>make_unique</code> function (which is very useful in general) the function <code>f</code> should be be made safe. It should ideally be made near to impossible to use incorrectly or to use in an unsafe way. And with the original <code>f</code> as the basic functionality that somehow &#8220;must&#8221; result, making it safe involves <em>imposing sequencing on the client code&#8217;s argument evaluation</em>.</p>
+<p>Given the freedom the compiler has wrt. argument evaluation such sequencing cannot be imposed with both arguments specified directly.</p>
+<p>The problem with <code>unique_ptr</code> in that respect, is that it allows direct construction of a <code>unique_ptr</code>, without using the <code>make_unique</code> function.</p>
+<p>There are many possible solutions, including the functional one of replacing f(x,y) with f(x)(y), but one simple solution that also yields fairly concise and readable notation (which I feel is pretty important!), is to just define a wrapper class for <code>unique_ptr</code>, a wrapper class for this special usage. A separate factory function is then not needed, since a constructor can do that job. It can look like this:</p>
+<pre>
+template
+class DynArg
+{
+private:
+    std::unique_ptr     p_;
+
+public:
+    std::unique_ptr value()
+    {
+        return std::move( p_ );
+    }
+    
+    template
+    DynArg( Args... args )
+        : p_( new Type( args... ) )
+    {}
+    
+    DynArg( DynArg&amp;&amp; other )
+        : p_( std::move( other.p_ ) )
+    {}
+};
+</pre>
+<p>And a wrapper for the original function can then look like</p>
+<pre>
+void f( DynArg a1, DynArg a2 )
+{
+    original::f( a1.value().release(), a2.value().release() );
+}
+</pre>
+<p>with a call like, for example,</p>
+<pre>
+    f( DynArg( 1 ), DynArg( 3.14 ) );
+</pre>
+<p>The wrapper function definition above has the arguments passed by value because that&#8217;s most natural when one is familiar with a host of different smart pointers that are passed by value. Still, in C++11 one could perhaps guarantee some micro-efficiency by passing as rvalue references (avoiding moves). I like it simple, though.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jagannath				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4512</link>
+		<dc:creator><![CDATA[Jagannath]]></dc:creator>
+		<pubDate>Sat, 03 Dec 2011 03:20:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4512</guid>
+					<description><![CDATA[1a)   f( g( expr1 ), h( expr2 ) ); 
+The order of evaluation is not guaranteed. 
+
+2) f( new T1, new T2 );
+If T1 is constructed first and If construction of T2 throws an exception, then there is a memory leak here.
+
+3 &#038; 4 not sure of the answers. :-(]]></description>
+		<content:encoded><![CDATA[<p>1a)   f( g( expr1 ), h( expr2 ) );<br />
+The order of evaluation is not guaranteed. </p>
+<p>2) f( new T1, new T2 );<br />
+If T1 is constructed first and If construction of T2 throws an exception, then there is a memory leak here.</p>
+<p>3 &amp; 4 not sure of the answers. :-(</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Simon Buchan				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4511</link>
+		<dc:creator><![CDATA[Simon Buchan]]></dc:creator>
+		<pubDate>Sat, 03 Dec 2011 03:01:47 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4511</guid>
+					<description><![CDATA[I&#039;d guess 3 is still not safe according to the standard, since (again, I guess) it&#039;s valid for compiler to evaluate both news before evaluating the initializer lists, in the same way as it could evaluate expr1 and expr2 before g() and h().  Of course no real-world compiler ever would, since that means you need to keep a temporary around while evaluating a function, *and* it&#039;s more complex to implement.
+
+Though I think C made the right choice for it&#039;s purpose, I really like that C# has extremely strict rules on order of evaluation for parameters, even in the face of named and ref parameters and even more crazily await expressions, even if that means Eric Lippert spends a lot of late evenings tearing his hair out :)]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;d guess 3 is still not safe according to the standard, since (again, I guess) it&#8217;s valid for compiler to evaluate both news before evaluating the initializer lists, in the same way as it could evaluate expr1 and expr2 before g() and h().  Of course no real-world compiler ever would, since that means you need to keep a temporary around while evaluating a function, *and* it&#8217;s more complex to implement.</p>
+<p>Though I think C made the right choice for it&#8217;s purpose, I really like that C# has extremely strict rules on order of evaluation for parameters, even in the face of named and ref parameters and even more crazily await expressions, even if that means Eric Lippert spends a lot of late evenings tearing his hair out :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Paprikachu				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4508</link>
+		<dc:creator><![CDATA[Paprikachu]]></dc:creator>
+		<pubDate>Sat, 03 Dec 2011 01:44:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4508</guid>
+					<description><![CDATA[Somehow the code in angle brackets is missing. Here&#039;s a solution to #4: http://ideone.com/Y65S6]]></description>
+		<content:encoded><![CDATA[<p>Somehow the code in angle brackets is missing. Here&#8217;s a solution to #4: <a href="http://ideone.com/Y65S6" rel="nofollow">http://ideone.com/Y65S6</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Paprikachu				</title>
+				<link>https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/#comment-4507</link>
+		<dc:creator><![CDATA[Paprikachu]]></dc:creator>
+		<pubDate>Sat, 03 Dec 2011 01:38:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1109#comment-4507</guid>
+					<description><![CDATA[This is pretty easy, except #1. I don&#039;t know exactly what the standard says about the order of evaluation in case 2, but i think it&#039;s undefined in both cases.
+#2 has the problem that memory is leaked if the second allocation fails. Like in #1 it&#039;s undefined which allocation comes first.
+#3 is better than #2 because a unique_ptr is constructed. If the second allocation fails, the first object is deleted properly.
+The solution to #4 might look like:
+template 
+std::unique_ptr make_unique(Args&#038;&#038;... args)
+{
+    return std::unique_ptr(new T(std::forward(args)...));
+}]]></description>
+		<content:encoded><![CDATA[<p>This is pretty easy, except #1. I don&#8217;t know exactly what the standard says about the order of evaluation in case 2, but i think it&#8217;s undefined in both cases.<br />
+#2 has the problem that memory is leaked if the second allocation fails. Like in #1 it&#8217;s undefined which allocation comes first.<br />
+#3 is better than #2 because a unique_ptr is constructed. If the second allocation fails, the first object is deleted properly.<br />
+The solution to #4 might look like:<br />
+template<br />
+std::unique_ptr make_unique(Args&amp;&amp;&#8230; args)<br />
+{<br />
+    return std::unique_ptr(new T(std::forward(args)&#8230;));<br />
+}</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

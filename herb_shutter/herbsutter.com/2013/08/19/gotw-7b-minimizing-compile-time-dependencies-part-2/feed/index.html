@@ -1,0 +1,1278 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #7b: Minimizing Compile-Time Dependencies, Part 2	</title>
+	<atom:link href="https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Brent F				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12434</link>
+		<dc:creator><![CDATA[Brent F]]></dc:creator>
+		<pubDate>Sun, 08 Sep 2013 15:40:01 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12434</guid>
+					<description><![CDATA[d_ and clist are not part of the public interface or part of X&#039;s base classes. These members are unreferenced in the example. We can conclude that these members are unused. Therefore we can forward declare C, remove these unused members, and eliminate , &quot;c.h&quot; and &quot;d.h&quot;.
+
+That is unless you consider the size of an object to be part of that object&#039;s interface.]]></description>
+		<content:encoded><![CDATA[<p>d_ and clist are not part of the public interface or part of X&#8217;s base classes. These members are unreferenced in the example. We can conclude that these members are unused. Therefore we can forward declare C, remove these unused members, and eliminate , &#8220;c.h&#8221; and &#8220;d.h&#8221;.</p>
+<p>That is unless you consider the size of an object to be part of that object&#8217;s interface.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Paul				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12333</link>
+		<dc:creator><![CDATA[Paul]]></dc:creator>
+		<pubDate>Thu, 29 Aug 2013 19:37:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12333</guid>
+					<description><![CDATA[It seems that everyone seems to ignore that class A has virtual members. Class X also has virtual members anyway (the print function), and therefore needs a *virtual* destructor. This should also solve the unique_ptr pimpl issue and allow a pimpl to reduce implementation detail dependencies (all private members can be hidden).
+
+Additionally the private inheritance of B can be replaced by encapsulation instead (inside the pimpl)]]></description>
+		<content:encoded><![CDATA[<p>It seems that everyone seems to ignore that class A has virtual members. Class X also has virtual members anyway (the print function), and therefore needs a *virtual* destructor. This should also solve the unique_ptr pimpl issue and allow a pimpl to reduce implementation detail dependencies (all private members can be hidden).</p>
+<p>Additionally the private inheritance of B can be replaced by encapsulation instead (inside the pimpl)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12291</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Fri, 23 Aug 2013 01:13:27 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12291</guid>
+					<description><![CDATA[[code language=&quot;cpp&quot;][/code]
+void X::swap_with( X&#038; other )
+{
+    swap&lt;A&gt;( *this, other );
+    swap&lt;B&gt;( *this, other );
+    swap( p_impl_, other.p_impl_ );
+}
+[code][/code]
+
+And having corrected that it now occurred to me,
+
+&lt;em&gt;what if &lt;code&gt;A&lt;/code&gt; and &lt;code&gt;B&lt;/code&gt; have a common &lt;b&gt;virtual base class&lt;/b&gt;&lt;/em&gt;?
+
+In that case, since the above code swaps the virtual base sub-object an even number of times, an extra swap of it needs to be added to bring the total number of swaps of this sub-object to an odd number:
+
+[code language=&quot;cpp&quot;][/code]
+void X::swap_with( X&#038; other )
+{
+    swap&lt;A&gt;( *this, other );
+    swap&lt;B&gt;( *this, other );
+    swap( *this, other );
+    swap( p_impl_, other.p_impl_ );
+}
+[code][/code]
+
+But if that swap is done via copy assignments and is costly, then this is needlessly inefficient.
+
+For, instead &#8211; and I didn&#8217;t think of this earlier &#8211; to cater for the possibility of a common virtual base class for &lt;code&gt;A&lt;/code&gt; and &lt;code&gt;B&lt;/code&gt;, the &lt;code&gt;X&lt;/code&gt; assignment operator &lt;em&gt;can&lt;/em&gt; be expressed in terms of assignment, like this:
+
+[code language=&quot;cpp&quot;][/code]
+auto X::operator=( X const&#038; other )
+    -&#062; X[code][/code]
+
+I don&#8217;t think I&#8217;d do that optimization, but then, I don&#8217;t think I&#8217;d use PIMPL to get rid of an &lt;code&gt;#include&lt;/code&gt; in the first place.]]></description>
+		<content:encoded><![CDATA[<p>void X::swap_with( X&amp; other )<br />
+{<br />
+    swap<a>( *this, other );<br />
+    swap<b>( *this, other );<br />
+    swap( p_impl_, other.p_impl_ );<br />
+}</p>
+<p>And having corrected that it now occurred to me,</p>
+<p><em>what if <code>A</code> and <code>B</code> have a common <b>virtual base class</b></em>?</p>
+<p>In that case, since the above code swaps the virtual base sub-object an even number of times, an extra swap of it needs to be added to bring the total number of swaps of this sub-object to an odd number:</p>
+<p>void X::swap_with( X&amp; other )<br />
+{<br />
+    swap<a>( *this, other );<br />
+    swap<b>( *this, other );<br />
+    swap( *this, other );<br />
+    swap( p_impl_, other.p_impl_ );<br />
+}</p>
+<p>But if that swap is done via copy assignments and is costly, then this is needlessly inefficient.</p>
+<p>For, instead &ndash; and I didn&rsquo;t think of this earlier &ndash; to cater for the possibility of a common virtual base class for <code>A</code> and <code>B</code>, the <code>X</code> assignment operator <em>can</em> be expressed in terms of assignment, like this:</p>
+<p>auto X::operator=( X const&amp; other )<br />
+    -&gt; X</p>
+<p>I don&rsquo;t think I&rsquo;d do that optimization, but then, I don&rsquo;t think I&rsquo;d use PIMPL to get rid of an <code>#include</code> in the first place.</b></a></b></a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12290</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Thu, 22 Aug 2013 23:09:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12290</guid>
+					<description><![CDATA[Oh well. Hm. @Thibaud reminded me to add an &lt;code&gt;operator=&lt;/code&gt;, which I did (the only answer so far to do that crucial thing), but I did that with an incomplete implementation of &lt;code&gt;swap_with&lt;/code&gt;: the &lt;code&gt;A&lt;/code&gt; and &lt;code&gt;B&lt;/code&gt; base class sub-objects were not swapped in that code. I intended to, but I forgot. I think I forgot it mainly because I do such things by testing the code, and with just empty dummy &lt;code&gt;A&lt;/code&gt; and &lt;code&gt;B&lt;/code&gt; classes the code worked nicely&#8230;
+
+So, here&#8217;s an implementation using &lt;code&gt;std::swap&lt;/code&gt;, &lt;b&gt;assuming&lt;/b&gt; that &lt;code&gt;A&lt;/code&gt; and &lt;code&gt;B&lt;/code&gt; are no-throw swappable:
+
+[code language=&quot;cpp&quot;]
+void X::swap_with( X&#038; other )
+{
+    swap&#060;A&#062;( *this, *this );
+    swap&#060;B&#062;( *this, *this );
+    swap( p_impl_, other.p_impl_ );
+}
+[/code]
+
+If the no-throw swappable assumption does not hold, then a &lt;code&gt;noexcept&lt;/code&gt; would give the compiler incorrect information, so I have removed it here.
+
+In the case where swapping throws one can end up with an inconsistent state, which is the same general effect as with the compiler-generated assignment for the original class &lt;code&gt;X&lt;/code&gt;. In more detail, the compiler generated assignment can yield an inconsistent state when copy assignment of a sub-object throws, and the above can yield an inconsistent state when swapping throws, which is most likely due to assignment to that sub-object throwing. Anyway, depending on the properties of the classes one can get an inconsistency.
+
+Summing up so far, to implement a class &lt;code&gt;X&lt;/code&gt; copy assignment operator, as opposed to letting the compiler generate one, one has to assume that
+
+• classes &lt;code&gt;A&lt;/code&gt;, &lt;code&gt;B&lt;/code&gt;, &lt;code&gt;C&lt;/code&gt; and &lt;code&gt;D&lt;/code&gt; are &lt;b&gt;copy-constructible&lt;/b&gt;, and
+
+• the base classes &lt;code&gt;A&lt;/code&gt; and &lt;code&gt;B&lt;/code&gt;are &lt;b&gt;swappable&lt;/b&gt; (possibly just by providing copy assignment, possibly by specializing &lt;code&gt;std::swap&lt;/code&gt;), but not necessarily non-throwing swappable.
+
+If instead of a user-defined &lt;code&gt;X&lt;/code&gt; copy assignment operator one uses a cloning smart-pointer for &lt;code&gt;p_impl_&lt;/code&gt;, then it&#8217;s not strictly necessary to know anything about &lt;code&gt;A&lt;/code&gt;.and &lt;code&gt;B&lt;/code&gt;. For then the compiler does the job of considering the properties of &lt;code&gt;A&lt;/code&gt;.and &lt;code&gt;B&lt;/code&gt; when it attempts to generate &lt;code&gt;X&lt;/code&gt; copy constructor and copy assignment operator, However, in the case where not all the classes are copy-constructible there is not much point in the cloning smart pointer (it will never be doing its thing), so the code will in practice depend on the properties of the classes.]]></description>
+		<content:encoded><![CDATA[<p>Oh well. Hm. @Thibaud reminded me to add an <code>operator=</code>, which I did (the only answer so far to do that crucial thing), but I did that with an incomplete implementation of <code>swap_with</code>: the <code>A</code> and <code>B</code> base class sub-objects were not swapped in that code. I intended to, but I forgot. I think I forgot it mainly because I do such things by testing the code, and with just empty dummy <code>A</code> and <code>B</code> classes the code worked nicely&hellip;</p>
+<p>So, here&rsquo;s an implementation using <code>std::swap</code>, <b>assuming</b> that <code>A</code> and <code>B</code> are no-throw swappable:</p>
+<pre class="brush: cpp; title: ; notranslate">
+void X::swap_with( X&amp; other )
+{
+    swap&lt;A&gt;( *this, *this );
+    swap&lt;B&gt;( *this, *this );
+    swap( p_impl_, other.p_impl_ );
+}
+</pre>
+<p>If the no-throw swappable assumption does not hold, then a <code>noexcept</code> would give the compiler incorrect information, so I have removed it here.</p>
+<p>In the case where swapping throws one can end up with an inconsistent state, which is the same general effect as with the compiler-generated assignment for the original class <code>X</code>. In more detail, the compiler generated assignment can yield an inconsistent state when copy assignment of a sub-object throws, and the above can yield an inconsistent state when swapping throws, which is most likely due to assignment to that sub-object throwing. Anyway, depending on the properties of the classes one can get an inconsistency.</p>
+<p>Summing up so far, to implement a class <code>X</code> copy assignment operator, as opposed to letting the compiler generate one, one has to assume that</p>
+<p>• classes <code>A</code>, <code>B</code>, <code>C</code> and <code>D</code> are <b>copy-constructible</b>, and</p>
+<p>• the base classes <code>A</code> and <code>B</code>are <b>swappable</b> (possibly just by providing copy assignment, possibly by specializing <code>std::swap</code>), but not necessarily non-throwing swappable.</p>
+<p>If instead of a user-defined <code>X</code> copy assignment operator one uses a cloning smart-pointer for <code>p_impl_</code>, then it&rsquo;s not strictly necessary to know anything about <code>A</code>.and <code>B</code>. For then the compiler does the job of considering the properties of <code>A</code>.and <code>B</code> when it attempts to generate <code>X</code> copy constructor and copy assignment operator, However, in the case where not all the classes are copy-constructible there is not much point in the cloning smart pointer (it will never be doing its thing), so the code will in practice depend on the properties of the classes.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: thokra				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12285</link>
+		<dc:creator><![CDATA[thokra]]></dc:creator>
+		<pubDate>Thu, 22 Aug 2013 14:51:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12285</guid>
+					<description><![CDATA[thefatredguy: in the current standard, a trailing return type is mandated if you use auto as a function&#039;s return type. This is not because return type deduction isn&#039;t possible, but simply because there were multiple concerns among the core working group that couldn&#039;t be resolved in time for C++11. 
+
+Therefore, return type deduction has been proposed for C++14 and partially implemented in g++-4.8 by Jason Merrill. However, doing so will emit a warning that you&#039;re not providing a trailing return type and thus write non-standard (C++11) code which will either not compile or only ne available as a vendor specific compiler extension. g++-4.7 or less properly emit a compile-time error.
+
+The corresponding paper is here: http://isocpp.org/files/papers/N3638.html]]></description>
+		<content:encoded><![CDATA[<p>thefatredguy: in the current standard, a trailing return type is mandated if you use auto as a function&#8217;s return type. This is not because return type deduction isn&#8217;t possible, but simply because there were multiple concerns among the core working group that couldn&#8217;t be resolved in time for C++11. </p>
+<p>Therefore, return type deduction has been proposed for C++14 and partially implemented in g++-4.8 by Jason Merrill. However, doing so will emit a warning that you&#8217;re not providing a trailing return type and thus write non-standard (C++11) code which will either not compile or only ne available as a vendor specific compiler extension. g++-4.7 or less properly emit a compile-time error.</p>
+<p>The corresponding paper is here: <a href="http://isocpp.org/files/papers/N3638.html" rel="nofollow">http://isocpp.org/files/papers/N3638.html</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: thefatredguy				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12282</link>
+		<dc:creator><![CDATA[thefatredguy]]></dc:creator>
+		<pubDate>Thu, 22 Aug 2013 08:00:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12282</guid>
+					<description><![CDATA[All this insanity because C++ is still in the dark ages when it comes to organizing/compiling source code. 
+I see that a lot of people write functions like this 
+[code]virtual auto print( std::ostream&#038; ) const -&#062; std::ostream&#038;[/code]
+What would be the advantage over the more traditional way of doing it
+[code]virtual std::ostream&#038; print(std::ostream&#038;)[/code] ?]]></description>
+		<content:encoded><![CDATA[<p>All this insanity because C++ is still in the dark ages when it comes to organizing/compiling source code.<br />
+I see that a lot of people write functions like this </p>
+<pre class="brush: plain; title: ; notranslate">virtual auto print( std::ostream&amp; ) const -&gt; std::ostream&amp;</pre>
+<p>What would be the advantage over the more traditional way of doing it</p>
+<pre class="brush: plain; title: ; notranslate">virtual std::ostream&amp; print(std::ostream&amp;)</pre>
+<p> ?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Norbert Riedlin				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12275</link>
+		<dc:creator><![CDATA[Norbert Riedlin]]></dc:creator>
+		<pubDate>Wed, 21 Aug 2013 12:45:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12275</guid>
+					<description><![CDATA[One additional thought that I have not seen up to now in another post is that private inheritance can be considered as &quot;is implemented in terms of&quot;. That means we could add a B member in the Impl class and remove the &lt;code&gt;private B&lt;/code&gt; inheritance. Then we could remove the &lt;code&gt;#include &quot;b.h&quot;&lt;/code&gt; and replace it with the proper forward declaration &lt;code&gt;class B;&lt;/code&gt;. All that can only be done, if we don&#039;t need access to protected parts of B (only a look at the implementation could tell us). Another reason to have to stick to inheritance would be the need to override a virtual function, but the comment says that B has none.
+
+As I write this I see that we could just let the internal class Impl inherit publicly from B. This way we would also have access to B&#039;s protected members. Impl also would not need the mentioned B member.
+
+But I would also object against &#039;pimpl&#039;ing the class. As it is now, the class has valid copy and move constructors and valid copy and move assignment operators. If we change the implementation to a pimpl based one, we would have to provide them manually to keep it externally unchanged. I don&#039;t think this is justified just to be able to remove some header files.]]></description>
+		<content:encoded><![CDATA[<p>One additional thought that I have not seen up to now in another post is that private inheritance can be considered as &#8220;is implemented in terms of&#8221;. That means we could add a B member in the Impl class and remove the <code>private B</code> inheritance. Then we could remove the <code>#include "b.h"</code> and replace it with the proper forward declaration <code>class B;</code>. All that can only be done, if we don&#8217;t need access to protected parts of B (only a look at the implementation could tell us). Another reason to have to stick to inheritance would be the need to override a virtual function, but the comment says that B has none.</p>
+<p>As I write this I see that we could just let the internal class Impl inherit publicly from B. This way we would also have access to B&#8217;s protected members. Impl also would not need the mentioned B member.</p>
+<p>But I would also object against &#8216;pimpl&#8217;ing the class. As it is now, the class has valid copy and move constructors and valid copy and move assignment operators. If we change the implementation to a pimpl based one, we would have to provide them manually to keep it externally unchanged. I don&#8217;t think this is justified just to be able to remove some header files.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12274</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Wed, 21 Aug 2013 12:45:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12274</guid>
+					<description><![CDATA[&lt;a&gt;@Thibaud&lt;/a&gt;:
+
+&#8220;1. You can now remove #include [missing] in “x.h” and put it in the implementation file.&#8221;
+
+Assuming that you meant &lt;code&gt;#include &#060;list&#060;&#062;&lt;/code&gt; it &lt;em&gt;is&lt;/em&gt; in the implementation file (unfortunately the line in the header avoided deletion, it&#8217;s redundant).
+
+
+&#8220;2. You could also put B in Impl and replace #include &quot;b.h&quot; with a forward declaration. Doing this, B and X’s public interface remain unchanged.&#8221;&quot;
+
+No.
+
+The requirement is &#8220;as long as X‘s base classes and its public interface remain unchanged&#8221;. Which means: not only the public interface, for whatever interpretation of &#8220;public&#8221;, but also the base classes.
+
+Private base classes can with some effort be regarded as part of the effective public interface because (1) they participate in name look-up, and (2) the old C-style cast is explicitly permitted to cast to an inaccessible base class (it&#8217;s the only cast that can be used for this with well-defined effect).
+
+I find that interpretation a bit unnatural, but it or a similar practical consideration might be the reason why Herb wants to preserve base classes in addition to the normal public interface.
+
+
+&#8220;3. I think operator= has to be defined?&#8221;
+
+Right, I forgot that.
+
+It is however &lt;b&gt;rather difficult&lt;/b&gt; to do correctly with the information given, because we don&#8217;t know whether the original public interface provided copy constructor, or copy assignment operator, for that depends crucially on the nature of classes &lt;code&gt;C&lt;/code&gt; and &lt;code&gt;D&lt;/code&gt;.
+
+But somehow I don&#8217;t think that Herb meant to withhold the copyability information!
+
+So, just &lt;em&gt;assuming that &lt;code&gt;C&lt;/code&gt; and &lt;code&gt;D&lt;/code&gt; are fully copyable&lt;/em&gt;, and making the new method &lt;code&gt;swap_with&lt;/code&gt; protected in order to preserve the public interface unchanged, the copying-supporting header can go like this:
+
+[code language=&quot;cpp&quot;]
+#pragma once
+
+#include &#060;iosfwd&#062;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include &#034;a.h&#034;  // class A
+#include &#034;b.h&#034;  // class B
+class C;        // class C
+// Class D is not needed in this header, at all.
+class E;        // Class E
+
+#ifndef CPPX_NOEXCEPT
+#   define CPPX_NOEXCEPT noexcept
+#endif
+
+class X
+    : public A
+    , private B
+{
+private:
+    class Impl;
+    Impl* p_impl_;
+
+protected:
+    void swap_with( X&#038; other ) CPPX_NOEXCEPT;
+
+public:
+    auto f( int, char* ) -&#062; B;
+    auto f( int, C ) -&#062; C;
+    auto g( B ) -&#062; C&#038;;
+    auto h( E ) -&#062; E;
+    virtual auto print( std::ostream&#038; ) const -&#062; std::ostream&#038;;
+
+    auto operator=( X other ) -&#062; X&#038;;
+
+    ~X();
+    X( X const&#038; other );
+    X( C const&#038; );
+};
+
+inline auto operator&#060;&#060;( std::ostream&#038; os, X const&#038; x )
+    -&#062; std::ostream&#038;
+{ return x.print( os ); }
+[/code]
+
+The implementation is now
+
+[code language=&quot;cpp&quot;]
+#include &#034;x.h&#034;
+
+#include &#034;c.h&#034;
+#include &#034;d.h&#034;
+#include &#034;e.h&#034;
+#include &#034;list&#034;
+
+#include &#060;algorithm&#062;        // std::swap
+#include &#060;iostream&#062;         // std::clog, std::endl
+using namespace std;
+
+class X::Impl
+{
+public:
+    std::list&#060;C&#062;    clist_;
+    D               d_;
+
+    ~Impl()
+    { clog &#060;&#060; &#034;Bye bye!&#034; &#060;&#060; endl; }
+    
+    Impl()
+    { clog &#060;&#060; &#034;Well, hello there!&#034; &#060;&#060; endl; }
+
+    Impl( Impl const&#038; other )
+        : clist_( other.clist_ )
+        , d_( other.d_ )
+    { clog &#060;&#060; &#034;Well, hello there, I&#039;m a copy!&#034; &#060;&#060; endl; }
+};
+    
+auto X::f( int, char* ) -&#062; B
+{ throw 0; }
+
+auto X::f( int, C ) -&#062; C
+{ throw 0; }
+
+auto X::g( B ) -&#062; C&#038;
+{ throw 0; }
+
+auto X::h( E ) -&#062; E
+{ throw 0; }
+
+auto X::print( std::ostream&#038; ) const -&#062; std::ostream&#038;
+{ throw 0; }
+
+void X::swap_with( X&#038; other ) CPPX_NOEXCEPT
+{
+    swap( p_impl_, other.p_impl_ );
+}
+
+auto X::operator=( X other )
+    -&#062; X&#038;
+{ swap_with( other ); return *this; }
+
+X::~X()
+{ delete p_impl_; }
+
+X::X( X const&#038; other )
+    : p_impl_( new X::Impl( *other.p_impl_ ) )
+{}
+
+X::X( C const&#038; )
+    : p_impl_( new Impl )
+{}
+[/code]
+
+&quot;4. I don’t understand your first argument of not using std::unique_ptr. When I forget to define the destructor, the compiler tells me so (incomplete type) and give me an error.&quot;
+
+Sorry, mindless editing. :-) The argument was originally about smart pointers in general, such as now deprecated &lt;code&gt;auto_ptr&lt;/code&gt;. For &lt;code&gt;std::default_delete&lt;/code&gt; (used by &lt;code&gt;unique_ptr&lt;/code&gt;) the code is &#8220;ill formed&#8221; (by C++11 §20.7.1.1.2/4) if the type is incomplete, so that with a C++11-conforming compiler one does get a diagnostic  &#8211;  for this particular smart pointer..
+
+Now I hope there are no more details to fix! &#060;g&#062;]]></description>
+		<content:encoded><![CDATA[<p><a>@Thibaud</a>:</p>
+<p>&ldquo;1. You can now remove #include [missing] in “x.h” and put it in the implementation file.&rdquo;</p>
+<p>Assuming that you meant <code>#include &lt;list&lt;&gt;</code> it <em>is</em> in the implementation file (unfortunately the line in the header avoided deletion, it&rsquo;s redundant).</p>
+<p>&ldquo;2. You could also put B in Impl and replace #include &#8220;b.h&#8221; with a forward declaration. Doing this, B and X’s public interface remain unchanged.&rdquo;&#8221;</p>
+<p>No.</p>
+<p>The requirement is &ldquo;as long as X‘s base classes and its public interface remain unchanged&rdquo;. Which means: not only the public interface, for whatever interpretation of &ldquo;public&rdquo;, but also the base classes.</p>
+<p>Private base classes can with some effort be regarded as part of the effective public interface because (1) they participate in name look-up, and (2) the old C-style cast is explicitly permitted to cast to an inaccessible base class (it&rsquo;s the only cast that can be used for this with well-defined effect).</p>
+<p>I find that interpretation a bit unnatural, but it or a similar practical consideration might be the reason why Herb wants to preserve base classes in addition to the normal public interface.</p>
+<p>&ldquo;3. I think operator= has to be defined?&rdquo;</p>
+<p>Right, I forgot that.</p>
+<p>It is however <b>rather difficult</b> to do correctly with the information given, because we don&rsquo;t know whether the original public interface provided copy constructor, or copy assignment operator, for that depends crucially on the nature of classes <code>C</code> and <code>D</code>.</p>
+<p>But somehow I don&rsquo;t think that Herb meant to withhold the copyability information!</p>
+<p>So, just <em>assuming that <code>C</code> and <code>D</code> are fully copyable</em>, and making the new method <code>swap_with</code> protected in order to preserve the public interface unchanged, the copying-supporting header can go like this:</p>
+<pre class="brush: cpp; title: ; notranslate">
+#pragma once
+
+#include &lt;iosfwd&gt;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include &quot;a.h&quot;  // class A
+#include &quot;b.h&quot;  // class B
+class C;        // class C
+// Class D is not needed in this header, at all.
+class E;        // Class E
+
+#ifndef CPPX_NOEXCEPT
+#   define CPPX_NOEXCEPT noexcept
+#endif
+
+class X
+    : public A
+    , private B
+{
+private:
+    class Impl;
+    Impl* p_impl_;
+
+protected:
+    void swap_with( X&amp; other ) CPPX_NOEXCEPT;
+
+public:
+    auto f( int, char* ) -&gt; B;
+    auto f( int, C ) -&gt; C;
+    auto g( B ) -&gt; C&amp;;
+    auto h( E ) -&gt; E;
+    virtual auto print( std::ostream&amp; ) const -&gt; std::ostream&amp;;
+
+    auto operator=( X other ) -&gt; X&amp;;
+
+    ~X();
+    X( X const&amp; other );
+    X( C const&amp; );
+};
+
+inline auto operator&lt;&lt;( std::ostream&amp; os, X const&amp; x )
+    -&gt; std::ostream&amp;
+{ return x.print( os ); }
+</pre>
+<p>The implementation is now</p>
+<pre class="brush: cpp; title: ; notranslate">
+#include &quot;x.h&quot;
+
+#include &quot;c.h&quot;
+#include &quot;d.h&quot;
+#include &quot;e.h&quot;
+#include &quot;list&quot;
+
+#include &lt;algorithm&gt;        // std::swap
+#include &lt;iostream&gt;         // std::clog, std::endl
+using namespace std;
+
+class X::Impl
+{
+public:
+    std::list&lt;C&gt;    clist_;
+    D               d_;
+
+    ~Impl()
+    { clog &lt;&lt; &quot;Bye bye!&quot; &lt;&lt; endl; }
+    
+    Impl()
+    { clog &lt;&lt; &quot;Well, hello there!&quot; &lt;&lt; endl; }
+
+    Impl( Impl const&amp; other )
+        : clist_( other.clist_ )
+        , d_( other.d_ )
+    { clog &lt;&lt; &quot;Well, hello there, I'm a copy!&quot; &lt;&lt; endl; }
+};
+    
+auto X::f( int, char* ) -&gt; B
+{ throw 0; }
+
+auto X::f( int, C ) -&gt; C
+{ throw 0; }
+
+auto X::g( B ) -&gt; C&amp;
+{ throw 0; }
+
+auto X::h( E ) -&gt; E
+{ throw 0; }
+
+auto X::print( std::ostream&amp; ) const -&gt; std::ostream&amp;
+{ throw 0; }
+
+void X::swap_with( X&amp; other ) CPPX_NOEXCEPT
+{
+    swap( p_impl_, other.p_impl_ );
+}
+
+auto X::operator=( X other )
+    -&gt; X&amp;
+{ swap_with( other ); return *this; }
+
+X::~X()
+{ delete p_impl_; }
+
+X::X( X const&amp; other )
+    : p_impl_( new X::Impl( *other.p_impl_ ) )
+{}
+
+X::X( C const&amp; )
+    : p_impl_( new Impl )
+{}
+</pre>
+<p>&#8220;4. I don’t understand your first argument of not using std::unique_ptr. When I forget to define the destructor, the compiler tells me so (incomplete type) and give me an error.&#8221;</p>
+<p>Sorry, mindless editing. :-) The argument was originally about smart pointers in general, such as now deprecated <code>auto_ptr</code>. For <code>std::default_delete</code> (used by <code>unique_ptr</code>) the code is &ldquo;ill formed&rdquo; (by C++11 §20.7.1.1.2/4) if the type is incomplete, so that with a C++11-conforming compiler one does get a diagnostic  &ndash;  for this particular smart pointer..</p>
+<p>Now I hope there are no more details to fix! &lt;g&gt;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Sebastian Redl				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12273</link>
+		<dc:creator><![CDATA[Sebastian Redl]]></dc:creator>
+		<pubDate>Wed, 21 Aug 2013 12:40:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12273</guid>
+					<description><![CDATA[Also, how exactly do you expect your pimpl_ptr to implement deep copying or destruction without the definition of Impl? That&#039;s simply impossible.
+And are you sure you want to force &quot;my pimpl is null&quot; as a moved-from state on every class using the pointer? Because that&#039;s the only way to implement moving without the Impl definition, and the only way to implement nothrow move when Impl itself doesn&#039;t have it.
+Face it, if you use PIMPL, you *have* to define your own special members out of line. That&#039;s part of how the compilation barrier works. Luckily you can use =default in the implementation file, so the duplication stays manageable.]]></description>
+		<content:encoded><![CDATA[<p>Also, how exactly do you expect your pimpl_ptr to implement deep copying or destruction without the definition of Impl? That&#8217;s simply impossible.<br />
+And are you sure you want to force &#8220;my pimpl is null&#8221; as a moved-from state on every class using the pointer? Because that&#8217;s the only way to implement moving without the Impl definition, and the only way to implement nothrow move when Impl itself doesn&#8217;t have it.<br />
+Face it, if you use PIMPL, you *have* to define your own special members out of line. That&#8217;s part of how the compilation barrier works. Luckily you can use =default in the implementation file, so the duplication stays manageable.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Sebastian Redl				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12272</link>
+		<dc:creator><![CDATA[Sebastian Redl]]></dc:creator>
+		<pubDate>Wed, 21 Aug 2013 11:53:47 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12272</guid>
+					<description><![CDATA[unique_ptr is safe to use for PIMPL: the default deleter&#039;s operator () will not compile if the type is incomplete.]]></description>
+		<content:encoded><![CDATA[<p>unique_ptr is safe to use for PIMPL: the default deleter&#8217;s operator () will not compile if the type is incomplete.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Ralph Tandetzky				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12269</link>
+		<dc:creator><![CDATA[Ralph Tandetzky]]></dc:creator>
+		<pubDate>Wed, 21 Aug 2013 08:14:31 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12269</guid>
+					<description><![CDATA[1. Private means that only member functions and friends (including methods in friend classes) may access a member directly. Overridden functions in derived classes do not have this privilege. 
+
+2. Because the file defining the class is changed and therefore the file and all files #including it need to be recompiled. The reason for recompilations is the way C++ code is organized. 
+
+But there&#039;s another reason that shows why this cannot be changed that easily. Changing private members affects the object size of a class. Moreover, some private member might have customized default constructors, copy or move constructors or assignment or destructor. If the respective member function of the class containing it is implicitly defined or defaulted, then every compilation unit that uses any of these member functions calls the member function *inline*. The behavior of these inlined functions can already change when only the order of private data members is changed. A prominent example where this happens is when a data member of a scoped thread type should be listed as last data member, but isn&#039;t. In that case some important other data members that might be accessed by the thread get destroyed first in the destructor while the thread is still executing. Kaboom!
+
+Therefore it makes sense to recompile code like this when the order of private data members changes. 
+
+3. The solution it to use the pimpl idiom. It&#039;s actually possible to remove all the header except two: iosfwd and a.h. It&#039;s not necessary to keep &lt;code&gt; B &lt;/code&gt; as a base of &lt;code&gt; X &lt;/code&gt; since it is not part of the public or protected interface of the class. You can put that base class into the &lt;code&gt; Impl &lt;/code&gt; class and (re)implement any inherited virtual functions from &lt;code&gt; B &lt;/code&gt; there. I&#039;ve used this a lot in some of my code. It has proven to work wonderfully, especially when a class would otherwise inherit a big bunch of interfaces privately. (The use case of implementing private interfaces is that the class itself can implicitly cast itself to such an interface when connecting to code it uses.)
+
+If the answer should be conforming to the exact exercise, then X must inherit privately from B
+
+[code]
+//  x.h: sans gratuitous headers
+//
+#pragma once // or include guards
+#include &#060;iosfwd&#062;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include &#034;a.h&#034;  // class A
+class B;
+class C;
+class E;
+
+class X : public A {
+// class X : public A, private B {
+  public:
+    X( const C&#038; );
+    ~X();
+    B  f( int, char* );
+    C  f( int, C );
+    C&#038; g( B );
+    E  h( E );
+    virtual std::ostream&#038; print( std::ostream&#038; ) const;
+
+  private:
+    struct Impl;
+    std::unique_ptr&#060;Impl&#062; m;
+};
+
+inline std::ostream&#038; operator&#060;&#060;( std::ostream&#038; os, const X&#038; x ) {
+    return x.print(os);
+}
+
+// x.cpp
+#include &#034;x.h&#034;
+#include &#034;b.h&#034;  // class B
+#include &#034;c.h&#034;  // class C
+#include &#034;d.h&#034;  // class D
+
+#include &#060;list&#062;
+
+struct X::Impl : B
+// struct X::Impl
+{
+    std::list&#060;C&#062; clist;
+    D            d_;
+};
+...
+[/code]
+
+Instead of &lt;code&gt; std::unique_ptr &lt;/code&gt; other more suitable smart pointer types could be used that are specifically crafted for being pimpl pointers. In particular this smart pointer type should support 
+- propagating constness
+- a deep copying copy constructor and copy assignment
+- a destructor which calls the correct destructor of the held object
+- cheap move constructor and move assignment with nothrow guarantee
+- nothrow swap
+Furthermore, the said copy and move constructors and assignments and the destructor should work without the definition of the &lt;code&gt; Impl &lt;/code&gt; class. Otherwise the class containing the pimpl pointer will have to declare these operations for itself and implement them in a standard way in the implementation file which is a lot of code duplication and simply annoying. It would be really nice to have a standard solution to this, but neither boost nor the standard library provide one (as far as I know).]]></description>
+		<content:encoded><![CDATA[<p>1. Private means that only member functions and friends (including methods in friend classes) may access a member directly. Overridden functions in derived classes do not have this privilege. </p>
+<p>2. Because the file defining the class is changed and therefore the file and all files #including it need to be recompiled. The reason for recompilations is the way C++ code is organized. </p>
+<p>But there&#8217;s another reason that shows why this cannot be changed that easily. Changing private members affects the object size of a class. Moreover, some private member might have customized default constructors, copy or move constructors or assignment or destructor. If the respective member function of the class containing it is implicitly defined or defaulted, then every compilation unit that uses any of these member functions calls the member function *inline*. The behavior of these inlined functions can already change when only the order of private data members is changed. A prominent example where this happens is when a data member of a scoped thread type should be listed as last data member, but isn&#8217;t. In that case some important other data members that might be accessed by the thread get destroyed first in the destructor while the thread is still executing. Kaboom!</p>
+<p>Therefore it makes sense to recompile code like this when the order of private data members changes. </p>
+<p>3. The solution it to use the pimpl idiom. It&#8217;s actually possible to remove all the header except two: iosfwd and a.h. It&#8217;s not necessary to keep <code> B </code> as a base of <code> X </code> since it is not part of the public or protected interface of the class. You can put that base class into the <code> Impl </code> class and (re)implement any inherited virtual functions from <code> B </code> there. I&#8217;ve used this a lot in some of my code. It has proven to work wonderfully, especially when a class would otherwise inherit a big bunch of interfaces privately. (The use case of implementing private interfaces is that the class itself can implicitly cast itself to such an interface when connecting to code it uses.)</p>
+<p>If the answer should be conforming to the exact exercise, then X must inherit privately from B</p>
+<pre class="brush: plain; title: ; notranslate">
+//  x.h: sans gratuitous headers
+//
+#pragma once // or include guards
+#include &lt;iosfwd&gt;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include &quot;a.h&quot;  // class A
+class B;
+class C;
+class E;
+
+class X : public A {
+// class X : public A, private B {
+  public:
+    X( const C&amp; );
+    ~X();
+    B  f( int, char* );
+    C  f( int, C );
+    C&amp; g( B );
+    E  h( E );
+    virtual std::ostream&amp; print( std::ostream&amp; ) const;
+
+  private:
+    struct Impl;
+    std::unique_ptr&lt;Impl&gt; m;
+};
+
+inline std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, const X&amp; x ) {
+    return x.print(os);
+}
+
+// x.cpp
+#include &quot;x.h&quot;
+#include &quot;b.h&quot;  // class B
+#include &quot;c.h&quot;  // class C
+#include &quot;d.h&quot;  // class D
+
+#include &lt;list&gt;
+
+struct X::Impl : B
+// struct X::Impl
+{
+    std::list&lt;C&gt; clist;
+    D            d_;
+};
+...
+</pre>
+<p>Instead of <code> std::unique_ptr </code> other more suitable smart pointer types could be used that are specifically crafted for being pimpl pointers. In particular this smart pointer type should support<br />
+&#8211; propagating constness<br />
+&#8211; a deep copying copy constructor and copy assignment<br />
+&#8211; a destructor which calls the correct destructor of the held object<br />
+&#8211; cheap move constructor and move assignment with nothrow guarantee<br />
+&#8211; nothrow swap<br />
+Furthermore, the said copy and move constructors and assignments and the destructor should work without the definition of the <code> Impl </code> class. Otherwise the class containing the pimpl pointer will have to declare these operations for itself and implement them in a standard way in the implementation file which is a lot of code duplication and simply annoying. It would be really nice to have a standard solution to this, but neither boost nor the standard library provide one (as far as I know).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Thibaud				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12267</link>
+		<dc:creator><![CDATA[Thibaud]]></dc:creator>
+		<pubDate>Wed, 21 Aug 2013 07:33:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12267</guid>
+					<description><![CDATA[@ Alf P. Steinbach :
+1. You can now remove &lt;code&gt;#include &lt;/code&gt; in &quot;x.h&quot; and put it in the implementation file.
+2. You could also put B in &lt;code&gt;Impl&lt;/code&gt; and replace &lt;code&gt;#include &quot;b.h&quot;&lt;/code&gt; with a forward declaration. Doing this, B and X&#039;s public interface remain unchanged.
+3. I think operator= has to be defined?
+4. I don&#039;t understand your first argument of not using std::unique_ptr. When I forget to define the destructor, the compiler tells me so (incomplete type) and give me an error.]]></description>
+		<content:encoded><![CDATA[<p>@ Alf P. Steinbach :<br />
+1. You can now remove <code>#include </code> in &#8220;x.h&#8221; and put it in the implementation file.<br />
+2. You could also put B in <code>Impl</code> and replace <code>#include "b.h"</code> with a forward declaration. Doing this, B and X&#8217;s public interface remain unchanged.<br />
+3. I think operator= has to be defined?<br />
+4. I don&#8217;t understand your first argument of not using std::unique_ptr. When I forget to define the destructor, the compiler tells me so (incomplete type) and give me an error.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12262</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Wed, 21 Aug 2013 02:20:06 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12262</guid>
+					<description><![CDATA[An oversight: in the PIMPL&#039;ed header the &lt;code&gt;#include &#060;list&#062;&lt;/code&gt; directive should be removed. It&#8217;s in the implementation file. Somehow the original directive managed to avoid deletion.]]></description>
+		<content:encoded><![CDATA[<p>An oversight: in the PIMPL&#8217;ed header the <code>#include &lt;list&gt;</code> directive should be removed. It&rsquo;s in the implementation file. Somehow the original directive managed to avoid deletion.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12260</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Tue, 20 Aug 2013 23:12:54 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12260</guid>
+					<description><![CDATA[A solution to just the technical aspects of the guru question.
+
+The original header as given above suffers from some coding errors:
+
+• No include guard or &lt;code&gt;#pragma once&lt;/code&gt;
+• Declaration of class &lt;code&gt;E&lt;/code&gt; missing.
+• No &lt;code&gt;inline&lt;/code&gt; for the &lt;code&gt;operator&#060;&#060;&lt;/code&gt; (in practice this means a linking error when the header is included in more 
+than one translation unit).
+
+The &lt;b&gt;original header&lt;/b&gt; with the above defects fixed (&lt;code&gt;#pragma once&lt;/code&gt; is a &lt;i&gt;de facto&lt;/i&gt; standard, supported by all compilers that I care about, which includes Visual C++ and g++):
+
+[code language=&quot;cpp&quot;]
+#pragma once
+
+#include &#060;iosfwd&#062;
+#include &#060;list&#062;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include &#034;a.h&#034;  // class A
+#include &#034;b.h&#034;  // class B
+#include &#034;c.h&#034;  // class C
+#include &#034;d.h&#034;  // class D
+class E;        // Class E
+
+class X
+    : public A
+    , private B
+{
+public:
+    auto f( int, char* ) -&#062; B;
+    auto f( int, C ) -&#062; C;
+    auto g( B ) -&#062; C&#038;;
+    auto h( E ) -&#062; E;
+    virtual auto print( std::ostream&#038; ) const -&#062; std::ostream&#038;;
+
+    X( C const&#038; );
+
+private:
+    std::list&#060;C&#062;    clist;
+    D               d_;
+};
+
+inline auto operator&#060;&#060;( std::ostream&#038; os, X const&#038; x )
+    -&#062; std::ostream&#038;
+{ return x.print(os); }
+[/code]
+
+First, since base classes have to be left as-is, classes &lt;code&gt;A&lt;/code&gt; and &lt;code&gt;B&lt;/code&gt; must be complete.
+
+Classes &lt;code&gt;C&lt;code&gt; and &lt;code&gt;E&lt;/code&gt; are used  for arguments and function results, so declarations of these classes are needed.
+
+Class &lt;/code&gt;D&lt;/code&gt; can however be completely removed from this header by moving the state to an implementation object, the PIMPL idiom.
+
+A good way to implement the PIMPL idiom is to use a raw pointer and `new` in each `X` constructor, and `delete` in the `X` destructor.
+
+A bad way to implement the PIMPL idiom is to use `std::unique_ptr`, because:
+
+• It&#8217;s easy to get &lt;b&gt;W R O N G&lt;/b&gt;. For if it&#8217;s not done painstakingly correct, then the default implementation will rely on a C++ &#8220;feature&#8221; where it can &lt;code&gt;delete&lt;/code&gt; a pointer to incomplete type, by just assuming that it has a trivial do-nothing destructor. Then the implementation object destructor is not invoked.
+
+• It brings in an extra header include, namely &lt;code&gt;&#060;memory&#062;&lt;/code&gt;, just in order to get rid of a header include&#8230;
+
+A simple way to do a &lt;code&gt;unique_ptr&lt;/code&gt;-based implementation correct is to declare the `X` destructor, and define it in the implementation file, which brings the instantiation of `default_delete` to a point where the implementation object class is complete.
+
+However, rather than rely on such subtlety, and rather than bringin in an extra header, just use a raw pointer for this, whence the header can look like &#8230;
+
+[code language=&quot;cpp&quot;]
+#pragma once
+
+#include &#060;iosfwd&#062;
+#include &#060;list&#062;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include &#034;a.h&#034;  // class A
+#include &#034;b.h&#034;  // class B
+class C;        // class C
+// Class D is not needed in this header, at all.
+class E;        // Class E
+
+class X
+    : public A
+    , private B
+{
+public:
+    auto f( int, char* ) -&#062; B;
+    auto f( int, C ) -&#062; C;
+    auto g( B ) -&#062; C&#038;;
+    auto h( E ) -&#062; E;
+    virtual auto print( std::ostream&#038; ) const -&#062; std::ostream&#038;;
+
+    ~X();
+    X( C const&#038; );
+
+private:
+    class Impl;
+    Impl* p_impl_;
+};
+
+inline auto operator&#060;&#060;( std::ostream&#038; os, X const&#038; x )
+    -&#062; std::ostream&#038;
+{ return x.print( os ); }
+[/code]
+
+And the implementation file can look like this:
+
+[code language=&quot;cpp&quot;]
+#include &#034;x.h&#034;
+
+#include &#034;c.h&#034;
+#include &#034;d.h&#034;
+#include &#034;e.h&#034;
+#include &#034;list&#034;
+
+#include &#060;iostream&#062;
+using namespace std;
+
+class X::Impl
+{
+public:
+    std::list&#060;C&#062;    clist_;
+    D               d_;
+
+    ~Impl()
+    { clog &#060;&#060; &#034;Bye bye!&#034; &#060;&#060; endl; }
+    
+    Impl()
+    { clog &#060;&#060; &#034;Well, hello there!&#034; &#060;&#060; endl; }
+};
+
+auto X::f( int, char* ) -&#062; B
+{ throw 0; }
+
+auto X::f( int, C ) -&#062; C
+{ throw 0; }
+
+auto X::g( B ) -&#062; C&#038;
+{ throw 0; }
+
+auto X::h( E ) -&#062; E
+{ throw 0; }
+
+auto X::print( std::ostream&#038; ) const -&#062; std::ostream&#038;
+{ throw 0; }
+
+X::~X() { delete p_impl_; }
+
+X::X( C const&#038; )
+    : p_impl_( new Impl )
+{}
+[/code]
+
+I have commented earlier on why I don&#8217;t consider it a generally good idea to use PIMPL to get rid of header includes, mainly that it introduces an inefficiency (dynamic allocation) and subtlety (such as inadvertently introducing UB by incorrect use of &lt;code&gt;unique_ptr&lt;/code&gt;) just in order to treat a symptom, whose main causes should ideally instead be addressed. Also, the money might be better spent on hardware for build-servers than on programmers&#8217;s salaries. But sometimes one may not have a choice about it.]]></description>
+		<content:encoded><![CDATA[<p>A solution to just the technical aspects of the guru question.</p>
+<p>The original header as given above suffers from some coding errors:</p>
+<p>• No include guard or <code>#pragma once</code><br />
+• Declaration of class <code>E</code> missing.<br />
+• No <code>inline</code> for the <code>operator&lt;&lt;</code> (in practice this means a linking error when the header is included in more<br />
+than one translation unit).</p>
+<p>The <b>original header</b> with the above defects fixed (<code>#pragma once</code> is a <i>de facto</i> standard, supported by all compilers that I care about, which includes Visual C++ and g++):</p>
+<pre class="brush: cpp; title: ; notranslate">
+#pragma once
+
+#include &lt;iosfwd&gt;
+#include &lt;list&gt;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include &quot;a.h&quot;  // class A
+#include &quot;b.h&quot;  // class B
+#include &quot;c.h&quot;  // class C
+#include &quot;d.h&quot;  // class D
+class E;        // Class E
+
+class X
+    : public A
+    , private B
+{
+public:
+    auto f( int, char* ) -&gt; B;
+    auto f( int, C ) -&gt; C;
+    auto g( B ) -&gt; C&amp;;
+    auto h( E ) -&gt; E;
+    virtual auto print( std::ostream&amp; ) const -&gt; std::ostream&amp;;
+
+    X( C const&amp; );
+
+private:
+    std::list&lt;C&gt;    clist;
+    D               d_;
+};
+
+inline auto operator&lt;&lt;( std::ostream&amp; os, X const&amp; x )
+    -&gt; std::ostream&amp;
+{ return x.print(os); }
+</pre>
+<p>First, since base classes have to be left as-is, classes <code>A</code> and <code>B</code> must be complete.</p>
+<p>Classes <code>C</code><code> and </code><code>E</code> are used  for arguments and function results, so declarations of these classes are needed.</p>
+<p>Class D can however be completely removed from this header by moving the state to an implementation object, the PIMPL idiom.</p>
+<p>A good way to implement the PIMPL idiom is to use a raw pointer and `new` in each `X` constructor, and `delete` in the `X` destructor.</p>
+<p>A bad way to implement the PIMPL idiom is to use `std::unique_ptr`, because:</p>
+<p>• It&rsquo;s easy to get <b>W R O N G</b>. For if it&rsquo;s not done painstakingly correct, then the default implementation will rely on a C++ &ldquo;feature&rdquo; where it can <code>delete</code> a pointer to incomplete type, by just assuming that it has a trivial do-nothing destructor. Then the implementation object destructor is not invoked.</p>
+<p>• It brings in an extra header include, namely <code>&lt;memory&gt;</code>, just in order to get rid of a header include&hellip;</p>
+<p>A simple way to do a <code>unique_ptr</code>-based implementation correct is to declare the `X` destructor, and define it in the implementation file, which brings the instantiation of `default_delete` to a point where the implementation object class is complete.</p>
+<p>However, rather than rely on such subtlety, and rather than bringin in an extra header, just use a raw pointer for this, whence the header can look like &hellip;</p>
+<pre class="brush: cpp; title: ; notranslate">
+#pragma once
+
+#include &lt;iosfwd&gt;
+#include &lt;list&gt;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include &quot;a.h&quot;  // class A
+#include &quot;b.h&quot;  // class B
+class C;        // class C
+// Class D is not needed in this header, at all.
+class E;        // Class E
+
+class X
+    : public A
+    , private B
+{
+public:
+    auto f( int, char* ) -&gt; B;
+    auto f( int, C ) -&gt; C;
+    auto g( B ) -&gt; C&amp;;
+    auto h( E ) -&gt; E;
+    virtual auto print( std::ostream&amp; ) const -&gt; std::ostream&amp;;
+
+    ~X();
+    X( C const&amp; );
+
+private:
+    class Impl;
+    Impl* p_impl_;
+};
+
+inline auto operator&lt;&lt;( std::ostream&amp; os, X const&amp; x )
+    -&gt; std::ostream&amp;
+{ return x.print( os ); }
+</pre>
+<p>And the implementation file can look like this:</p>
+<pre class="brush: cpp; title: ; notranslate">
+#include &quot;x.h&quot;
+
+#include &quot;c.h&quot;
+#include &quot;d.h&quot;
+#include &quot;e.h&quot;
+#include &quot;list&quot;
+
+#include &lt;iostream&gt;
+using namespace std;
+
+class X::Impl
+{
+public:
+    std::list&lt;C&gt;    clist_;
+    D               d_;
+
+    ~Impl()
+    { clog &lt;&lt; &quot;Bye bye!&quot; &lt;&lt; endl; }
+    
+    Impl()
+    { clog &lt;&lt; &quot;Well, hello there!&quot; &lt;&lt; endl; }
+};
+
+auto X::f( int, char* ) -&gt; B
+{ throw 0; }
+
+auto X::f( int, C ) -&gt; C
+{ throw 0; }
+
+auto X::g( B ) -&gt; C&amp;
+{ throw 0; }
+
+auto X::h( E ) -&gt; E
+{ throw 0; }
+
+auto X::print( std::ostream&amp; ) const -&gt; std::ostream&amp;
+{ throw 0; }
+
+X::~X() { delete p_impl_; }
+
+X::X( C const&amp; )
+    : p_impl_( new Impl )
+{}
+</pre>
+<p>I have commented earlier on why I don&rsquo;t consider it a generally good idea to use PIMPL to get rid of header includes, mainly that it introduces an inefficiency (dynamic allocation) and subtlety (such as inadvertently introducing UB by incorrect use of <code>unique_ptr</code>) just in order to treat a symptom, whose main causes should ideally instead be addressed. Also, the money might be better spent on hardware for build-servers than on programmers&rsquo;s salaries. But sometimes one may not have a choice about it.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12255</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Tue, 20 Aug 2013 16:43:07 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12255</guid>
+					<description><![CDATA[I found some web references for the source concatenation technique (which addresses the archaic tool problem):
+
+* http://en.wikipedia.org/wiki/Single_Compilation_Unit
+* http://gamesfromwithin.com/physical-structure-and-c-part-2-build-times
+
+Now I see people downvoting comments here. A downvote is an anonymous social argument, which only makes sense in a social community such as SO (e.g., I very much doubt that Herb will be influenced by the votes: the voting functionality just an artifact of the Wordpress blogging system). Please, in order to express disagreement or opinion or perceived fact,, write it up as a comment so that readers can know or guess what it&#039;s about.]]></description>
+		<content:encoded><![CDATA[<p>I found some web references for the source concatenation technique (which addresses the archaic tool problem):</p>
+<p>* <a href="http://en.wikipedia.org/wiki/Single_Compilation_Unit" rel="nofollow">http://en.wikipedia.org/wiki/Single_Compilation_Unit</a><br />
+* <a href="http://gamesfromwithin.com/physical-structure-and-c-part-2-build-times" rel="nofollow">http://gamesfromwithin.com/physical-structure-and-c-part-2-build-times</a></p>
+<p>Now I see people downvoting comments here. A downvote is an anonymous social argument, which only makes sense in a social community such as SO (e.g., I very much doubt that Herb will be influenced by the votes: the voting functionality just an artifact of the WordPress blogging system). Please, in order to express disagreement or opinion or perceived fact,, write it up as a comment so that readers can know or guess what it&#8217;s about.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: thokra				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12244</link>
+		<dc:creator><![CDATA[thokra]]></dc:creator>
+		<pubDate>Mon, 19 Aug 2013 22:41:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12244</guid>
+					<description><![CDATA[Little correction, it&#039;s supposed to be &lt;code&gt;std::shared_ptr d_;&lt;/code&gt; - for the same reason it&#039;s used as the template parameter for the list. 
+
+Although the intent of the author obviously wasn&#039;t to allow sharing of &lt;code&gt;d_&lt;/code&gt;, IMHO it&#039;s not important. D is completely internal (i.e. neither part of a public interface, nor accessible via friends) and except for slightly increased memory usage and the indirection, it solves the problem of wanting to get rid of the include.
+
+Again, including &lt;code&gt;d.h&lt;/code&gt; might not be a problem in the first place ...]]></description>
+		<content:encoded><![CDATA[<p>Little correction, it&#8217;s supposed to be <code>std::shared_ptr d_;</code> &#8211; for the same reason it&#8217;s used as the template parameter for the list. </p>
+<p>Although the intent of the author obviously wasn&#8217;t to allow sharing of <code>d_</code>, IMHO it&#8217;s not important. D is completely internal (i.e. neither part of a public interface, nor accessible via friends) and except for slightly increased memory usage and the indirection, it solves the problem of wanting to get rid of the include.</p>
+<p>Again, including <code>d.h</code> might not be a problem in the first place &#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: thokra				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12243</link>
+		<dc:creator><![CDATA[thokra]]></dc:creator>
+		<pubDate>Mon, 19 Aug 2013 22:34:35 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12243</guid>
+					<description><![CDATA[I&#039;d go as far as saying that using a PIMPL simply to be able to throw out some includes is kind of a premature optimization. Get hard numbers in terms of compile times and really compare two implementations (with and w/o the PIMPLs) - if you get a significant speedup you can go ahead and find a way to deal with the run-time/maintenance caveats already mentioned by Alf. Also, the indentation of the &quot;public&quot; access specifier is a little off. ;)
+
+I&#039;m not sure if this was mentioned in [More] Exc. C++ or an older GotW, but one purpose of a PIMPL (or whatever you wanna call it) tends to be overlooked in favor of this uncertain compile-time advantage: helping binary compatibility. Still, employing a PIMPL for that purpose is a completely different design choice than using the PIMPL merely to reduce compile-time dependencies - and using it just because you get both &quot;treats&quot; at the same time simply isn&#039;t the way to go ...
+
+Also, for &lt;code&gt;D d_;&lt;/code&gt; there is absolutely no reason why this cannot be declared as 
+
+[code]std::unique_ptr&#060;D&#062; d_;[/code]
+
+Also, for the purpose of reducing dependencies, why wouldn&#039;t a &lt;code&gt;std::list&lt;/code&gt; of &lt;code&gt;std::shared_ptr&lt;/code&gt; (since &lt;code&gt;std::unique_ptr&lt;/code&gt; tends to be a pain when it comes to incomplete types, i.e. default-deleter ... ) not be a viable alternative?
+
+Yes, we get an additional indirection on access (just like when using a PIMPL) but unless binary compat. matters, it&#039;s IMHO much easier to read, understand and maintain than a private class. and boilerplate delegation code.]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;d go as far as saying that using a PIMPL simply to be able to throw out some includes is kind of a premature optimization. Get hard numbers in terms of compile times and really compare two implementations (with and w/o the PIMPLs) &#8211; if you get a significant speedup you can go ahead and find a way to deal with the run-time/maintenance caveats already mentioned by Alf. Also, the indentation of the &#8220;public&#8221; access specifier is a little off. ;)</p>
+<p>I&#8217;m not sure if this was mentioned in [More] Exc. C++ or an older GotW, but one purpose of a PIMPL (or whatever you wanna call it) tends to be overlooked in favor of this uncertain compile-time advantage: helping binary compatibility. Still, employing a PIMPL for that purpose is a completely different design choice than using the PIMPL merely to reduce compile-time dependencies &#8211; and using it just because you get both &#8220;treats&#8221; at the same time simply isn&#8217;t the way to go &#8230;</p>
+<p>Also, for <code>D d_;</code> there is absolutely no reason why this cannot be declared as </p>
+<pre class="brush: plain; title: ; notranslate">std::unique_ptr&lt;D&gt; d_;</pre>
+<p>Also, for the purpose of reducing dependencies, why wouldn&#8217;t a <code>std::list</code> of <code>std::shared_ptr</code> (since <code>std::unique_ptr</code> tends to be a pain when it comes to incomplete types, i.e. default-deleter &#8230; ) not be a viable alternative?</p>
+<p>Yes, we get an additional indirection on access (just like when using a PIMPL) but unless binary compat. matters, it&#8217;s IMHO much easier to read, understand and maintain than a private class. and boilerplate delegation code.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12239</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Mon, 19 Aug 2013 14:16:51 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12239</guid>
+					<description><![CDATA[As &lt;a href=&quot;https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12233&quot; rel=&quot;nofollow&quot;&gt;John Humphrey noted&lt;/a&gt; the “class E” declaration appears to have gone missing.
+
+Also, there&#8217;s still no include guard or [code]#pragma once[/code].
+
+Also, the [code]operator&#060;&#060;[/code] is still not declared [code]inline[/code].
+
+The above are coding &lt;em&gt;errors&lt;/em&gt;, ungood in example code (not to mention production code)..
+
+And with this new part II question (I&#8217;m happy that I didn&#8217;t overlook anything for part I) this GOTW is no longer about fixing things. It is now about introducing inefficiences (for PIMPL) and/or a maintainance nightmare (for duplication)  alleviate &lt;em&gt;symptoms&lt;/em&gt; of ungoodness, which IMHO is misguided.
+
+The ungoodness: ungood physical packaging of the code (distribution of code in files), and ungood tools (archaic compiler technology, e.g. with Visual C++ and g++).
+
+The physical packaging is too course grained and/or the software design does not properly support physical packaging, iif the headers drag in enough stuff to make a successful build too slow.
+
+The tools, well we can&#8217;t do much about them, but a reasonable modern approach would be for a compiler to by default compile several C++ translation units in one go, checking each header (except for [assert.h]) only once, Also, for a compiler to not waste time on storing context info in order to be able to continue after error with an avalanche of misleading and outright incorrect messages. nstead, as (IIRC) Turbo C++ did, it should stop at first error, and be &lt;em&gt;taking advantage of that&lt;/em&gt; so that it&#039;s fast about it.
+
+The archaic tool problem here is so much a pain in the a[censored][censored] that people have, seriously!, proposed to merge all headers and source code into one big file before compiling. They have even described this approach as an &#8220;idiom&#8217;, which presumably means that in some shops or projects it&#8217;s regularly used, and it has a name, which alas I can&#8217;t recall ATM. Given that the tools should better be fixed, so that people don&#8217;t have to do hazardious things like that!
+
+Introducting inefficiences and/or maintainance problems, as this part II of the GOTW is about, is of course an alternative to just suffering build times and/or doing the risky source concatenation thing, but employing these part II techniques negates much of the purpose of using C++ in the first place&#8230;]]></description>
+		<content:encoded><![CDATA[<p>As <a href="https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12233" rel="nofollow">John Humphrey noted</a> the “class E” declaration appears to have gone missing.</p>
+<p>Also, there&rsquo;s still no include guard or </p>
+<pre class="brush: plain; title: ; notranslate">#pragma once</pre>
+<p>.</p>
+<p>Also, the </p>
+<pre class="brush: plain; title: ; notranslate">operator&lt;&lt;</pre>
+<p> is still not declared </p>
+<pre class="brush: plain; title: ; notranslate">inline</pre>
+<p>.</p>
+<p>The above are coding <em>errors</em>, ungood in example code (not to mention production code)..</p>
+<p>And with this new part II question (I&rsquo;m happy that I didn&rsquo;t overlook anything for part I) this GOTW is no longer about fixing things. It is now about introducing inefficiences (for PIMPL) and/or a maintainance nightmare (for duplication)  alleviate <em>symptoms</em> of ungoodness, which IMHO is misguided.</p>
+<p>The ungoodness: ungood physical packaging of the code (distribution of code in files), and ungood tools (archaic compiler technology, e.g. with Visual C++ and g++).</p>
+<p>The physical packaging is too course grained and/or the software design does not properly support physical packaging, iif the headers drag in enough stuff to make a successful build too slow.</p>
+<p>The tools, well we can&rsquo;t do much about them, but a reasonable modern approach would be for a compiler to by default compile several C++ translation units in one go, checking each header (except for [assert.h]) only once, Also, for a compiler to not waste time on storing context info in order to be able to continue after error with an avalanche of misleading and outright incorrect messages. nstead, as (IIRC) Turbo C++ did, it should stop at first error, and be <em>taking advantage of that</em> so that it&#8217;s fast about it.</p>
+<p>The archaic tool problem here is so much a pain in the a[censored][censored] that people have, seriously!, proposed to merge all headers and source code into one big file before compiling. They have even described this approach as an &ldquo;idiom&rsquo;, which presumably means that in some shops or projects it&rsquo;s regularly used, and it has a name, which alas I can&rsquo;t recall ATM. Given that the tools should better be fixed, so that people don&rsquo;t have to do hazardious things like that!</p>
+<p>Introducting inefficiences and/or maintainance problems, as this part II of the GOTW is about, is of course an alternative to just suffering build times and/or doing the risky source concatenation thing, but employing these part II techniques negates much of the purpose of using C++ in the first place&hellip;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: thefatredguy				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12236</link>
+		<dc:creator><![CDATA[thefatredguy]]></dc:creator>
+		<pubDate>Mon, 19 Aug 2013 12:44:39 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12236</guid>
+					<description><![CDATA[Here&#039;s my take on it :
+
+1. When a member (either data or function) is declared as private, only
+    member and friend functions of that class have access to it.
+2. Because of the #include model. Even though the private part of the class definition
+    is not accessible to clients, its still visible to anyone including the header 
+    (basically the implementation details of the class end up leaking into client code).
+3. We move the implementation details out of the class interface 
+    (the PIMPL idiom - I first saw this in Exceptional C++, a few years ago) :    
+    
+    [code]
+    //  x.h: sans gratuitous headers
+    //
+    #include &#060;iosfwd&#062;
+    #include &#060;memory&#062;   // for shared/unique_ptr
+
+    // None of A, B, C, or D are templates.
+    // Only A and C have virtual functions.
+    #include &#034;a.h&#034;  // class A
+    #include &#034;b.h&#034;  // class B
+
+    class X : public A, private B {
+    public:
+        X( const C&#038; );
+
+        virtual ~X();
+
+        B  f( int, char* );
+        C  f( int, C );
+        C&#038; g( B );
+        E  h( E );
+        virtual std::ostream&#038; print( std::ostream&#038; ) const;
+
+    // might also have to either define or delete copy constructor,
+    // assign operator and move constructor        
+
+    private :
+        struct implementation_details;
+        std::unique_ptr&#060;implementation_details&#062; impl_;        
+    };
+
+    std::ostream&#038; operator&#060;&#060;( std::ostream&#038; os, const X&#038; x ) {
+        return x.print(os);
+    }
+    
+    [/code]
+
+In the implementation file :
+    [code]
+    #include &#060;list&#062;
+    #include &#060;iostream&#062;
+    #include &#060;ostream&#062;
+    #include &#034;c.h&#034;
+    #include &#034;d.h&#034;
+
+    struct X::implementation_details {
+        std::list&#060;C&#062;    clist;
+        D               d_;
+    };
+
+    X::X(const C&#038;)
+        : A(), B(), impl_(new implementation_details())
+    {}
+
+    X::~X() {}
+
+    [/code]    
+
+    Its not without any drawbacks though. There&#039;s an extra allocation for each
+    object of class X and, from the performace point of view, 
+    another level of indirection.]]></description>
+		<content:encoded><![CDATA[<p>Here&#8217;s my take on it :</p>
+<p>1. When a member (either data or function) is declared as private, only<br />
+    member and friend functions of that class have access to it.<br />
+2. Because of the #include model. Even though the private part of the class definition<br />
+    is not accessible to clients, its still visible to anyone including the header<br />
+    (basically the implementation details of the class end up leaking into client code).<br />
+3. We move the implementation details out of the class interface<br />
+    (the PIMPL idiom &#8211; I first saw this in Exceptional C++, a few years ago) :    </p>
+<pre class="brush: plain; title: ; notranslate">
+    //  x.h: sans gratuitous headers
+    //
+    #include &lt;iosfwd&gt;
+    #include &lt;memory&gt;   // for shared/unique_ptr
+
+    // None of A, B, C, or D are templates.
+    // Only A and C have virtual functions.
+    #include &quot;a.h&quot;  // class A
+    #include &quot;b.h&quot;  // class B
+
+    class X : public A, private B {
+    public:
+        X( const C&amp; );
+
+        virtual ~X();
+
+        B  f( int, char* );
+        C  f( int, C );
+        C&amp; g( B );
+        E  h( E );
+        virtual std::ostream&amp; print( std::ostream&amp; ) const;
+
+    // might also have to either define or delete copy constructor,
+    // assign operator and move constructor        
+
+    private :
+        struct implementation_details;
+        std::unique_ptr&lt;implementation_details&gt; impl_;        
+    };
+
+    std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, const X&amp; x ) {
+        return x.print(os);
+    }
+    
+    </pre>
+<p>In the implementation file :</p>
+<pre class="brush: plain; title: ; notranslate">
+    #include &lt;list&gt;
+    #include &lt;iostream&gt;
+    #include &lt;ostream&gt;
+    #include &quot;c.h&quot;
+    #include &quot;d.h&quot;
+
+    struct X::implementation_details {
+        std::list&lt;C&gt;    clist;
+        D               d_;
+    };
+
+    X::X(const C&amp;)
+        : A(), B(), impl_(new implementation_details())
+    {}
+
+    X::~X() {}
+
+    </pre>
+<p>    Its not without any drawbacks though. There&#8217;s an extra allocation for each<br />
+    object of class X and, from the performace point of view,<br />
+    another level of indirection.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Arne Mertz				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12234</link>
+		<dc:creator><![CDATA[Arne Mertz]]></dc:creator>
+		<pubDate>Mon, 19 Aug 2013 12:00:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12234</guid>
+					<description><![CDATA[1) private means nothing except methods (static or non-static) of the class itself, and befriended functions may access the member. befriended functions include free functions declared as friends, as well as methods of classes declared as friends. 
+2) changing *any* member, including private members, might cause a change in the memory layout of a class, or in the vtable, function overload resolution and a number of other things that affect compilation of nonfriends, thereore any entity using the class has to be recompiled.
+3) b.h, c.h and d.h can be gotten rid of by using the pimpl idiom: declare a struct in the header and let the only data member be a pointer to that struct. move all implementation details (private data members and privatly inherited classes) to the impl-struct. Define that struct in the .cpp.
+The logic of the class&#039; methods can either stay in the class&#039; implementation (pure data pimpl) or be forwarded completely to the pimpl (handle body idiom) or a mixture of both]]></description>
+		<content:encoded><![CDATA[<p>1) private means nothing except methods (static or non-static) of the class itself, and befriended functions may access the member. befriended functions include free functions declared as friends, as well as methods of classes declared as friends.<br />
+2) changing *any* member, including private members, might cause a change in the memory layout of a class, or in the vtable, function overload resolution and a number of other things that affect compilation of nonfriends, thereore any entity using the class has to be recompiled.<br />
+3) b.h, c.h and d.h can be gotten rid of by using the pimpl idiom: declare a struct in the header and let the only data member be a pointer to that struct. move all implementation details (private data members and privatly inherited classes) to the impl-struct. Define that struct in the .cpp.<br />
+The logic of the class&#8217; methods can either stay in the class&#8217; implementation (pure data pimpl) or be forwarded completely to the pimpl (handle body idiom) or a mixture of both</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: John Humphrey				</title>
+				<link>https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12233</link>
+		<dc:creator><![CDATA[John Humphrey]]></dc:creator>
+		<pubDate>Mon, 19 Aug 2013 11:38:59 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2294#comment-12233</guid>
+					<description><![CDATA[The &quot;class E&quot; declaration appears to have gone missing.]]></description>
+		<content:encoded><![CDATA[<p>The &#8220;class E&#8221; declaration appears to have gone missing.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

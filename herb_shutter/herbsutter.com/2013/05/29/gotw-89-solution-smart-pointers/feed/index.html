@@ -1,0 +1,1756 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #89 Solution: Smart Pointers	</title>
+	<atom:link href="https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Fix: std::auto_ptr to std::unique_ptr #answer #fix #development &#124; SevenNet				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-34416</link>
+		<dc:creator><![CDATA[Fix: std::auto_ptr to std::unique_ptr #answer #fix #development &#124; SevenNet]]></dc:creator>
+		<pubDate>Sat, 27 Dec 2014 22:44:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-34416</guid>
+					<description><![CDATA[[&#8230;] Herb Sutter has a nice explanation on GotW #89: [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Herb Sutter has a nice explanation on GotW #89: [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Funky16Corners				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-29613</link>
+		<dc:creator><![CDATA[Funky16Corners]]></dc:creator>
+		<pubDate>Sat, 11 Oct 2014 03:51:52 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-29613</guid>
+					<description><![CDATA[One big downside of make_shared() is that it doesn&#039;t work with private/protected constructors. We instead have to jump through hoops / define our own factory functions to do this--or at least from what I&#039;ve found so far.  The best workaround I&#039;ve found is this: (from https://gist.github.com/RklAlx/6727537)
+
+
+[code]
+
+#include &#060;memory&#062;
+ 
+class CC
+{
+public:
+  static std::shared_ptr&#060;CC&#062; CreateCC(int value);
+ 
+    class Key {
+    private:
+        friend std::shared_ptr&#060;CC&#062; CC::CreateCC(int value);
+        Key() {}
+    };
+ 
+    CC(const Key&#038;, int y);
+    
+    ~CC(void);
+ 
+    void Show();
+ 
+private:
+    int y;
+};
+
+
+std::shared_ptr&#060;CC&#062; CC::CreateCC(int x)
+{
+  return std::make_shared&#060;CC&#062;(CC::Key(),x);
+}
+ 
+CC::CC(const Key&#038; rk, int xy)
+{
+    y = xy;
+}
+ 
+CC::~CC(void)
+{
+}
+ 
+ 
+void CC::Show()
+{
+    printf(&#034;Value: %d\n&#034;, y);
+}
+
+[/code]
+
+
+make_shared seems pretty broken in this case.  Is there a better way to make this work?  I wasn&#039;t able to get &quot;friend&quot; to work for this--maybe some one here &quot;haz teh codez&quot;.  However, this SO post at least suggests that &quot;friend&quot; is not a good solution anyway:
+
+http://stackoverflow.com/questions/8147027/how-do-i-call-stdmake-shared-on-a-class-with-only-protected-or-private-const/8147213#8147213
+
+Thoughts? 
+
+Thanks.]]></description>
+		<content:encoded><![CDATA[<p>One big downside of make_shared() is that it doesn&#8217;t work with private/protected constructors. We instead have to jump through hoops / define our own factory functions to do this&#8211;or at least from what I&#8217;ve found so far.  The best workaround I&#8217;ve found is this: (from <a href="https://gist.github.com/RklAlx/6727537" rel="nofollow">https://gist.github.com/RklAlx/6727537</a>)</p>
+<pre class="brush: plain; title: ; notranslate">
+
+#include &lt;memory&gt;
+ 
+class CC
+{
+public:
+  static std::shared_ptr&lt;CC&gt; CreateCC(int value);
+ 
+    class Key {
+    private:
+        friend std::shared_ptr&lt;CC&gt; CC::CreateCC(int value);
+        Key() {}
+    };
+ 
+    CC(const Key&amp;, int y);
+    
+    ~CC(void);
+ 
+    void Show();
+ 
+private:
+    int y;
+};
+
+
+std::shared_ptr&lt;CC&gt; CC::CreateCC(int x)
+{
+  return std::make_shared&lt;CC&gt;(CC::Key(),x);
+}
+ 
+CC::CC(const Key&amp; rk, int xy)
+{
+    y = xy;
+}
+ 
+CC::~CC(void)
+{
+}
+ 
+ 
+void CC::Show()
+{
+    printf(&quot;Value: %d\n&quot;, y);
+}
+
+</pre>
+<p>make_shared seems pretty broken in this case.  Is there a better way to make this work?  I wasn&#8217;t able to get &#8220;friend&#8221; to work for this&#8211;maybe some one here &#8220;haz teh codez&#8221;.  However, this SO post at least suggests that &#8220;friend&#8221; is not a good solution anyway:</p>
+<p><a href="http://stackoverflow.com/questions/8147027/how-do-i-call-stdmake-shared-on-a-class-with-only-protected-or-private-const/8147213#8147213" rel="nofollow">http://stackoverflow.com/questions/8147027/how-do-i-call-stdmake-shared-on-a-class-with-only-protected-or-private-const/8147213#8147213</a></p>
+<p>Thoughts? </p>
+<p>Thanks.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Volker Diesel				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-25358</link>
+		<dc:creator><![CDATA[Volker Diesel]]></dc:creator>
+		<pubDate>Wed, 27 Aug 2014 15:40:42 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-25358</guid>
+					<description><![CDATA[Ah, I see. My confusion came from the fact, that the arguments to a function are described in the standard as &quot;a comma separated list of initilizer-clauses&quot;.
+
+In appendix A (Grammar summary), an initializer-clause is expressed as:
+
+[code]
+initializer-clause:
+    assignment-expression
+    braced-init-list
+[/code]
+
+and &quot;assignment expression&quot; goes all the way down to &quot;expression , assignmend-expression&quot;:
+
+[code]
+assignment-expression:
+    conditional-expression
+    logical-or-expression assignment-operator initializer-clause
+    throw-expression
+
+assignment-operator: one of
+    = *= /= %= += -= &#062;&#062;= &#060;&#060;= &#038;= ˆ= &#124;=
+
+expression:
+    assignment-expression
+    expression , assignment-expression
+[/code]
+
+Note the comma in the last line: &quot;expression , assignment-expression&quot;. To my understanding, that comma really is the comma-operator, right?
+So in your example, when adding additional params, e.g. f( (a,b) , c), then (a , b) would make a comma-expression, while the second comma is just a more or less meaningless character (besides the fact that it separates initializers.
+
+So, what I did was confusing the &quot;meaningless&quot; comma in &quot;comma-separated list of initializer-clauses&quot; with the comma in the grammar of expressions.
+
+Last question: Is this a typical standard notation? Does a sentence like &quot;a list of items seperated by comma&quot; in the standard always refer to a &quot;meaningless&quot; comma, not an &quot;expression comma&quot;?]]></description>
+		<content:encoded><![CDATA[<p>Ah, I see. My confusion came from the fact, that the arguments to a function are described in the standard as &#8220;a comma separated list of initilizer-clauses&#8221;.</p>
+<p>In appendix A (Grammar summary), an initializer-clause is expressed as:</p>
+<pre class="brush: plain; title: ; notranslate">
+initializer-clause:
+    assignment-expression
+    braced-init-list
+</pre>
+<p>and &#8220;assignment expression&#8221; goes all the way down to &#8220;expression , assignmend-expression&#8221;:</p>
+<pre class="brush: plain; title: ; notranslate">
+assignment-expression:
+    conditional-expression
+    logical-or-expression assignment-operator initializer-clause
+    throw-expression
+
+assignment-operator: one of
+    = *= /= %= += -= &gt;&gt;= &lt;&lt;= &amp;= ˆ= |=
+
+expression:
+    assignment-expression
+    expression , assignment-expression
+</pre>
+<p>Note the comma in the last line: &#8220;expression , assignment-expression&#8221;. To my understanding, that comma really is the comma-operator, right?<br />
+So in your example, when adding additional params, e.g. f( (a,b) , c), then (a , b) would make a comma-expression, while the second comma is just a more or less meaningless character (besides the fact that it separates initializers.</p>
+<p>So, what I did was confusing the &#8220;meaningless&#8221; comma in &#8220;comma-separated list of initializer-clauses&#8221; with the comma in the grammar of expressions.</p>
+<p>Last question: Is this a typical standard notation? Does a sentence like &#8220;a list of items seperated by comma&#8221; in the standard always refer to a &#8220;meaningless&#8221; comma, not an &#8220;expression comma&#8221;?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-25356</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Wed, 27 Aug 2014 14:53:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-25356</guid>
+					<description><![CDATA[Not all commas are the comma operator.
+
+In an ordinary expression like x=(a,b,c), that&#039;s the comma operator, and yes it could invoke an overloaded comma operator.
+
+In a function call like f(a,b,c), however, the (a,b,c) is a parameter list and that comma is not the comma operator. If you wanted the comma operator there could express that, but it would require another set of parens. For example, if you wanted to make the first comma use a comma operator, you could write: g((a,b),c).]]></description>
+		<content:encoded><![CDATA[<p>Not all commas are the comma operator.</p>
+<p>In an ordinary expression like x=(a,b,c), that&#8217;s the comma operator, and yes it could invoke an overloaded comma operator.</p>
+<p>In a function call like f(a,b,c), however, the (a,b,c) is a parameter list and that comma is not the comma operator. If you wanted the comma operator there could express that, but it would require another set of parens. For example, if you wanted to make the first comma use a comma operator, you could write: g((a,b),c).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Volker Diesel				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-25332</link>
+		<dc:creator><![CDATA[Volker Diesel]]></dc:creator>
+		<pubDate>Wed, 27 Aug 2014 08:16:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-25332</guid>
+					<description><![CDATA[According to ISO/IEC N3690, §1.9
+Operators can be regrouped according to the usual mathematical rules ONLY WHERE THE OPERATORS REALLY ARE ASSOCIATIVE OR COMMUTATIVE.
+
+So let me write the following expression...
+[code]
+func(shared_ptr&#060;A&#062;(new A), shared_ptr&#060;B&#062;(new B));
+[/code]
+
+...a bit more verbose as pseudo-code:
+
+[code]
+operator()(func, operator ,(operator()(shared_ptr&#060;A&#062;, operator new(A))), (operator()(shared_ptr&#060;B&#062;, operator new(B))))
+[/code]
+
+Note that the function call operators () have highest precedence in this expression. According to the standard, an implementation is allowed to evaluate the left side of the comma before or after the right side of the comma, but it is not allowed to overrule the precedence of the stronger binding operator () and the weaker binding comma operator.
+
+At least, that&#039;s my understanding :-)]]></description>
+		<content:encoded><![CDATA[<p>According to ISO/IEC N3690, §1.9<br />
+Operators can be regrouped according to the usual mathematical rules ONLY WHERE THE OPERATORS REALLY ARE ASSOCIATIVE OR COMMUTATIVE.</p>
+<p>So let me write the following expression&#8230;</p>
+<pre class="brush: plain; title: ; notranslate">
+func(shared_ptr&lt;A&gt;(new A), shared_ptr&lt;B&gt;(new B));
+</pre>
+<p>&#8230;a bit more verbose as pseudo-code:</p>
+<pre class="brush: plain; title: ; notranslate">
+operator()(func, operator ,(operator()(shared_ptr&lt;A&gt;, operator new(A))), (operator()(shared_ptr&lt;B&gt;, operator new(B))))
+</pre>
+<p>Note that the function call operators () have highest precedence in this expression. According to the standard, an implementation is allowed to evaluate the left side of the comma before or after the right side of the comma, but it is not allowed to overrule the precedence of the stronger binding operator () and the weaker binding comma operator.</p>
+<p>At least, that&#8217;s my understanding :-)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: paercebal				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-25306</link>
+		<dc:creator><![CDATA[paercebal]]></dc:creator>
+		<pubDate>Tue, 26 Aug 2014 22:16:39 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-25306</guid>
+					<description><![CDATA[@Volker Diesel
+
+In addition to my previous post (I hope it succeeded, because I don&#039;t see it there)
+
+[code language=&quot;cpp&quot;]void func(const std::string &#038; arg1, const std::string &#038; arg2);
+void caller()
+{
+    func(&#034;Hello&#034;, &#034;world&#034;);
+}[/code]
+
+When you create a std::string object, it will (possibly) allocate the memory INSIDE the constructor, which means the exception safety issue must be dealt there.
+
+When you write:
+
+[code language=&quot;cpp&quot;]void func(std::shared_ptr arg1, std::shared_ptr arg2);
+void caller()
+{
+    // BEFORE
+    func(shared_ptr&#060;C&#062;{new C{}}, shared_ptr&#060;C&#062;{new C{}});
+    // AFTER
+}[/code]
+
+The allocation is done NOT inside the shared_ptr constructor.
+It is done somewhere BEFORE the shared_ptr constructor is called,t hat is, somewhere in the function &quot;caller&quot;.
+
+Somewhere is the source of the &quot;problem&quot;, because we can&#039;t know for sure where. We only know it is done AFTER the full-expression that precedes the &quot;func&quot; function call expression, BEFORE we effectively enter the &quot;func&quot; function, and BEFORE we enter the shared_ptr constructor.
+
+This is the point of the make_shared and make_unique function: To make sure that the actual allocation is done in a controlled setting, that is, INSIDE the make_* function, where its exception safety can be controlled.]]></description>
+		<content:encoded><![CDATA[<p>@Volker Diesel</p>
+<p>In addition to my previous post (I hope it succeeded, because I don&#8217;t see it there)</p>
+<pre class="brush: cpp; title: ; notranslate">void func(const std::string &amp; arg1, const std::string &amp; arg2);
+void caller()
+{
+    func(&quot;Hello&quot;, &quot;world&quot;);
+}</pre>
+<p>When you create a std::string object, it will (possibly) allocate the memory INSIDE the constructor, which means the exception safety issue must be dealt there.</p>
+<p>When you write:</p>
+<pre class="brush: cpp; title: ; notranslate">void func(std::shared_ptr arg1, std::shared_ptr arg2);
+void caller()
+{
+    // BEFORE
+    func(shared_ptr&lt;C&gt;{new C{}}, shared_ptr&lt;C&gt;{new C{}});
+    // AFTER
+}</pre>
+<p>The allocation is done NOT inside the shared_ptr constructor.<br />
+It is done somewhere BEFORE the shared_ptr constructor is called,t hat is, somewhere in the function &#8220;caller&#8221;.</p>
+<p>Somewhere is the source of the &#8220;problem&#8221;, because we can&#8217;t know for sure where. We only know it is done AFTER the full-expression that precedes the &#8220;func&#8221; function call expression, BEFORE we effectively enter the &#8220;func&#8221; function, and BEFORE we enter the shared_ptr constructor.</p>
+<p>This is the point of the make_shared and make_unique function: To make sure that the actual allocation is done in a controlled setting, that is, INSIDE the make_* function, where its exception safety can be controlled.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: paercebal				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-25305</link>
+		<dc:creator><![CDATA[paercebal]]></dc:creator>
+		<pubDate>Tue, 26 Aug 2014 22:05:30 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-25305</guid>
+					<description><![CDATA[@Volker Diesel:
+
+I know this is an argument of authority, but I guess that when one of the member of the C++ standardization committee says:
+
+&lt;blockquote&gt;Second, it avoids some known exception safety issues with naked new. Here’s an example:
+
+[code language=&quot;cpp&quot;]void sink( unique_ptr&#060;widget&#062;, unique_ptr&#060;gadget&#062; );
+
+sink( unique_ptr&#060;widget&#062;{new widget{}},
+      unique_ptr&#060;gadget&#062;{new gadget{}} ); // Q1: do you see the problem?
+[/code]
+
+Briefly, if you allocate and construct the new widget first, then get an exception while allocating or constructing the new gadget, the widget is leaked.&lt;/blockquote&gt;
+
+Then perhaps you should consider the possibility he/she is right. (I know I would).
+
+:-)
+
+Using your compiler does not mean your reasoning is right. It only means that your example and your belief of how it should behave correlates, nothing more.
+
+But, for the sake of not appearing like &quot;that guy in the classroom telling you to blindly follow the teacher&#039;s advice&quot;, I&#039;ll eat my own dog food, and I&#039;ll try to see if I can by myself find in the C++ standard the exact quotes about your problem because the truth is, I don&#039;t know.
+
+So...
+
+&lt;b&gt;Standardese Interpretation&lt;/b&gt;
+
+&lt;blockquote&gt;No matter, in which order arguments are evaluated, and no matter which of the constructors of class C throws, the first two calls are always leak-safe. The reason is, that the entire expression of each single argument is first fully evaluated, before the next argument evaluation starts.&lt;/blockquote&gt;
+
+That is an assertion that should have backed up with a quote of the standard.
+
+I searched a bit, and found none.
+
+Note that I am not a language lawyer, and I am quite unfamiliar with the standard&#039;s wordings and style. Which means everything I could write below could be wrong. Someone with more experience should validate that.
+
+Still, I searched, and I found at 1.9/15 (n3797 draft for C++14):
+
+&lt;blockquote&gt;[ Note: Value computations and side effects associated with different argument expressions are unsequenced. —end note ]&lt;/blockquote&gt;
+
+As I understand it, when you evaluate argument A and argument B, the computations (plural forms) to evaluate A are unsequenced in regard to the computations (plural forms) to evaluate B. (the plural form is important, because it acknowledges that there can be multiple computations and side effects for one argument evaluation)
+
+Now, the signification of &lt;b&gt;unsequenced&lt;/b&gt;, and its consequence even within one thread:
+
+&lt;blockquote&gt;[ Note: The execution of unsequenced evaluations can overlap. —end note ]&lt;/blockquote&gt;
+
+If I understood correctly, this means that the evaluation of two arguments in a function call are not sequenced, and thus, can &lt;b&gt;overlap&lt;/b&gt;.
+
+The keyword is overlap, here. If I understand it correctly, it means, for example in the following code:
+
+[code language=&quot;cpp&quot;]foo(a + b + c, d + e + f) ;[/code]
+
+... that the implementation could well decide to first execute &quot;a + b&quot;, and put the result in a temporary a2, then execute &quot;d + e&quot;, put the result in a temporary d2, then execute &quot;d2 + f&quot;, and then &quot;a2 + c&quot;... Or any other combination.
+
+&lt;b&gt;Application on your shared_ptr example&lt;/b&gt;
+
+Now that we understand expression overlaping, we can look at the shared_ptr construction.
+
+This is a bit devious because when you write &quot;new A()&quot; (there is no arguments for simplicity&#039;s sake), you are doing (at least) two things in one apparent expression:
+
+1 - allocate memory
+2 - launch the constructor at that allocated address.
+
+This example with new is explicitly mentioned in 1.9/15, and it redirect us to 5.3.4, which describes the unary expression &quot;new&quot;. In that section, there is a very interesting subsection 5.3.4/18:
+
+&lt;blockquote&gt;Initialization of the allocated object is sequenced before the value computation of the new-expression.&lt;/blockquote&gt;
+
+(the section is a bit more complex, and handle what happens with arguments, that is: arguments can be evaluated after or before [but not overlaping] the memory allocation, but before construction call, of course)
+
+So, when you write (I simplified your example):
+
+[code language=&quot;cpp&quot;]func(shared_ptr{new C{}}, shared_ptr{new C{}]);[/code]
+
+... what you have on your hands is the following actions:
+
+1.a - allocation of memory for the first C object
+1.b - construction of the first C object
+1.c - construction of the first shared_ptr
+2.a - allocation of memory for the second C object
+2.b - construction of the second C object
+2.c - construction of the second shared_ptr
+
+So while 1.a should happen before 1.b, and 1.b before 1.c, and 2.a should happen before 2.b, and 2.b before 2.c, the standard specifically says that the two operations 1 and 2 could overlap, which means it could be executed as:
+
+1.a - allocation of memory for the first C object
+2.a - allocation of memory for the second C object
+1.b - construction of the first C object
+2.b - construction of the second C object
+1.c - construction of the first shared_ptr
+2.c - construction of the second shared_ptr
+
+And this is where it becomes a problem, because both X.a and X.b could throw, and sometimes, they could throw before any shared_ptr had the chance of taking ownership of any pointer.
+
+If you add arguments to the constructors, then the problem goes even more complicated (I won&#039;t go there, because I believe my point is done)
+
+&lt;b&gt;Conclusion&lt;/b&gt;
+
+Unless I messed up somewhere (could someone validate my [naive] reasoning?), I believe I offered the proof your reasoning is wrong, and that you always need to use make_* functions to make sure your code is exception safe.
+
+You could ask why this is so complicated, and why some parts are left unspecified. My guess is &lt;b&gt;performance&lt;/b&gt;. By letting the compiler implementers more freedom on a few topics we should usually not care about, we let them more optimization options.
+
+Thanks,]]></description>
+		<content:encoded><![CDATA[<p>@Volker Diesel:</p>
+<p>I know this is an argument of authority, but I guess that when one of the member of the C++ standardization committee says:</p>
+<blockquote><p>Second, it avoids some known exception safety issues with naked new. Here’s an example:</p>
+<pre class="brush: cpp; title: ; notranslate">void sink( unique_ptr&lt;widget&gt;, unique_ptr&lt;gadget&gt; );
+
+sink( unique_ptr&lt;widget&gt;{new widget{}},
+      unique_ptr&lt;gadget&gt;{new gadget{}} ); // Q1: do you see the problem?
+</pre>
+<p>Briefly, if you allocate and construct the new widget first, then get an exception while allocating or constructing the new gadget, the widget is leaked.</p></blockquote>
+<p>Then perhaps you should consider the possibility he/she is right. (I know I would).</p>
+<p>:-)</p>
+<p>Using your compiler does not mean your reasoning is right. It only means that your example and your belief of how it should behave correlates, nothing more.</p>
+<p>But, for the sake of not appearing like &#8220;that guy in the classroom telling you to blindly follow the teacher&#8217;s advice&#8221;, I&#8217;ll eat my own dog food, and I&#8217;ll try to see if I can by myself find in the C++ standard the exact quotes about your problem because the truth is, I don&#8217;t know.</p>
+<p>So&#8230;</p>
+<p><b>Standardese Interpretation</b></p>
+<blockquote><p>No matter, in which order arguments are evaluated, and no matter which of the constructors of class C throws, the first two calls are always leak-safe. The reason is, that the entire expression of each single argument is first fully evaluated, before the next argument evaluation starts.</p></blockquote>
+<p>That is an assertion that should have backed up with a quote of the standard.</p>
+<p>I searched a bit, and found none.</p>
+<p>Note that I am not a language lawyer, and I am quite unfamiliar with the standard&#8217;s wordings and style. Which means everything I could write below could be wrong. Someone with more experience should validate that.</p>
+<p>Still, I searched, and I found at 1.9/15 (n3797 draft for C++14):</p>
+<blockquote><p>[ Note: Value computations and side effects associated with different argument expressions are unsequenced. —end note ]</p></blockquote>
+<p>As I understand it, when you evaluate argument A and argument B, the computations (plural forms) to evaluate A are unsequenced in regard to the computations (plural forms) to evaluate B. (the plural form is important, because it acknowledges that there can be multiple computations and side effects for one argument evaluation)</p>
+<p>Now, the signification of <b>unsequenced</b>, and its consequence even within one thread:</p>
+<blockquote><p>[ Note: The execution of unsequenced evaluations can overlap. —end note ]</p></blockquote>
+<p>If I understood correctly, this means that the evaluation of two arguments in a function call are not sequenced, and thus, can <b>overlap</b>.</p>
+<p>The keyword is overlap, here. If I understand it correctly, it means, for example in the following code:</p>
+<pre class="brush: cpp; title: ; notranslate">foo(a + b + c, d + e + f) ;</pre>
+<p>&#8230; that the implementation could well decide to first execute &#8220;a + b&#8221;, and put the result in a temporary a2, then execute &#8220;d + e&#8221;, put the result in a temporary d2, then execute &#8220;d2 + f&#8221;, and then &#8220;a2 + c&#8221;&#8230; Or any other combination.</p>
+<p><b>Application on your shared_ptr example</b></p>
+<p>Now that we understand expression overlaping, we can look at the shared_ptr construction.</p>
+<p>This is a bit devious because when you write &#8220;new A()&#8221; (there is no arguments for simplicity&#8217;s sake), you are doing (at least) two things in one apparent expression:</p>
+<p>1 &#8211; allocate memory<br />
+2 &#8211; launch the constructor at that allocated address.</p>
+<p>This example with new is explicitly mentioned in 1.9/15, and it redirect us to 5.3.4, which describes the unary expression &#8220;new&#8221;. In that section, there is a very interesting subsection 5.3.4/18:</p>
+<blockquote><p>Initialization of the allocated object is sequenced before the value computation of the new-expression.</p></blockquote>
+<p>(the section is a bit more complex, and handle what happens with arguments, that is: arguments can be evaluated after or before [but not overlaping] the memory allocation, but before construction call, of course)</p>
+<p>So, when you write (I simplified your example):</p>
+<pre class="brush: cpp; title: ; notranslate">func(shared_ptr{new C{}}, shared_ptr{new C{}]);</pre>
+<p>&#8230; what you have on your hands is the following actions:</p>
+<p>1.a &#8211; allocation of memory for the first C object<br />
+1.b &#8211; construction of the first C object<br />
+1.c &#8211; construction of the first shared_ptr<br />
+2.a &#8211; allocation of memory for the second C object<br />
+2.b &#8211; construction of the second C object<br />
+2.c &#8211; construction of the second shared_ptr</p>
+<p>So while 1.a should happen before 1.b, and 1.b before 1.c, and 2.a should happen before 2.b, and 2.b before 2.c, the standard specifically says that the two operations 1 and 2 could overlap, which means it could be executed as:</p>
+<p>1.a &#8211; allocation of memory for the first C object<br />
+2.a &#8211; allocation of memory for the second C object<br />
+1.b &#8211; construction of the first C object<br />
+2.b &#8211; construction of the second C object<br />
+1.c &#8211; construction of the first shared_ptr<br />
+2.c &#8211; construction of the second shared_ptr</p>
+<p>And this is where it becomes a problem, because both X.a and X.b could throw, and sometimes, they could throw before any shared_ptr had the chance of taking ownership of any pointer.</p>
+<p>If you add arguments to the constructors, then the problem goes even more complicated (I won&#8217;t go there, because I believe my point is done)</p>
+<p><b>Conclusion</b></p>
+<p>Unless I messed up somewhere (could someone validate my [naive] reasoning?), I believe I offered the proof your reasoning is wrong, and that you always need to use make_* functions to make sure your code is exception safe.</p>
+<p>You could ask why this is so complicated, and why some parts are left unspecified. My guess is <b>performance</b>. By letting the compiler implementers more freedom on a few topics we should usually not care about, we let them more optimization options.</p>
+<p>Thanks,</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Greg Marr				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-25301</link>
+		<dc:creator><![CDATA[Greg Marr]]></dc:creator>
+		<pubDate>Tue, 26 Aug 2014 21:18:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-25301</guid>
+					<description><![CDATA[&quot;No matter, in which order arguments are evaluated, and no matter which of the constructors of class C throws, the first two calls are always leak-safe. The reason is, that the entire expression of each single argument is first fully evaluated, before the next argument evaluation starts. This means, after one argument is full evaluated, a temporary shared_ptr object already exists, that holds the pointer to new C object. If during evaluation of the next argument an exception is thrown, that temporary object is destroyed and so is the newly created C object.&quot;
+
+Are you basing this assertion on just your experimentation, or do you have actual requirements from the standard that says that one entire parameter expression has to be fully evaluated before another can be started?
+
+Are you *absolutely sure* that the compiler is not allowed to take this:
+
+[code]func(shared_ptr{new C{args1}}, shared_ptr{new C{args2}]);[/code]
+
+and make it work like this:
+
+[code]
+C *t1 = new C{args1};
+C *t2 = new C{args2};
+shared_ptr&#060;C&#062; p1(t1);
+shared_ptr&#060;C&#062; p2(t2);
+func(p1, p2);
+[/code]
+
+or even this:
+
+[code]
+C *t2 = new C{args2};
+C *t1 = new C{args1};
+shared_ptr&#060;C&#062; p2(t2);
+shared_ptr&#060;C&#062; p1(t1);
+func(p1, p2);
+[/code]
+
+The reason that make_shared(args1) works is that there is no way for the compiler to move code from inside make_shared before or after the call to make_shared itself.
+
+&quot;Clearly, for such calls to work, the compiler must generate temporary std::string objects, and clearly std::string’s constructor might allocate memory and therefore throw bad_alloc. &quot;
+
+That&#039;s different.  You aren&#039;t allocating memory and passing it to the std::string constructor, it&#039;s the std::string constructor that is allocating the memory.]]></description>
+		<content:encoded><![CDATA[<p>&#8220;No matter, in which order arguments are evaluated, and no matter which of the constructors of class C throws, the first two calls are always leak-safe. The reason is, that the entire expression of each single argument is first fully evaluated, before the next argument evaluation starts. This means, after one argument is full evaluated, a temporary shared_ptr object already exists, that holds the pointer to new C object. If during evaluation of the next argument an exception is thrown, that temporary object is destroyed and so is the newly created C object.&#8221;</p>
+<p>Are you basing this assertion on just your experimentation, or do you have actual requirements from the standard that says that one entire parameter expression has to be fully evaluated before another can be started?</p>
+<p>Are you *absolutely sure* that the compiler is not allowed to take this:</p>
+<pre class="brush: plain; title: ; notranslate">func(shared_ptr{new C{args1}}, shared_ptr{new C{args2}]);</pre>
+<p>and make it work like this:</p>
+<pre class="brush: plain; title: ; notranslate">
+C *t1 = new C{args1};
+C *t2 = new C{args2};
+shared_ptr&lt;C&gt; p1(t1);
+shared_ptr&lt;C&gt; p2(t2);
+func(p1, p2);
+</pre>
+<p>or even this:</p>
+<pre class="brush: plain; title: ; notranslate">
+C *t2 = new C{args2};
+C *t1 = new C{args1};
+shared_ptr&lt;C&gt; p2(t2);
+shared_ptr&lt;C&gt; p1(t1);
+func(p1, p2);
+</pre>
+<p>The reason that make_shared(args1) works is that there is no way for the compiler to move code from inside make_shared before or after the call to make_shared itself.</p>
+<p>&#8220;Clearly, for such calls to work, the compiler must generate temporary std::string objects, and clearly std::string’s constructor might allocate memory and therefore throw bad_alloc. &#8221;</p>
+<p>That&#8217;s different.  You aren&#8217;t allocating memory and passing it to the std::string constructor, it&#8217;s the std::string constructor that is allocating the memory.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Volker Diesel				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-25294</link>
+		<dc:creator><![CDATA[Volker Diesel]]></dc:creator>
+		<pubDate>Tue, 26 Aug 2014 18:48:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-25294</guid>
+					<description><![CDATA[Here are my code snippets again, this time enclosed in code blocks. See also my additional comment at the bottom of this posting.
+
+[code]
+void func(shared_ptr&#060;C&#062; a, shared_ptr&#060;C&#062; b); // function declaration
+func(make_shared{args1}, make_shared{args2}); // call with make_shared, no leak.
+func(shared_ptr{new C{args1}}, shared_ptr{new C{args2}]); // call with explicitly constructed shared_ptr, no leak.
+func(new C{args1}, new C{args2}); // call with naked new. compile error: no implicit conversion.
+[/code]
+
+Example program:
+[code]
+#include &#060;memory&#062;
+#include &#060;iostream&#062;
+#include &#060;exception&#062;
+
+class Ex : public std::logic_error
+{
+public:
+    Ex(const std::string &#038; what) : std::logic_error{what} {}
+};
+
+class Data
+{
+public:
+    Data(const std::string &#038; data) : m_data(data) { std::cout &#060;&#060; &#034;Data::Data(&#034; &#060;&#060; m_data &#060;&#060; &#034;)&#034; &#060;&#060; std::endl; }
+    ~Data() { std::cout &#060;&#060; &#034;Data::~Data(&#034; &#060;&#060; m_data &#060;&#060; &#034;)&#034; &#060;&#060; std::endl; };
+    const std::string &#038; data() const { return m_data; }
+private:
+    std::string m_data;
+};
+
+class C
+{
+public:
+    C(const std::string &#038; name, bool throwSomething = false) : m_data{name}
+    {
+        std::cout &#060;&#060; &#034;C::C(&#034; &#060;&#060; m_data.data() &#060;&#060; &#034;)&#034; &#060;&#060; std::endl;
+        if ( throwSomething )
+        {
+            throw Ex{m_data.data()};
+        }
+    }
+    ~C() { std::cout &#060;&#060; &#034;C::~C(&#034; &#060;&#060; m_data.data() &#060;&#060; &#034;)&#034; &#060;&#060; std::endl; }
+private:
+    Data m_data;
+};
+
+void f(std::shared_ptr&#060;C&#062; a1, std::shared_ptr&#060;C&#062; a2) {}
+
+void test(bool useMakeShared, bool throwInFirst, bool throwInSecond)
+{
+    std::cout &#060;&#060; std::boolalpha &#060;&#060;
+            &#034;*** Test: useMakeUnique= &#034; &#060;&#060; useMakeShared &#060;&#060;
+            &#034;, throwInFirst=&#034; &#060;&#060; throwInFirst &#060;&#060;
+            &#034;, throwInSecond=&#034; &#060;&#060; throwInSecond &#060;&#060; std::endl;
+    try
+    {
+        if ( useMakeShared )
+        {
+            f(std::make_shared&#060;C&#062;(&#034;first&#034;, throwInFirst), std::make_shared&#060;C&#062;(&#034;second&#034;, throwInSecond));
+        }
+        else
+        {
+            f(std::shared_ptr&#060;C&#062;{new C{&#034;first&#034;, throwInFirst}}, std::shared_ptr&#060;C&#062;{new C{&#034;second&#034;, throwInSecond}});
+        }
+    }
+    catch ( const std::exception &#038; ex )
+    {
+        std::cout &#060;&#060; &#034;Caught exception: &#034; &#060;&#060; ex.what() &#060;&#060; std::endl;
+    }
+}
+
+int main()
+{
+//    test(false, false, false);
+//    test(true, false, false);
+
+//    test(false, false, true);
+//    test(true, false, true);
+
+    test(false, true, false);
+    test(true, true, false);
+
+//    test(false, true, true);
+//    test(true, true, true);
+}
+[/code]
+
+
+
+Additional comment... consider a much more trivial and frequently used example:
+[code]
+void func(const std::string &#038; arg1, const std::string &#038; arg2);
+void caller()
+{
+    func(&#034;Hello&#034;, &#034;world&#034;);
+}
+[/code]
+
+I guess, we all have already written code like this without scratching out heads because of exception (un)safety (even in my example program above, I use such calls when creating objects of class &quot;C&quot; with c-style strings like &quot;first&quot; and &quot;second&quot;).
+Clearly, for such calls to work, the compiler must generate temporary std::string objects, and clearly std::string&#039;s constructor might allocate memory and therefore throw bad_alloc. What, if that happens? Again, the answer is: nothing special and nothing wrong.For each argument, temporary std::string objects are placed on the stack. If that is successfully done, the function call is made, and the called function takes the temporaries on the stack as its arguments. If the creation of one of the temporaries fails (e.g. due to bad_alloc), the stack is unwound and all temporaries that have already been created are properly destroyed.]]></description>
+		<content:encoded><![CDATA[<p>Here are my code snippets again, this time enclosed in code blocks. See also my additional comment at the bottom of this posting.</p>
+<pre class="brush: plain; title: ; notranslate">
+void func(shared_ptr&lt;C&gt; a, shared_ptr&lt;C&gt; b); // function declaration
+func(make_shared{args1}, make_shared{args2}); // call with make_shared, no leak.
+func(shared_ptr{new C{args1}}, shared_ptr{new C{args2}]); // call with explicitly constructed shared_ptr, no leak.
+func(new C{args1}, new C{args2}); // call with naked new. compile error: no implicit conversion.
+</pre>
+<p>Example program:</p>
+<pre class="brush: plain; title: ; notranslate">
+#include &lt;memory&gt;
+#include &lt;iostream&gt;
+#include &lt;exception&gt;
+
+class Ex : public std::logic_error
+{
+public:
+    Ex(const std::string &amp; what) : std::logic_error{what} {}
+};
+
+class Data
+{
+public:
+    Data(const std::string &amp; data) : m_data(data) { std::cout &lt;&lt; &quot;Data::Data(&quot; &lt;&lt; m_data &lt;&lt; &quot;)&quot; &lt;&lt; std::endl; }
+    ~Data() { std::cout &lt;&lt; &quot;Data::~Data(&quot; &lt;&lt; m_data &lt;&lt; &quot;)&quot; &lt;&lt; std::endl; };
+    const std::string &amp; data() const { return m_data; }
+private:
+    std::string m_data;
+};
+
+class C
+{
+public:
+    C(const std::string &amp; name, bool throwSomething = false) : m_data{name}
+    {
+        std::cout &lt;&lt; &quot;C::C(&quot; &lt;&lt; m_data.data() &lt;&lt; &quot;)&quot; &lt;&lt; std::endl;
+        if ( throwSomething )
+        {
+            throw Ex{m_data.data()};
+        }
+    }
+    ~C() { std::cout &lt;&lt; &quot;C::~C(&quot; &lt;&lt; m_data.data() &lt;&lt; &quot;)&quot; &lt;&lt; std::endl; }
+private:
+    Data m_data;
+};
+
+void f(std::shared_ptr&lt;C&gt; a1, std::shared_ptr&lt;C&gt; a2) {}
+
+void test(bool useMakeShared, bool throwInFirst, bool throwInSecond)
+{
+    std::cout &lt;&lt; std::boolalpha &lt;&lt;
+            &quot;*** Test: useMakeUnique= &quot; &lt;&lt; useMakeShared &lt;&lt;
+            &quot;, throwInFirst=&quot; &lt;&lt; throwInFirst &lt;&lt;
+            &quot;, throwInSecond=&quot; &lt;&lt; throwInSecond &lt;&lt; std::endl;
+    try
+    {
+        if ( useMakeShared )
+        {
+            f(std::make_shared&lt;C&gt;(&quot;first&quot;, throwInFirst), std::make_shared&lt;C&gt;(&quot;second&quot;, throwInSecond));
+        }
+        else
+        {
+            f(std::shared_ptr&lt;C&gt;{new C{&quot;first&quot;, throwInFirst}}, std::shared_ptr&lt;C&gt;{new C{&quot;second&quot;, throwInSecond}});
+        }
+    }
+    catch ( const std::exception &amp; ex )
+    {
+        std::cout &lt;&lt; &quot;Caught exception: &quot; &lt;&lt; ex.what() &lt;&lt; std::endl;
+    }
+}
+
+int main()
+{
+//    test(false, false, false);
+//    test(true, false, false);
+
+//    test(false, false, true);
+//    test(true, false, true);
+
+    test(false, true, false);
+    test(true, true, false);
+
+//    test(false, true, true);
+//    test(true, true, true);
+}
+</pre>
+<p>Additional comment&#8230; consider a much more trivial and frequently used example:</p>
+<pre class="brush: plain; title: ; notranslate">
+void func(const std::string &amp; arg1, const std::string &amp; arg2);
+void caller()
+{
+    func(&quot;Hello&quot;, &quot;world&quot;);
+}
+</pre>
+<p>I guess, we all have already written code like this without scratching out heads because of exception (un)safety (even in my example program above, I use such calls when creating objects of class &#8220;C&#8221; with c-style strings like &#8220;first&#8221; and &#8220;second&#8221;).<br />
+Clearly, for such calls to work, the compiler must generate temporary std::string objects, and clearly std::string&#8217;s constructor might allocate memory and therefore throw bad_alloc. What, if that happens? Again, the answer is: nothing special and nothing wrong.For each argument, temporary std::string objects are placed on the stack. If that is successfully done, the function call is made, and the called function takes the temporaries on the stack as its arguments. If the creation of one of the temporaries fails (e.g. due to bad_alloc), the stack is unwound and all temporaries that have already been created are properly destroyed.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Volker Diesel				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-25291</link>
+		<dc:creator><![CDATA[Volker Diesel]]></dc:creator>
+		<pubDate>Tue, 26 Aug 2014 17:05:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-25291</guid>
+					<description><![CDATA[...and sorry... I really should have read first how to format code blocks :-)]]></description>
+		<content:encoded><![CDATA[<p>&#8230;and sorry&#8230; I really should have read first how to format code blocks :-)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Volker Diesel				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-25290</link>
+		<dc:creator><![CDATA[Volker Diesel]]></dc:creator>
+		<pubDate>Tue, 26 Aug 2014 16:59:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-25290</guid>
+					<description><![CDATA[I agree with most of the things posted here, but I&#039;d like to point out one wrong information as well: There is no problem with memory leaks when passing multiple smart pointers to a function! No matter how it is done, it&#039;s always leak-safe. Consider:
+
+void func(shared_ptr a, shared_ptr b); // function declaration
+func(make_shared{args1}, make_shared{args2}); // call with make_shared, no leak. 
+func(shared_ptr{new C{args1}}, shared_ptr{new C{args2}]); // call with explicitly constructed shared_ptr, no leak.
+func(new C{args1}, new C{args2}); // call with naked new. compile error: no implicit conversion.
+
+No matter, in which order arguments are evaluated, and no matter which of the constructors of class C throws, the first two calls are always leak-safe. The reason is, that the entire expression of each single argument is first fully evaluated, before the next argument evaluation starts. This means, after one argument is full evaluated, a temporary shared_ptr object already exists, that holds the pointer to new C object. If during evaluation of the next argument an exception is thrown, that temporary object is destroyed and so is the newly created C object.
+
+Here&#039;s an example program, that demonstrates this behavior:
+
+// =========================================
+#include 
+#include 
+#include 
+
+class Ex : public std::logic_error
+{
+public:
+    Ex(const std::string &#038; what) : std::logic_error{what} {}
+};
+
+class Data
+{
+public:
+    Data(const std::string &#038; data) : m_data(data) { std::cout &#060;&#060; &#034;Data::Data(&#034; &#060;&#060; m_data &#060;&#060; &#034;)&#034; &#060;&#060; std::endl; }
+    ~Data() { std::cout &#060;&#060; &#034;Data::~Data(&#034; &#060;&#060; m_data &#060;&#060; &#034;)&#034; &#060;&#060; std::endl; };
+    const std::string &#038; data() const { return m_data; }
+private:
+    std::string m_data;
+};
+
+class C
+{
+public:
+    C(const std::string &#038; name, bool throwSomething = false) : m_data{name}
+    {
+        std::cout &#060;&#060; &#034;C::C(&#034; &#060;&#060; m_data.data() &#060;&#060; &#034;)&#034; &#060;&#060; std::endl;
+        if ( throwSomething )
+        {
+            throw Ex{m_data.data()};
+        }
+    }
+    ~C() { std::cout &#060;&#060; &#034;C::~C(&#034; &#060;&#060; m_data.data() &#060;&#060; &#034;)&#034; &#060;&#060; std::endl; }
+private:
+    Data m_data;
+};
+
+void f(std::shared_ptr a1, std::shared_ptr a2) {}
+
+void test(bool useMakeShared, bool throwInFirst, bool throwInSecond)
+{
+    std::cout &#060;&#060; std::boolalpha &#060;&#060;
+            &#034;*** Test: useMakeUnique= &#034; &#060;&#060; useMakeShared &#060;&#060;
+            &#034;, throwInFirst=&#034; &#060;&#060; throwInFirst &#060;&#060;
+            &#034;, throwInSecond=&#034; &#060;&#060; throwInSecond &#060;&#060; std::endl;
+    try
+    {
+        if ( useMakeShared )
+        {
+            f(std::make_shared(&quot;first&quot;, throwInFirst), std::make_shared(&quot;second&quot;, throwInSecond));
+        }
+        else
+        {
+            f(std::shared_ptr{new C{&quot;first&quot;, throwInFirst}}, std::shared_ptr{new C{&quot;second&quot;, throwInSecond}});
+        }
+    }
+    catch ( const std::exception &#038; ex )
+    {
+        std::cout &#060;&#060; &#034;Caught exception: &#034; &#060;&#060; ex.what() &#060;&#060; std::endl;
+    }
+}
+
+int main()
+{
+//    test(false, false, false);
+//    test(true, false, false);
+
+//    test(false, false, true);
+//    test(true, false, true);
+
+    test(false, true, false);
+    test(true, true, false);
+
+//    test(false, true, true);
+//    test(true, true, true);
+}
+// =========================================
+
+The interesting case in my environment is case number three (construction of first argument throws), because arguments are evaluated right to left on my system.
+
+Here&#039;s the output:
+*** Test: useMakeUnique= false, throwInFirst=true, throwInSecond=false
+Data::Data(second)
+C::C(second)
+Data::Data(first)
+C::C(first)
+Data::~Data(first)
+C::~C(second)
+Data::~Data(second)
+Caught exception: first
+*** Test: useMakeUnique= true, throwInFirst=true, throwInSecond=false
+Data::Data(second)
+C::C(second)
+Data::Data(first)
+C::C(first)
+Data::~Data(first)
+C::~C(second)
+Data::~Data(second)
+Caught exception: first
+
+First, as you can see, the output is identical, no matter whether make_shared is used or shared_ptr explicitly constructed. Second, the the output show, that there&#039;s no leak.
+Construction of arguments:
+1) Data member m_data of seconds argument is fully constructed.
+2) C part for second argument is fully constructed. Had I modified class shared_ptr to ouput something in its constructor, at that point we would see this output, namely the construction of a temporary shared_ptr holding the newly created second argument.
+3) Data member m_data of first argument is fully constructed.
+4) C&#039;s constructor body of first argument throws.
+Destruction after exception.
+1) The Data member m_data of the first argument is destroyed.
+2) The &#034;C&#034; part of the first argument is NOT destroyed, because the object has not been fully constructed.
+3) The &#034;C&#034; part of the second argument is destroyed.
+4) The data member m_data of the second argument is destroyed.  Again, had I modified class shared_ptr to output something, we would see output from ~shared_ptr of temporary object created for second argument here.]]></description>
+		<content:encoded><![CDATA[<p>I agree with most of the things posted here, but I&#8217;d like to point out one wrong information as well: There is no problem with memory leaks when passing multiple smart pointers to a function! No matter how it is done, it&#8217;s always leak-safe. Consider:</p>
+<p>void func(shared_ptr a, shared_ptr b); // function declaration<br />
+func(make_shared{args1}, make_shared{args2}); // call with make_shared, no leak.<br />
+func(shared_ptr{new C{args1}}, shared_ptr{new C{args2}]); // call with explicitly constructed shared_ptr, no leak.<br />
+func(new C{args1}, new C{args2}); // call with naked new. compile error: no implicit conversion.</p>
+<p>No matter, in which order arguments are evaluated, and no matter which of the constructors of class C throws, the first two calls are always leak-safe. The reason is, that the entire expression of each single argument is first fully evaluated, before the next argument evaluation starts. This means, after one argument is full evaluated, a temporary shared_ptr object already exists, that holds the pointer to new C object. If during evaluation of the next argument an exception is thrown, that temporary object is destroyed and so is the newly created C object.</p>
+<p>Here&#8217;s an example program, that demonstrates this behavior:</p>
+<p>// =========================================<br />
+#include<br />
+#include<br />
+#include </p>
+<p>class Ex : public std::logic_error<br />
+{<br />
+public:<br />
+    Ex(const std::string &amp; what) : std::logic_error{what} {}<br />
+};</p>
+<p>class Data<br />
+{<br />
+public:<br />
+    Data(const std::string &amp; data) : m_data(data) { std::cout &lt;&lt; &quot;Data::Data(&quot; &lt;&lt; m_data &lt;&lt; &quot;)&quot; &lt;&lt; std::endl; }<br />
+    ~Data() { std::cout &lt;&lt; &quot;Data::~Data(&quot; &lt;&lt; m_data &lt;&lt; &quot;)&quot; &lt;&lt; std::endl; };<br />
+    const std::string &amp; data() const { return m_data; }<br />
+private:<br />
+    std::string m_data;<br />
+};</p>
+<p>class C<br />
+{<br />
+public:<br />
+    C(const std::string &amp; name, bool throwSomething = false) : m_data{name}<br />
+    {<br />
+        std::cout &lt;&lt; &quot;C::C(&quot; &lt;&lt; m_data.data() &lt;&lt; &quot;)&quot; &lt;&lt; std::endl;<br />
+        if ( throwSomething )<br />
+        {<br />
+            throw Ex{m_data.data()};<br />
+        }<br />
+    }<br />
+    ~C() { std::cout &lt;&lt; &quot;C::~C(&quot; &lt;&lt; m_data.data() &lt;&lt; &quot;)&quot; &lt;&lt; std::endl; }<br />
+private:<br />
+    Data m_data;<br />
+};</p>
+<p>void f(std::shared_ptr a1, std::shared_ptr a2) {}</p>
+<p>void test(bool useMakeShared, bool throwInFirst, bool throwInSecond)<br />
+{<br />
+    std::cout &lt;&lt; std::boolalpha &lt;&lt;<br />
+            &quot;*** Test: useMakeUnique= &quot; &lt;&lt; useMakeShared &lt;&lt;<br />
+            &quot;, throwInFirst=&quot; &lt;&lt; throwInFirst &lt;&lt;<br />
+            &quot;, throwInSecond=&quot; &lt;&lt; throwInSecond &lt;&lt; std::endl;<br />
+    try<br />
+    {<br />
+        if ( useMakeShared )<br />
+        {<br />
+            f(std::make_shared(&#8220;first&#8221;, throwInFirst), std::make_shared(&#8220;second&#8221;, throwInSecond));<br />
+        }<br />
+        else<br />
+        {<br />
+            f(std::shared_ptr{new C{&#8220;first&#8221;, throwInFirst}}, std::shared_ptr{new C{&#8220;second&#8221;, throwInSecond}});<br />
+        }<br />
+    }<br />
+    catch ( const std::exception &amp; ex )<br />
+    {<br />
+        std::cout &lt;&lt; &quot;Caught exception: &quot; &lt;&lt; ex.what() &lt;&lt; std::endl;<br />
+    }<br />
+}</p>
+<p>int main()<br />
+{<br />
+//    test(false, false, false);<br />
+//    test(true, false, false);</p>
+<p>//    test(false, false, true);<br />
+//    test(true, false, true);</p>
+<p>    test(false, true, false);<br />
+    test(true, true, false);</p>
+<p>//    test(false, true, true);<br />
+//    test(true, true, true);<br />
+}<br />
+// =========================================</p>
+<p>The interesting case in my environment is case number three (construction of first argument throws), because arguments are evaluated right to left on my system.</p>
+<p>Here&#039;s the output:<br />
+*** Test: useMakeUnique= false, throwInFirst=true, throwInSecond=false<br />
+Data::Data(second)<br />
+C::C(second)<br />
+Data::Data(first)<br />
+C::C(first)<br />
+Data::~Data(first)<br />
+C::~C(second)<br />
+Data::~Data(second)<br />
+Caught exception: first<br />
+*** Test: useMakeUnique= true, throwInFirst=true, throwInSecond=false<br />
+Data::Data(second)<br />
+C::C(second)<br />
+Data::Data(first)<br />
+C::C(first)<br />
+Data::~Data(first)<br />
+C::~C(second)<br />
+Data::~Data(second)<br />
+Caught exception: first</p>
+<p>First, as you can see, the output is identical, no matter whether make_shared is used or shared_ptr explicitly constructed. Second, the the output show, that there&#039;s no leak.<br />
+Construction of arguments:<br />
+1) Data member m_data of seconds argument is fully constructed.<br />
+2) C part for second argument is fully constructed. Had I modified class shared_ptr to ouput something in its constructor, at that point we would see this output, namely the construction of a temporary shared_ptr holding the newly created second argument.<br />
+3) Data member m_data of first argument is fully constructed.<br />
+4) C&#039;s constructor body of first argument throws.<br />
+Destruction after exception.<br />
+1) The Data member m_data of the first argument is destroyed.<br />
+2) The &quot;C&quot; part of the first argument is NOT destroyed, because the object has not been fully constructed.<br />
+3) The &quot;C&quot; part of the second argument is destroyed.<br />
+4) The data member m_data of the second argument is destroyed.  Again, had I modified class shared_ptr to output something, we would see output from ~shared_ptr of temporary object created for second argument here.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: paercebal				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-16995</link>
+		<dc:creator><![CDATA[paercebal]]></dc:creator>
+		<pubDate>Sat, 15 Mar 2014 16:42:55 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-16995</guid>
+					<description><![CDATA[Having a pointer suddenly becoming null is not limited to C++&#039;s unique_ptr.
+
+C++&#039;s shared_ptr and even C#/Java&#039;s references can become null, just by assigning null to them, or even (in C++/C#), passing them as non-const references to functions (after that call, you can&#039;t guarantee the pointer doesn&#039;t point to another object... or to null).
+
+We do use smart pointers to control lifetime (or more precisely, to give exclusive or shared ownership), but the lifetime of an object is a design problem which must be solved before coding.
+
+This is all about RAII: Make sure the lifetime of your object is tied, directly or indirectly, to a level of the stack. Above that level, your object is always valid. Under that level, your object isn&#039;t anymore. And in practice (my own professional experience), it works.
+
+IMHO, ownership of an object can be determined by how it is passed around (in order of preference):
+
+- a raw pointer: There is no ownership involved. The object is valid (or the pointer is null). Pass it by value.
+- a unique_ptr: Usually pass it by value (using std::move), which gives ownership.
+- a shared_ptr: Usually pass it by value, which shares ownership. If possible, use weak_ptr for weak shared ownership.
+
+Passing a (smart or not) pointer by reference (or const reference) blurs a code review, for the reasons you mention (it is not clear if the pointer is still the same after the function call), unless the function is quite clear about what it is doing (e.g. the C++ swap function, or the C# TryParse function).
+
+The return value is another problem: After all, a function could return a pointer (or a reference) to an object it owns, thus insuring a dangling pointer/reference return. In my own experience, returning a dangling pointer/reference usually happens on object declared on the stack (usually in the very same function). This is a newbie mistake, easily learned.
+
+The solution is NOT relying on shared_ptr to enable a &quot;I don&#039;t need to care&quot; mode where all objects are shared by everyone to play with (this is what global objects are for, and last time I checked, global objects are supposed to be an antipattern).
+
+The solution is a design solution: Don&#039;t return a pointer to something that wasn&#039;t given to you as a pointer by the calling function (if it was given to you as a pointer, then it is owned by a level lower in the stack, so it is still alive after the return), unless you can guarantee the object&#039;s lifetime goes beyond the function call.
+
+Now, your solution is to use shared_ptr everywhere. While I did show above even shared_ptr can point to null at one moment&#039;s notice, shared_ptr have other problems. For example, let&#039;s say you want to close that connection to a distant server. This means calling that &quot;close()&quot; method of your shared object. The consequence is that every part of the code having a shared_ptr to that connection will now have an unusable object because you can&#039;t anymore use it for anything. Isn&#039;t that the problem you wanted to avoid the first place?
+
+And this is not limited to C++: C# and Java can have the same problem, and both ended with RAII-like features (the using/disposable for C#, try-with-resource/autoclosable) in addition to their massively shared ownership semantics.
+
+So, in the end, yes, you always have to think about object lifetimes. But this is a design problem. Not a smart pointer problem. The solution is a design solution. And it will involve using this or that kind of pointer which is best adapted to that decision.]]></description>
+		<content:encoded><![CDATA[<p>Having a pointer suddenly becoming null is not limited to C++&#8217;s unique_ptr.</p>
+<p>C++&#8217;s shared_ptr and even C#/Java&#8217;s references can become null, just by assigning null to them, or even (in C++/C#), passing them as non-const references to functions (after that call, you can&#8217;t guarantee the pointer doesn&#8217;t point to another object&#8230; or to null).</p>
+<p>We do use smart pointers to control lifetime (or more precisely, to give exclusive or shared ownership), but the lifetime of an object is a design problem which must be solved before coding.</p>
+<p>This is all about RAII: Make sure the lifetime of your object is tied, directly or indirectly, to a level of the stack. Above that level, your object is always valid. Under that level, your object isn&#8217;t anymore. And in practice (my own professional experience), it works.</p>
+<p>IMHO, ownership of an object can be determined by how it is passed around (in order of preference):</p>
+<p>&#8211; a raw pointer: There is no ownership involved. The object is valid (or the pointer is null). Pass it by value.<br />
+&#8211; a unique_ptr: Usually pass it by value (using std::move), which gives ownership.<br />
+&#8211; a shared_ptr: Usually pass it by value, which shares ownership. If possible, use weak_ptr for weak shared ownership.</p>
+<p>Passing a (smart or not) pointer by reference (or const reference) blurs a code review, for the reasons you mention (it is not clear if the pointer is still the same after the function call), unless the function is quite clear about what it is doing (e.g. the C++ swap function, or the C# TryParse function).</p>
+<p>The return value is another problem: After all, a function could return a pointer (or a reference) to an object it owns, thus insuring a dangling pointer/reference return. In my own experience, returning a dangling pointer/reference usually happens on object declared on the stack (usually in the very same function). This is a newbie mistake, easily learned.</p>
+<p>The solution is NOT relying on shared_ptr to enable a &#8220;I don&#8217;t need to care&#8221; mode where all objects are shared by everyone to play with (this is what global objects are for, and last time I checked, global objects are supposed to be an antipattern).</p>
+<p>The solution is a design solution: Don&#8217;t return a pointer to something that wasn&#8217;t given to you as a pointer by the calling function (if it was given to you as a pointer, then it is owned by a level lower in the stack, so it is still alive after the return), unless you can guarantee the object&#8217;s lifetime goes beyond the function call.</p>
+<p>Now, your solution is to use shared_ptr everywhere. While I did show above even shared_ptr can point to null at one moment&#8217;s notice, shared_ptr have other problems. For example, let&#8217;s say you want to close that connection to a distant server. This means calling that &#8220;close()&#8221; method of your shared object. The consequence is that every part of the code having a shared_ptr to that connection will now have an unusable object because you can&#8217;t anymore use it for anything. Isn&#8217;t that the problem you wanted to avoid the first place?</p>
+<p>And this is not limited to C++: C# and Java can have the same problem, and both ended with RAII-like features (the using/disposable for C#, try-with-resource/autoclosable) in addition to their massively shared ownership semantics.</p>
+<p>So, in the end, yes, you always have to think about object lifetimes. But this is a design problem. Not a smart pointer problem. The solution is a design solution. And it will involve using this or that kind of pointer which is best adapted to that decision.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: permaquid				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-16991</link>
+		<dc:creator><![CDATA[permaquid]]></dc:creator>
+		<pubDate>Sat, 15 Mar 2014 14:51:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-16991</guid>
+					<description><![CDATA[The semantics of unique_ptr are more complex than shared_ptr. You have to use std::move with it; after you do so, the scope in which that was done effectively has a null pointer that can be accidentally used. Shared_ptr has neither of these problems. These things suggest the opposite conclusion: prefer shared_ptr. Also, I see that coders seem to use unique_ptr to control lifetime, but feel free to pass around raw pointers and references as if that were safe and maintainable. If various places in the code are going to use a smart pointer, it should be treated as shared.]]></description>
+		<content:encoded><![CDATA[<p>The semantics of unique_ptr are more complex than shared_ptr. You have to use std::move with it; after you do so, the scope in which that was done effectively has a null pointer that can be accidentally used. Shared_ptr has neither of these problems. These things suggest the opposite conclusion: prefer shared_ptr. Also, I see that coders seem to use unique_ptr to control lifetime, but feel free to pass around raw pointers and references as if that were safe and maintainable. If various places in the code are going to use a smart pointer, it should be treated as shared.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: J. J. Lee				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-14278</link>
+		<dc:creator><![CDATA[J. J. Lee]]></dc:creator>
+		<pubDate>Fri, 31 Jan 2014 09:57:32 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-14278</guid>
+					<description><![CDATA[Is there any helper template to relieve pain from make_unique to make_shared, if I decide to change from unique_ptr to shared_ptr later?
+
+For example,
+[code]
+template &#060;class SP&#062; class smart_ptr_switch
+{
+    template &#060;class... Args&#062; static SP make_smart(Args&#038;&#038;... args)
+    {
+        if (SP is some kind of unique_ptr&#060;T&#062;) {
+            return std::make_unique&#060;T&#062;(new T(std::forward&#060;Args&#062;(args)...));
+        } else if (SP is some kind of shared_ptr&#060;T&#062;) {
+             return std::make_shared&#060;T&#062;(new T(std::forward&#060;Args&#062;(args)...));
+        } else {
+             static_assert ???
+        }
+    }
+};
+[/code]
+
+
+So I can typedef my_smart_pointer to a std::unique_ptr first. If later I change typedef my_smart_pointer to a std::shared_ptr, I don&#039;t need to change all std::make_unque to std::make_shared.
+
+If I call smart_ptr_switch::make_smart(...) and typedef std::unique_ptr my_smart_pointer, this method will return a result from make_unique.
+If I call smart_ptr_switch::make_smart(...) and typedef std::shared_ptr my_smart_pointer, this method will return a result from make_shared.]]></description>
+		<content:encoded><![CDATA[<p>Is there any helper template to relieve pain from make_unique to make_shared, if I decide to change from unique_ptr to shared_ptr later?</p>
+<p>For example,</p>
+<pre class="brush: plain; title: ; notranslate">
+template &lt;class SP&gt; class smart_ptr_switch
+{
+    template &lt;class... Args&gt; static SP make_smart(Args&amp;&amp;... args)
+    {
+        if (SP is some kind of unique_ptr&lt;T&gt;) {
+            return std::make_unique&lt;T&gt;(new T(std::forward&lt;Args&gt;(args)...));
+        } else if (SP is some kind of shared_ptr&lt;T&gt;) {
+             return std::make_shared&lt;T&gt;(new T(std::forward&lt;Args&gt;(args)...));
+        } else {
+             static_assert ???
+        }
+    }
+};
+</pre>
+<p>So I can typedef my_smart_pointer to a std::unique_ptr first. If later I change typedef my_smart_pointer to a std::shared_ptr, I don&#8217;t need to change all std::make_unque to std::make_shared.</p>
+<p>If I call smart_ptr_switch::make_smart(&#8230;) and typedef std::unique_ptr my_smart_pointer, this method will return a result from make_unique.<br />
+If I call smart_ptr_switch::make_smart(&#8230;) and typedef std::shared_ptr my_smart_pointer, this method will return a result from make_shared.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Rob Stewart				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-14182</link>
+		<dc:creator><![CDATA[Rob Stewart]]></dc:creator>
+		<pubDate>Thu, 23 Jan 2014 15:12:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-14182</guid>
+					<description><![CDATA[@Marco
+You are correct that the block cannot be released until the last shared_ptr/weak_ptr is destroyed. However, the object&#039;s destructor is invoked when the last shared_ptr is destroyed.]]></description>
+		<content:encoded><![CDATA[<p>@Marco<br />
+You are correct that the block cannot be released until the last shared_ptr/weak_ptr is destroyed. However, the object&#8217;s destructor is invoked when the last shared_ptr is destroyed.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marco				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-11242</link>
+		<dc:creator><![CDATA[Marco]]></dc:creator>
+		<pubDate>Wed, 12 Jun 2013 13:54:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-11242</guid>
+					<description><![CDATA[@Herb: Another question popped up when looking at figure 2(b): make_shared allocates one single block of memory holding the strong and weak reference counters and the object itself. So if there are no shared_ptr left, but at least one weak_ptr, the whole block cannot be released, correct? So if one&#039;s handling large objects and using shared_ptr the recommendation should be not to use make_shared? Or is there something I&#039;m missing?]]></description>
+		<content:encoded><![CDATA[<p>@Herb: Another question popped up when looking at figure 2(b): make_shared allocates one single block of memory holding the strong and weak reference counters and the object itself. So if there are no shared_ptr left, but at least one weak_ptr, the whole block cannot be released, correct? So if one&#8217;s handling large objects and using shared_ptr the recommendation should be not to use make_shared? Or is there something I&#8217;m missing?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter GotW89: Smart Pointers &#124; musingstudio				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10999</link>
+		<dc:creator><![CDATA[Herb Sutter GotW89: Smart Pointers &#124; musingstudio]]></dc:creator>
+		<pubDate>Thu, 06 Jun 2013 07:45:58 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10999</guid>
+					<description><![CDATA[[&#8230;] Sutter&#8217;s GotW89 Smart Pointers post includes good reasons to use make_shared/make_unique instead of naked new. Avoiding memory [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Sutter&#8217;s GotW89 Smart Pointers post includes good reasons to use make_shared/make_unique instead of naked new. Avoiding memory [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10895</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Tue, 04 Jun 2013 19:38:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10895</guid>
+					<description><![CDATA[@Marco: Yes, that&#039;s the kind of case the internal synchronization on the refcount is needed for -- the user is allowed to do concurrent operations where not all are const on different objects, just not on the same object. The same case arises with polygon::area when two threads do const operations but might modify mutable state.]]></description>
+		<content:encoded><![CDATA[<p>@Marco: Yes, that&#8217;s the kind of case the internal synchronization on the refcount is needed for &#8212; the user is allowed to do concurrent operations where not all are const on different objects, just not on the same object. The same case arises with polygon::area when two threads do const operations but might modify mutable state.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: nosenseetal				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10890</link>
+		<dc:creator><![CDATA[nosenseetal]]></dc:creator>
+		<pubDate>Tue, 04 Jun 2013 18:17:08 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10890</guid>
+					<description><![CDATA[@herb tnx for the A,
+now when you explain it is doh. :D
+like Scott says shared prt is actually ptr_to_shared :D]]></description>
+		<content:encoded><![CDATA[<p>@herb tnx for the A,<br />
+now when you explain it is doh. :D<br />
+like Scott says shared prt is actually ptr_to_shared :D</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marco				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10866</link>
+		<dc:creator><![CDATA[Marco]]></dc:creator>
+		<pubDate>Tue, 04 Jun 2013 07:04:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10866</guid>
+					<description><![CDATA[@Herb: Thank you very much for your explanations. I&#039;m still not sure we are talking about the same thing.
+
+ class A
+ {   public:
+         int GetValue() const;
+ };
+
+There cannot be any writers, so that is no concern here and would have to be handled externaly, anyway. But what if two threads do the following at exactly the same time:
+
+ shared_ptr&lt;A&gt; sp1(make_shared&lt;A&gt;());   // shared ptr in T1.
+ weak_ptr&lt;A&gt; wA(sp1);                                // weak ptr in T2.
+
+ T1: sp1 = nullptr;
+ T2: shared_ptr&lt;A&gt; sp2(wA.lock());
+
+So, both threads keep a smart pointer to the same data element, one shared and one weak. At the moment T1 releases its reference T2 tries to get a new reference. This means that T1 is changing the strong refs counter at the very moment T2 is changing it as well. Do the reference counters have a barrier that guarantees thread safety in this context?
+
+I&#039;m looking forward to the GotW on thread safety. Thanks again!]]></description>
+		<content:encoded><![CDATA[<p>@Herb: Thank you very much for your explanations. I&#8217;m still not sure we are talking about the same thing.</p>
+<p> class A<br />
+ {   public:<br />
+         int GetValue() const;<br />
+ };</p>
+<p>There cannot be any writers, so that is no concern here and would have to be handled externaly, anyway. But what if two threads do the following at exactly the same time:</p>
+<p> shared_ptr<a> sp1(make_shared</a><a>());   // shared ptr in T1.<br />
+ weak_ptr</a><a> wA(sp1);                                // weak ptr in T2.</p>
+<p> T1: sp1 = nullptr;<br />
+ T2: shared_ptr</a><a> sp2(wA.lock());</p>
+<p>So, both threads keep a smart pointer to the same data element, one shared and one weak. At the moment T1 releases its reference T2 tries to get a new reference. This means that T1 is changing the strong refs counter at the very moment T2 is changing it as well. Do the reference counters have a barrier that guarantees thread safety in this context?</p>
+<p>I&#8217;m looking forward to the GotW on thread safety. Thanks again!</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Norbert Riedlin				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10847</link>
+		<dc:creator><![CDATA[Norbert Riedlin]]></dc:creator>
+		<pubDate>Mon, 03 Jun 2013 12:14:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10847</guid>
+					<description><![CDATA[When I implement a class deriving from enable_shared_from_this, I usually make all constructors private and add static factory functions that create and return shared pointers to the class. As the constructors are private I cannot use make_shared in these factory functions but I have to resort to using new. At least this is true for boost::make_shared. I haven&#039;t found a way like making some function or function template instantiation a friend of the said class to be able to use make_shared. Do I miss something?]]></description>
+		<content:encoded><![CDATA[<p>When I implement a class deriving from enable_shared_from_this, I usually make all constructors private and add static factory functions that create and return shared pointers to the class. As the constructors are private I cannot use make_shared in these factory functions but I have to resort to using new. At least this is true for boost::make_shared. I haven&#8217;t found a way like making some function or function template instantiation a friend of the said class to be able to use make_shared. Do I miss something?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10808</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sat, 01 Jun 2013 21:52:36 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10808</guid>
+					<description><![CDATA[@nosenseetal: No, you can&#039;t use a unique_ptr or a shared_ptr that way. A given shared_ptr object is like any other normal object -- if you have multiple concurrent accesses and one is a writer (non-const) you have to protect it using a mutex or other synchronization. What synchronization shared_ptr does internally is to protect the reference counts when they are read/written via *different* shared_ptr objects, because the caller can&#039;t possibly know which shared_ptrs share state and figure out the right external synchronization, nor should he. The same issue arises when two strings share implementations because of refcounted copy-on-write, or with the polygon::area discussed in GotW #6b.]]></description>
+		<content:encoded><![CDATA[<p>@nosenseetal: No, you can&#8217;t use a unique_ptr or a shared_ptr that way. A given shared_ptr object is like any other normal object &#8212; if you have multiple concurrent accesses and one is a writer (non-const) you have to protect it using a mutex or other synchronization. What synchronization shared_ptr does internally is to protect the reference counts when they are read/written via *different* shared_ptr objects, because the caller can&#8217;t possibly know which shared_ptrs share state and figure out the right external synchronization, nor should he. The same issue arises when two strings share implementations because of refcounted copy-on-write, or with the polygon::area discussed in GotW #6b.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: nosenseetal				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10747</link>
+		<dc:creator><![CDATA[nosenseetal]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 23:24:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10747</guid>
+					<description><![CDATA[@herb
+what about my example of &quot;spinlock&quot; on up and sp?
+Isnt sp version correct program, while up is UB?
+Or maybe sp counter is incremented with non_seq_const mem order ?
+
+btw I think you need to mention bitfields as odd(if you get how hw works not so odd) exception when talking about thread safety.]]></description>
+		<content:encoded><![CDATA[<p>@herb<br />
+what about my example of &#8220;spinlock&#8221; on up and sp?<br />
+Isnt sp version correct program, while up is UB?<br />
+Or maybe sp counter is incremented with non_seq_const mem order ?</p>
+<p>btw I think you need to mention bitfields as odd(if you get how hw works not so odd) exception when talking about thread safety.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10739</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 21:34:38 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10739</guid>
+					<description><![CDATA[@Marek: Yes, unspecified. Thanks, updated.]]></description>
+		<content:encoded><![CDATA[<p>@Marek: Yes, unspecified. Thanks, updated.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10738</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 21:31:04 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10738</guid>
+					<description><![CDATA[@Tom: I can&#039;t easily share that, but you could try something like this (untested code follows, yours to test and fix).
+
+[code]
+template&#060;typename T, typename A1&#062;
+std::unique_ptr&#060;T&#062; make_unique( A1&#038;&#038; a1 )
+    { return std::unique_ptr&#060;T&#062;( new T( std::forward&#060;A1&#062;(a1) ) ); }
+
+template&#060;typename T, typename A1, typename A2&#062;
+std::unique_ptr&#060;T&#062; make_unique( A1&#038;&#038; a1, A2&#038;&#038; a2 )
+    { return std::unique_ptr&#060;T&#062;( new T( std::forward&#060;A1&#062;(a1), std::forward&#060;A2&#062;(a2) ) ); }
+
+// etc. for as many constructor parameters as you want to support
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>@Tom: I can&#8217;t easily share that, but you could try something like this (untested code follows, yours to test and fix).</p>
+<pre class="brush: plain; title: ; notranslate">
+template&lt;typename T, typename A1&gt;
+std::unique_ptr&lt;T&gt; make_unique( A1&amp;&amp; a1 )
+    { return std::unique_ptr&lt;T&gt;( new T( std::forward&lt;A1&gt;(a1) ) ); }
+
+template&lt;typename T, typename A1, typename A2&gt;
+std::unique_ptr&lt;T&gt; make_unique( A1&amp;&amp; a1, A2&amp;&amp; a2 )
+    { return std::unique_ptr&lt;T&gt;( new T( std::forward&lt;A1&gt;(a1), std::forward&lt;A2&gt;(a2) ) ); }
+
+// etc. for as many constructor parameters as you want to support
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10737</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 21:26:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10737</guid>
+					<description><![CDATA[@andyprowl, @Chris Vine: Right you are. The issue is as described, now the spelling is fixed, thanks.]]></description>
+		<content:encoded><![CDATA[<p>@andyprowl, @Chris Vine: Right you are. The issue is as described, now the spelling is fixed, thanks.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10736</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 21:20:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10736</guid>
+					<description><![CDATA[@Marco, @nosenseetal: Virtually all types, including shared_ptr (and vector, and other types) are just as thread-safe as any old type including int -- safe for concurrent reads (const operations) but require external synchronization if you know the object is shared and will have multiple threads trying to use it concurrently and at least one is a writer. The reason GotW #6b&#039;s polygon needed &quot;some&quot; internal synchronization is the same reason std::shared_ptr needs &quot;some&quot; internal synchronization: to synchronize the under-the-covers shared state the caller can&#039;t see and that isn&#039;t covered by the usual external synchronization. The easy way to spot such *internal* shared state is that it&#039;s shared state that can be modified in a const operation. That needs internal synchronization so that the caller&#039;s usual external-sync duty of care is sufficient.
+
+The only types that are not like that are basically those designed to perform inter-thread communication and synchronization, like mutex and condition_variable and atomic.
+
+This is a FAQ, alas. I need to write that GotW on thread safety. Maybe later this summer...]]></description>
+		<content:encoded><![CDATA[<p>@Marco, @nosenseetal: Virtually all types, including shared_ptr (and vector, and other types) are just as thread-safe as any old type including int &#8212; safe for concurrent reads (const operations) but require external synchronization if you know the object is shared and will have multiple threads trying to use it concurrently and at least one is a writer. The reason GotW #6b&#8217;s polygon needed &#8220;some&#8221; internal synchronization is the same reason std::shared_ptr needs &#8220;some&#8221; internal synchronization: to synchronize the under-the-covers shared state the caller can&#8217;t see and that isn&#8217;t covered by the usual external synchronization. The easy way to spot such *internal* shared state is that it&#8217;s shared state that can be modified in a const operation. That needs internal synchronization so that the caller&#8217;s usual external-sync duty of care is sufficient.</p>
+<p>The only types that are not like that are basically those designed to perform inter-thread communication and synchronization, like mutex and condition_variable and atomic.</p>
+<p>This is a FAQ, alas. I need to write that GotW on thread safety. Maybe later this summer&#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10735</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 21:14:59 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10735</guid>
+					<description><![CDATA[@celeborn2bealive: You’re right, I’ve updated the wording to try to make these be phrased as “prefer” rather than “always.” There are two parts to this: 1. unique_ptr and shared_ptr are to be preferred whenever possible, but you might have a reason to use another smart pointer type, such as legacy or for custom behavior you can’t achieve with deleters and allocators on unique_ptr and shared_ptr. 2. make_unique and make_shared also should be preferred wherever possible, but you might have a reason not to use make_unique or {make&#124;allocate}_shared if you need a custom deleter or are adopting a pointer. I’ve now added this to the discussion, including mentioning allocate_shared. Thanks!]]></description>
+		<content:encoded><![CDATA[<p>@celeborn2bealive: You’re right, I’ve updated the wording to try to make these be phrased as “prefer” rather than “always.” There are two parts to this: 1. unique_ptr and shared_ptr are to be preferred whenever possible, but you might have a reason to use another smart pointer type, such as legacy or for custom behavior you can’t achieve with deleters and allocators on unique_ptr and shared_ptr. 2. make_unique and make_shared also should be preferred wherever possible, but you might have a reason not to use make_unique or {make|allocate}_shared if you need a custom deleter or are adopting a pointer. I’ve now added this to the discussion, including mentioning allocate_shared. Thanks!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: jlehrer				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10732</link>
+		<dc:creator><![CDATA[jlehrer]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 19:59:07 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10732</guid>
+					<description><![CDATA[&quot;c/c++ malloc works very deterministic and there is no intelligence. first free block that fits the size or more (requested) will be returned.&quot;
+“system tries to minimize fragmentation”
+
+None of this is true.  C++ does not dictate how the memory allocation routines should allocate their memory.  This is completely implementation defined (as long as certain rules are followed regarding alignment).
+
+On my highly specialized platform we wrote a custom allocator that has zero overhead for the common allocation sizes while maintaining the normal overhead for all other allocation sizes.  We also don&#039;t have a fragmentation problem with these common sizes.]]></description>
+		<content:encoded><![CDATA[<p>&#8220;c/c++ malloc works very deterministic and there is no intelligence. first free block that fits the size or more (requested) will be returned.&#8221;<br />
+“system tries to minimize fragmentation”</p>
+<p>None of this is true.  C++ does not dictate how the memory allocation routines should allocate their memory.  This is completely implementation defined (as long as certain rules are followed regarding alignment).</p>
+<p>On my highly specialized platform we wrote a custom allocator that has zero overhead for the common allocation sizes while maintaining the normal overhead for all other allocation sizes.  We also don&#8217;t have a fragmentation problem with these common sizes.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Eric Fortin				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10716</link>
+		<dc:creator><![CDATA[Eric Fortin]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 16:22:27 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10716</guid>
+					<description><![CDATA[@Andrew Marshall weak_ptr gets notified when the object is deleted and will prevent you from accessing it where a raw pointer will let you do anything with the already deleted object sending you in undefined land.]]></description>
+		<content:encoded><![CDATA[<p>@Andrew Marshall weak_ptr gets notified when the object is deleted and will prevent you from accessing it where a raw pointer will let you do anything with the already deleted object sending you in undefined land.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pip010 (@ppetrovdotnet)				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10711</link>
+		<dc:creator><![CDATA[pip010 (@ppetrovdotnet)]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 13:02:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10711</guid>
+					<description><![CDATA[@Herb
+&quot;If you use make_shared to allocate the object and the shared_ptr all in one go, then the implementation can fold them together in a single allocation&quot;
+could you please elaborate more on the impl. details, how?
+
+looking at VS2012 ans std::make_shared
+I see 2 new calls:
+
+new _Ref_count_obj(LIST(_FORWARD_ARG)); //inside make_shared
+::new ((void *)&#038;_Storage) _Ty(LIST(_FORWARD_ARG));//inside _Ref_count_obj]]></description>
+		<content:encoded><![CDATA[<p>@Herb<br />
+&#8220;If you use make_shared to allocate the object and the shared_ptr all in one go, then the implementation can fold them together in a single allocation&#8221;<br />
+could you please elaborate more on the impl. details, how?</p>
+<p>looking at VS2012 ans std::make_shared<br />
+I see 2 new calls:</p>
+<p>new _Ref_count_obj(LIST(_FORWARD_ARG)); //inside make_shared<br />
+::new ((void *)&amp;_Storage) _Ty(LIST(_FORWARD_ARG));//inside _Ref_count_obj</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pip010 (@ppetrovdotnet)				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10710</link>
+		<dc:creator><![CDATA[pip010 (@ppetrovdotnet)]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 11:50:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10710</guid>
+					<description><![CDATA[@Marco
+&quot;The two memory blocks will in general have very different sizes &quot; - thats ok. 
+&quot;may life in far far away areas of the memory because the system tries to minimize fragmentation&quot; - c/c++ malloc works very deterministic and there is no intelligence. first free block that fits the size or more (requested) will be returned. AFIK there is no such thing: &quot;system tries to minimize fragmentation&quot; 
+now considering the &#039;administration&#039; data along each shared_ptr is minimal , chances are it wont cause allocation to come from another block, but most likely same block will fit the two counts and the data you ask.
+but now that I explained what malloc will do. YES I can answer my own question, that it is indeed possible to defragment the mem, regardless whether you have a malloc in between !]]></description>
+		<content:encoded><![CDATA[<p>@Marco<br />
+&#8220;The two memory blocks will in general have very different sizes &#8221; &#8211; thats ok.<br />
+&#8220;may life in far far away areas of the memory because the system tries to minimize fragmentation&#8221; &#8211; c/c++ malloc works very deterministic and there is no intelligence. first free block that fits the size or more (requested) will be returned. AFIK there is no such thing: &#8220;system tries to minimize fragmentation&#8221;<br />
+now considering the &#8216;administration&#8217; data along each shared_ptr is minimal , chances are it wont cause allocation to come from another block, but most likely same block will fit the two counts and the data you ask.<br />
+but now that I explained what malloc will do. YES I can answer my own question, that it is indeed possible to defragment the mem, regardless whether you have a malloc in between !</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marco				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10707</link>
+		<dc:creator><![CDATA[Marco]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 10:28:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10707</guid>
+					<description><![CDATA[@pip010: The two memory blocks will in general have very different sizes and may life in far far away areas of the memory because the system tries to minimize fragmentation.]]></description>
+		<content:encoded><![CDATA[<p>@pip010: The two memory blocks will in general have very different sizes and may life in far far away areas of the memory because the system tries to minimize fragmentation.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pip010 (@ppetrovdotnet)				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10705</link>
+		<dc:creator><![CDATA[pip010 (@ppetrovdotnet)]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 10:21:35 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10705</guid>
+					<description><![CDATA[well, instead:
+void sink( unique_ptr, unique_ptr );
+
+unique_ptr arg1(new widget{});
+unique_ptr arg2(new gadget{});
+//--exception line
+sink(arg1,arg2);
+
+so here it goes. same exception-safety :)
+
+about: &quot;It reduces allocation overhead, including memory fragmentation&quot;
+correct me if I&#039;m mistaken but in order to really create fragmentation.
+something needs to allocate between new gadget() and new unique_ptr().
+is that even possible? if we assume we are in 1process-1thread app?
+
+same goes for locality?]]></description>
+		<content:encoded><![CDATA[<p>well, instead:<br />
+void sink( unique_ptr, unique_ptr );</p>
+<p>unique_ptr arg1(new widget{});<br />
+unique_ptr arg2(new gadget{});<br />
+//&#8211;exception line<br />
+sink(arg1,arg2);</p>
+<p>so here it goes. same exception-safety :)</p>
+<p>about: &#8220;It reduces allocation overhead, including memory fragmentation&#8221;<br />
+correct me if I&#8217;m mistaken but in order to really create fragmentation.<br />
+something needs to allocate between new gadget() and new unique_ptr().<br />
+is that even possible? if we assume we are in 1process-1thread app?</p>
+<p>same goes for locality?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marek				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10704</link>
+		<dc:creator><![CDATA[Marek]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 10:20:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10704</guid>
+					<description><![CDATA[&#062; The answer is no, because C++ leaves the order of evaluation of function arguments undefined...
+
+I think it is unspecified not undefined.]]></description>
+		<content:encoded><![CDATA[<p>&gt; The answer is no, because C++ leaves the order of evaluation of function arguments undefined&#8230;</p>
+<p>I think it is unspecified not undefined.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: tr3w				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10701</link>
+		<dc:creator><![CDATA[tr3w]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 09:40:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10701</guid>
+					<description><![CDATA[If I&#039;m not mistaken, the smart and weak ptr works like this:
+Let say we have a smart and a weak ptr pointing to the same object.
+Now we destroy the smart_ptr: since no other owning ptr is present, it call&#039;s the destructor of the pointed object, and it even deallocates it. But it won&#039;t deallocate the control block.
+Now we destroy the weak_ptr, and it will deallocate the control block.
+
+But here is the catch: If we used make_shared, the shared_ptr destructor can&#039;t deallocate the area of the pointed object, only the weak_ptr will deallocate it (when it gets rid of the control block).
+
+Am I right?]]></description>
+		<content:encoded><![CDATA[<p>If I&#8217;m not mistaken, the smart and weak ptr works like this:<br />
+Let say we have a smart and a weak ptr pointing to the same object.<br />
+Now we destroy the smart_ptr: since no other owning ptr is present, it call&#8217;s the destructor of the pointed object, and it even deallocates it. But it won&#8217;t deallocate the control block.<br />
+Now we destroy the weak_ptr, and it will deallocate the control block.</p>
+<p>But here is the catch: If we used make_shared, the shared_ptr destructor can&#8217;t deallocate the area of the pointed object, only the weak_ptr will deallocate it (when it gets rid of the control block).</p>
+<p>Am I right?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jeff Sullivan				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10699</link>
+		<dc:creator><![CDATA[Jeff Sullivan]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 07:46:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10699</guid>
+					<description><![CDATA[Given that make_unique and make_shared can aggregate the memory allocation for the ref –counting together with that for the pointed at T, how does that play with class member operator::new() and operator::delete()? Depending on how this is managed you are either going to inherit the custom operators (which would be bad if it an allocator that assumes it only ever has to allocate sizeof(T)  objects), or you are going to entirely circumvent efforts by a class designer to provide specific allocation facilities (which might lead to memory fragmentation and poor performance due to broken cache coherency, or simple failure to work if all members of a class are supposed to be in some shared memory pool). 
+
+It would seem to be worthwhile pointing out that mixing classes with custom allocators together with make_shared or make_unique is  a Bad Idea.
+
+To solve the problem for shared_ptr there is allocate_shared() that will take an allocator  for generating  shared_ptr which  will get the same result  as a custom operator::new()/operator ::delete() set (with a little rewriting) ,  However the only references I can find to “allocate_unique” are to Oracle DBMS systems…. Is this another candidate for the “Oops, we should have done that” C++14 list, or are there some subtleties I haven’t considered?]]></description>
+		<content:encoded><![CDATA[<p>Given that make_unique and make_shared can aggregate the memory allocation for the ref –counting together with that for the pointed at T, how does that play with class member operator::new() and operator::delete()? Depending on how this is managed you are either going to inherit the custom operators (which would be bad if it an allocator that assumes it only ever has to allocate sizeof(T)  objects), or you are going to entirely circumvent efforts by a class designer to provide specific allocation facilities (which might lead to memory fragmentation and poor performance due to broken cache coherency, or simple failure to work if all members of a class are supposed to be in some shared memory pool). </p>
+<p>It would seem to be worthwhile pointing out that mixing classes with custom allocators together with make_shared or make_unique is  a Bad Idea.</p>
+<p>To solve the problem for shared_ptr there is allocate_shared() that will take an allocator  for generating  shared_ptr which  will get the same result  as a custom operator::new()/operator ::delete() set (with a little rewriting) ,  However the only references I can find to “allocate_unique” are to Oracle DBMS systems…. Is this another candidate for the “Oops, we should have done that” C++14 list, or are there some subtleties I haven’t considered?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marco				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10697</link>
+		<dc:creator><![CDATA[Marco]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 06:44:03 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10697</guid>
+					<description><![CDATA[Thanks for the answer. I was referring to the reference counter. Good to know it is thread safe. We have had our own implementation of smart and weak pointers. Now we&#039;re about to go to VS 2012, so I&#039;m looking forward using all these great new features!]]></description>
+		<content:encoded><![CDATA[<p>Thanks for the answer. I was referring to the reference counter. Good to know it is thread safe. We have had our own implementation of smart and weak pointers. Now we&#8217;re about to go to VS 2012, so I&#8217;m looking forward using all these great new features!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Chris Vine				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10682</link>
+		<dc:creator><![CDATA[Chris Vine]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 23:26:16 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10682</guid>
+					<description><![CDATA[&quot;sink( new widget{}, new gadget{} );     // Q1: can you spot the problem?&quot;
+
+The principal problem with this is that it will not compile, because unique_ptr&#039;s constructor taking a pointer is explicit.
+
+[code]
+sink(std::unique_ptr&#060;widget&#062;{new widget{}}, std::unique_ptr&#060;gadget&#062;{new gadget{}});
+[/code]
+
+will compile but is not exception safe.  Not only is the order of evaluation of the arguments unspecified, but the compiler is entitled to to construct gadget, and then before initializing the unique_ptr to take gadget construct widget, and only then construct the unique_ptr objects.  Of course, it would be a very odd compiler which did it this way.  Allowing this loose evaluation is in my view a defect in the standard, but I know that most others disagree.]]></description>
+		<content:encoded><![CDATA[<p>&#8220;sink( new widget{}, new gadget{} );     // Q1: can you spot the problem?&#8221;</p>
+<p>The principal problem with this is that it will not compile, because unique_ptr&#8217;s constructor taking a pointer is explicit.</p>
+<pre class="brush: plain; title: ; notranslate">
+sink(std::unique_ptr&lt;widget&gt;{new widget{}}, std::unique_ptr&lt;gadget&gt;{new gadget{}});
+</pre>
+<p>will compile but is not exception safe.  Not only is the order of evaluation of the arguments unspecified, but the compiler is entitled to to construct gadget, and then before initializing the unique_ptr to take gadget construct widget, and only then construct the unique_ptr objects.  Of course, it would be a very odd compiler which did it this way.  Allowing this loose evaluation is in my view a defect in the standard, but I know that most others disagree.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: David Svoboda				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10678</link>
+		<dc:creator><![CDATA[David Svoboda]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 22:52:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10678</guid>
+					<description><![CDATA[Great article but I have one question. I always assumed that you cannot make a vector of unique pointers of objects because the vector demands that an object always be copyable. And unique pointers are definitely not copyable. Perhaps the move semantics in C++ 11 Are what enables the creation of a vector of unique pointers.]]></description>
+		<content:encoded><![CDATA[<p>Great article but I have one question. I always assumed that you cannot make a vector of unique pointers of objects because the vector demands that an object always be copyable. And unique pointers are definitely not copyable. Perhaps the move semantics in C++ 11 Are what enables the creation of a vector of unique pointers.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: jlehrer				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10677</link>
+		<dc:creator><![CDATA[jlehrer]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 22:46:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10677</guid>
+					<description><![CDATA[Responding to celeborn2bealive
+
+&quot;when you allocate memory from a dynamic library, that memory must be freed in the code of the library.&quot;
+
+says who?  the C++ library says nothing about that.  I know that with Visual C++, given certain compiler flags, that might be true.  But it certainly isn&#039;t true on any platform I use.
+
+If that is true on your platform, then you have some choices. My preferred method is to use an object factory which returns a shared_ptr.  The shared_ptr, at construction time, encodes a pointer to the destruction function.  The object factory then both constructs the new object AND encodes the destructor function, for free.  When the shared_ptr&#039;s counts go to 0, the caller, even if in a different library/toolkit/translation unit, still calls back into the same TU as the object factory to free the memory.  Again, this happens automatically because the destructor function is populated in the same TU as the initial construction of the referenced object in the shared_ptr.]]></description>
+		<content:encoded><![CDATA[<p>Responding to celeborn2bealive</p>
+<p>&#8220;when you allocate memory from a dynamic library, that memory must be freed in the code of the library.&#8221;</p>
+<p>says who?  the C++ library says nothing about that.  I know that with Visual C++, given certain compiler flags, that might be true.  But it certainly isn&#8217;t true on any platform I use.</p>
+<p>If that is true on your platform, then you have some choices. My preferred method is to use an object factory which returns a shared_ptr.  The shared_ptr, at construction time, encodes a pointer to the destruction function.  The object factory then both constructs the new object AND encodes the destructor function, for free.  When the shared_ptr&#8217;s counts go to 0, the caller, even if in a different library/toolkit/translation unit, still calls back into the same TU as the object factory to free the memory.  Again, this happens automatically because the destructor function is populated in the same TU as the initial construction of the referenced object in the shared_ptr.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michael Winterberg				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10673</link>
+		<dc:creator><![CDATA[Michael Winterberg]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 22:10:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10673</guid>
+					<description><![CDATA[nosenseetal: I think that you need to use the overloads of atomic_load and atomic_store that take shared_ptr for that to be acceptable. i.e. I&#039;m pretty sure that individual instances of shared_ptr are not thread safe, only the reference counts that may be shared between multiple instances of a shared_ptr are.]]></description>
+		<content:encoded><![CDATA[<p>nosenseetal: I think that you need to use the overloads of atomic_load and atomic_store that take shared_ptr for that to be acceptable. i.e. I&#8217;m pretty sure that individual instances of shared_ptr are not thread safe, only the reference counts that may be shared between multiple instances of a shared_ptr are.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: andyprowl				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10672</link>
+		<dc:creator><![CDATA[andyprowl]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 22:04:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10672</guid>
+					<description><![CDATA[I think the first two calls to sink() (in the answer to Q3) should not compile, since the constructor of unique_ptr that accepts a raw pointer is marked as explicit. Am I overlooking something?]]></description>
+		<content:encoded><![CDATA[<p>I think the first two calls to sink() (in the answer to Q3) should not compile, since the constructor of unique_ptr that accepts a raw pointer is marked as explicit. Am I overlooking something?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adrian				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10669</link>
+		<dc:creator><![CDATA[Adrian]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 20:51:06 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10669</guid>
+					<description><![CDATA[What happens if the class being instantiated with make_shared has class-specific new and delete operators? Will make_shared use that one (and thus still make a separate allocation for the control block)?]]></description>
+		<content:encoded><![CDATA[<p>What happens if the class being instantiated with make_shared has class-specific new and delete operators? Will make_shared use that one (and thus still make a separate allocation for the control block)?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Kobi Cohen-Arazi				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10668</link>
+		<dc:creator><![CDATA[Kobi Cohen-Arazi]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 20:38:52 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10668</guid>
+					<description><![CDATA[@herb
+One of the nice things in C++ is that you don&#039;t pay for something you do not use.
+However, using shared_ptr in the context of a single threaded env/module incur the atomic op overhead.
+It might be negligible in some scenarios, but in others, it might be a good reason not to use it.
+Any thoughts about it? Are we going to see a shared_ptr w/o locks somewhere in the future?]]></description>
+		<content:encoded><![CDATA[<p>@herb<br />
+One of the nice things in C++ is that you don&#8217;t pay for something you do not use.<br />
+However, using shared_ptr in the context of a single threaded env/module incur the atomic op overhead.<br />
+It might be negligible in some scenarios, but in others, it might be a good reason not to use it.<br />
+Any thoughts about it? Are we going to see a shared_ptr w/o locks somewhere in the future?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: paercebal				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10667</link>
+		<dc:creator><![CDATA[paercebal]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 20:29:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10667</guid>
+					<description><![CDATA[@Anders Dalvander
+
+A solution is to write your own &quot;make_my_shared&quot; insuring it will be expection safe and the new will be done outside the standard make_shared.
+
+This way, you keep the exception safety and follow the &quot;don&#039;t-write-naked-new&quot; guideline, all the while separating the memory for the reference counters from the memory for your very-large-object.]]></description>
+		<content:encoded><![CDATA[<p>@Anders Dalvander</p>
+<p>A solution is to write your own &#8220;make_my_shared&#8221; insuring it will be expection safe and the new will be done outside the standard make_shared.</p>
+<p>This way, you keep the exception safety and follow the &#8220;don&#8217;t-write-naked-new&#8221; guideline, all the while separating the memory for the reference counters from the memory for your very-large-object.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Anders Dalvander				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10665</link>
+		<dc:creator><![CDATA[Anders Dalvander]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 20:10:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10665</guid>
+					<description><![CDATA[make_shared can be wasteful if you have large objects and weak_ptr to these shared objects as the memory for the large object cannot be deallocated before the last weak_ptr has been destroyed. Sometimes it is better to use new instead of make_shared.]]></description>
+		<content:encoded><![CDATA[<p>make_shared can be wasteful if you have large objects and weak_ptr to these shared objects as the memory for the large object cannot be deallocated before the last weak_ptr has been destroyed. Sometimes it is better to use new instead of make_shared.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: nosenseetal				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10664</link>
+		<dc:creator><![CDATA[nosenseetal]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 19:49:27 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10664</guid>
+					<description><![CDATA[@herb
+There are three major reasons to say “when in doubt, prefer unique_ptr.” 
+well I have one reason to prefer SP:
+by default it is &quot;thread safe&quot; (big &quot;&quot;)
+aka afaik 
+(this is ok, but wasteful)
+while (!sp)
+{
+}
+//use sp
+
+(this is not ok)
+while (!up)
+{
+}
+//use up
+
+(up, sp set in other thread)
+Am I wrong to think that SP is thread &quot;safer&quot;  :P than UP ? 
+
+@marco
+yes but that doesnt mean that what it points to is magically &quot;locked&quot; when you use it. :)
+boost sp has option to disalbe thread safety 
+If your program is single-threaded and does not link to any libraries that might have used shared_ptr in its default configuration, you can #define the macro BOOST_SP_DISABLE_THREADS on a project-wide basis to switch to ordinary non-atomic reference count updates.]]></description>
+		<content:encoded><![CDATA[<p>@herb<br />
+There are three major reasons to say “when in doubt, prefer unique_ptr.”<br />
+well I have one reason to prefer SP:<br />
+by default it is &#8220;thread safe&#8221; (big &#8220;&#8221;)<br />
+aka afaik<br />
+(this is ok, but wasteful)<br />
+while (!sp)<br />
+{<br />
+}<br />
+//use sp</p>
+<p>(this is not ok)<br />
+while (!up)<br />
+{<br />
+}<br />
+//use up</p>
+<p>(up, sp set in other thread)<br />
+Am I wrong to think that SP is thread &#8220;safer&#8221;  :P than UP ? </p>
+<p>@marco<br />
+yes but that doesnt mean that what it points to is magically &#8220;locked&#8221; when you use it. :)<br />
+boost sp has option to disalbe thread safety<br />
+If your program is single-threaded and does not link to any libraries that might have used shared_ptr in its default configuration, you can #define the macro BOOST_SP_DISABLE_THREADS on a project-wide basis to switch to ordinary non-atomic reference count updates.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marco				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10660</link>
+		<dc:creator><![CDATA[Marco]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 19:27:56 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10660</guid>
+					<description><![CDATA[One thing we were discussing about a lot: are c++ shared_ptr threadsafe?]]></description>
+		<content:encoded><![CDATA[<p>One thing we were discussing about a lot: are c++ shared_ptr threadsafe?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Tom Kirby-Green				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comment-10659</link>
+		<dc:creator><![CDATA[Tom Kirby-Green]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 19:24:03 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2035#comment-10659</guid>
+					<description><![CDATA[Hi Herb, is there any chance you could post somewhere your preferred pre &#039;Milan&#039; (variadics) implementation for VS2012 Update 2 MSVC developers who want to use a pseudo blessed implementation of make_unique today?]]></description>
+		<content:encoded><![CDATA[<p>Hi Herb, is there any chance you could post somewhere your preferred pre &#8216;Milan&#8217; (variadics) implementation for VS2012 Update 2 MSVC developers who want to use a pseudo blessed implementation of make_unique today?</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

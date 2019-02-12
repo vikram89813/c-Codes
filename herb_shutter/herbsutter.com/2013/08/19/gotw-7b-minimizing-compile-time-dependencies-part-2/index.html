@@ -1,0 +1,1117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #7b: Minimizing Compile-Time Dependencies, Part 2 | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965393&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F08%2F19%2Fgotw-7b-minimizing-compile-time-dependencies-part-2%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #7b: Minimizing Compile-Time Dependencies, Part&nbsp;2 Comments Feed" href="https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #7a Solution: Minimizing Compile-Time Dependencies, Part&nbsp;1' href='https://herbsutter.com/2013/08/19/gotw-7a-solution-minimizing-compile-time-dependencies-part-1/' />
+<link rel='next' title='Livestreamed talk at GoingNative this week: One&nbsp;C++' href='https://herbsutter.com/2013/09/03/livestreamed-talk-at-goingnative-this-week-one-c/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-B0' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F08%2F19%2Fgotw-7b-minimizing-compile-time-dependencies-part-2%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F08%2F19%2Fgotw-7b-minimizing-compile-time-dependencies-part-2%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #7b: Minimizing Compile-Time Dependencies, Part 2" />
+<meta property="og:url" content="https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/" />
+<meta property="og:description" content="Now that the unnecessary headers have been removed, it&#8217;s time for Phase 2: How can you limit dependencies on the internals of a class? Problem JG Questions 1. What does private mean for a cla…" />
+<meta property="article:published_time" content="2013-08-19T10:33:12+00:00" />
+<meta property="article:modified_time" content="2013-11-03T00:49:39+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965393" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #7b: Minimizing Compile-Time Dependencies, Part&nbsp;2" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Now that the unnecessary headers have been removed, it&#039;s time for Phase 2: How can you limit dependencies on the internals of a class? Problem JG Questions 1. What does private mean for a class member in C++? 2. Why does changing the private members of a type cause a recompilation? Guru Question 3. Below&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2294 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/08/19/gotw-7a-solution-minimizing-compile-time-dependencies-part-1/" rel="prev">GotW #7a Solution: Minimizing Compile-Time Dependencies, Part&nbsp;1</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/09/03/livestreamed-talk-at-goingnative-this-week-one-c/" rel="next">Livestreamed talk at GoingNative this week: One&nbsp;C++</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2294 post type-post status-publish format-standard hentry category-gotw" id="post-2294">
+				<div class="posttitle">
+					<h2>GotW #7b: Minimizing Compile-Time Dependencies, Part&nbsp;2</h2>
+					<p class="post-info">2013-08-19 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>Now that the unnecessary headers have been removed, it&#8217;s time for Phase 2: How can you limit dependencies on the internals of a class?</em></span></p>
+<h1>Problem</h1>
+<h2>JG Questions</h2>
+<p>1. What does <span style="color:#2e74b5;">private</span> mean for a class member in C++?</p>
+<p>2. Why does changing the private members of a type cause a recompilation?</p>
+<h2>Guru Question</h2>
+<p>3. Below is how the header from the previous Item looks after the initial cleanup pass. What further <span style="color:#2e74b5;">#include</span>s could be removed if we made some suitable changes, and how?</p>
+<p>This time, you may make changes to <span style="color:#2e74b5;">X</span> as long as <span style="color:#2e74b5;">X</span>&#8216;s base classes and its public interface remain unchanged; any current code that already uses <span style="color:#2e74b5;">X</span> should not be affected beyond requiring a simple recompilation.</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>//  x.h: sans gratuitous headers
+//
+#include &lt;iosfwd&gt;
+#include &lt;list&gt;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include "a.h"  // class A
+#include "b.h"  // class B
+#include "c.h"  // class C
+#include "d.h"  // class D
+class E;
+
+class X : public A, private B {
+public:
+       X( const C&amp; );
+    B  f( int, char* );
+    C  f( int, C );
+    C&amp; g( B );
+    E  h( E );
+    virtual std::ostream&amp; print( std::ostream&amp; ) const;
+
+  private:
+    std::list&lt;C&gt; clist;
+    D            d_;
+};
+
+std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, const X&amp; x ) {
+    return x.print(os);
+}
+</code></pre>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											21 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">21 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-12434">
+		<div id="div-comment-12434">
+		<div class="cmtinfo"><em> on <a href="#comment-12434" title="">2013-09-08 at 7:40 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/4c6a6be286186f571ff3a1a60d95d666?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Brent F</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12434"></div><p>d_ and clist are not part of the public interface or part of X&#8217;s base classes. These members are unreferenced in the example. We can conclude that these members are unused. Therefore we can forward declare C, remove these unused members, and eliminate , &#8220;c.h&#8221; and &#8220;d.h&#8221;.</p>
+<p>That is unless you consider the size of an object to be part of that object&#8217;s interface.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12333">
+		<div id="div-comment-12333">
+		<div class="cmtinfo"><em> on <a href="#comment-12333" title="">2013-08-29 at 11:37 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f2ffcd63c3f62b86a905ebe89da2c69d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/pdvrieze' rel='external nofollow' class='url'>Paul</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12333"></div><p>It seems that everyone seems to ignore that class A has virtual members. Class X also has virtual members anyway (the print function), and therefore needs a *virtual* destructor. This should also solve the unique_ptr pimpl issue and allow a pimpl to reduce implementation detail dependencies (all private members can be hidden).</p>
+<p>Additionally the private inheritance of B can be replaced by encapsulation instead (inside the pimpl)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-alfps even thread-even depth-1 highlander-comment" id="comment-12291">
+		<div id="div-comment-12291">
+		<div class="cmtinfo"><em> on <a href="#comment-12291" title="">2013-08-22 at 5:13 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6d1c46e2968a7674186b73b819dbca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://alfps.wordpress.com' rel='external nofollow' class='url'>Alf P. Steinbach</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12291"></div><p>void X::swap_with( X&amp; other )<br />
+{<br />
+    swap<a>( *this, other );<br />
+    swap<b>( *this, other );<br />
+    swap( p_impl_, other.p_impl_ );<br />
+}</p>
+<p>And having corrected that it now occurred to me,</p>
+<p><em>what if <code>A</code> and <code>B</code> have a common <b>virtual base class</b></em>?</p>
+<p>In that case, since the above code swaps the virtual base sub-object an even number of times, an extra swap of it needs to be added to bring the total number of swaps of this sub-object to an odd number:</p>
+<p>void X::swap_with( X&amp; other )<br />
+{<br />
+    swap<a>( *this, other );<br />
+    swap<b>( *this, other );<br />
+    swap( *this, other );<br />
+    swap( p_impl_, other.p_impl_ );<br />
+}</p>
+<p>But if that swap is done via copy assignments and is costly, then this is needlessly inefficient.</p>
+<p>For, instead &ndash; and I didn&rsquo;t think of this earlier &ndash; to cater for the possibility of a common virtual base class for <code>A</code> and <code>B</code>, the <code>X</code> assignment operator <em>can</em> be expressed in terms of assignment, like this:</p>
+<p>auto X::operator=( X const&amp; other )<br />
+    -&gt; X</p>
+<p>I don&rsquo;t think I&rsquo;d do that optimization, but then, I don&rsquo;t think I&rsquo;d use PIMPL to get rid of an <code>#include</code> in the first place.</b></a></b></a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-alfps odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12290">
+		<div id="div-comment-12290">
+		<div class="cmtinfo"><em> on <a href="#comment-12290" title="">2013-08-22 at 3:09 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6d1c46e2968a7674186b73b819dbca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://alfps.wordpress.com' rel='external nofollow' class='url'>Alf P. Steinbach</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12290"></div><p>Oh well. Hm. @Thibaud reminded me to add an <code>operator=</code>, which I did (the only answer so far to do that crucial thing), but I did that with an incomplete implementation of <code>swap_with</code>: the <code>A</code> and <code>B</code> base class sub-objects were not swapped in that code. I intended to, but I forgot. I think I forgot it mainly because I do such things by testing the code, and with just empty dummy <code>A</code> and <code>B</code> classes the code worked nicely&hellip;</p>
+<p>So, here&rsquo;s an implementation using <code>std::swap</code>, <b>assuming</b> that <code>A</code> and <code>B</code> are no-throw swappable:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+void X::swap_with( X&amp; other )
+{
+    swap&lt;A&gt;( *this, *this );
+    swap&lt;B&gt;( *this, *this );
+    swap( p_impl_, other.p_impl_ );
+}
+</pre>
+<p>If the no-throw swappable assumption does not hold, then a <code>noexcept</code> would give the compiler incorrect information, so I have removed it here.</p>
+<p>In the case where swapping throws one can end up with an inconsistent state, which is the same general effect as with the compiler-generated assignment for the original class <code>X</code>. In more detail, the compiler generated assignment can yield an inconsistent state when copy assignment of a sub-object throws, and the above can yield an inconsistent state when swapping throws, which is most likely due to assignment to that sub-object throwing. Anyway, depending on the properties of the classes one can get an inconsistency.</p>
+<p>Summing up so far, to implement a class <code>X</code> copy assignment operator, as opposed to letting the compiler generate one, one has to assume that</p>
+<p>• classes <code>A</code>, <code>B</code>, <code>C</code> and <code>D</code> are <b>copy-constructible</b>, and</p>
+<p>• the base classes <code>A</code> and <code>B</code>are <b>swappable</b> (possibly just by providing copy assignment, possibly by specializing <code>std::swap</code>), but not necessarily non-throwing swappable.</p>
+<p>If instead of a user-defined <code>X</code> copy assignment operator one uses a cloning smart-pointer for <code>p_impl_</code>, then it&rsquo;s not strictly necessary to know anything about <code>A</code>.and <code>B</code>. For then the compiler does the job of considering the properties of <code>A</code>.and <code>B</code> when it attempts to generate <code>X</code> copy constructor and copy assignment operator, However, in the case where not all the classes are copy-constructible there is not much point in the cloning smart pointer (it will never be doing its thing), so the code will in practice depend on the properties of the classes.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12285">
+		<div id="div-comment-12285">
+		<div class="cmtinfo"><em> on <a href="#comment-12285" title="">2013-08-22 at 6:51 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/3d1378fea402c38478aded1efb3b5755?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>thokra</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12285"></div><p>thefatredguy: in the current standard, a trailing return type is mandated if you use auto as a function&#8217;s return type. This is not because return type deduction isn&#8217;t possible, but simply because there were multiple concerns among the core working group that couldn&#8217;t be resolved in time for C++11. </p>
+<p>Therefore, return type deduction has been proposed for C++14 and partially implemented in g++-4.8 by Jason Merrill. However, doing so will emit a warning that you&#8217;re not providing a trailing return type and thus write non-standard (C++11) code which will either not compile or only ne available as a vendor specific compiler extension. g++-4.7 or less properly emit a compile-time error.</p>
+<p>The corresponding paper is here: <a href="http://isocpp.org/files/papers/N3638.html" rel="nofollow">http://isocpp.org/files/papers/N3638.html</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12282">
+		<div id="div-comment-12282">
+		<div class="cmtinfo"><em> on <a href="#comment-12282" title="">2013-08-22 at 12:00 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/488a24677a17ddd26b4a1459c1302f72?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>thefatredguy</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12282"></div><p>All this insanity because C++ is still in the dark ages when it comes to organizing/compiling source code.<br />
+I see that a lot of people write functions like this </p>
+<pre class="brush: plain; title: ; notranslate" title="">virtual auto print( std::ostream&amp; ) const -&gt; std::ostream&amp;</pre>
+<p>What would be the advantage over the more traditional way of doing it</p>
+<pre class="brush: plain; title: ; notranslate" title="">virtual std::ostream&amp; print(std::ostream&amp;)</pre>
+<p> ?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12275">
+		<div id="div-comment-12275">
+		<div class="cmtinfo"><em> on <a href="#comment-12275" title="">2013-08-21 at 4:45 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7ac54dd1f64876196b262bd7689f2000?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Norbert Riedlin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12275"></div><p>One additional thought that I have not seen up to now in another post is that private inheritance can be considered as &#8220;is implemented in terms of&#8221;. That means we could add a B member in the Impl class and remove the <code>private B</code> inheritance. Then we could remove the <code>#include "b.h"</code> and replace it with the proper forward declaration <code>class B;</code>. All that can only be done, if we don&#8217;t need access to protected parts of B (only a look at the implementation could tell us). Another reason to have to stick to inheritance would be the need to override a virtual function, but the comment says that B has none.</p>
+<p>As I write this I see that we could just let the internal class Impl inherit publicly from B. This way we would also have access to B&#8217;s protected members. Impl also would not need the mentioned B member.</p>
+<p>But I would also object against &#8216;pimpl&#8217;ing the class. As it is now, the class has valid copy and move constructors and valid copy and move assignment operators. If we change the implementation to a pimpl based one, we would have to provide them manually to keep it externally unchanged. I don&#8217;t think this is justified just to be able to remove some header files.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-alfps odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12274">
+		<div id="div-comment-12274">
+		<div class="cmtinfo"><em> on <a href="#comment-12274" title="">2013-08-21 at 4:45 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6d1c46e2968a7674186b73b819dbca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://alfps.wordpress.com' rel='external nofollow' class='url'>Alf P. Steinbach</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12274"></div><p><a>@Thibaud</a>:</p>
+<p>&ldquo;1. You can now remove #include [missing] in “x.h” and put it in the implementation file.&rdquo;</p>
+<p>Assuming that you meant <code>#include &lt;list&lt;&gt;</code> it <em>is</em> in the implementation file (unfortunately the line in the header avoided deletion, it&rsquo;s redundant).</p>
+<p>&ldquo;2. You could also put B in Impl and replace #include &#8220;b.h&#8221; with a forward declaration. Doing this, B and X’s public interface remain unchanged.&rdquo;&#8221;</p>
+<p>No.</p>
+<p>The requirement is &ldquo;as long as X‘s base classes and its public interface remain unchanged&rdquo;. Which means: not only the public interface, for whatever interpretation of &ldquo;public&rdquo;, but also the base classes.</p>
+<p>Private base classes can with some effort be regarded as part of the effective public interface because (1) they participate in name look-up, and (2) the old C-style cast is explicitly permitted to cast to an inaccessible base class (it&rsquo;s the only cast that can be used for this with well-defined effect).</p>
+<p>I find that interpretation a bit unnatural, but it or a similar practical consideration might be the reason why Herb wants to preserve base classes in addition to the normal public interface.</p>
+<p>&ldquo;3. I think operator= has to be defined?&rdquo;</p>
+<p>Right, I forgot that.</p>
+<p>It is however <b>rather difficult</b> to do correctly with the information given, because we don&rsquo;t know whether the original public interface provided copy constructor, or copy assignment operator, for that depends crucially on the nature of classes <code>C</code> and <code>D</code>.</p>
+<p>But somehow I don&rsquo;t think that Herb meant to withhold the copyability information!</p>
+<p>So, just <em>assuming that <code>C</code> and <code>D</code> are fully copyable</em>, and making the new method <code>swap_with</code> protected in order to preserve the public interface unchanged, the copying-supporting header can go like this:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#pragma once
+
+#include &lt;iosfwd&gt;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include &quot;a.h&quot;  // class A
+#include &quot;b.h&quot;  // class B
+class C;        // class C
+// Class D is not needed in this header, at all.
+class E;        // Class E
+
+#ifndef CPPX_NOEXCEPT
+#   define CPPX_NOEXCEPT noexcept
+#endif
+
+class X
+    : public A
+    , private B
+{
+private:
+    class Impl;
+    Impl* p_impl_;
+
+protected:
+    void swap_with( X&amp; other ) CPPX_NOEXCEPT;
+
+public:
+    auto f( int, char* ) -&gt; B;
+    auto f( int, C ) -&gt; C;
+    auto g( B ) -&gt; C&amp;;
+    auto h( E ) -&gt; E;
+    virtual auto print( std::ostream&amp; ) const -&gt; std::ostream&amp;;
+
+    auto operator=( X other ) -&gt; X&amp;;
+
+    ~X();
+    X( X const&amp; other );
+    X( C const&amp; );
+};
+
+inline auto operator&lt;&lt;( std::ostream&amp; os, X const&amp; x )
+    -&gt; std::ostream&amp;
+{ return x.print( os ); }
+</pre>
+<p>The implementation is now</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &quot;x.h&quot;
+
+#include &quot;c.h&quot;
+#include &quot;d.h&quot;
+#include &quot;e.h&quot;
+#include &quot;list&quot;
+
+#include &lt;algorithm&gt;        // std::swap
+#include &lt;iostream&gt;         // std::clog, std::endl
+using namespace std;
+
+class X::Impl
+{
+public:
+    std::list&lt;C&gt;    clist_;
+    D               d_;
+
+    ~Impl()
+    { clog &lt;&lt; &quot;Bye bye!&quot; &lt;&lt; endl; }
+    
+    Impl()
+    { clog &lt;&lt; &quot;Well, hello there!&quot; &lt;&lt; endl; }
+
+    Impl( Impl const&amp; other )
+        : clist_( other.clist_ )
+        , d_( other.d_ )
+    { clog &lt;&lt; &quot;Well, hello there, I'm a copy!&quot; &lt;&lt; endl; }
+};
+    
+auto X::f( int, char* ) -&gt; B
+{ throw 0; }
+
+auto X::f( int, C ) -&gt; C
+{ throw 0; }
+
+auto X::g( B ) -&gt; C&amp;
+{ throw 0; }
+
+auto X::h( E ) -&gt; E
+{ throw 0; }
+
+auto X::print( std::ostream&amp; ) const -&gt; std::ostream&amp;
+{ throw 0; }
+
+void X::swap_with( X&amp; other ) CPPX_NOEXCEPT
+{
+    swap( p_impl_, other.p_impl_ );
+}
+
+auto X::operator=( X other )
+    -&gt; X&amp;
+{ swap_with( other ); return *this; }
+
+X::~X()
+{ delete p_impl_; }
+
+X::X( X const&amp; other )
+    : p_impl_( new X::Impl( *other.p_impl_ ) )
+{}
+
+X::X( C const&amp; )
+    : p_impl_( new Impl )
+{}
+</pre>
+<p>&#8220;4. I don’t understand your first argument of not using std::unique_ptr. When I forget to define the destructor, the compiler tells me so (incomplete type) and give me an error.&#8221;</p>
+<p>Sorry, mindless editing. :-) The argument was originally about smart pointers in general, such as now deprecated <code>auto_ptr</code>. For <code>std::default_delete</code> (used by <code>unique_ptr</code>) the code is &ldquo;ill formed&rdquo; (by C++11 §20.7.1.1.2/4) if the type is incomplete, so that with a C++11-conforming compiler one does get a diagnostic  &ndash;  for this particular smart pointer..</p>
+<p>Now I hope there are no more details to fix! &lt;g&gt;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12273">
+		<div id="div-comment-12273">
+		<div class="cmtinfo"><em> on <a href="#comment-12273" title="">2013-08-21 at 4:40 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f1634a09333f7b391db92e1d2bea6253?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sebastian Redl</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12273"></div><p>Also, how exactly do you expect your pimpl_ptr to implement deep copying or destruction without the definition of Impl? That&#8217;s simply impossible.<br />
+And are you sure you want to force &#8220;my pimpl is null&#8221; as a moved-from state on every class using the pointer? Because that&#8217;s the only way to implement moving without the Impl definition, and the only way to implement nothrow move when Impl itself doesn&#8217;t have it.<br />
+Face it, if you use PIMPL, you *have* to define your own special members out of line. That&#8217;s part of how the compilation barrier works. Luckily you can use =default in the implementation file, so the duplication stays manageable.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12272">
+		<div id="div-comment-12272">
+		<div class="cmtinfo"><em> on <a href="#comment-12272" title="">2013-08-21 at 3:53 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f1634a09333f7b391db92e1d2bea6253?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sebastian Redl</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12272"></div><p>unique_ptr is safe to use for PIMPL: the default deleter&#8217;s operator () will not compile if the type is incomplete.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12269">
+		<div id="div-comment-12269">
+		<div class="cmtinfo"><em> on <a href="#comment-12269" title="">2013-08-21 at 12:14 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0400152746a64b153a4bc543bf3cf76c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ralph Tandetzky</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12269"></div><p>1. Private means that only member functions and friends (including methods in friend classes) may access a member directly. Overridden functions in derived classes do not have this privilege. </p>
+<p>2. Because the file defining the class is changed and therefore the file and all files #including it need to be recompiled. The reason for recompilations is the way C++ code is organized. </p>
+<p>But there&#8217;s another reason that shows why this cannot be changed that easily. Changing private members affects the object size of a class. Moreover, some private member might have customized default constructors, copy or move constructors or assignment or destructor. If the respective member function of the class containing it is implicitly defined or defaulted, then every compilation unit that uses any of these member functions calls the member function *inline*. The behavior of these inlined functions can already change when only the order of private data members is changed. A prominent example where this happens is when a data member of a scoped thread type should be listed as last data member, but isn&#8217;t. In that case some important other data members that might be accessed by the thread get destroyed first in the destructor while the thread is still executing. Kaboom!</p>
+<p>Therefore it makes sense to recompile code like this when the order of private data members changes. </p>
+<p>3. The solution it to use the pimpl idiom. It&#8217;s actually possible to remove all the header except two: iosfwd and a.h. It&#8217;s not necessary to keep <code> B </code> as a base of <code> X </code> since it is not part of the public or protected interface of the class. You can put that base class into the <code> Impl </code> class and (re)implement any inherited virtual functions from <code> B </code> there. I&#8217;ve used this a lot in some of my code. It has proven to work wonderfully, especially when a class would otherwise inherit a big bunch of interfaces privately. (The use case of implementing private interfaces is that the class itself can implicitly cast itself to such an interface when connecting to code it uses.)</p>
+<p>If the answer should be conforming to the exact exercise, then X must inherit privately from B</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+//  x.h: sans gratuitous headers
+//
+#pragma once // or include guards
+#include &lt;iosfwd&gt;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include &quot;a.h&quot;  // class A
+class B;
+class C;
+class E;
+
+class X : public A {
+// class X : public A, private B {
+  public:
+    X( const C&amp; );
+    ~X();
+    B  f( int, char* );
+    C  f( int, C );
+    C&amp; g( B );
+    E  h( E );
+    virtual std::ostream&amp; print( std::ostream&amp; ) const;
+
+  private:
+    struct Impl;
+    std::unique_ptr&lt;Impl&gt; m;
+};
+
+inline std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, const X&amp; x ) {
+    return x.print(os);
+}
+
+// x.cpp
+#include &quot;x.h&quot;
+#include &quot;b.h&quot;  // class B
+#include &quot;c.h&quot;  // class C
+#include &quot;d.h&quot;  // class D
+
+#include &lt;list&gt;
+
+struct X::Impl : B
+// struct X::Impl
+{
+    std::list&lt;C&gt; clist;
+    D            d_;
+};
+...
+</pre>
+<p>Instead of <code> std::unique_ptr </code> other more suitable smart pointer types could be used that are specifically crafted for being pimpl pointers. In particular this smart pointer type should support<br />
+&#8211; propagating constness<br />
+&#8211; a deep copying copy constructor and copy assignment<br />
+&#8211; a destructor which calls the correct destructor of the held object<br />
+&#8211; cheap move constructor and move assignment with nothrow guarantee<br />
+&#8211; nothrow swap<br />
+Furthermore, the said copy and move constructors and assignments and the destructor should work without the definition of the <code> Impl </code> class. Otherwise the class containing the pimpl pointer will have to declare these operations for itself and implement them in a standard way in the implementation file which is a lot of code duplication and simply annoying. It would be really nice to have a standard solution to this, but neither boost nor the standard library provide one (as far as I know).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12267">
+		<div id="div-comment-12267">
+		<div class="cmtinfo"><em> on <a href="#comment-12267" title="">2013-08-20 at 11:33 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/36ddceab054b49f6e111a8ca8bafe993?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Thibaud</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12267"></div><p>@ Alf P. Steinbach :<br />
+1. You can now remove <code>#include </code> in &#8220;x.h&#8221; and put it in the implementation file.<br />
+2. You could also put B in <code>Impl</code> and replace <code>#include "b.h"</code> with a forward declaration. Doing this, B and X&#8217;s public interface remain unchanged.<br />
+3. I think operator= has to be defined?<br />
+4. I don&#8217;t understand your first argument of not using std::unique_ptr. When I forget to define the destructor, the compiler tells me so (incomplete type) and give me an error.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-alfps even thread-even depth-1 highlander-comment" id="comment-12262">
+		<div id="div-comment-12262">
+		<div class="cmtinfo"><em> on <a href="#comment-12262" title="">2013-08-20 at 6:20 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6d1c46e2968a7674186b73b819dbca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://alfps.wordpress.com' rel='external nofollow' class='url'>Alf P. Steinbach</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12262"></div><p>An oversight: in the PIMPL&#8217;ed header the <code>#include &lt;list&gt;</code> directive should be removed. It&rsquo;s in the implementation file. Somehow the original directive managed to avoid deletion.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-alfps odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12260">
+		<div id="div-comment-12260">
+		<div class="cmtinfo"><em> on <a href="#comment-12260" title="">2013-08-20 at 3:12 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6d1c46e2968a7674186b73b819dbca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://alfps.wordpress.com' rel='external nofollow' class='url'>Alf P. Steinbach</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12260"></div><p>A solution to just the technical aspects of the guru question.</p>
+<p>The original header as given above suffers from some coding errors:</p>
+<p>• No include guard or <code>#pragma once</code><br />
+• Declaration of class <code>E</code> missing.<br />
+• No <code>inline</code> for the <code>operator&lt;&lt;</code> (in practice this means a linking error when the header is included in more<br />
+than one translation unit).</p>
+<p>The <b>original header</b> with the above defects fixed (<code>#pragma once</code> is a <i>de facto</i> standard, supported by all compilers that I care about, which includes Visual C++ and g++):</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#pragma once
+
+#include &lt;iosfwd&gt;
+#include &lt;list&gt;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include &quot;a.h&quot;  // class A
+#include &quot;b.h&quot;  // class B
+#include &quot;c.h&quot;  // class C
+#include &quot;d.h&quot;  // class D
+class E;        // Class E
+
+class X
+    : public A
+    , private B
+{
+public:
+    auto f( int, char* ) -&gt; B;
+    auto f( int, C ) -&gt; C;
+    auto g( B ) -&gt; C&amp;;
+    auto h( E ) -&gt; E;
+    virtual auto print( std::ostream&amp; ) const -&gt; std::ostream&amp;;
+
+    X( C const&amp; );
+
+private:
+    std::list&lt;C&gt;    clist;
+    D               d_;
+};
+
+inline auto operator&lt;&lt;( std::ostream&amp; os, X const&amp; x )
+    -&gt; std::ostream&amp;
+{ return x.print(os); }
+</pre>
+<p>First, since base classes have to be left as-is, classes <code>A</code> and <code>B</code> must be complete.</p>
+<p>Classes <code>C</code><code> and </code><code>E</code> are used  for arguments and function results, so declarations of these classes are needed.</p>
+<p>Class D can however be completely removed from this header by moving the state to an implementation object, the PIMPL idiom.</p>
+<p>A good way to implement the PIMPL idiom is to use a raw pointer and `new` in each `X` constructor, and `delete` in the `X` destructor.</p>
+<p>A bad way to implement the PIMPL idiom is to use `std::unique_ptr`, because:</p>
+<p>• It&rsquo;s easy to get <b>W R O N G</b>. For if it&rsquo;s not done painstakingly correct, then the default implementation will rely on a C++ &ldquo;feature&rdquo; where it can <code>delete</code> a pointer to incomplete type, by just assuming that it has a trivial do-nothing destructor. Then the implementation object destructor is not invoked.</p>
+<p>• It brings in an extra header include, namely <code>&lt;memory&gt;</code>, just in order to get rid of a header include&hellip;</p>
+<p>A simple way to do a <code>unique_ptr</code>-based implementation correct is to declare the `X` destructor, and define it in the implementation file, which brings the instantiation of `default_delete` to a point where the implementation object class is complete.</p>
+<p>However, rather than rely on such subtlety, and rather than bringin in an extra header, just use a raw pointer for this, whence the header can look like &hellip;</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#pragma once
+
+#include &lt;iosfwd&gt;
+#include &lt;list&gt;
+
+// None of A, B, C, or D are templates.
+// Only A and C have virtual functions.
+#include &quot;a.h&quot;  // class A
+#include &quot;b.h&quot;  // class B
+class C;        // class C
+// Class D is not needed in this header, at all.
+class E;        // Class E
+
+class X
+    : public A
+    , private B
+{
+public:
+    auto f( int, char* ) -&gt; B;
+    auto f( int, C ) -&gt; C;
+    auto g( B ) -&gt; C&amp;;
+    auto h( E ) -&gt; E;
+    virtual auto print( std::ostream&amp; ) const -&gt; std::ostream&amp;;
+
+    ~X();
+    X( C const&amp; );
+
+private:
+    class Impl;
+    Impl* p_impl_;
+};
+
+inline auto operator&lt;&lt;( std::ostream&amp; os, X const&amp; x )
+    -&gt; std::ostream&amp;
+{ return x.print( os ); }
+</pre>
+<p>And the implementation file can look like this:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &quot;x.h&quot;
+
+#include &quot;c.h&quot;
+#include &quot;d.h&quot;
+#include &quot;e.h&quot;
+#include &quot;list&quot;
+
+#include &lt;iostream&gt;
+using namespace std;
+
+class X::Impl
+{
+public:
+    std::list&lt;C&gt;    clist_;
+    D               d_;
+
+    ~Impl()
+    { clog &lt;&lt; &quot;Bye bye!&quot; &lt;&lt; endl; }
+    
+    Impl()
+    { clog &lt;&lt; &quot;Well, hello there!&quot; &lt;&lt; endl; }
+};
+
+auto X::f( int, char* ) -&gt; B
+{ throw 0; }
+
+auto X::f( int, C ) -&gt; C
+{ throw 0; }
+
+auto X::g( B ) -&gt; C&amp;
+{ throw 0; }
+
+auto X::h( E ) -&gt; E
+{ throw 0; }
+
+auto X::print( std::ostream&amp; ) const -&gt; std::ostream&amp;
+{ throw 0; }
+
+X::~X() { delete p_impl_; }
+
+X::X( C const&amp; )
+    : p_impl_( new Impl )
+{}
+</pre>
+<p>I have commented earlier on why I don&rsquo;t consider it a generally good idea to use PIMPL to get rid of header includes, mainly that it introduces an inefficiency (dynamic allocation) and subtlety (such as inadvertently introducing UB by incorrect use of <code>unique_ptr</code>) just in order to treat a symptom, whose main causes should ideally instead be addressed. Also, the money might be better spent on hardware for build-servers than on programmers&rsquo;s salaries. But sometimes one may not have a choice about it.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-alfps even thread-even depth-1 highlander-comment" id="comment-12255">
+		<div id="div-comment-12255">
+		<div class="cmtinfo"><em> on <a href="#comment-12255" title="">2013-08-20 at 8:43 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6d1c46e2968a7674186b73b819dbca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://alfps.wordpress.com' rel='external nofollow' class='url'>Alf P. Steinbach</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12255"></div><p>I found some web references for the source concatenation technique (which addresses the archaic tool problem):</p>
+<p>* <a href="http://en.wikipedia.org/wiki/Single_Compilation_Unit" rel="nofollow">http://en.wikipedia.org/wiki/Single_Compilation_Unit</a><br />
+* <a href="http://gamesfromwithin.com/physical-structure-and-c-part-2-build-times" rel="nofollow">http://gamesfromwithin.com/physical-structure-and-c-part-2-build-times</a></p>
+<p>Now I see people downvoting comments here. A downvote is an anonymous social argument, which only makes sense in a social community such as SO (e.g., I very much doubt that Herb will be influenced by the votes: the voting functionality just an artifact of the WordPress blogging system). Please, in order to express disagreement or opinion or perceived fact,, write it up as a comment so that readers can know or guess what it&#8217;s about.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12244">
+		<div id="div-comment-12244">
+		<div class="cmtinfo"><em> on <a href="#comment-12244" title="">2013-08-19 at 2:41 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3d1378fea402c38478aded1efb3b5755?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>thokra</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12244"></div><p>Little correction, it&#8217;s supposed to be <code>std::shared_ptr d_;</code> &#8211; for the same reason it&#8217;s used as the template parameter for the list. </p>
+<p>Although the intent of the author obviously wasn&#8217;t to allow sharing of <code>d_</code>, IMHO it&#8217;s not important. D is completely internal (i.e. neither part of a public interface, nor accessible via friends) and except for slightly increased memory usage and the indirection, it solves the problem of wanting to get rid of the include.</p>
+<p>Again, including <code>d.h</code> might not be a problem in the first place &#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12243">
+		<div id="div-comment-12243">
+		<div class="cmtinfo"><em> on <a href="#comment-12243" title="">2013-08-19 at 2:34 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3d1378fea402c38478aded1efb3b5755?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>thokra</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12243"></div><p>I&#8217;d go as far as saying that using a PIMPL simply to be able to throw out some includes is kind of a premature optimization. Get hard numbers in terms of compile times and really compare two implementations (with and w/o the PIMPLs) &#8211; if you get a significant speedup you can go ahead and find a way to deal with the run-time/maintenance caveats already mentioned by Alf. Also, the indentation of the &#8220;public&#8221; access specifier is a little off. ;)</p>
+<p>I&#8217;m not sure if this was mentioned in [More] Exc. C++ or an older GotW, but one purpose of a PIMPL (or whatever you wanna call it) tends to be overlooked in favor of this uncertain compile-time advantage: helping binary compatibility. Still, employing a PIMPL for that purpose is a completely different design choice than using the PIMPL merely to reduce compile-time dependencies &#8211; and using it just because you get both &#8220;treats&#8221; at the same time simply isn&#8217;t the way to go &#8230;</p>
+<p>Also, for <code>D d_;</code> there is absolutely no reason why this cannot be declared as </p>
+<pre class="brush: plain; title: ; notranslate" title="">std::unique_ptr&lt;D&gt; d_;</pre>
+<p>Also, for the purpose of reducing dependencies, why wouldn&#8217;t a <code>std::list</code> of <code>std::shared_ptr</code> (since <code>std::unique_ptr</code> tends to be a pain when it comes to incomplete types, i.e. default-deleter &#8230; ) not be a viable alternative?</p>
+<p>Yes, we get an additional indirection on access (just like when using a PIMPL) but unless binary compat. matters, it&#8217;s IMHO much easier to read, understand and maintain than a private class. and boilerplate delegation code.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12239">
+		<div id="div-comment-12239">
+		<div class="cmtinfo"><em> on <a href="#comment-12239" title="">2013-08-19 at 6:16 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6d1c46e2968a7674186b73b819dbca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/alfps' rel='external nofollow' class='url'>Alf P. Steinbach</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12239"></div><p>As <a href="https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/#comment-12233" rel="nofollow">John Humphrey noted</a> the “class E” declaration appears to have gone missing.</p>
+<p>Also, there&rsquo;s still no include guard or </p>
+<pre class="brush: plain; title: ; notranslate" title="">#pragma once</pre>
+<p>.</p>
+<p>Also, the </p>
+<pre class="brush: plain; title: ; notranslate" title="">operator&lt;&lt;</pre>
+<p> is still not declared </p>
+<pre class="brush: plain; title: ; notranslate" title="">inline</pre>
+<p>.</p>
+<p>The above are coding <em>errors</em>, ungood in example code (not to mention production code)..</p>
+<p>And with this new part II question (I&rsquo;m happy that I didn&rsquo;t overlook anything for part I) this GOTW is no longer about fixing things. It is now about introducing inefficiences (for PIMPL) and/or a maintainance nightmare (for duplication)  alleviate <em>symptoms</em> of ungoodness, which IMHO is misguided.</p>
+<p>The ungoodness: ungood physical packaging of the code (distribution of code in files), and ungood tools (archaic compiler technology, e.g. with Visual C++ and g++).</p>
+<p>The physical packaging is too course grained and/or the software design does not properly support physical packaging, iif the headers drag in enough stuff to make a successful build too slow.</p>
+<p>The tools, well we can&rsquo;t do much about them, but a reasonable modern approach would be for a compiler to by default compile several C++ translation units in one go, checking each header (except for [assert.h]) only once, Also, for a compiler to not waste time on storing context info in order to be able to continue after error with an avalanche of misleading and outright incorrect messages. nstead, as (IIRC) Turbo C++ did, it should stop at first error, and be <em>taking advantage of that</em> so that it&#8217;s fast about it.</p>
+<p>The archaic tool problem here is so much a pain in the a[censored][censored] that people have, seriously!, proposed to merge all headers and source code into one big file before compiling. They have even described this approach as an &ldquo;idiom&rsquo;, which presumably means that in some shops or projects it&rsquo;s regularly used, and it has a name, which alas I can&rsquo;t recall ATM. Given that the tools should better be fixed, so that people don&rsquo;t have to do hazardious things like that!</p>
+<p>Introducting inefficiences and/or maintainance problems, as this part II of the GOTW is about, is of course an alternative to just suffering build times and/or doing the risky source concatenation thing, but employing these part II techniques negates much of the purpose of using C++ in the first place&hellip;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12236">
+		<div id="div-comment-12236">
+		<div class="cmtinfo"><em> on <a href="#comment-12236" title="">2013-08-19 at 4:44 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/488a24677a17ddd26b4a1459c1302f72?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>thefatredguy</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12236"></div><p>Here&#8217;s my take on it :</p>
+<p>1. When a member (either data or function) is declared as private, only<br />
+    member and friend functions of that class have access to it.<br />
+2. Because of the #include model. Even though the private part of the class definition<br />
+    is not accessible to clients, its still visible to anyone including the header<br />
+    (basically the implementation details of the class end up leaking into client code).<br />
+3. We move the implementation details out of the class interface<br />
+    (the PIMPL idiom &#8211; I first saw this in Exceptional C++, a few years ago) :    </p>
+<pre class="brush: plain; title: ; notranslate" title="">
+    //  x.h: sans gratuitous headers
+    //
+    #include &lt;iosfwd&gt;
+    #include &lt;memory&gt;   // for shared/unique_ptr
+
+    // None of A, B, C, or D are templates.
+    // Only A and C have virtual functions.
+    #include &quot;a.h&quot;  // class A
+    #include &quot;b.h&quot;  // class B
+
+    class X : public A, private B {
+    public:
+        X( const C&amp; );
+
+        virtual ~X();
+
+        B  f( int, char* );
+        C  f( int, C );
+        C&amp; g( B );
+        E  h( E );
+        virtual std::ostream&amp; print( std::ostream&amp; ) const;
+
+    // might also have to either define or delete copy constructor,
+    // assign operator and move constructor        
+
+    private :
+        struct implementation_details;
+        std::unique_ptr&lt;implementation_details&gt; impl_;        
+    };
+
+    std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, const X&amp; x ) {
+        return x.print(os);
+    }
+    
+    </pre>
+<p>In the implementation file :</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+    #include &lt;list&gt;
+    #include &lt;iostream&gt;
+    #include &lt;ostream&gt;
+    #include &quot;c.h&quot;
+    #include &quot;d.h&quot;
+
+    struct X::implementation_details {
+        std::list&lt;C&gt;    clist;
+        D               d_;
+    };
+
+    X::X(const C&amp;)
+        : A(), B(), impl_(new implementation_details())
+    {}
+
+    X::~X() {}
+
+    </pre>
+<p>    Its not without any drawbacks though. There&#8217;s an extra allocation for each<br />
+    object of class X and, from the performace point of view,<br />
+    another level of indirection.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12234">
+		<div id="div-comment-12234">
+		<div class="cmtinfo"><em> on <a href="#comment-12234" title="">2013-08-19 at 4:00 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f6eaf3173d03147c5ad1e0fb7d85f102?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Arne Mertz</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12234"></div><p>1) private means nothing except methods (static or non-static) of the class itself, and befriended functions may access the member. befriended functions include free functions declared as friends, as well as methods of classes declared as friends.<br />
+2) changing *any* member, including private members, might cause a change in the memory layout of a class, or in the vtable, function overload resolution and a number of other things that affect compilation of nonfriends, thereore any entity using the class has to be recompiled.<br />
+3) b.h, c.h and d.h can be gotten rid of by using the pimpl idiom: declare a struct in the header and let the only data member be a pointer to that struct. move all implementation details (private data members and privatly inherited classes) to the impl-struct. Define that struct in the .cpp.<br />
+The logic of the class&#8217; methods can either stay in the class&#8217; implementation (pure data pimpl) or be forwarded completely to the pimpl (handle body idiom) or a mixture of both</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12233">
+		<div id="div-comment-12233">
+		<div class="cmtinfo"><em> on <a href="#comment-12233" title="">2013-08-19 at 3:38 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/be901e771f3d25e80105883d796d6bc3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>John Humphrey</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12233"></div><p>The &#8220;class E&#8221; declaration appears to have gone missing.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-4c6a6be286186f571ff3a1a60d95d666">
+	</div>
+	<div class="grofile-hash-map-f2ffcd63c3f62b86a905ebe89da2c69d">
+	</div>
+	<div class="grofile-hash-map-c6d1c46e2968a7674186b73b819dbca4">
+	</div>
+	<div class="grofile-hash-map-3d1378fea402c38478aded1efb3b5755">
+	</div>
+	<div class="grofile-hash-map-488a24677a17ddd26b4a1459c1302f72">
+	</div>
+	<div class="grofile-hash-map-7ac54dd1f64876196b262bd7689f2000">
+	</div>
+	<div class="grofile-hash-map-f1634a09333f7b391db92e1d2bea6253">
+	</div>
+	<div class="grofile-hash-map-0400152746a64b153a4bc543bf3cf76c">
+	</div>
+	<div class="grofile-hash-map-36ddceab054b49f6e111a8ca8bafe993">
+	</div>
+	<div class="grofile-hash-map-c6d1c46e2968a7674186b73b819dbca4">
+	</div>
+	<div class="grofile-hash-map-f6eaf3173d03147c5ad1e0fb7d85f102">
+	</div>
+	<div class="grofile-hash-map-be901e771f3d25e80105883d796d6bc3">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_12434={"id":468178,"unique_id":"wp-comment-12434","title":"d_%20and%20clist%20are%20not%20part%20of%20the%20public%20interface%20or%20part%20of%20X%26%23039%3Bs%20base%20classes.%20These%20members%20are%20unreferenced%20in%20the%20example.%20We%20can%20conclude%20that%20these%20members%20are%20unused.%20Therefore%20we%20can%20forwa...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12434","item_id":"_comm_12434"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12434 == 'undefined' ){PDRTJS_468178_comm_12434 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12434 );}}PDRTJS_settings_468178_comm_12333={"id":468178,"unique_id":"wp-comment-12333","title":"It%20seems%20that%20everyone%20seems%20to%20ignore%20that%20class%20A%20has%20virtual%20members.%20Class%20X%20also%20has%20virtual%20members%20anyway%20%28the%20print%20function%29%2C%20and%20therefore%20needs%20a%20%2Avirtual%2A%20destructor.%20This%20should%20also...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12333","item_id":"_comm_12333"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12333 == 'undefined' ){PDRTJS_468178_comm_12333 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12333 );}}PDRTJS_settings_468178_comm_12291={"id":468178,"unique_id":"wp-comment-12291","title":"%26%23091%3Bcode%20language%3D%26quot%3Bcpp%26quot%3B%26%23093%3B%26%23091%3B%2Fcode%26%23093%3Bvoid%20X%3A%3Aswap_with%28%20X%26amp%3B%20other%20%29%7B%20%20%20%20swap%26lt%3BA%26gt%3B%28%20%2Athis%2C%20other%20%29%3B%20%20%20%20swap%26lt%3BB%26gt%3B%28%20%2Athis%2C%20other%20%29%3B%20%20%20%20swap%28%20p_impl_%2C%20other.p_impl_%20%29%3B%7D%26%23091%3Bcode%26%23093%3B%26%23091%3B%2Fcode%26%23093%3BAnd%20having%20corrected%20that%20it...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12291","item_id":"_comm_12291"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12291 == 'undefined' ){PDRTJS_468178_comm_12291 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12291 );}}PDRTJS_settings_468178_comm_12290={"id":468178,"unique_id":"wp-comment-12290","title":"Oh%20well.%20Hm.%20%40Thibaud%20reminded%20me%20to%20add%20an%20%26lt%3Bcode%26gt%3Boperator%3D%26lt%3B%2Fcode%26gt%3B%2C%20which%20I%20did%20%28the%20only%20answer%20so%20far%20to%20do%20that%20crucial%20thing%29%2C%20but%20I%20did%20that%20with%20an%20incomplete%20implementation%20of%20%26lt%3Bcode%26gt%3Bswap_w...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12290","item_id":"_comm_12290"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12290 == 'undefined' ){PDRTJS_468178_comm_12290 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12290 );}}PDRTJS_settings_468178_comm_12285={"id":468178,"unique_id":"wp-comment-12285","title":"thefatredguy%3A%20in%20the%20current%20standard%2C%20a%20trailing%20return%20type%20is%20mandated%20if%20you%20use%20auto%20as%20a%20function%26%23039%3Bs%20return%20type.%20This%20is%20not%20because%20return%20type%20deduction%20isn%26%23039%3Bt%20possible%2C%20but%20simply%20because...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12285","item_id":"_comm_12285"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12285 == 'undefined' ){PDRTJS_468178_comm_12285 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12285 );}}PDRTJS_settings_468178_comm_12282={"id":468178,"unique_id":"wp-comment-12282","title":"All%20this%20insanity%20because%20C%2B%2B%20is%20still%20in%20the%20dark%20ages%20when%20it%20comes%20to%20organizing%2Fcompiling%20source%20code.%20I%20see%20that%20a%20lot%20of%20people%20write%20functions%20like%20this%20%26%23091%3Bcode%26%23093%3Bvirtual%20auto%20print%28%20std%3A%3Aostr...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12282","item_id":"_comm_12282"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12282 == 'undefined' ){PDRTJS_468178_comm_12282 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12282 );}}PDRTJS_settings_468178_comm_12275={"id":468178,"unique_id":"wp-comment-12275","title":"One%20additional%20thought%20that%20I%20have%20not%20seen%20up%20to%20now%20in%20another%20post%20is%20that%20private%20inheritance%20can%20be%20considered%20as%20%26quot%3Bis%20implemented%20in%20terms%20of%26quot%3B.%20That%20means%20we%20could%20add%20a%20B%20member%20in%20the%20Impl...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12275","item_id":"_comm_12275"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12275 == 'undefined' ){PDRTJS_468178_comm_12275 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12275 );}}PDRTJS_settings_468178_comm_12274={"id":468178,"unique_id":"wp-comment-12274","title":"%26lt%3Ba%26gt%3B%40Thibaud%26lt%3B%2Fa%26gt%3B%3A%26ldquo%3B1.%20You%20can%20now%20remove%20%23include%20%26%23091%3Bmissing%26%23093%3B%20in%20x.h%20and%20put%20it%20in%20the%20implementation%20file.%26rdquo%3BAssuming%20that%20you%20meant%20%26lt%3Bcode%26gt%3B%23include%20%26lt%3Blist%26lt%3B%26gt%3B%26lt%3B%2Fcode%26gt%3B%20it%20%26lt%3Bem%26gt%3Bis%26lt%3B%2Fem%26gt%3B%20i...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12274","item_id":"_comm_12274"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12274 == 'undefined' ){PDRTJS_468178_comm_12274 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12274 );}}PDRTJS_settings_468178_comm_12273={"id":468178,"unique_id":"wp-comment-12273","title":"Also%2C%20how%20exactly%20do%20you%20expect%20your%20pimpl_ptr%20to%20implement%20deep%20copying%20or%20destruction%20without%20the%20definition%20of%20Impl%3F%20That%26%23039%3Bs%20simply%20impossible.And%20are%20you%20sure%20you%20want%20to%20force%20%26quot%3Bmy%20pimpl%20is%20nu...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12273","item_id":"_comm_12273"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12273 == 'undefined' ){PDRTJS_468178_comm_12273 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12273 );}}PDRTJS_settings_468178_comm_12272={"id":468178,"unique_id":"wp-comment-12272","title":"unique_ptr%20is%20safe%20to%20use%20for%20PIMPL%3A%20the%20default%20deleter%26%23039%3Bs%20operator%20%28%29%20will%20not%20compile%20if%20the%20type%20is%20incomplete....","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12272","item_id":"_comm_12272"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12272 == 'undefined' ){PDRTJS_468178_comm_12272 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12272 );}}PDRTJS_settings_468178_comm_12269={"id":468178,"unique_id":"wp-comment-12269","title":"1.%20Private%20means%20that%20only%20member%20functions%20and%20friends%20%28including%20methods%20in%20friend%20classes%29%20may%20access%20a%20member%20directly.%20Overridden%20functions%20in%20derived%20classes%20do%20not%20have%20this%20privilege.%202.%20...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12269","item_id":"_comm_12269"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12269 == 'undefined' ){PDRTJS_468178_comm_12269 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12269 );}}PDRTJS_settings_468178_comm_12267={"id":468178,"unique_id":"wp-comment-12267","title":"%40%20Alf%20P.%20Steinbach%20%3A1.%20You%20can%20now%20remove%20%26lt%3Bcode%26gt%3B%23include%20%26lt%3B%2Fcode%26gt%3B%20in%20%26quot%3Bx.h%26quot%3B%20and%20put%20it%20in%20the%20implementation%20file.2.%20You%20could%20also%20put%20B%20in%20%26lt%3Bcode%26gt%3BImpl%26lt%3B%2Fcode%26gt%3B%20and%20replace%20%26lt%3Bcode%26gt%3B%23include%20%26quot%3Bb.h%26quot%3B%26lt%3B%2Fcode...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12267","item_id":"_comm_12267"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12267 == 'undefined' ){PDRTJS_468178_comm_12267 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12267 );}}PDRTJS_settings_468178_comm_12262={"id":468178,"unique_id":"wp-comment-12262","title":"An%20oversight%3A%20in%20the%20PIMPL%26%23039%3Bed%20header%20the%20%26lt%3Bcode%26gt%3B%23include%20%26lt%3Blist%26gt%3B%26lt%3B%2Fcode%26gt%3B%20directive%20should%20be%20removed.%20It%26rsquo%3Bs%20in%20the%20implementation%20file.%20Somehow%20the%20original%20directive%20managed%20to%20avoid%20del...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12262","item_id":"_comm_12262"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12262 == 'undefined' ){PDRTJS_468178_comm_12262 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12262 );}}PDRTJS_settings_468178_comm_12260={"id":468178,"unique_id":"wp-comment-12260","title":"A%20solution%20to%20just%20the%20technical%20aspects%20of%20the%20guru%20question.The%20original%20header%20as%20given%20above%20suffers%20from%20some%20coding%20errors%3A%20No%20include%20guard%20or%20%26lt%3Bcode%26gt%3B%23pragma%20once%26lt%3B%2Fcode%26gt%3B%20Declaration%20of%20clas...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12260","item_id":"_comm_12260"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12260 == 'undefined' ){PDRTJS_468178_comm_12260 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12260 );}}PDRTJS_settings_468178_comm_12255={"id":468178,"unique_id":"wp-comment-12255","title":"I%20found%20some%20web%20references%20for%20the%20source%20concatenation%20technique%20%28which%20addresses%20the%20archaic%20tool%20problem%29%3A%2A%20http%3A%2F%2Fen.wikipedia.org%2Fwiki%2FSingle_Compilation_Unit%2A%20http%3A%2F%2Fgamesfromwithin.com%2Fph...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12255","item_id":"_comm_12255"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12255 == 'undefined' ){PDRTJS_468178_comm_12255 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12255 );}}PDRTJS_settings_468178_comm_12244={"id":468178,"unique_id":"wp-comment-12244","title":"Little%20correction%2C%20it%26%23039%3Bs%20supposed%20to%20be%20%26lt%3Bcode%26gt%3Bstd%3A%3Ashared_ptr%20d_%3B%26lt%3B%2Fcode%26gt%3B%20-%20for%20the%20same%20reason%20it%26%23039%3Bs%20used%20as%20the%20template%20parameter%20for%20the%20list.%20Although%20the%20intent%20of%20the%20author%20obviously%20wasn%26%23039%3Bt%20...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12244","item_id":"_comm_12244"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12244 == 'undefined' ){PDRTJS_468178_comm_12244 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12244 );}}PDRTJS_settings_468178_comm_12243={"id":468178,"unique_id":"wp-comment-12243","title":"I%26%23039%3Bd%20go%20as%20far%20as%20saying%20that%20using%20a%20PIMPL%20simply%20to%20be%20able%20to%20throw%20out%20some%20includes%20is%20kind%20of%20a%20premature%20optimization.%20Get%20hard%20numbers%20in%20terms%20of%20compile%20times%20and%20really%20compare%20two%20impl...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12243","item_id":"_comm_12243"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12243 == 'undefined' ){PDRTJS_468178_comm_12243 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12243 );}}PDRTJS_settings_468178_comm_12239={"id":468178,"unique_id":"wp-comment-12239","title":"As%20%26lt%3Ba%20href%3D%26quot%3Bhttp%3A%2F%2Fherbsutter.com%2F2013%2F08%2F19%2Fgotw-7b-minimizing-compile-time-dependencies-part-2%2F%23comment-12233%26quot%3B%20rel%3D%26quot%3Bnofollow%26quot%3B%26gt%3BJohn%20Humphrey%20noted%26lt%3B%2Fa%26gt%3B%20the%20class%20E%20declaration%20appears%20to%20have%20gon...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12239","item_id":"_comm_12239"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12239 == 'undefined' ){PDRTJS_468178_comm_12239 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12239 );}}PDRTJS_settings_468178_comm_12236={"id":468178,"unique_id":"wp-comment-12236","title":"Here%26%23039%3Bs%20my%20take%20on%20it%20%3A1.%20When%20a%20member%20%28either%20data%20or%20function%29%20is%20declared%20as%20private%2C%20only%20%20%20%20member%20and%20friend%20functions%20of%20that%20class%20have%20access%20to%20it.2.%20Because%20of%20the%20%23include%20model.%20Even...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12236","item_id":"_comm_12236"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12236 == 'undefined' ){PDRTJS_468178_comm_12236 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12236 );}}PDRTJS_settings_468178_comm_12234={"id":468178,"unique_id":"wp-comment-12234","title":"1%29%20private%20means%20nothing%20except%20methods%20%28static%20or%20non-static%29%20of%20the%20class%20itself%2C%20and%20befriended%20functions%20may%20access%20the%20member.%20befriended%20functions%20include%20free%20functions%20declared%20as%20friends...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12234","item_id":"_comm_12234"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12234 == 'undefined' ){PDRTJS_468178_comm_12234 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12234 );}}PDRTJS_settings_468178_comm_12233={"id":468178,"unique_id":"wp-comment-12233","title":"The%20%26quot%3Bclass%20E%26quot%3B%20declaration%20appears%20to%20have%20gone%20missing....","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/#comment-12233","item_id":"_comm_12233"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12233 == 'undefined' ){PDRTJS_468178_comm_12233 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12233 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKioFmldQQE3jAnISM/OABtrn2hqaGBkZmxgZGptkAQB2YF92'></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F08%2F19%2Fgotw-7b-minimizing-compile-time-dependencies-part-2%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7b-minimizing-compile-time-dependencies-part-2\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F08%2F19%2Fgotw-7b-minimizing-compile-time-dependencies-part-2%2F","postID":"2294","shortlink":"https:\/\/wp.me\/peb5Y-B0","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2294","statsLink":"https:\/\/wordpress.com\/stats\/post\/2294\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F08%2F19%2Fgotw-7b-minimizing-compile-time-dependencies-part-2%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2294','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNGtGP1tNMWklPS9ULkEwekMwRTFUNm8vbSs1Yz1iMyZ4dnxMYi4uRFF2amVVZT9wK2FsLTFdeHI2LFpMM1FlWy9fVSx8cGVNd3ZQVD09PWJXTlUlZTElRzJRZXFiQ0ZbdVhCNW5YN3JzSltfakVdblVWOEhrUnZUaWp8Qk56MGxWcz91aEFddkhJUGFKfkVqYWVHL2ZVQ25FfnUyK1lGQ2JNUHZCMjBmSkZyNz9IVmppenJZaWdpN2I/Ryt0ciU3SEh5L3JBag=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2294' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

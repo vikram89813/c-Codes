@@ -1,0 +1,589 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Effective Concurrency: Know When to Use an Active Object Instead of a Mutex | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965475&amp;back=https%3A%2F%2Fherbsutter.com%2F2010%2F09%2F24%2Feffective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Effective Concurrency: Know When to Use an Active Object Instead of a&nbsp;Mutex Comments Feed" href="https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='C++ and Beyond Encore: December 13-16,&nbsp;2010' href='https://herbsutter.com/2010/09/24/c-and-beyond-encore-december-13-16-2010/' />
+<link rel='next' title='C++ and Beyond Encore: Public Registration Now&nbsp;Open' href='https://herbsutter.com/2010/10/07/c-and-beyond-encore-public-registration-now-open/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-7m' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2010%2F09%2F24%2Feffective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2010%2F09%2F24%2Feffective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Effective Concurrency: Know When to Use an Active Object Instead of a Mutex" />
+<meta property="og:url" content="https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/" />
+<meta property="og:description" content="This month&#8217;s Effective Concurrency column, &#8220;Know When to Use an Active Object Instead of a Mutex,&#8221; is now live on DDJ&#8217;s website. From the article: Let&#8217;s say that your …" />
+<meta property="article:published_time" content="2010-09-24T18:50:39+00:00" />
+<meta property="article:modified_time" content="2010-09-24T18:51:19+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965475" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Effective Concurrency: Know When to Use an Active Object Instead of a&nbsp;Mutex" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="This month&#039;s Effective Concurrency column, &quot;Know When to Use an Active Object Instead of a Mutex,&quot; is now live on DDJ&#039;s website. From the article: Let&#039;s say that your program has a shared log file object. The log file is likely to be a popular object; lots of different threads must be able to write&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-456 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2010/09/24/c-and-beyond-encore-december-13-16-2010/" rel="prev">C++ and Beyond Encore: December 13-16,&nbsp;2010</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2010/10/07/c-and-beyond-encore-public-registration-now-open/" rel="next">C++ and Beyond Encore: Public Registration Now&nbsp;Open</a> &raquo;</div>
+			</div>
+			
+			<div class="post-456 post type-post status-publish format-standard hentry category-concurrency category-software-development" id="post-456">
+				<div class="posttitle">
+					<h2>Effective Concurrency: Know When to Use an Active Object Instead of a&nbsp;Mutex</h2>
+					<p class="post-info">2010-09-24 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>This month&#8217;s <em>Effective Concurrency</em> column, <a href="http://www.drdobbs.com/go-parallel/article/showArticle.jhtml?articleID=227500074">&#8220;Know When to Use an Active Object Instead of a Mutex,&#8221;</a> is now live on DDJ&#8217;s website.
+</p>
+<p>From the article:
+</p>
+<blockquote>
+<p>Let&#8217;s say that your program has a shared log file object. The log file is likely to be a popular object; lots of different threads must be able to write to the file; and to avoid corruption, we need to ensure that only one thread may be writing to the file at any given time.</p>
+<p>Quick: How would you serialize access to the log file?</p>
+<p>Before reading on, please think about the question and pencil in some pseudocode to vet your design. More importantly, especially if you think this is an easy question with an easy answer, try to think of at least two completely different ways to satisfy the problem requirements, and jot down a bullet list of the advantages and disadvantages they trade off.</p>
+<p>Ready? Then let&#8217;s begin.
+</p>
+</blockquote>
+<p><span style="color:#333333;">I hope you enjoy it. Finally, here are links to previous Effective Concurrency columns:<br />
+</span></p>
+<p><span style="color:#7f7f7f;">1 <a href="http://www.ddj.com/hpc-high-performance-computing/200001985">The Pillars of Concurrency</a> (Aug 2007)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">2 <a href="http://www.ddj.com/hpc-high-performance-computing/201202924">How Much Scalability Do You Have or Need?</a> (Sep 2007)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">3 <a href="http://ddj.com/cpp/201804238">Use Critical Sections (Preferably Locks) to Eliminate Races</a> (Oct 2007)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">4 <a href="http://www.ddj.com/hpc-high-performance-computing/202401098">Apply Critical Sections Consistently</a> (Nov 2007)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">5 <a href="http://ddj.com/architect/202802983">Avoid Calling Unknown Code While Inside a Critical Section</a> (Dec 2007)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">6 <a href="http://www.ddj.com/hpc-high-performance-computing/204801163">Use Lock Hierarchies to Avoid Deadlock</a> (Jan 2008)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">7 <a href="http://www.ddj.com/cpp/205900309">Break Amdahl&#8217;s Law!</a> (Feb 2008)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">8 <a href="http://www.ddj.com/hpc-high-performance-computing/206100542">Going Superlinear</a> (Mar 2008)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">9 <a href="http://www.ddj.com/hpc-high-performance-computing/206903306">Super Linearity and the Bigger Machine</a> (Apr 2008)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">10 <a href="http://ddj.com/architect/207100682">Interrupt Politely</a> (May 2008)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">11 <a href="http://ddj.com/architect/208200273">Maximize Locality, Minimize Contention</a> (Jun 2008)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">12 <a href="http://www.ddj.com/hpc-high-performance-computing/208801371">Choose Concurrency-Friendly Data Structures</a> (Jul 2008)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">13 <a href="http://www.ddj.com/hpc-high-performance-computing/209900973">The Many Faces of Deadlock</a> (Aug 2008)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">14 <a href="http://www.ddj.com/cpp/210600279">Lock-Free Code: A False Sense of Security</a> (Sep 2008)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">15 <a href="http://www.ddj.com/hpc-high-performance-computing/210604448">Writing Lock-Free Code: A Corrected Queue</a> (Oct 2008)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">16 <a href="http://www.ddj.com/cpp/211601363">Writing a Generalized Concurrent Queue</a> (Nov 2008)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">17 <a href="http://www.ddj.com/cpp/211800538">Understanding Parallel Performance</a> (Dec 2008)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">18 <a href="http://www.ddj.com/hpc-high-performance-computing/212201163">Measuring Parallel Performance: Optimizing a Concurrent Queue</a>(Jan 2009)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">19 <a href="http://www.ddj.com/hpc-high-performance-computing/212701484">volatile vs. volatile</a> (Feb 2009)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">20 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=214100002">Sharing Is the Root of All Contention</a> (Mar 2009)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">21 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=215900465">Use Threads Correctly = Isolation + Asynchronous Messages</a> (Apr 2009)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">22 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=216500409">Use Thread Pools Correctly: Keep Tasks Short and Nonblocking</a>(Apr 2009)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">23 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=217500206">Eliminate False Sharing</a> (May 2009)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">24 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=217801299">Break Up and Interleave Work to Keep Threads Responsive</a> (Jun 2009)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">25 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=218401447">The Power of &#8220;In Progress&#8221;</a> (Jul 2009)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">26 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=219200099">Design for Manycore Systems</a> (Aug 2009)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">27 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=220600388">Avoid Exposing Concurrency – Hide It Inside Synchronous Methods</a> (Oct 2009)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">28 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=221601309">Prefer structured lifetimes – local, nested, bounded, deterministic</a>(Nov 2009)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">29 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=222301165">Prefer Futures to Baked-In &#8220;Async APIs&#8221;</a> (Jan 2010)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">30 <a href="http://www.drdobbs.com/go-parallel/article/showArticle.jhtml?articleID=224701827">Associate Mutexes with Data to Prevent Races</a> (May 2010)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">31 <a href="http://www.drdobbs.com/go-parallel/article/showArticle.jhtml;jsessionid=JM3XD1KM22SCRQE1GHPSKH4ATMY32JVN?articleID=225700095">Prefer Using Active Objects Instead of Naked Threads</a> (June 2010)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">32 <a href="http://www.drdobbs.com/go-parallel/article/showArticle.jhtml?articleID=226700179">Prefer Using Futures or Callbacks to Communicate Asynchronous Results</a> (August 2010)<br />
+</span></p>
+<p><span style="color:#7f7f7f;">33 <a href="http://www.drdobbs.com/go-parallel/article/showArticle.jhtml?articleID=227500074">Know When to Use an Active Object Instead of a Mutex</a> (September 2010)<br />
+</span></p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a> | 											10 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">10 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-2955">
+		<div id="div-comment-2955">
+		<div class="cmtinfo"><em> on <a href="#comment-2955" title="">2011-05-11 at 9:30 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9c0f8947414e2aae03c83df02a1804ab?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>ML</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2955"></div><p>Oops. It stripped my angle brackets in the code above. Replacing them with curly brackets, the typedef at the top should be &#8220;std::function{void()}&#8221; and the deque at the bottom should be &#8220;std::deque{Message}&#8221;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2954">
+		<div id="div-comment-2954">
+		<div class="cmtinfo"><em> on <a href="#comment-2954" title="">2011-05-11 at 9:27 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9c0f8947414e2aae03c83df02a1804ab?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>ML</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2954"></div><p>J.J. Lee,</p>
+<p>If your OS doesn&#8217;t provide a multithreaded message queue, yes you might create one with a condition variable. Something like this (untested code, using Boost.Thread since I don&#8217;t have C++0x threads):</p>
+<p>class MessageQueue<br />
+{<br />
+public:<br />
+  typedef std::function Message;</p>
+<p>  void Send( const Message&amp; msg )<br />
+  {<br />
+    boost::unique_lock lock( m_mutex );<br />
+    m_queue.push_back( msg );<br />
+    m_cond.notify_all();<br />
+  }</p>
+<p>  Message Receive()<br />
+  {<br />
+    boost::unique_lock lock( m_mutex );<br />
+    while( m_queue.empty() )<br />
+    {<br />
+      m_cond.wait( lock );<br />
+    }<br />
+    const Message msg = m_queue.front();<br />
+    m_queue.pop_front();<br />
+    return msg;<br />
+  }</p>
+<p>private:<br />
+  std::deque     m_queue;<br />
+  boost::mutex        m_mutex;<br />
+  boost::condition_variable m_cond;<br />
+};</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-2952">
+		<div id="div-comment-2952">
+		<div class="cmtinfo"><em> on <a href="#comment-2952" title="">2011-05-11 at 7:51 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ed625e77db7636d6b9b854d427d06848?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>J. J. Lee</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2952"></div><p>Thanks for such a nice article!</p>
+<p>Is below a stupid question?</p>
+<p>How to make message_queue work for a non GUI thread (without using PostMessage)? &#8211; &#8220;If the queue is empty, pop blocks until something is available.&#8221;</p>
+<p>Is it OK for a mutex + a condition variable?<br />
+Or is there any better idea?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2779">
+		<div id="div-comment-2779">
+		<div class="cmtinfo"><em> on <a href="#comment-2779" title="">2011-01-27 at 10:20 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0b4ddeb095ff16e8a84fe92d03bbdef4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Thomas Lann</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2779"></div><p>I believe waiting on a message queue is a lot better then waiting on the file I/O to complete.  Plus,  Herb has another article on doing lock free queues.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-2755">
+		<div id="div-comment-2755">
+		<div class="cmtinfo"><em> on <a href="#comment-2755" title="">2011-01-11 at 6:17 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9052c887f0a62c26b6daf370192c595e?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://artofcode.wordpress.com' rel='external nofollow' class='url'>Krzysiek T.</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2755"></div><p>I mean message_queue must use mutex inside</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2754">
+		<div id="div-comment-2754">
+		<div class="cmtinfo"><em> on <a href="#comment-2754" title="">2011-01-11 at 5:36 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9052c887f0a62c26b6daf370192c595e?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://artofcode.wordpress.com' rel='external nofollow' class='url'>Krzysiek T.</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2754"></div><p>Nice article, but not very revelatory. So called &#8220;active object&#8221; simply uses mutex inside. But of course, some obvious things must be said explicitly sometimes.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-2722">
+		<div id="div-comment-2722">
+		<div class="cmtinfo"><em> on <a href="#comment-2722" title="">2010-12-20 at 12:40 pm</a></em>  <cite><a href='http://kjellkod.wordpress.com/2010/12/20/candy-for-programmers/' rel='external nofollow' class='url'>Candy for programmers | Kjellkod&#039;s Blog</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2722"></div><p>[&#8230;] way, I got an itch when I checked out Herb&#8217;s Effective Concurrency Columns and &#8220;Know when to use an active object instead of a mutex&#8221; and I just had to upgrade my Active Object C++0x. I moved it to Qt code instead from C++0x [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-patrikkahari odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2307">
+		<div id="div-comment-2307">
+		<div class="cmtinfo"><em> on <a href="#comment-2307" title="">2010-09-28 at 12:34 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/32a3c9576780e90862993e9e868dd06d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>patrikkahari</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2307"></div><p>Another good chapter. When will we get to read the book? :)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-2295">
+		<div id="div-comment-2295">
+		<div class="cmtinfo"><em> on <a href="#comment-2295" title="">2010-09-25 at 4:58 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9586fa6bcd43208740efdec90831015f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Nasko</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2295"></div><p>Thanks for the nice article :)</p>
+<p>I don&#8217;t know if this is the right place to ask and get answered, but here are some questions:</p>
+<p>Isn’t there a problem with the “queue” approach, if the “write” operation produces tasks faster than the log thread can consume them?<br />
+Can you give some good practices on avoiding that?</p>
+<p>I usually approach the problem with fast producers, by adding a semaphore that blocks producers when some limit is exceeded. In this case something like the call to &#8220;write&#8221; being an async call if the limit is not hit, and otherwise being a blocking call (the check is based only on the semaphore logic). The implementation is something like &#8211; the semaphore starts from N, where N is the desired limit, producers do a &#8220;-1&#8221; and consumers a &#8220;+1&#8221;. In the case of a queue, the limit is the number of maximum pending tasks at any time. If N can&#8217;t be fine-tuned at initialization time, the consumer can tune it as it works (though that may not always be a good idea?)<br />
+I would be grateful if you share some opinion on this approach in the case of logging and in general &#8211; the limiting of access with a semaphore, because i am not sure of its drawbacks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2291">
+		<div id="div-comment-2291">
+		<div class="cmtinfo"><em> on <a href="#comment-2291" title="">2010-09-24 at 10:55 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9c0f8947414e2aae03c83df02a1804ab?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>ML</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2291"></div><p>Thanks, Herb. I have profited from these articles. I hope you will treat exceptions and error handling at some point soon.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-9c0f8947414e2aae03c83df02a1804ab">
+	</div>
+	<div class="grofile-hash-map-ed625e77db7636d6b9b854d427d06848">
+	</div>
+	<div class="grofile-hash-map-0b4ddeb095ff16e8a84fe92d03bbdef4">
+	</div>
+	<div class="grofile-hash-map-9052c887f0a62c26b6daf370192c595e">
+	</div>
+	<div class="grofile-hash-map-32a3c9576780e90862993e9e868dd06d">
+	</div>
+	<div class="grofile-hash-map-9586fa6bcd43208740efdec90831015f">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_2955={"id":468178,"unique_id":"wp-comment-2955","title":"Oops.%20It%20stripped%20my%20angle%20brackets%20in%20the%20code%20above.%20Replacing%20them%20with%20curly%20brackets%2C%20the%20typedef%20at%20the%20top%20should%20be%20%26quot%3Bstd%3A%3Afunction%7Bvoid%28%29%7D%26quot%3B%20and%20the%20deque%20at%20the%20bottom%20should%20be%20%26quot%3Bstd%3A%3Adeq...","permalink":"https:\/\/herbsutter.com\/2010\/09\/24\/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex\/#comment-2955","item_id":"_comm_2955"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2955 == 'undefined' ){PDRTJS_468178_comm_2955 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2955 );}}PDRTJS_settings_468178_comm_2954={"id":468178,"unique_id":"wp-comment-2954","title":"J.J.%20Lee%2CIf%20your%20OS%20doesn%26%23039%3Bt%20provide%20a%20multithreaded%20message%20queue%2C%20yes%20you%20might%20create%20one%20with%20a%20condition%20variable.%20Something%20like%20this%20%28untested%20code%2C%20using%20Boost.Thread%20since%20I%20don%26%23039%3Bt%20have%20C%2B...","permalink":"https:\/\/herbsutter.com\/2010\/09\/24\/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex\/#comment-2954","item_id":"_comm_2954"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2954 == 'undefined' ){PDRTJS_468178_comm_2954 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2954 );}}PDRTJS_settings_468178_comm_2952={"id":468178,"unique_id":"wp-comment-2952","title":"Thanks%20for%20such%20a%20nice%20article%21Is%20below%20a%20stupid%20question%3FHow%20to%20make%20message_queue%20work%20for%20a%20non%20GUI%20thread%20%28without%20using%20PostMessage%29%3F%20-%20%26quot%3BIf%20the%20queue%20is%20empty%2C%20pop%20blocks%20until%20something%20is%20...","permalink":"https:\/\/herbsutter.com\/2010\/09\/24\/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex\/#comment-2952","item_id":"_comm_2952"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2952 == 'undefined' ){PDRTJS_468178_comm_2952 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2952 );}}PDRTJS_settings_468178_comm_2779={"id":468178,"unique_id":"wp-comment-2779","title":"I%20believe%20waiting%20on%20a%20message%20queue%20is%20a%20lot%20better%20then%20waiting%20on%20the%20file%20I%2FO%20to%20complete.%20%20Plus%2C%20%20Herb%20has%20another%20article%20on%20doing%20lock%20free%20queues....","permalink":"https:\/\/herbsutter.com\/2010\/09\/24\/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex\/#comment-2779","item_id":"_comm_2779"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2779 == 'undefined' ){PDRTJS_468178_comm_2779 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2779 );}}PDRTJS_settings_468178_comm_2755={"id":468178,"unique_id":"wp-comment-2755","title":"I%20mean%20message_queue%20must%20use%20mutex%20inside...","permalink":"https:\/\/herbsutter.com\/2010\/09\/24\/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex\/#comment-2755","item_id":"_comm_2755"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2755 == 'undefined' ){PDRTJS_468178_comm_2755 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2755 );}}PDRTJS_settings_468178_comm_2754={"id":468178,"unique_id":"wp-comment-2754","title":"Nice%20article%2C%20but%20not%20very%20revelatory.%20So%20called%20%26quot%3Bactive%20object%26quot%3B%20simply%20uses%20mutex%20inside.%20But%20of%20course%2C%20some%20obvious%20things%20must%20be%20said%20explicitly%20sometimes....","permalink":"https:\/\/herbsutter.com\/2010\/09\/24\/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex\/#comment-2754","item_id":"_comm_2754"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2754 == 'undefined' ){PDRTJS_468178_comm_2754 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2754 );}}PDRTJS_settings_468178_comm_2722={"id":468178,"unique_id":"wp-comment-2722","title":"%26%23091%3B...%26%23093%3B%20way%2C%20I%20got%20an%20itch%20when%20I%20checked%20out%20Herb%26%238217%3Bs%20Effective%20Concurrency%20Columns%20and%20%26%238220%3BKnow%20when%20to%20use%20an%20active%20object%20instead%20of%20a%20mutex%26%238221%3B%20and%20I%20just%20had%20to%20upgrade%20my%20Active%20O...","permalink":"https:\/\/herbsutter.com\/2010\/09\/24\/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex\/#comment-2722","item_id":"_comm_2722"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2722 == 'undefined' ){PDRTJS_468178_comm_2722 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2722 );}}PDRTJS_settings_468178_comm_2307={"id":468178,"unique_id":"wp-comment-2307","title":"Another%20good%20chapter.%20When%20will%20we%20get%20to%20read%20the%20book%3F%20%3A%29...","permalink":"https:\/\/herbsutter.com\/2010\/09\/24\/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex\/#comment-2307","item_id":"_comm_2307"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2307 == 'undefined' ){PDRTJS_468178_comm_2307 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2307 );}}PDRTJS_settings_468178_comm_2295={"id":468178,"unique_id":"wp-comment-2295","title":"Thanks%20for%20the%20nice%20article%20%3A%29I%20don%26%23039%3Bt%20know%20if%20this%20is%20the%20right%20place%20to%20ask%20and%20get%20answered%2C%20but%20here%20are%20some%20questions%3AIsnt%20there%20a%20problem%20with%20the%20queue%20approach%2C%20if%20the%20write%20operation%20pro...","permalink":"https:\/\/herbsutter.com\/2010\/09\/24\/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex\/#comment-2295","item_id":"_comm_2295"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2295 == 'undefined' ){PDRTJS_468178_comm_2295 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2295 );}}PDRTJS_settings_468178_comm_2291={"id":468178,"unique_id":"wp-comment-2291","title":"Thanks%2C%20Herb.%20I%20have%20profited%20from%20these%20articles.%20I%20hope%20you%20will%20treat%20exceptions%20and%20error%20handling%20at%20some%20point%20soon....","permalink":"https:\/\/herbsutter.com\/2010\/09\/24\/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex\/#comment-2291","item_id":"_comm_2291"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2291 == 'undefined' ){PDRTJS_468178_comm_2291 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2291 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2010%2F09%2F24%2Feffective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2010\/09\/24\/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2010%2F09%2F24%2Feffective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex%2F","postID":"456","shortlink":"https:\/\/wp.me\/peb5Y-7m","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/456","statsLink":"https:\/\/wordpress.com\/stats\/post\/456\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2010%2F09%2F24%2Feffective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'456','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNGpvZT1CP1o0ZitNdCU9TmRMYWw3TC1pb0JIcHdOfkNBOSZoeXBnaUIrcHVSWUlhbzVSTUlEW0E9NkR3OHNjeCt5YmtialBvZi1jVn4wLElKSUssSnF3P2gtaklHWGN+V19tLkpLTTI5YUFOV1BNV19EPUo9P21NRGFiRHl8aHxRTXxweFt2VHVYSDV0MnBKUFdVWjZDMXBGNkYzb1dZSV9vLi05d2s4WTU2LUlGVGEvTiVjXUYrUT9YbEI1MzIlXSstMmVCNQ=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '456' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

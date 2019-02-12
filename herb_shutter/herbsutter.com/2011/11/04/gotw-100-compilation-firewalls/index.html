@@ -1,0 +1,730 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #100: Compilation Firewalls | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965802&amp;back=https%3A%2F%2Fherbsutter.com%2F2011%2F11%2F04%2Fgotw-100-compilation-firewalls%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #100: Compilation&nbsp;Firewalls Comments Feed" href="https://herbsutter.com/2011/11/04/gotw-100-compilation-firewalls/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='A Passing of&nbsp;Giants' href='https://herbsutter.com/2011/11/02/a-passing-of-giants/' />
+<link rel='next' title='GotW #100: Solution' href='https://herbsutter.com/2011/11/16/gotw-100-solution/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2011/11/04/gotw-100-compilation-firewalls/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-ew' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2011%2F11%2F04%2Fgotw-100-compilation-firewalls%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2011%2F11%2F04%2Fgotw-100-compilation-firewalls%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #100: Compilation Firewalls" />
+<meta property="og:url" content="https://herbsutter.com/2011/11/04/gotw-100-compilation-firewalls/" />
+<meta property="og:description" content="JG Questions 1. What is the Pimpl Idiom, and why is it useful? Guru Questions 2. What is the best way to express the basic Pimpl Idiom in C++11? 3. What parts of the class should go into the impl o…" />
+<meta property="article:published_time" content="2011-11-04T22:52:20+00:00" />
+<meta property="article:modified_time" content="2011-11-04T22:54:15+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://herbsutter.files.wordpress.com/2011/11/image4.png" />
+<meta property="og:image:secure_url" content="https://herbsutter.files.wordpress.com/2011/11/image4.png" />
+<meta property="og:image:width" content="137" />
+<meta property="og:image:height" content="244" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #100: Compilation&nbsp;Firewalls" />
+<meta name="twitter:image" content="https://herbsutter.files.wordpress.com/2011/11/image4.png?w=1400" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="JG Questions 1. What is the Pimpl Idiom, and why is it useful? Guru Questions 2. What is the best way to express the basic Pimpl Idiom in C++11? 3. What parts of the class should go into the impl object? Some potential options include: put all private data (but not functions) into impl; put&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2011/11/04/gotw-100-compilation-firewalls/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-900 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2011/11/02/a-passing-of-giants/" rel="prev">A Passing of&nbsp;Giants</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2011/11/16/gotw-100-solution/" rel="next">GotW #100: Solution</a> &raquo;</div>
+			</div>
+			
+			<div class="post-900 post type-post status-publish format-standard hentry category-c category-gotw" id="post-900">
+				<div class="posttitle">
+					<h2>GotW #100: Compilation&nbsp;Firewalls</h2>
+					<p class="post-info">2011-11-04 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><img style="background-image:none;border-bottom:0;border-left:0;padding-left:0;padding-right:0;display:inline;float:right;border-top:0;border-right:0;padding-top:0;" title="image" border="0" alt="image" align="right" src="https://herbsutter.files.wordpress.com/2011/11/image4.png?w=137&#038;h=244" width="137" height="244" /></p>
+<h3>JG Questions</h3>
+<p>1. What is the Pimpl Idiom, and why is it useful?</p>
+<h3>Guru Questions</h3>
+<p>2. What is the best way to express the basic Pimpl Idiom in C++11?</p>
+<p>3. What parts of the class should go into the <em>impl</em> object? Some potential options include:</p>
+<ul>
+<li>put all private data (but not functions) into <em>impl</em>; </li>
+<li>put all private members into <em>impl</em>; </li>
+<li>put all private and protected members into <em>impl</em>; </li>
+<li>put all private nonvirtual members into <em>impl</em>; </li>
+<li>put everything into <em>impl</em>, and write the public class itself as only the public interface, each implemented as a simple forwarding function (a handle/body variant).</li>
+</ul>
+<p>What are the advantages/drawbacks of each? How would you choose among them?</p>
+<p>4. Does the <em>impl </em>require a back pointer to the public object? If yes, what is the best way to provide it? If not, why not?</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											23 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">23 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-4400">
+		<div id="div-comment-4400">
+		<div class="cmtinfo"><em> on <a href="#comment-4400" title="">2011-11-14 at 5:25 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/24f4269e67b822e46205898b797814c3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Joe</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4400"></div><p>If memory allocations are a bottleneck, you can use a custom  allocator in the internal unique_ptr.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4396">
+		<div id="div-comment-4396">
+		<div class="cmtinfo"><em> on <a href="#comment-4396" title="">2011-11-14 at 6:36 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/dfeed0cb9f18492e11306e5b1acb497c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.streamspace.com' rel='external nofollow' class='url'>Henrik Vallgren</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4396"></div><p>How about performance? Memory allocations are often a bottleneck, and it seems that pimple would make the situation worse.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4371">
+		<div id="div-comment-4371">
+		<div class="cmtinfo"><em> on <a href="#comment-4371" title="">2011-11-10 at 7:01 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/08cce2dcfc82546224d1eb61e68dec05?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Matthieu M.</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4371"></div><p>Simple comments (I am sorry, I don&#8217;t have the time for a full-blown answer):</p>
+<p>1) I would note that the compilation firewall goal is different than the ABI compatibility goal. We are ready to pay the cost of compilation when adding a virtual method in the former case, even if it would run the risk of breaking the ABI.</p>
+<p>2) Implementation using a `unique_ptr`, with out of line definition of all the special members (= default is awesome)</p>
+<p>3) Anything that is private, *apart from virtual functions* goes into the Impl. protected elements and virtual elements are logically part of the interface as far as derived classes are concerned, and &#8220;lifting&#8221; them does not solve anything. Of course, they should still delegate to the Impl class.</p>
+<p>4) A back pointer (if necessary) should not be embedded, it cripples the automated move generation. It&#8217;s simpler to have the main class pass a pointer to itself during forwarding when it&#8217;s actually necessary.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4370">
+		<div id="div-comment-4370">
+		<div class="cmtinfo"><em> on <a href="#comment-4370" title="">2011-11-10 at 6:34 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e1191d880f488f0c320f7d4fc51e960c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ephi</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4370"></div><p>Maybe you can cross-post to comp.programming.c++.,moderated<br />
+Bring back the 90s!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4358">
+		<div id="div-comment-4358">
+		<div class="cmtinfo"><em> on <a href="#comment-4358" title="">2011-11-09 at 6:47 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f1634a09333f7b391db92e1d2bea6253?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sebastian Redl</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4358"></div><p>2) unique_ptr.<br />
+Interestingly enough, C++11 allows you to do this:</p>
+<p>struct foo { ~foo(); };<br />
+foo::~foo() = default;</p>
+<p>The interesting part is that this &#8220;body&#8221; is semantically equivalent and longer to type than just {}. (Yes, it really is fully semantically equivalent.)</p>
+<p>3+4) Putting only the data in the impl has the advantage that you never need a back pointer, since all code runs with &#8216;this&#8217; being the outer object. The disadvantage is that adding private members to the outer class will force a recompile on clients (even though binary compatibility would be preserved).<br />
+Putting private functions in the impl has the advantage that you can add as many as you want without forcing a recompile; it has the disadvantage of needing a back pointer when I want to call some public function that expects the type (or a supertype) of the outer class, as well as when I want to call a public function or a virtual function on the outer class.<br />
+Putting all functions in the impl with the outer class only containing wrappers is strictly better (except for the repetitive code) than putting only the private functions there, since it means you can call other public functions without a back pointer.<br />
+This leaves back pointers necessary in two situations:<br />
+1) When passing &#8216;this&#8217; to somewhere else.<br />
+2) When calling virtual functions.<br />
+Note that putting virtual functions into the impl class is not an option. Overriding classes would have to override the impl class for this to work, and you really, really don&#8217;t want to expose the impl class to overriders.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4342">
+		<div id="div-comment-4342">
+		<div class="cmtinfo"><em> on <a href="#comment-4342" title="">2011-11-06 at 8:45 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3352d7b7b661c84c5b888312397efc76?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/decourse' rel='external nofollow' class='url'>Pseudonym</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4342"></div><p>The question of how to handle protected members is an interesting one. Pimpl and inheritance are a mix that I&#8217;ve never had to use.  I suspect that the &#8220;right&#8221; answer depends highly on context. Random thoughts:</p>
+<p>1. If you find yourself wanting to do inheritance in the &#8220;handle&#8221; class, using an abstract base class could be a better solution.<br />
+2. If you find yourself wanting to do inheritance in the &#8220;body&#8221; class, consider that this might be an envelope/letter situation rather than handle/body.<br />
+3. If you find yourself wanting to do both, that this might be a bridge pattern.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4339">
+		<div id="div-comment-4339">
+		<div class="cmtinfo"><em> on <a href="#comment-4339" title="">2011-11-06 at 6:04 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f2ffcd63c3f62b86a905ebe89da2c69d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/pdvrieze' rel='external nofollow' class='url'>Paul de Vrieze</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4339"></div><p>The answers to this question (and the whole pimpl idiom) is strongly related to runtime in-memory characteristics of objects (and vtables).</p>
+<p>#1 )Let&#8217;s actually answer #1 as the right answer helps with the other ones. The pimpl idiom is a workaround for the fact that usage of a class by value needs to know the object size. While this helps with recompilation the main purpose is to maintain stable ABI&#8217;s for libraries.</p>
+<p>#2 )Best way to express the idiom: &#8220;unique_ptr pimpl;&#8221;. PIMPLTYPE is forward declared in the header, but specified in the source file. </p>
+<p>#3 )What should go into the pimpl object:<br />
+ &#8211; First of all, private virtual functions make no sense (unless you have friend declarations).<br />
+ &#8211; Non-virtual functions are not called through the vtable (but through normal symbol resolution) so adding one anywhere in a class does not matter.<br />
+ &#8211; You may not want to expose private methods to usage outside the unit of compilation. As doing so through declaring them on the pimpl also avoids unneeded indirection (pimpl-&gt;member) that is a straightforward approach.<br />
+ &#8211; However, using non-member private functions with the pimpl as the first parameter in the anonymous namespace would also be a solution. (needs more &#8220;friend&#8221; delarations though, unless you declare the members of the pimpl as public (which should not be an issue))<br />
+ &#8211; Private implementation means private, not protected. While it may be possible (with pain) to make the private implementation protected that is a whole other can of worms and probably requires multiple header files, so protected members have no place in a pimpl (as the pimpl itself should be private, and no child could access the pimpl to get to the protected members).<br />
+ &#8211; As pimpls are private, they should not have virtual members.<br />
+ &#8211; For inheritance, each child that wanted to add members would have its own pimpl. The child would use the class through the public part only, and only call public or protected (virtual) methods on the public class. For public (or protected) methods, they are part of the API (and ABI) and their implementation never is. Therefore there is no need to forward their implementation to the pimpl (if optimizing make a local variable containing the pimpl, so you don&#8217;t need this-&gt;pimpl-&gt;member, just lPimpl-&gt;member).<br />
+ &#8211; Forwarding (public / protected) methods to the pimpl is possible but induces errors in case of inheritance.</p>
+<p>#4 ) Back pointers.<br />
+ &#8211; Back pointers are needed for classes with public/protected virtual methods. As any child can only implement them on the public class whenever their functionality is needed, they are called by the implementation in the public parent class (even if they just forward to the pimpl, that&#8217;s why you don&#8217;t want two methods to chose from, one in the pimpl and one in the public class).<br />
+ &#8211; Any method on the pimpl that needs to invoke a method on the public class (any virtual method) must do so through a pointer (or pointer wrapper) to the public class.<br />
+ &#8211; As said by others, there are two ways to get a pointer to the public class. The first one is as a member attribute of the pimpl (with corresponding possible issues regarding move semantics, stale pointers etc.). The second one is as a parameter to any method on the pimpl that needs to (indirectly) call such a virtual method on the public class.<br />
+ &#8211; If the pimpl does not contain methods, only attributes (which is completely acceptable from the point of view of what a pimpl does, as private nonvirtual methods do not change ABI) then obviously there is no need for back pointers (or related headaches) at all.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4338">
+		<div id="div-comment-4338">
+		<div class="cmtinfo"><em> on <a href="#comment-4338" title="">2011-11-06 at 5:18 am</a></em> <img alt='' src='https://i1.wp.com/a2.twimg.com/profile_images/116155541/JamesTaylor_normal.jpg?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/james_e_taylor' rel='external nofollow' class='url'>James Taylor (@james_e_taylor)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4338"></div><p>I haven&#8217;t looked at the new language spec so may be talking out of turn here.</p>
+<p>In good ol&#8217; c++ use of smart pointers for pimpl ran the risk of emitting a &#8216;delete p&#8217; before the type of p had been defined which is either undefined or defined not to do anything (can&#8217;t remember which).  This is often caught at compile time by methods such as boost&#8217;s checked_delete().</p>
+<p>Has this been fixed in the new C++?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4337">
+		<div id="div-comment-4337">
+		<div class="cmtinfo"><em> on <a href="#comment-4337" title="">2011-11-06 at 1:57 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6126e2ecc6e75222a996d2aec4da62b8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/kutlak.roman' rel='external nofollow' class='url'>Roman Kutlak</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4337"></div><p>I see what you mean Ben. I was kinda assuming that whenever you involve pointers in your class, you pretty much have to supply your own copy/move constructor/assignment. Thanks for the explanation.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4333">
+		<div id="div-comment-4333">
+		<div class="cmtinfo"><em> on <a href="#comment-4333" title="">2011-11-05 at 5:57 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/9fdfde82947baf080a81ef0db500f2a3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ben Craig</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4333"></div><p>And now I go back and see that all of my template brackets have been eaten :(</p>
+<p>Hopefully the intent is clear enough without them.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4332">
+		<div id="div-comment-4332">
+		<div class="cmtinfo"><em> on <a href="#comment-4332" title="">2011-11-05 at 5:56 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/9fdfde82947baf080a81ef0db500f2a3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ben Craig</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4332"></div><p>Re: Roman Kutlak<br />
+Say I have this setup:<br />
+class Outer {<br />
+std::unique_ptr pimpl_;<br />
+};<br />
+class Inner {<br />
+   std::weak_ptr backPtr_;<br />
+};</p>
+<p>Then, I have some code like this:<br />
+Outer make_outer()<br />
+{<br />
+   Outer old_outer;<br />
+   return old_outer;<br />
+}<br />
+//&#8230;<br />
+current_outer = make_outer();</p>
+<p>That code will use the move assignment operator.  When backPtr was initially created, it pointed at old_outer.  After the assignment to current_outer, the backPtr is now pointing at a &#8220;dead&#8221; object.  This can be fixed by writing your own move constructor and move assignment operator, and having those operations dig into the Inner implementation to &#8220;patch up&#8221; backPtr, but it is more effort.  You can&#8217;t just use the defaults anymore.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4329">
+		<div id="div-comment-4329">
+		<div class="cmtinfo"><em> on <a href="#comment-4329" title="">2011-11-05 at 2:03 pm</a></em> <img alt='' src='https://i0.wp.com/graph.facebook.com/1205179977/picture?q=type%3Dlarge%26_md5%3D010e5056038870294c56cbe2a5da3a03&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/kutlak.roman' rel='external nofollow' class='url'>Roman Kutlak</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4329"></div><p>Hello guys, I am a newbie so this answer is basically just testing my understanding of the concepts. Any comments highly appreciated!</p>
+<p>1. My understanding of pimpl was that it&#8217;s main purpose is to protect the client from recompilation of the code when you change some class&#8217;s internal working. The indirection (pointer to implementation) shields the clients of the class from internal changes. It is not supposed to be a replacement for a pure virtual interface (not implying that it can&#8217;t be). </p>
+<p>2. I would use std::unique_ptr.</p>
+<p>3. This in turn suggests that private (and protected I guess) members should be in the pimpl and only the public interface can be in the actual class. I think that for the firewall to work as intended the class using the pimpl should provide forwarding functions (for the public part) that call the actual function implemented in the pimpl and the pimpl class should essentially be the intended class (i.e. implement all functions).</p>
+<p>I am not sure how this would work with the inheritance. Is it why one would need the back pointer?</p>
+<p>4. If you need pointer to the main class, use std::weak_ptr. (Not sure I understood Ben Craig&#8217;s argument about &#8220;dead&#8221; wrapper object &#8211; the pimpl will get destroyed when the object dies so this should not happen, right?)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4328">
+		<div id="div-comment-4328">
+		<div class="cmtinfo"><em> on <a href="#comment-4328" title="">2011-11-05 at 2:00 pm</a></em> <img alt='' src='https://i1.wp.com/a3.twimg.com/sticky/default_profile_images/default_profile_4_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/jogerh' rel='external nofollow' class='url'>Jøger Hansegård (@jogerh)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4328"></div><p>2. I prefer unique_ptr, but that does not compile cleanly on warning level 4 for classes exported from a dll. Quite annoying. </p>
+<p>3.<br />
+a) put all private data (but not functions) into impl;<br />
++ Functions are declared in a single class. You do not have to look in two different classes to find function implementation.<br />
+&#8211; Need to expose function parameter types in the header file. This may cause you to include more header files than necessary.<br />
+&#8211; Implementation details are exposed.</p>
+<p>b) put all private members into impl;<br />
++ Gives the cleanest class signature, hiding everything that can be hidden.<br />
++ Gives the lowest number of header dependencies in the class header.<br />
+&#8211; Template function pattern can not be implemented.</p>
+<p>c) put all private and protected members into impl;<br />
+&#8211; Protected members have to be exposed in the class declaration, or they are not accessible by derived types.<br />
+(+) Avoids use of protected members.</p>
+<p>d) put all private nonvirtual members into impl;<br />
++ See b)<br />
++ Template function pattern can be implemented.</p>
+<p>e) put everything into impl, and write the public class itself as only the public interface, each implemented as a simple forwarding function (a handle/body variant).<br />
++ Can be nice if you want to isolate/highlight certain functionality of a class. Implementation of the monitor object can be done by putting the lock acquisition/release in the &#8220;forwarding&#8221; function, and forward everything else to the pimpl.<br />
+&#8211; Duplicates every function, produces a lot of code that does not give any value.<br />
+&#8211; Makes refactoring cumbersome.</p>
+<p>As a side note, what made the difference for me was to call the impl object &#8220;m&#8221;, so that instead of accessing member variables by impl-&gt;foo, i just type m-&gt;foo. Then it looks very similar to how I usually spell member variables: m_foo.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4325">
+		<div id="div-comment-4325">
+		<div class="cmtinfo"><em> on <a href="#comment-4325" title="">2011-11-05 at 5:58 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/05aa36ab5c7d2c620d27d86415ba2eb7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://mmocny.com' rel='external nofollow' class='url'>Michal Mocny</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4325"></div><p>@Dave, @Paul: <a href="http://stackoverflow.com/questions/825018/pimpl-idiom-vs-pure-virtual-class-interface" rel="nofollow">http://stackoverflow.com/questions/825018/pimpl-idiom-vs-pure-virtual-class-interface</a></p>
+<p>Pure virtual class &#8220;Interface&#8221; and Pimpl idiom can be similar, but are not quite interchangeable.  For one thing, adapting an existing class to use Pimpl can be done without changing clients.  Also, classes using the Pimpl idiom are proper value_types and don&#8217;t need factory methods, etc etc.</p>
+<p>Both are useful.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4322">
+		<div id="div-comment-4322">
+		<div class="cmtinfo"><em> on <a href="#comment-4322" title="">2011-11-05 at 2:42 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6453f5f3a5e350f3414774e10c9c9b32?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Paul Michalik</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4322"></div><p>I am with Dave here: One should decide whether an interface (pure abstract class) or a pimpl/forwarder combination suites better. As a rule of thumb I am using the first whenever binary safety and/or seamless interoperability with other platforms is required. Clearly, some sort of infrastructure (factories, kind of &#8216;IUnknown&#8217;, etc) is required then. I am using the latter, whenever I just want to hide implementation details inside of a library or inside of a statically linked program, where virtual function calls and factories would be unnecessary overhead.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4321">
+		<div id="div-comment-4321">
+		<div class="cmtinfo"><em> on <a href="#comment-4321" title="">2011-11-05 at 1:07 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a9102969e779768e6f0b8cb87e864c94?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Dave</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4321"></div><p>Is the pimpl idiom something that should be encouraged?<br />
+Why not use a pure virtual class, as an interface?</p>
+<p>I&#8217;ve never seen a good use of this idiom, when its needed, its probably a code smell.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4320">
+		<div id="div-comment-4320">
+		<div class="cmtinfo"><em> on <a href="#comment-4320" title="">2011-11-04 at 10:10 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/ea6872cf5f32040741eabf1e7e089416?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/simonbuchan' rel='external nofollow' class='url'>Simon Buchan</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4320"></div><p>I wait for C++11 TR1, which is rumoured(?) to include real modules: <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n2073.pdf" rel="nofollow">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n2073.pdf</a></p>
+<p>Currently, I avoid explicit pimpl, I don&#8217;t like the complication. I tend to take in order of feasibility the compile hit, duplicating private member typedefs, casting private members, or using C-style forward def and loose functions.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4317">
+		<div id="div-comment-4317">
+		<div class="cmtinfo"><em> on <a href="#comment-4317" title="">2011-11-04 at 7:14 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/05aa36ab5c7d2c620d27d86415ba2eb7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://mmocny.com' rel='external nofollow' class='url'>Michal Mocny</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4317"></div><p>(2) TLDR; std::unique_ptr</p>
+<p>(3) TLDR; I move private non-virtual methods+data.</p>
+<p>I don&#8217;t use protected members and try to minimize protected methods.<br />
+Private non-virtual methods can (should?) be detached and written in an anonymous namespace anyway (there are exceptions) so adding them to the Impl class is just for convenience (so you don&#8217;t need to befriend or pass references around).<br />
+Any time I use public data, I&#8217;m not using pimpl.<br />
+I wouldn&#8217;t ever put everything into the pimpl &#8212; and when I use handle/body idiom that way, I don&#8217;t call it Pimpl since the body is not &#8220;mine&#8221;.  I would call that proxy or delegate.  (And I do think it would be interesting to have an easier way to implement proxy classes in c++..)</p>
+<p>(4) TLDR; I pass back pointer as the first argument to those methods that need it (hopefully rarely).</p>
+<p>First off, I don&#8217;t waste space storing a back pointer.<br />
+Second, and more importantly, I don&#8217;t need to write a custom move constructor for my &#8220;Handle&#8221; classes this way.  If you store back pointer, you have to manage when your Handle moves (yuk) (and if you are using shared_ptr (for whatever reason), this should help too)!<br />
+Either way, in my experience it is rare to need back pointers &#8212; unless your classes have grown monolithic ;)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4315">
+		<div id="div-comment-4315">
+		<div class="cmtinfo"><em> on <a href="#comment-4315" title="">2011-11-04 at 6:22 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/9fdfde82947baf080a81ef0db500f2a3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ben Craig</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4315"></div><p>I am now realizing that back pointers with a std::unique_ptr have the same problem as those with a std::shared_ptr.  The back pointer could point to a moved from, and already destroyed object.  I think that a const std::unique_ptr would be the pointer of choice in situations where you want a back pointer.  I don&#8217;t think the language allows a const std::unique_ptr to be moved from.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4314">
+		<div id="div-comment-4314">
+		<div class="cmtinfo"><em> on <a href="#comment-4314" title="">2011-11-04 at 4:53 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d431d3a90df3cddef1d4f0254f63da50?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mike</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4314"></div><p>On 3/4, I think there&#8217;s a nice dovetailing of hardline pimpl (everything but forwarders in the impl) and what used to be called the &#8220;non-virtual interface&#8221; idiom. (I haven&#8217;t seen it mentioned for years, so maybe it&#8217;s called something else now.)</p>
+<p>All virtual functions are non-public, and can thus be put into the impl, probably removing any need for a backreference. The public forwarder functions do argument/precondition/postcondition checking, tidily removing the risk of duplication or inconsistency across base and override implementations.</p>
+<p>In practice I&#8217;m not wild about pimpl, mostly because of the extra allocations involved. In an ideal world, better encapsulation wouldn&#8217;t cost you performance.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4313">
+		<div id="div-comment-4313">
+		<div class="cmtinfo"><em> on <a href="#comment-4313" title="">2011-11-04 at 4:17 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/9fdfde82947baf080a81ef0db500f2a3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ben Craig</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4313"></div><p>On further reflection, I am pretty sure you can leave all of the &#8220;automatic&#8221; copy and move operations alone, and just write an out of line, trivial destructor, like so: </p>
+<p>PublicInterface::~PublicInterface() {}</p>
+<p>You need the out of line destructor because the destructor eventually calls delete, and you don&#8217;t want to do that on an incomplete type.  You don&#8217;t need the move operations because those just twiddle pointers, and that is safe to do on an incomplete type.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4312">
+		<div id="div-comment-4312">
+		<div class="cmtinfo"><em> on <a href="#comment-4312" title="">2011-11-04 at 4:10 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/9fdfde82947baf080a81ef0db500f2a3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ben Craig</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4312"></div><p>Skipping the JG question, Herb already has chapters on that :)</p>
+<p>2. I&#8217;m not sure how &#8220;basic&#8221; basic is.  I see two main options.<br />
+a) std::unique_ptr<br />
+b) std::shared_ptr<br />
+Most of my classes would use unique_ptr.  With shared_ptr, I had to &#8220;out of line&#8221; all of my automatic functions (copy ctor, assignment op).  I suspect I have to do the same thing for unique_ptr, except I would probably delete the copy variants and default the move variants.  So some basic code:</p>
+<p>class PublicInterfaceImpl;</p>
+<p>class PublicInterface {<br />
+public:<br />
+   PublicInterface();<br />
+   PublicInterface(const PublicInterface &amp;) = delete;<br />
+   PublicInterface &amp;operator =(const PublicInterface &amp;) = delete;<br />
+   PublicInterface(PublicInterface &amp;&amp;) = default; //maybe? I don&#8217;t recall if you can do an =default on the definition in a cpp file.<br />
+   PublicInterface &amp;operator =(PublicInterface &amp;&amp;) = default; //same concern here<br />
+   ~PublicInterface() = default;<br />
+private:<br />
+   std::unique_ptr pimpl_;<br />
+};<br />
+//cpp<br />
+class PublicInterfaceImpl { /* &#8230; */ };<br />
+PublicInterface::PublicInterface() : pimpl_(new PublicInterfaceImpl) {}</p>
+<p>3.  I almost always put everything into the impl except for the public interface, and write a bunch of forwarding functions.  This gives maximum protection.  One downside is the amount of boilerplate.  It also doesn&#8217;t play nice with protected members, but I&#8217;m not a huge fan of protected members other than destructors.  You have one extra indirection with this scheme, but your compiler should still be able to inline a lot of it away within your cpp.</p>
+<p>a) Putting private data into the pimpl is easy and straightforward, and you get &#8220;size&#8221; protection, but you can still cause recompiles because of new helper private methods.<br />
+b) Only putting private stuff in the impl often causes awkward splits in functionality, but you cause fewer recompiles this way.  Also, you can&#8217;t get rid of the private virtual functions in the outer / wrapper class.<br />
+c) There isn&#8217;t a good reason to put protected members in the pimpl<br />
+d) The &#8220;template&#8221; Gang of Four pattern likes having private virtual functions.  One way or another, virtual functions are part of the public interface, even if they aren&#8217;t in &#8220;public&#8221; visibility.  So you can&#8217;t get rid of the private virtual functions.  You still get some of the awkward splits that I mentioned in b) above though.<br />
+e) This is my preferred solution.</p>
+<p>4. When implementing the GoF &#8220;template&#8221; pattern as a pimpl, you generally need a back pointer to actually call the virtual function.  If my pimpl pointer is a std::unique_ptr, I would use a non-owning raw pointer as my back pointer.  If my pimpl pointer is a std::shared_ptr, I would probably make a sad face.  I can&#8217;t use a std::shared_ptr as that creates a cycle.  I don&#8217;t want to use a std::weak_ptr or raw pointer, because it could point at a &#8220;dead&#8221; wrapper object, even when there are other &#8220;live&#8221; object wrappers..  So yeah, std::shared_ptr pimpls and back pointers probably don&#8217;t mix.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4311">
+		<div id="div-comment-4311">
+		<div class="cmtinfo"><em> on <a href="#comment-4311" title="">2011-11-04 at 3:16 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6d1c46e2968a7674186b73b819dbca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://alfps.wordpress.com' rel='external nofollow' class='url'>Alf P. Steinbach</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4311"></div><p>The name &#8220;compilation firewall&#8221; tells you that it has to do with tucking away some ugly things, such as the zillions of macros in Microsoft&#8217;s , or say a C header that uses the name &#8220;class&#8221;. Thus what to put in the implementation, while often correlating with the public/private distinction, is fundamentally an independent issue. In the implementation class, put anything that depends on (for example) the ugly header, then add whatever&#8217;s natural.</p>
+<p>By the way, nice that you&#8217;re doing GOTW&#8217;s again, and in particular this one; there&#8217;s less chance of recommending &#8220;auto_ptr&#8221; this time since it&#8217;s now deprecated. :-)</p>
+<p>Instead of a smart pointer I&#8217;d just make the visible class non-copyable, and implement constructor and destructor.</p>
+<p>Cheers &amp; hth.</p>
+<p>&#8211; Alf</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2011/11/04/gotw-100-compilation-firewalls/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-24f4269e67b822e46205898b797814c3">
+	</div>
+	<div class="grofile-hash-map-dfeed0cb9f18492e11306e5b1acb497c">
+	</div>
+	<div class="grofile-hash-map-08cce2dcfc82546224d1eb61e68dec05">
+	</div>
+	<div class="grofile-hash-map-e1191d880f488f0c320f7d4fc51e960c">
+	</div>
+	<div class="grofile-hash-map-f1634a09333f7b391db92e1d2bea6253">
+	</div>
+	<div class="grofile-hash-map-3352d7b7b661c84c5b888312397efc76">
+	</div>
+	<div class="grofile-hash-map-f2ffcd63c3f62b86a905ebe89da2c69d">
+	</div>
+	<div class="grofile-hash-map-73343c4a87a635312202c8c9b1e57d6d">
+	</div>
+	<div class="grofile-hash-map-6126e2ecc6e75222a996d2aec4da62b8">
+	</div>
+	<div class="grofile-hash-map-9fdfde82947baf080a81ef0db500f2a3">
+	</div>
+	<div class="grofile-hash-map-613442db2449e6da9347b43ed3225064">
+	</div>
+	<div class="grofile-hash-map-05aa36ab5c7d2c620d27d86415ba2eb7">
+	</div>
+	<div class="grofile-hash-map-6453f5f3a5e350f3414774e10c9c9b32">
+	</div>
+	<div class="grofile-hash-map-a9102969e779768e6f0b8cb87e864c94">
+	</div>
+	<div class="grofile-hash-map-ea6872cf5f32040741eabf1e7e089416">
+	</div>
+	<div class="grofile-hash-map-d431d3a90df3cddef1d4f0254f63da50">
+	</div>
+	<div class="grofile-hash-map-c6d1c46e2968a7674186b73b819dbca4">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_4400={"id":468178,"unique_id":"wp-comment-4400","title":"If%20memory%20allocations%20are%20a%20bottleneck%2C%20you%20can%20use%20a%20custom%20%20allocator%20in%20the%20internal%20unique_ptr....","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4400","item_id":"_comm_4400"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4400 == 'undefined' ){PDRTJS_468178_comm_4400 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4400 );}}PDRTJS_settings_468178_comm_4396={"id":468178,"unique_id":"wp-comment-4396","title":"How%20about%20performance%3F%20Memory%20allocations%20are%20often%20a%20bottleneck%2C%20and%20it%20seems%20that%20pimple%20would%20make%20the%20situation%20worse....","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4396","item_id":"_comm_4396"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4396 == 'undefined' ){PDRTJS_468178_comm_4396 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4396 );}}PDRTJS_settings_468178_comm_4371={"id":468178,"unique_id":"wp-comment-4371","title":"Simple%20comments%20%28I%20am%20sorry%2C%20I%20don%26%23039%3Bt%20have%20the%20time%20for%20a%20full-blown%20answer%29%3A1%29%20I%20would%20note%20that%20the%20compilation%20firewall%20goal%20is%20different%20than%20the%20ABI%20compatibility%20goal.%20We%20are%20ready%20to%20pay%20th...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4371","item_id":"_comm_4371"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4371 == 'undefined' ){PDRTJS_468178_comm_4371 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4371 );}}PDRTJS_settings_468178_comm_4370={"id":468178,"unique_id":"wp-comment-4370","title":"Maybe%20you%20can%20cross-post%20to%20comp.programming.c%2B%2B.%2CmoderatedBring%20back%20the%2090s%21...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4370","item_id":"_comm_4370"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4370 == 'undefined' ){PDRTJS_468178_comm_4370 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4370 );}}PDRTJS_settings_468178_comm_4358={"id":468178,"unique_id":"wp-comment-4358","title":"2%29%20unique_ptr.Interestingly%20enough%2C%20C%2B%2B11%20allows%20you%20to%20do%20this%3Astruct%20foo%20%7B%20~foo%28%29%3B%20%7D%3Bfoo%3A%3A~foo%28%29%20%3D%20default%3BThe%20interesting%20part%20is%20that%20this%20%26quot%3Bbody%26quot%3B%20is%20semantically%20equivalent%20and%20longer%20to%20type...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4358","item_id":"_comm_4358"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4358 == 'undefined' ){PDRTJS_468178_comm_4358 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4358 );}}PDRTJS_settings_468178_comm_4342={"id":468178,"unique_id":"wp-comment-4342","title":"The%20question%20of%20how%20to%20handle%20protected%20members%20is%20an%20interesting%20one.%20Pimpl%20and%20inheritance%20are%20a%20mix%20that%20I%26%23039%3Bve%20never%20had%20to%20use.%20%20I%20suspect%20that%20the%20%26quot%3Bright%26quot%3B%20answer%20depends%20highly%20on%20context.%20Ra...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4342","item_id":"_comm_4342"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4342 == 'undefined' ){PDRTJS_468178_comm_4342 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4342 );}}PDRTJS_settings_468178_comm_4339={"id":468178,"unique_id":"wp-comment-4339","title":"The%20answers%20to%20this%20question%20%28and%20the%20whole%20pimpl%20idiom%29%20is%20strongly%20related%20to%20runtime%20in-memory%20characteristics%20of%20objects%20%28and%20vtables%29.%231%20%29Let%26%23039%3Bs%20actually%20answer%20%231%20as%20the%20right%20answer%20helps%20w...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4339","item_id":"_comm_4339"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4339 == 'undefined' ){PDRTJS_468178_comm_4339 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4339 );}}PDRTJS_settings_468178_comm_4338={"id":468178,"unique_id":"wp-comment-4338","title":"I%20haven%26%23039%3Bt%20looked%20at%20the%20new%20language%20spec%20so%20may%20be%20talking%20out%20of%20turn%20here.In%20good%20ol%26%23039%3B%20c%2B%2B%20use%20of%20smart%20pointers%20for%20pimpl%20ran%20the%20risk%20of%20emitting%20a%20%26%23039%3Bdelete%20p%26%23039%3B%20before%20the%20type%20of%20p%20had%20been%20de...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4338","item_id":"_comm_4338"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4338 == 'undefined' ){PDRTJS_468178_comm_4338 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4338 );}}PDRTJS_settings_468178_comm_4337={"id":468178,"unique_id":"wp-comment-4337","title":"I%20see%20what%20you%20mean%20Ben.%20I%20was%20kinda%20assuming%20that%20whenever%20you%20involve%20pointers%20in%20your%20class%2C%20you%20pretty%20much%20have%20to%20supply%20your%20own%20copy%2Fmove%20constructor%2Fassignment.%20Thanks%20for%20the%20explanatio...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4337","item_id":"_comm_4337"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4337 == 'undefined' ){PDRTJS_468178_comm_4337 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4337 );}}PDRTJS_settings_468178_comm_4333={"id":468178,"unique_id":"wp-comment-4333","title":"And%20now%20I%20go%20back%20and%20see%20that%20all%20of%20my%20template%20brackets%20have%20been%20eaten%20%3A%28Hopefully%20the%20intent%20is%20clear%20enough%20without%20them....","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4333","item_id":"_comm_4333"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4333 == 'undefined' ){PDRTJS_468178_comm_4333 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4333 );}}PDRTJS_settings_468178_comm_4332={"id":468178,"unique_id":"wp-comment-4332","title":"Re%3A%20Roman%20KutlakSay%20I%20have%20this%20setup%3Aclass%20Outer%20%7Bstd%3A%3Aunique_ptr%20pimpl_%3B%7D%3Bclass%20Inner%20%7B%20%20%20std%3A%3Aweak_ptr%20backPtr_%3B%7D%3BThen%2C%20I%20have%20some%20code%20like%20this%3AOuter%20make_outer%28%29%7B%20%20%20Outer%20old_outer%3B%20%20%20retu...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4332","item_id":"_comm_4332"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4332 == 'undefined' ){PDRTJS_468178_comm_4332 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4332 );}}PDRTJS_settings_468178_comm_4329={"id":468178,"unique_id":"wp-comment-4329","title":"Hello%20guys%2C%20I%20am%20a%20newbie%20so%20this%20answer%20is%20basically%20just%20testing%20my%20understanding%20of%20the%20concepts.%20Any%20comments%20highly%20appreciated%211.%20My%20understanding%20of%20pimpl%20was%20that%20it%26%23039%3Bs%20main%20purpose%20is%20to%20...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4329","item_id":"_comm_4329"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4329 == 'undefined' ){PDRTJS_468178_comm_4329 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4329 );}}PDRTJS_settings_468178_comm_4328={"id":468178,"unique_id":"wp-comment-4328","title":"2.%20I%20prefer%20unique_ptr%2C%20but%20that%20does%20not%20compile%20cleanly%20on%20warning%20level%204%20for%20classes%20exported%20from%20a%20dll.%20Quite%20annoying.%203.%20a%29%20put%20all%20private%20data%20%28but%20not%20functions%29%20into%20impl%3B%2B%20Functions%20...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4328","item_id":"_comm_4328"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4328 == 'undefined' ){PDRTJS_468178_comm_4328 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4328 );}}PDRTJS_settings_468178_comm_4325={"id":468178,"unique_id":"wp-comment-4325","title":"%40Dave%2C%20%40Paul%3A%20http%3A%2F%2Fstackoverflow.com%2Fquestions%2F825018%2Fpimpl-idiom-vs-pure-virtual-class-interfacePure%20virtual%20class%20%26quot%3BInterface%26quot%3B%20and%20Pimpl%20idiom%20can%20be%20similar%2C%20but%20are%20not%20quite%20interchangeable...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4325","item_id":"_comm_4325"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4325 == 'undefined' ){PDRTJS_468178_comm_4325 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4325 );}}PDRTJS_settings_468178_comm_4322={"id":468178,"unique_id":"wp-comment-4322","title":"I%20am%20with%20Dave%20here%3A%20One%20should%20decide%20whether%20an%20interface%20%28pure%20abstract%20class%29%20or%20a%20pimpl%2Fforwarder%20combination%20suites%20better.%20As%20a%20rule%20of%20thumb%20I%20am%20using%20the%20first%20whenever%20binary%20safety%20an...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4322","item_id":"_comm_4322"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4322 == 'undefined' ){PDRTJS_468178_comm_4322 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4322 );}}PDRTJS_settings_468178_comm_4321={"id":468178,"unique_id":"wp-comment-4321","title":"Is%20the%20pimpl%20idiom%20something%20that%20should%20be%20encouraged%3F%20Why%20not%20use%20a%20pure%20virtual%20class%2C%20as%20an%20interface%3FI%26%23039%3Bve%20never%20seen%20a%20good%20use%20of%20this%20idiom%2C%20when%20its%20needed%2C%20its%20probably%20a%20code%20smell....","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4321","item_id":"_comm_4321"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4321 == 'undefined' ){PDRTJS_468178_comm_4321 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4321 );}}PDRTJS_settings_468178_comm_4320={"id":468178,"unique_id":"wp-comment-4320","title":"I%20wait%20for%20C%2B%2B11%20TR1%2C%20which%20is%20rumoured%28%3F%29%20to%20include%20real%20modules%3A%20http%3A%2F%2Fwww.open-std.org%2Fjtc1%2Fsc22%2Fwg21%2Fdocs%2Fpapers%2F2006%2Fn2073.pdfCurrently%2C%20I%20avoid%20explicit%20pimpl%2C%20I%20don%26%23039%3Bt%20like%20the%20complicati...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4320","item_id":"_comm_4320"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4320 == 'undefined' ){PDRTJS_468178_comm_4320 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4320 );}}PDRTJS_settings_468178_comm_4317={"id":468178,"unique_id":"wp-comment-4317","title":"%282%29%20TLDR%3B%20std%3A%3Aunique_ptr%283%29%20TLDR%3B%20I%20move%20private%20non-virtual%20methods%2Bdata.I%20don%26%23039%3Bt%20use%20protected%20members%20and%20try%20to%20minimize%20protected%20methods.Private%20non-virtual%20methods%20can%20%28should%3F%29%20be%20detache...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4317","item_id":"_comm_4317"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4317 == 'undefined' ){PDRTJS_468178_comm_4317 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4317 );}}PDRTJS_settings_468178_comm_4315={"id":468178,"unique_id":"wp-comment-4315","title":"I%20am%20now%20realizing%20that%20back%20pointers%20with%20a%20std%3A%3Aunique_ptr%20have%20the%20same%20problem%20as%20those%20with%20a%20std%3A%3Ashared_ptr.%20%20The%20back%20pointer%20could%20point%20to%20a%20moved%20from%2C%20and%20already%20destroyed%20object.%20%20I...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4315","item_id":"_comm_4315"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4315 == 'undefined' ){PDRTJS_468178_comm_4315 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4315 );}}PDRTJS_settings_468178_comm_4314={"id":468178,"unique_id":"wp-comment-4314","title":"On%203%2F4%2C%20I%20think%20there%26%23039%3Bs%20a%20nice%20dovetailing%20of%20hardline%20pimpl%20%28everything%20but%20forwarders%20in%20the%20impl%29%20and%20what%20used%20to%20be%20called%20the%20%26quot%3Bnon-virtual%20interface%26quot%3B%20idiom.%20%28I%20haven%26%23039%3Bt%20seen%20it%20mentioned%20for...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4314","item_id":"_comm_4314"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4314 == 'undefined' ){PDRTJS_468178_comm_4314 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4314 );}}PDRTJS_settings_468178_comm_4313={"id":468178,"unique_id":"wp-comment-4313","title":"On%20further%20reflection%2C%20I%20am%20pretty%20sure%20you%20can%20leave%20all%20of%20the%20%26quot%3Bautomatic%26quot%3B%20copy%20and%20move%20operations%20alone%2C%20and%20just%20write%20an%20out%20of%20line%2C%20trivial%20destructor%2C%20like%20so%3A%20PublicInterface%3A%3A~PublicIn...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4313","item_id":"_comm_4313"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4313 == 'undefined' ){PDRTJS_468178_comm_4313 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4313 );}}PDRTJS_settings_468178_comm_4312={"id":468178,"unique_id":"wp-comment-4312","title":"Skipping%20the%20JG%20question%2C%20Herb%20already%20has%20chapters%20on%20that%20%3A%292.%20I%26%23039%3Bm%20not%20sure%20how%20%26quot%3Bbasic%26quot%3B%20basic%20is.%20%20I%20see%20two%20main%20options.a%29%20std%3A%3Aunique_ptrb%29%20std%3A%3Ashared_ptrMost%20of%20my%20classes%20would%20use%20unique...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4312","item_id":"_comm_4312"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4312 == 'undefined' ){PDRTJS_468178_comm_4312 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4312 );}}PDRTJS_settings_468178_comm_4311={"id":468178,"unique_id":"wp-comment-4311","title":"The%20name%20%26quot%3Bcompilation%20firewall%26quot%3B%20tells%20you%20that%20it%20has%20to%20do%20with%20tucking%20away%20some%20ugly%20things%2C%20such%20as%20the%20zillions%20of%20macros%20in%20Microsoft%26%23039%3Bs%20%2C%20or%20say%20a%20C%20header%20that%20uses%20the%20name%20%26quot%3Bclass%26quot%3B.%20Thus%20...","permalink":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/#comment-4311","item_id":"_comm_4311"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4311 == 'undefined' ){PDRTJS_468178_comm_4311 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4311 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2011%2F11%2F04%2Fgotw-100-compilation-firewalls%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2011\/11\/04\/gotw-100-compilation-firewalls\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2011%2F11%2F04%2Fgotw-100-compilation-firewalls%2F","postID":"900","shortlink":"https:\/\/wp.me\/peb5Y-ew","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/900","statsLink":"https:\/\/wordpress.com\/stats\/post\/900\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2011%2F11%2F04%2Fgotw-100-compilation-firewalls%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'900','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sN3x5JUh1XTBjcWE3elh6QzRrREN8Z11GXWpnRXhHLVgmeE1sNDdDaC5NXWUvNlg1bk1WUUguZENGSlEuRi9bNFpoNG81NFBvNXNGK20wZDJfTVVNSWJfK11bd1FfQ0V2OVVRU29+NmQ2WmlraX49NHImVW5GdmhVVis4Zk1PfD16bDFHLi9BRXB+OC9SY1RtajY4LUdMQU4rbHZFST9bckxjOGFiV3VENG5FRDZLcVNSfCU5VEpKcEZdc1NuWGslRUF2QVRX'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '900' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

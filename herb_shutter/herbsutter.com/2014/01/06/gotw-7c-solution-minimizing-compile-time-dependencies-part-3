@@ -1,0 +1,768 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #7c Solution: Minimizing Compile-Time Dependencies, Part 3 | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965309&amp;back=https%3A%2F%2Fherbsutter.com%2F2014%2F01%2F06%2Fgotw-7c-solution-minimizing-compile-time-dependencies-part-3%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #7c Solution: Minimizing Compile-Time Dependencies, Part&nbsp;3 Comments Feed" href="https://herbsutter.com/2014/01/06/gotw-7c-solution-minimizing-compile-time-dependencies-part-3/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #7c: Minimizing Compile-Time Dependencies, Part&nbsp;3' href='https://herbsutter.com/2013/12/31/gotw-7c-minimizing-compile-time-dependencies-part-3/' />
+<link rel='next' title='GotW #95: Thread Safety and&nbsp;Synchronization' href='https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2014/01/06/gotw-7c-solution-minimizing-compile-time-dependencies-part-3/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-CH' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2014%2F01%2F06%2Fgotw-7c-solution-minimizing-compile-time-dependencies-part-3%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2014%2F01%2F06%2Fgotw-7c-solution-minimizing-compile-time-dependencies-part-3%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #7c Solution: Minimizing Compile-Time Dependencies, Part 3" />
+<meta property="og:url" content="https://herbsutter.com/2014/01/06/gotw-7c-solution-minimizing-compile-time-dependencies-part-3/" />
+<meta property="og:description" content="Now the unnecessary headers have been removed, and avoidable dependencies on the internals of the class have been eliminated. Is there any further decoupling that can be done? The answer takes us b…" />
+<meta property="article:published_time" content="2014-01-06T15:58:39+00:00" />
+<meta property="article:modified_time" content="2014-01-06T20:10:53+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965309" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #7c Solution: Minimizing Compile-Time Dependencies, Part&nbsp;3" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Now the unnecessary headers have been removed, and avoidable dependencies on the internals of the class have been eliminated. Is there any further decoupling that can be done? The answer takes us back to basic principles of solid class design.  Problem JG Question 1. What is the tightest coupling you can express in C++? And&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2014/01/06/gotw-7c-solution-minimizing-compile-time-dependencies-part-3/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2399 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/12/31/gotw-7c-minimizing-compile-time-dependencies-part-3/" rel="prev">GotW #7c: Minimizing Compile-Time Dependencies, Part&nbsp;3</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/" rel="next">GotW #95: Thread Safety and&nbsp;Synchronization</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2399 post type-post status-publish format-standard hentry category-gotw" id="post-2399">
+				<div class="posttitle">
+					<h2>GotW #7c Solution: Minimizing Compile-Time Dependencies, Part&nbsp;3</h2>
+					<p class="post-info">2014-01-06 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>Now the unnecessary headers have been removed, and avoidable dependencies on the internals of the class have been eliminated. Is there any further decoupling that can be done? The answer takes us back to basic principles of solid class design.<br />
+</em></span></p>
+<p>
+ </p>
+<h1>Problem<br />
+</h1>
+<h2>JG Question<br />
+</h2>
+<p>1. What is the tightest coupling you can express in C++? And what&#8217;s the second-tightest?
+</p>
+<h2>Guru Question<br />
+</h2>
+<p>2. The Incredible Shrinking Header has now been greatly trimmed, but there may still be ways to reduce the dependencies further. What further <span style="color:#2e74b5;">#include</span>s could be removed if we made further changes to <span style="color:#2e74b5;">X</span>, and how?
+</p>
+<p>This time, you may make any changes at all to <span style="color:#2e74b5;">X</span> as long as they don&#8217;t change its public interface, so that existing code that uses <span style="color:#2e74b5;">X</span> is unaffected. Again, note that the comments are important.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>//  x.h: after converting to use a Pimpl to hide implementation details<br />//<br />#include &lt;iosfwd&gt;<br />#include &lt;memory&gt;<br />#include "a.h"  // class A (has virtual functions)<br />#include "b.h"  // class B (has no virtual functions)<br />class C;<br />class E;<br /><br />class X : public A, private B {<br />public:<br />       X( const C&amp; );<br />    B  f( int, char* );<br />    C  f( int, C );<br />    C&amp; g( B );<br />    E  h( E );<br />    virtual std::ostream&amp; print( std::ostream&amp; ) const;<br /><br />private:<br />    struct impl;<br />    std::unique_ptr&lt;impl&gt; pimpl;   // ptr to a forward-declared class<br />};<br /><br />std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, const X&amp; x ) {<br />    return x.print(os);<br />}
+</code></pre>
+</p>
+<p>
+ </p>
+<h1>Solution<br />
+</h1>
+<h2>1. What is the tightest coupling you can express in C++? And what&#8217;s the second-tightest?<br />
+</h2>
+<p>Friendship and inheritance, respectively.
+</p>
+<p>A friend of a class has access to everything in that class, including all of its private data and functions, and so the code in a friend depends on every detail of the type. Now that&#8217;s a close friend!
+</p>
+<p>A class derived from a class <span style="color:#2e74b5;">Base</span> has access to public and protected members in <span style="color:#2e74b5;">Base</span>, and depends on the size and layout of <span style="color:#2e74b5;">Base</span> because it contains a <span style="color:#2e74b5;">Base</span> subobject. Further, the inheritance relationship means that a derived type is at least by default substitutable for its <span style="color:#2e74b5;">Base</span>; whether the inheritance is public or nonpublic only changes what other code can see and make use of the substitutability. That&#8217;s pretty tight coupling, second only to friendship.
+</p>
+<p>
+ </p>
+<h2>2. What further #includes could be removed if we made further changes to X, and how?<br />
+</h2>
+<p>Many programmers still seem to march to the &#8220;It isn&#8217;t OO unless you inherit!&#8221; battle hymn, by which I mean that they use inheritance more than necessary. I&#8217;ll save the whole lecture for another time, but my bottom line is simply that inheritance (including but not limited to IS-A) is a much stronger relationship than HAS-A or USES-A. When it comes to managing dependencies, therefore, you should always prefer composition/membership over inheritance wherever possible. To paraphrase Einstein: &#8216;Use as strong a relationship as necessary, but no stronger.&#8217;
+</p>
+<p>In this code, <span style="color:#2e74b5;">X</span> is derived publicly from <span style="color:#2e74b5;">A</span> and privately from <span style="color:#2e74b5;">B</span>. Recall that public inheritance should always model IS-A and satisfy the Liskov Substitutability Principle (LSP). In this case <span style="color:#2e74b5;">X</span> IS-A <span style="color:#2e74b5;">A</span> and there&#8217;s naught wrong with it, so we&#8217;ll leave that as it is.
+</p>
+<p>But did you notice the curious thing about <span style="color:#2e74b5;">B</span>&#8216;s virtual functions?
+</p>
+<p>&#8220;What?&#8221; you might say. &#8220;<span style="color:#2e74b5;">B</span> has no virtual functions.&#8221;
+</p>
+<p>Right. <a href="http://en.wikipedia.org/wiki/Silver_Blaze">That is the curious thing.</a>
+	</p>
+<p><span style="color:#2e74b5;">B</span> is a private base class of <span style="color:#2e74b5;">X</span>. Normally, the only reason you would choose private inheritance over composition/membership is to gain access to protected members—which most of the time means &#8220;to override a virtual function.&#8221; (There are a few other rare and obscure reasons to inherit, but they&#8217;re, well, rare and obscure.) Otherwise you wouldn&#8217;t choose inheritance, because it&#8217;s almost the tightest coupling you can express in C++, second only to <span style="color:#2e74b5;">friend</span>ship.
+</p>
+<p>We are given that <span style="color:#2e74b5;">B</span> has no virtual functions, so there&#8217;s probably no reason to prefer the stronger relationship of inheritance—unless <span style="color:#2e74b5;">X</span> needs access to some protected function or data in <span style="color:#2e74b5;">B</span>, of course, but for now I&#8217;ll assume that this is not the case. So, instead of having a base subobject of type <span style="color:#2e74b5;">B</span>, <span style="color:#2e74b5;">X</span> probably ought to have simply a member object of type <span style="color:#2e74b5;">B</span>. Therefore, the way to further simplify the header is:
+</p>
+<p>
+ </p>
+<h2>(a) Remove unnecessary inheritance from class <span style="color:#2e74b5;">B.<br />
+</span></h2>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>#include "b.h"  // class B (has no virtual functions)
+</code></pre>
+</p>
+<p>Because the <span style="color:#2e74b5;">B</span> member object should be private (it is, after all, an implementation detail), and in order to get rid of the <span style="color:#2e74b5;">b.h</span> header entirely, this member should live in <span style="color:#2e74b5;">X</span>&#8216;s hidden <span style="color:#2e74b5;">pimpl</span> portion.
+</p>
+<blockquote>
+<p><strong>Guideline: </strong>Never inherit when composition is sufficient.
+</p>
+</blockquote>
+<p>
+ </p>
+<p>This leaves us with header code that&#8217;s vastly simplified from where we started in GotW #7a:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>//  x.h: after removing unnecessary inheritance<br />//<br />#include &lt;iosfwd&gt;<br />#include &lt;memory&gt;<br />#include "a.h"  // class A (has virtual functions)<br />class B;<br />class C;<br />class E;<br /><br />class X : public A {<br />public:<br />       X( const C&amp; );<br />    B  f( int, char* );<br />    C  f( int, C );<br />    C&amp; g( B );<br />    E  h( E );<br />    virtual std::ostream&amp; print( std::ostream&amp; ) const;<br /><br />private:<br />    struct impl;<br />    std::unique_ptr&lt;impl&gt; pimpl;   // this now quietly includes a B<br />};<br /><br />std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, const X&amp; x ) {<br />    return x.print(os);<br />}
+</code></pre>
+</p>
+<p>
+ </p>
+<p>After three passes of progressively greater simplification, the final result is that <span style="color:#2e74b5;">x.h</span> is still using other class names all over the place, but clients of <span style="color:#2e74b5;">X</span> need only pay for three <span style="color:#2e74b5;">#include</span>s: <span style="color:#2e74b5;">a.h</span>, <span style="color:#2e74b5;">memory</span>, and <span style="color:#2e74b5;">iosfwd</span>. What an improvement over the original!
+</p>
+<p>
+ </p>
+<h2>Acknowledgments<br />
+</h2>
+<p>Thanks in particular to the following for their feedback to improve this article: juanchopanza, anicolaescu, Bert Rodiers.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											26 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">26 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-14135">
+		<div id="div-comment-14135">
+		<div class="cmtinfo"><em> on <a href="#comment-14135" title="">2014-01-15 at 5:11 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/29d03a96b1718886fb44fb10d94f2378?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Rob Stewart</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14135"></div><p>@Alexandre Chassany</p>
+<p>Refer to the solution for #7a, including Sebastian Redl&#8217;s comment, which discussed eliminating the E.h include directive because E was used only as an argument and a return type. B is now used in exactly the same ways.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14102">
+		<div id="div-comment-14102">
+		<div class="cmtinfo"><em> on <a href="#comment-14102" title="">2014-01-09 at 10:32 pm</a></em> <img alt='' src='https://i1.wp.com/lh5.googleusercontent.com/-ddxrgj6qSQM/AAAAAAAAAAI/AAAAAAAANqQ/dnHTFtzKRfM/photo.jpg?resize=48%2C48&#038;ssl=1' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://plus.google.com/+LachlanEaston' rel='external nofollow' class='url'>Lachlan Easton</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14102"></div><p>Ohhhhhhhh. Well that makes too much sense. Never mind me.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-14093">
+		<div id="div-comment-14093">
+		<div class="cmtinfo"><em> on <a href="#comment-14093" title="">2014-01-09 at 11:46 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14093"></div><p>@Lachlan: It was because the comments were held for moderation, so they didn&#8217;t see each other&#8217;s comments. Then I approved them all, not wanting to quash anyone and crediting the first to point out the typos.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14090">
+		<div id="div-comment-14090">
+		<div class="cmtinfo"><em> on <a href="#comment-14090" title="">2014-01-08 at 3:56 pm</a></em> <img alt='' src='https://i1.wp.com/lh5.googleusercontent.com/-ddxrgj6qSQM/AAAAAAAAAAI/AAAAAAAANqQ/dnHTFtzKRfM/photo.jpg?resize=48%2C48&#038;ssl=1' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://plus.google.com/+LachlanEaston' rel='external nofollow' class='url'>Lachlan Easton</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14090"></div><p>Why are so many people repeating the same things in comments? You would think once someone has pointed out that the #include has not been removed that it would become publicly known and not need further pointing out.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14067">
+		<div id="div-comment-14067">
+		<div class="cmtinfo"><em> on <a href="#comment-14067" title="">2014-01-06 at 12:57 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/86b2ee7b5204b1211b6457dad0479aa0?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Bekenn</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14067"></div><p>&#8230;you still have the extra #include.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14066">
+		<div id="div-comment-14066">
+		<div class="cmtinfo"><em> on <a href="#comment-14066" title="">2014-01-06 at 12:07 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/a072c16ad447418b01a43bfcd4d7ff9e?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>MF</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14066"></div><p>I think you forgot to change the inclusion of b.h in the final version to a forward declaration of B since there are no users left.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14065">
+		<div id="div-comment-14065">
+		<div class="cmtinfo"><em> on <a href="#comment-14065" title="">2014-01-06 at 10:03 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9e2e46819ae750bf65a1531785e8fb38?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>anicolaescu</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14065"></div><p>Second attempt of copy-and-paste still failed; you can remove #include &#8220;b.h&#8221;, and you must forward-declare B.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14064">
+		<div id="div-comment-14064">
+		<div class="cmtinfo"><em> on <a href="#comment-14064" title="">2014-01-06 at 10:03 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6d4066da6457d37c0a6f0e4a262b1cc3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alexandre Chassany</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14064"></div><p>The inheritance is fixed but you added the </p>
+<pre class="brush: plain; title: ; notranslate" title="">#include &quot;b.h&quot;</pre>
+<p> again :D</p>
+<p>But i think this header is still necessary since the class B is still reference by value in the public interface of the class X (thus B can&#8217;t be forward declared).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-14063">
+		<div id="div-comment-14063">
+		<div class="cmtinfo"><em> on <a href="#comment-14063" title="">2014-01-06 at 9:55 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14063"></div><p>@all: Yup, thanks for the cut-and-paste visual; I&#8217;m not sure how the old code resurfaced, but now it&#8217;s fixed. Acknowledgements to the first three who reported specific aspects: juanchopanza, anicolaescu, Bert Rodiers. Thanks, corrected.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14062">
+		<div id="div-comment-14062">
+		<div class="cmtinfo"><em> on <a href="#comment-14062" title="">2014-01-06 at 9:45 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/405757382c5e6e2a296fc0ea8fa7be46?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Yuriy</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14062"></div><p>Oops, looks like you forgot to remove the inheritance from the corrected code :)</p>
+<p>class X : public A, &lt;&gt;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14061">
+		<div id="div-comment-14061">
+		<div class="cmtinfo"><em> on <a href="#comment-14061" title="">2014-01-06 at 9:43 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/245c267bdee022d15b2fbdac18d9f4af?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>sergegers</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14061"></div><p>You forgot to remove class B from inheritance list on the last code example.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-tomswirly odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14059">
+		<div id="div-comment-14059">
+		<div class="cmtinfo"><em> on <a href="#comment-14059" title="">2014-01-06 at 9:36 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/753ef975f85896eabdb64d9aa6ad4cbe?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Tom Swirly</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14059"></div><p>Surely there&#8217;s a typo here?  You&#8217;re still writing </p>
+<pre class="brush: plain; title: ; notranslate" title="">class X : public A, private B {</pre>
+<p> but now B is nowhere defined, and is supposedly hidden entirely in the pimpl.  Shouldn&#8217;t you be deleting </p>
+<pre class="brush: plain; title: ; notranslate" title="">, private B</pre>
+<p>?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-14057">
+		<div id="div-comment-14057">
+		<div class="cmtinfo"><em> on <a href="#comment-14057" title="">2014-01-06 at 9:21 am</a></em>  <cite><a href='http://guillaumebelz.wordpress.com/2014/01/06/guru-of-the-week-7/' rel='external nofollow' class='url'>Guru of the week 7 | C++, Qt, OpenGL, CUDA</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14057"></div><p>[&#8230;] GotW #7c Solution: Minimizing Compile-Time Dependencies, Part 3 [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14054">
+		<div id="div-comment-14054">
+		<div class="cmtinfo"><em> on <a href="#comment-14054" title="">2014-01-06 at 9:17 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/8bcbc5519492da9cafc3a8162c830427?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mike</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14054"></div><p>You forgot to excise &#8220;, private B&#8221; from the final version&#8230;  and forward declare &#8220;class B&#8221;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14053">
+		<div id="div-comment-14053">
+		<div class="cmtinfo"><em> on <a href="#comment-14053" title="">2014-01-06 at 8:43 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e285015dd28622f5dbf8d728f21fab63?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Bert Rodiers</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14053"></div><p>The last code example has some errors. First of all, in the code X still (privately) inherits from B. Since it is now part of the impl, you don&#8217;t need to inherit anymore. Furthermore f returns B by value and g takes B by value, which means that you can&#8217;t remove the include for B. And lastly either you have to change unique_ptr to std::unique_ptr or &#8220;add using namespace std&#8221;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14052">
+		<div id="div-comment-14052">
+		<div class="cmtinfo"><em> on <a href="#comment-14052" title="">2014-01-06 at 8:39 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/17de9d36c3da1e8b276b0d1a976c5351?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Foo</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14052"></div><p>Typo in the final solution as X still inherits from B. There also needs to be a forward declaration of B as it is both a return value and parameter for X&#8217;s functions.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-avjewe even thread-even depth-1 highlander-comment" id="comment-14051">
+		<div id="div-comment-14051">
+		<div class="cmtinfo"><em> on <a href="#comment-14051" title="">2014-01-06 at 8:36 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/28512e7ea3e0cf283c0cc5423a0d164a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>avjewe</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14051"></div><p>Your new improved x.h still says &#8220;, private B&#8221; and fails to say &#8220;class B;&#8221;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14050">
+		<div id="div-comment-14050">
+		<div class="cmtinfo"><em> on <a href="#comment-14050" title="">2014-01-06 at 8:34 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6d4066da6457d37c0a6f0e4a262b1cc3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alexandre Chassany</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14050"></div><p>Hi,</p>
+<p>I maybe mistaken but in the final version of the header there is still a private inheritance from B. Wasn&#8217;t it the whole point to remove it ? :)</p>
+<p>Furthermore, i&#8217;m kinda confused. I agree that using composition you can get rid of the </p>
+<pre class="brush: plain; title: ; notranslate" title="">#include &quot;b.h&quot;</pre>
+<p>, but B is still reference in the public part of the class X:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+B  f( int, char* );
+C&amp; g( B );
+</pre>
+<p>Will it still work if we remove the </p>
+<pre class="brush: plain; title: ; notranslate" title="">#include &quot;b.h&quot;</pre>
+<p> ?</p>
+<p>Thx</p>
+<p>Alex</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14049">
+		<div id="div-comment-14049">
+		<div class="cmtinfo"><em> on <a href="#comment-14049" title="">2014-01-06 at 8:29 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a681e2e22ac1f89e2313732180d65ca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>John Ralls</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14049"></div><p>Umm, looks like you forgot to actually remove the inheritance from B. Also needs to have a forward decl for B for the second and fourth member functions.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14048">
+		<div id="div-comment-14048">
+		<div class="cmtinfo"><em> on <a href="#comment-14048" title="">2014-01-06 at 8:25 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a681e2e22ac1f89e2313732180d65ca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>John Ralls</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14048"></div><p>Umm, don&#8217;t you want to remove the &#8216;private B&#8217; from the class X declaration line and add a &#8216;class B;&#8217; declaration so the compiler won&#8217;t complain about the second member function declaration?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14047">
+		<div id="div-comment-14047">
+		<div class="cmtinfo"><em> on <a href="#comment-14047" title="">2014-01-06 at 8:16 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9e2e46819ae750bf65a1531785e8fb38?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>anicolaescu</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14047"></div><p>You missed removing &#8220;private B&#8221; from X&#8217;s super-classes.<br />
+Also, shouldn&#8217;t B be forward-declared? There are methods in X which make use of it.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14046">
+		<div id="div-comment-14046">
+		<div class="cmtinfo"><em> on <a href="#comment-14046" title="">2014-01-06 at 8:15 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/4844a1eb61fdfd3316f9be6002c1c08b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/stevegilham' rel='external nofollow' class='url'>Steve Gilham</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14046"></div><p>At time of writing, the &#8220;after&#8221; still has the inheritance<br />
+[CODE]class X : public A, private B {[/CODE]<br />
+and not the composition-only<br />
+[CODE]class X : public A {[/CODE]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14045">
+		<div id="div-comment-14045">
+		<div class="cmtinfo"><em> on <a href="#comment-14045" title="">2014-01-06 at 8:13 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/30e18c4126ca2ca95e0387f8ea00dcac?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Robert</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14045"></div><p>Little typo: In your final code, X still privately inherits from B.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-juanchopalacios odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14044">
+		<div id="div-comment-14044">
+		<div class="cmtinfo"><em> on <a href="#comment-14044" title="">2014-01-06 at 8:12 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1735ab1c8ba4229daa855ec6aad03065?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://juanchopanzacpp.wordpress.com' rel='external nofollow' class='url'>juanchopanza</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14044"></div><p>Clearly I am having formatting issues. Anyway, I meant <code>class X</code> still inherits privately from <code>class B</code>.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14043">
+		<div id="div-comment-14043">
+		<div class="cmtinfo"><em> on <a href="#comment-14043" title="">2014-01-06 at 8:08 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/af6718825cf4fcccae47716e7fd3c66f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://dev.krzaq.cc' rel='external nofollow' class='url'>KrzaQ</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14043"></div><p>I think you forgot to remove B from the list of X&#8217;s base classes, unless I&#8217;m badly misunderstanding something.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-juanchopalacios odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14042">
+		<div id="div-comment-14042">
+		<div class="cmtinfo"><em> on <a href="#comment-14042" title="">2014-01-06 at 8:07 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1735ab1c8ba4229daa855ec6aad03065?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://juanchopanzacpp.wordpress.com' rel='external nofollow' class='url'>juanchopanza</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14042"></div><p>Typo: in your final code sample,  still inherits privately from .</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2014/01/06/gotw-7c-solution-minimizing-compile-time-dependencies-part-3/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-29d03a96b1718886fb44fb10d94f2378">
+	</div>
+	<div class="grofile-hash-map-330cc5e3d8126b2acdf0badb08eebecf">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-86b2ee7b5204b1211b6457dad0479aa0">
+	</div>
+	<div class="grofile-hash-map-a072c16ad447418b01a43bfcd4d7ff9e">
+	</div>
+	<div class="grofile-hash-map-9e2e46819ae750bf65a1531785e8fb38">
+	</div>
+	<div class="grofile-hash-map-6d4066da6457d37c0a6f0e4a262b1cc3">
+	</div>
+	<div class="grofile-hash-map-405757382c5e6e2a296fc0ea8fa7be46">
+	</div>
+	<div class="grofile-hash-map-245c267bdee022d15b2fbdac18d9f4af">
+	</div>
+	<div class="grofile-hash-map-753ef975f85896eabdb64d9aa6ad4cbe">
+	</div>
+	<div class="grofile-hash-map-8bcbc5519492da9cafc3a8162c830427">
+	</div>
+	<div class="grofile-hash-map-e285015dd28622f5dbf8d728f21fab63">
+	</div>
+	<div class="grofile-hash-map-17de9d36c3da1e8b276b0d1a976c5351">
+	</div>
+	<div class="grofile-hash-map-28512e7ea3e0cf283c0cc5423a0d164a">
+	</div>
+	<div class="grofile-hash-map-a681e2e22ac1f89e2313732180d65ca4">
+	</div>
+	<div class="grofile-hash-map-4844a1eb61fdfd3316f9be6002c1c08b">
+	</div>
+	<div class="grofile-hash-map-30e18c4126ca2ca95e0387f8ea00dcac">
+	</div>
+	<div class="grofile-hash-map-1735ab1c8ba4229daa855ec6aad03065">
+	</div>
+	<div class="grofile-hash-map-af6718825cf4fcccae47716e7fd3c66f">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_14135={"id":468178,"unique_id":"wp-comment-14135","title":"%40Alexandre%20ChassanyRefer%20to%20the%20solution%20for%20%237a%2C%20including%20Sebastian%20Redl%26%23039%3Bs%20comment%2C%20which%20discussed%20eliminating%20the%20E.h%20include%20directive%20because%20E%20was%20used%20only%20as%20an%20argument%20and%20a%20return%20typ...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14135","item_id":"_comm_14135"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14135 == 'undefined' ){PDRTJS_468178_comm_14135 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14135 );}}PDRTJS_settings_468178_comm_14102={"id":468178,"unique_id":"wp-comment-14102","title":"Ohhhhhhhh.%20Well%20that%20makes%20too%20much%20sense.%20Never%20mind%20me....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14102","item_id":"_comm_14102"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14102 == 'undefined' ){PDRTJS_468178_comm_14102 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14102 );}}PDRTJS_settings_468178_comm_14093={"id":468178,"unique_id":"wp-comment-14093","title":"%40Lachlan%3A%20It%20was%20because%20the%20comments%20were%20held%20for%20moderation%2C%20so%20they%20didn%26%23039%3Bt%20see%20each%20other%26%23039%3Bs%20comments.%20Then%20I%20approved%20them%20all%2C%20not%20wanting%20to%20quash%20anyone%20and%20crediting%20the%20first%20to%20point%20ou...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14093","item_id":"_comm_14093"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14093 == 'undefined' ){PDRTJS_468178_comm_14093 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14093 );}}PDRTJS_settings_468178_comm_14090={"id":468178,"unique_id":"wp-comment-14090","title":"Why%20are%20so%20many%20people%20repeating%20the%20same%20things%20in%20comments%3F%20You%20would%20think%20once%20someone%20has%20pointed%20out%20that%20the%20%23include%20has%20not%20been%20removed%20that%20it%20would%20become%20publicly%20known%20and%20not%20need%20...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14090","item_id":"_comm_14090"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14090 == 'undefined' ){PDRTJS_468178_comm_14090 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14090 );}}PDRTJS_settings_468178_comm_14067={"id":468178,"unique_id":"wp-comment-14067","title":"...you%20still%20have%20the%20extra%20%23include....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14067","item_id":"_comm_14067"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14067 == 'undefined' ){PDRTJS_468178_comm_14067 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14067 );}}PDRTJS_settings_468178_comm_14066={"id":468178,"unique_id":"wp-comment-14066","title":"I%20think%20you%20forgot%20to%20change%20the%20inclusion%20of%20b.h%20in%20the%20final%20version%20to%20a%20forward%20declaration%20of%20B%20since%20there%20are%20no%20users%20left....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14066","item_id":"_comm_14066"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14066 == 'undefined' ){PDRTJS_468178_comm_14066 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14066 );}}PDRTJS_settings_468178_comm_14065={"id":468178,"unique_id":"wp-comment-14065","title":"Second%20attempt%20of%20copy-and-paste%20still%20failed%3B%20you%20can%20remove%20%23include%20%26quot%3Bb.h%26quot%3B%2C%20and%20you%20must%20forward-declare%20B....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14065","item_id":"_comm_14065"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14065 == 'undefined' ){PDRTJS_468178_comm_14065 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14065 );}}PDRTJS_settings_468178_comm_14064={"id":468178,"unique_id":"wp-comment-14064","title":"The%20inheritance%20is%20fixed%20but%20you%20added%20the%20%26%23091%3Bcode%26%23093%3B%23include%20%26quot%3Bb.h%26quot%3B%26%23091%3B%2Fcode%26%23093%3B%20again%20%3ADBut%20i%20think%20this%20header%20is%20still%20necessary%20since%20the%20class%20B%20is%20still%20reference%20by%20value%20in%20the%20public%20int...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14064","item_id":"_comm_14064"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14064 == 'undefined' ){PDRTJS_468178_comm_14064 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14064 );}}PDRTJS_settings_468178_comm_14063={"id":468178,"unique_id":"wp-comment-14063","title":"%40all%3A%20Yup%2C%20thanks%20for%20the%20cut-and-paste%20visual%3B%20I%26%23039%3Bm%20not%20sure%20how%20the%20old%20code%20resurfaced%2C%20but%20now%20it%26%23039%3Bs%20fixed.%20Acknowledgements%20to%20the%20first%20three%20who%20reported%20specific%20aspects%3A%20juanchopanza%2C%20anic...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14063","item_id":"_comm_14063"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14063 == 'undefined' ){PDRTJS_468178_comm_14063 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14063 );}}PDRTJS_settings_468178_comm_14062={"id":468178,"unique_id":"wp-comment-14062","title":"Oops%2C%20looks%20like%20you%20forgot%20to%20remove%20the%20inheritance%20from%20the%20corrected%20code%20%3A%29class%20X%20%3A%20public%20A%2C%20%26lt%3B%26gt%3B...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14062","item_id":"_comm_14062"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14062 == 'undefined' ){PDRTJS_468178_comm_14062 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14062 );}}PDRTJS_settings_468178_comm_14061={"id":468178,"unique_id":"wp-comment-14061","title":"You%20forgot%20to%20remove%20class%20B%20from%20inheritance%20list%20on%20the%20last%20code%20example....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14061","item_id":"_comm_14061"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14061 == 'undefined' ){PDRTJS_468178_comm_14061 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14061 );}}PDRTJS_settings_468178_comm_14059={"id":468178,"unique_id":"wp-comment-14059","title":"Surely%20there%26%23039%3Bs%20a%20typo%20here%3F%20%20You%26%23039%3Bre%20still%20writing%20%26%23091%3Bcode%26%23093%3Bclass%20X%20%3A%20public%20A%2C%20private%20B%20%7B%26%23091%3B%2Fcode%26%23093%3B%20but%20now%20B%20is%20nowhere%20defined%2C%20and%20is%20supposedly%20hidden%20entirely%20in%20the%20pimpl.%20%20Shouldn%26%23039%3Bt%20you%20be%20dele...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14059","item_id":"_comm_14059"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14059 == 'undefined' ){PDRTJS_468178_comm_14059 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14059 );}}PDRTJS_settings_468178_comm_14057={"id":468178,"unique_id":"wp-comment-14057","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20GotW%20%237c%20Solution%3A%20Minimizing%20Compile-Time%20Dependencies%2C%20Part%203%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14057","item_id":"_comm_14057"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14057 == 'undefined' ){PDRTJS_468178_comm_14057 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14057 );}}PDRTJS_settings_468178_comm_14054={"id":468178,"unique_id":"wp-comment-14054","title":"You%20forgot%20to%20excise%20%26quot%3B%2C%20private%20B%26quot%3B%20from%20the%20final%20version...%20%20and%20forward%20declare%20%26quot%3Bclass%20B%26quot%3B....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14054","item_id":"_comm_14054"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14054 == 'undefined' ){PDRTJS_468178_comm_14054 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14054 );}}PDRTJS_settings_468178_comm_14053={"id":468178,"unique_id":"wp-comment-14053","title":"The%20last%20code%20example%20has%20some%20errors.%20First%20of%20all%2C%20in%20the%20code%20X%20still%20%28privately%29%20inherits%20from%20B.%20Since%20it%20is%20now%20part%20of%20the%20impl%2C%20you%20don%26%23039%3Bt%20need%20to%20inherit%20anymore.%20Furthermore%20f%20returns%20B%20...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14053","item_id":"_comm_14053"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14053 == 'undefined' ){PDRTJS_468178_comm_14053 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14053 );}}PDRTJS_settings_468178_comm_14052={"id":468178,"unique_id":"wp-comment-14052","title":"Typo%20in%20the%20final%20solution%20as%20X%20still%20inherits%20from%20B.%20There%20also%20needs%20to%20be%20a%20forward%20declaration%20of%20B%20as%20it%20is%20both%20a%20return%20value%20and%20parameter%20for%20X%26%23039%3Bs%20functions....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14052","item_id":"_comm_14052"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14052 == 'undefined' ){PDRTJS_468178_comm_14052 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14052 );}}PDRTJS_settings_468178_comm_14051={"id":468178,"unique_id":"wp-comment-14051","title":"Your%20new%20improved%20x.h%20still%20says%20%26quot%3B%2C%20private%20B%26quot%3B%20and%20fails%20to%20say%20%26quot%3Bclass%20B%3B%26quot%3B...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14051","item_id":"_comm_14051"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14051 == 'undefined' ){PDRTJS_468178_comm_14051 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14051 );}}PDRTJS_settings_468178_comm_14050={"id":468178,"unique_id":"wp-comment-14050","title":"Hi%2CI%20maybe%20mistaken%20but%20in%20the%20final%20version%20of%20the%20header%20there%20is%20still%20a%20private%20inheritance%20from%20B.%20Wasn%26%23039%3Bt%20it%20the%20whole%20point%20to%20remove%20it%20%3F%20%3A%29Furthermore%2C%20i%26%23039%3Bm%20kinda%20confused.%20I%20agree%20that%20us...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14050","item_id":"_comm_14050"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14050 == 'undefined' ){PDRTJS_468178_comm_14050 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14050 );}}PDRTJS_settings_468178_comm_14049={"id":468178,"unique_id":"wp-comment-14049","title":"Umm%2C%20looks%20like%20you%20forgot%20to%20actually%20remove%20the%20inheritance%20from%20B.%20Also%20needs%20to%20have%20a%20forward%20decl%20for%20B%20for%20the%20second%20and%20fourth%20member%20functions....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14049","item_id":"_comm_14049"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14049 == 'undefined' ){PDRTJS_468178_comm_14049 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14049 );}}PDRTJS_settings_468178_comm_14048={"id":468178,"unique_id":"wp-comment-14048","title":"Umm%2C%20don%26%23039%3Bt%20you%20want%20to%20remove%20the%20%26%23039%3Bprivate%20B%26%23039%3B%20from%20the%20class%20X%20declaration%20line%20and%20add%20a%20%26%23039%3Bclass%20B%3B%26%23039%3B%20declaration%20so%20the%20compiler%20won%26%23039%3Bt%20complain%20about%20the%20second%20member%20function%20declaration%3F...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14048","item_id":"_comm_14048"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14048 == 'undefined' ){PDRTJS_468178_comm_14048 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14048 );}}PDRTJS_settings_468178_comm_14047={"id":468178,"unique_id":"wp-comment-14047","title":"You%20missed%20removing%20%26quot%3Bprivate%20B%26quot%3B%20from%20X%26%23039%3Bs%20super-classes.Also%2C%20shouldn%26%23039%3Bt%20B%20be%20forward-declared%3F%20There%20are%20methods%20in%20X%20which%20make%20use%20of%20it....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14047","item_id":"_comm_14047"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14047 == 'undefined' ){PDRTJS_468178_comm_14047 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14047 );}}PDRTJS_settings_468178_comm_14046={"id":468178,"unique_id":"wp-comment-14046","title":"At%20time%20of%20writing%2C%20the%20%26quot%3Bafter%26quot%3B%20still%20has%20the%20inheritance%26%23091%3BCODE%26%23093%3Bclass%20X%20%3A%20public%20A%2C%20private%20B%20%7B%26%23091%3B%2FCODE%26%23093%3Band%20not%20the%20composition-only%26%23091%3BCODE%26%23093%3Bclass%20X%20%3A%20public%20A%20%7B%26%23091%3B%2FCODE%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14046","item_id":"_comm_14046"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14046 == 'undefined' ){PDRTJS_468178_comm_14046 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14046 );}}PDRTJS_settings_468178_comm_14045={"id":468178,"unique_id":"wp-comment-14045","title":"Little%20typo%3A%20In%20your%20final%20code%2C%20X%20still%20privately%20inherits%20from%20B....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14045","item_id":"_comm_14045"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14045 == 'undefined' ){PDRTJS_468178_comm_14045 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14045 );}}PDRTJS_settings_468178_comm_14044={"id":468178,"unique_id":"wp-comment-14044","title":"Clearly%20I%20am%20having%20formatting%20issues.%20Anyway%2C%20I%20meant%20%26lt%3Bcode%26gt%3Bclass%20X%26lt%3B%2Fcode%26gt%3B%20still%20inherits%20privately%20from%20%26lt%3Bcode%26gt%3Bclass%20B%26lt%3B%2Fcode%26gt%3B....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14044","item_id":"_comm_14044"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14044 == 'undefined' ){PDRTJS_468178_comm_14044 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14044 );}}PDRTJS_settings_468178_comm_14043={"id":468178,"unique_id":"wp-comment-14043","title":"I%20think%20you%20forgot%20to%20remove%20B%20from%20the%20list%20of%20X%26%23039%3Bs%20base%20classes%2C%20unless%20I%26%23039%3Bm%20badly%20misunderstanding%20something....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14043","item_id":"_comm_14043"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14043 == 'undefined' ){PDRTJS_468178_comm_14043 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14043 );}}PDRTJS_settings_468178_comm_14042={"id":468178,"unique_id":"wp-comment-14042","title":"Typo%3A%20in%20your%20final%20code%20sample%2C%20%20still%20inherits%20privately%20from%20....","permalink":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/#comment-14042","item_id":"_comm_14042"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14042 == 'undefined' ){PDRTJS_468178_comm_14042 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14042 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2014%2F01%2F06%2Fgotw-7c-solution-minimizing-compile-time-dependencies-part-3%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2014\/01\/06\/gotw-7c-solution-minimizing-compile-time-dependencies-part-3\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2014%2F01%2F06%2Fgotw-7c-solution-minimizing-compile-time-dependencies-part-3%2F","postID":"2399","shortlink":"https:\/\/wp.me\/peb5Y-CH","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2399","statsLink":"https:\/\/wordpress.com\/stats\/post\/2399\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2014%2F01%2F06%2Fgotw-7c-solution-minimizing-compile-time-dependencies-part-3%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2399','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sfDNGM2Fjdjg1VU9zMXpVcXg4b1hYYW01dmVwWTBkQnpHOC98M1EmQW5pdlkrJUNnZVY5LXRwbFhjUFRqV000fi93LG1GJS5WSk1jVm9BP0F6XWJteXFYWlEzeHZDTmdNLWRpOVM9eGI0TV04KzN+aDB8UkZnL3JsK3N3Mi90UkFiXz8mT01yWWU9ZkJ6ZXZ2UEwyL2xmd0lRZFEueTFBfjNKfkY/T1cva0ZqUywxJml6RzhNN2VwV2VvLy9KS0ctL0FxZ102'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2399' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>
+<!--
+	generated in 0.126 seconds
+	77041 bytes batcached for 300 seconds
+-->

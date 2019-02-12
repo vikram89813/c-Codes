@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: Elements of Modern C++ Style	</title>
+	<atom:link href="https://herbsutter.com/2011/10/28/elements-of-modern-c-style/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Ben Voigt				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4283</link>
+		<dc:creator><![CDATA[Ben Voigt]]></dc:creator>
+		<pubDate>Wed, 02 Nov 2011 22:47:09 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4283</guid>
+					<description><![CDATA[Might I suggest that your section on type inference (new meaning of auto keyword) should cover modifiers, such as `auto const x = 5;` and `auto&#038; r = a[i];`?]]></description>
+		<content:encoded><![CDATA[<p>Might I suggest that your section on type inference (new meaning of auto keyword) should cover modifiers, such as `auto const x = 5;` and `auto&amp; r = a[i];`?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4281</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Wed, 02 Nov 2011 17:21:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4281</guid>
+					<description><![CDATA[@Kevin: If your concern is that you want a non-reseatable one, wouldn&#039;t const unique_ptr work? However, note that often you do want the impl to be reseatable, for example to move-enable the class (indeed, one of the new benefits of Pimpl is that it makes classes naturally efficiently move-enabled). So do think twice about whether you really want non-reseatability for a given class; I&#039;ll bet that often you do want it.
+
+Pure style comment: My high-order bit is &quot;clarity and correctness come first&quot; and unusual code is a barrier to reading and maintaining the code. In this case, your code uses two unusual idioms: a reference data member and &quot;delete &#038;anything&quot;, both of which raise flags in the mind of the person reading the code even though you seem to be using them correctly. If you really want that style, and (possibly const) unique_ptr doesn&#039;t satisfy you, then you probably should consider encapsulating the odd code behind an impl_holder helper class that hides these details.
+
+This could be a good updated GotW 24. :)]]></description>
+		<content:encoded><![CDATA[<p>@Kevin: If your concern is that you want a non-reseatable one, wouldn&#8217;t const unique_ptr work? However, note that often you do want the impl to be reseatable, for example to move-enable the class (indeed, one of the new benefits of Pimpl is that it makes classes naturally efficiently move-enabled). So do think twice about whether you really want non-reseatability for a given class; I&#8217;ll bet that often you do want it.</p>
+<p>Pure style comment: My high-order bit is &#8220;clarity and correctness come first&#8221; and unusual code is a barrier to reading and maintaining the code. In this case, your code uses two unusual idioms: a reference data member and &#8220;delete &amp;anything&#8221;, both of which raise flags in the mind of the person reading the code even though you seem to be using them correctly. If you really want that style, and (possibly const) unique_ptr doesn&#8217;t satisfy you, then you probably should consider encapsulating the odd code behind an impl_holder helper class that hides these details.</p>
+<p>This could be a good updated GotW 24. :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Kevin Kostrzewa				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4277</link>
+		<dc:creator><![CDATA[Kevin Kostrzewa]]></dc:creator>
+		<pubDate>Wed, 02 Nov 2011 15:15:31 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4277</guid>
+					<description><![CDATA[Herb, looking for commentary on this.  Before C++11, I used this as my pimpl idiom:
+
+// .h
+class Widget
+{
+public:
+  Widget();
+  ~Widget();
+private:
+   class Impl;
+   Impl &#038;m_impl;
+};
+
+// .cpp
+class Widget::Impl {...}
+
+Widget::Widget() :
+   m_impl(*new Impl)
+{}
+Widget::~Widget()
+{
+   delete &#038;m_impl;
+}
+
+because it prevented the Impl pointer from ever being reseated accidentally, other than by a memory overwrite.  Even though I still need a user defined dstr, I think I prefer this idiom to your unique_ptr example.  I understand that I&#039;m giving up move, but I do this mostly for classes that are big and not designed to be copied. Any thoughts to convince me otherwise?  Thanks. (BTW, thanks for all of your great contributions to the community!)]]></description>
+		<content:encoded><![CDATA[<p>Herb, looking for commentary on this.  Before C++11, I used this as my pimpl idiom:</p>
+<p>// .h<br />
+class Widget<br />
+{<br />
+public:<br />
+  Widget();<br />
+  ~Widget();<br />
+private:<br />
+   class Impl;<br />
+   Impl &amp;m_impl;<br />
+};</p>
+<p>// .cpp<br />
+class Widget::Impl {&#8230;}</p>
+<p>Widget::Widget() :<br />
+   m_impl(*new Impl)<br />
+{}<br />
+Widget::~Widget()<br />
+{<br />
+   delete &amp;m_impl;<br />
+}</p>
+<p>because it prevented the Impl pointer from ever being reseated accidentally, other than by a memory overwrite.  Even though I still need a user defined dstr, I think I prefer this idiom to your unique_ptr example.  I understand that I&#8217;m giving up move, but I do this mostly for classes that are big and not designed to be copied. Any thoughts to convince me otherwise?  Thanks. (BTW, thanks for all of your great contributions to the community!)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4266</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Wed, 02 Nov 2011 00:57:58 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4266</guid>
+					<description><![CDATA[@Andrzej: Okay, you&#039;ve convinced me. I&#039;ve added uniform initialization to Elements -- applied it throughout (except on simple variable initializations, see below) and added back a section on it that I had already written in earlier drafts of the Elements page.
+
+Background: Like I said, for weeks now I&#039;ve been on the edge of recommending pervasive uniform initialization, and actually had it in the original draft of Elements and partly added it to Elements several times, but I kept getting stuck on the simple cases:
+
+&lt;pre&gt;
+[sourcecode language=&quot;cpp&quot; padlinenumbers=&quot;true&quot; gutter=&quot;false&quot;]
+  auto i = begin(v);  // 1
+[/sourcecode]
+&lt;/pre&gt;
+
+It just seemed not beneficial, and cluttered, to tell people to write:
+
+&lt;pre&gt;
+[sourcecode language=&quot;cpp&quot; padlinenumbers=&quot;true&quot; gutter=&quot;false&quot;]
+  auto i { begin(v) };  // 2
+[/sourcecode]
+&lt;/pre&gt;
+
+or
+
+&lt;pre&gt;
+[sourcecode language=&quot;cpp&quot; padlinenumbers=&quot;true&quot; gutter=&quot;false&quot;]
+  auto i = { begin(v) };  // 3
+[/sourcecode]
+&lt;/pre&gt;
+
+#2 is legal, but just doesn&#039;t look like code I&#039;d want to write. I kept choking on it after a few lines like that. (How about &quot;unique_ptr p { new int { } };&quot;? Maybe not horrible, but it just didn&#039;t feel right to me.)
+
+#3 means the same as #2 and is visually better, at least to me; I think the &quot;=&quot; helps. But when you compare it to #1, exactly what are we telling the programmer he&#039;s getting in return for writing those braces? Even in non-auto cases, when often he&#039;ll know there won&#039;t be a narrowing conversion, or an accidental non-initialization of a POD?
+
+So for now I&#039;m recommending pervasive use of { } except in cases like this of simple initialization of a non-POD variable with a single value. We&#039;ll see how it goes; our C++11 style is still settling down, but this seems like a reasonable place to be.]]></description>
+		<content:encoded><![CDATA[<p>@Andrzej: Okay, you&#8217;ve convinced me. I&#8217;ve added uniform initialization to Elements &#8212; applied it throughout (except on simple variable initializations, see below) and added back a section on it that I had already written in earlier drafts of the Elements page.</p>
+<p>Background: Like I said, for weeks now I&#8217;ve been on the edge of recommending pervasive uniform initialization, and actually had it in the original draft of Elements and partly added it to Elements several times, but I kept getting stuck on the simple cases:</p>
+<pre>
+</pre>
+<pre class="brush: cpp; gutter: false; pad-line-numbers: true; title: ; notranslate">
+  auto i = begin(v);  // 1
+</pre>
+<p>It just seemed not beneficial, and cluttered, to tell people to write:</p>
+<pre>
+</pre>
+<pre class="brush: cpp; gutter: false; pad-line-numbers: true; title: ; notranslate">
+  auto i { begin(v) };  // 2
+</pre>
+<p>or</p>
+<pre>
+</pre>
+<pre class="brush: cpp; gutter: false; pad-line-numbers: true; title: ; notranslate">
+  auto i = { begin(v) };  // 3
+</pre>
+<p>#2 is legal, but just doesn&#8217;t look like code I&#8217;d want to write. I kept choking on it after a few lines like that. (How about &#8220;unique_ptr p { new int { } };&#8221;? Maybe not horrible, but it just didn&#8217;t feel right to me.)</p>
+<p>#3 means the same as #2 and is visually better, at least to me; I think the &#8220;=&#8221; helps. But when you compare it to #1, exactly what are we telling the programmer he&#8217;s getting in return for writing those braces? Even in non-auto cases, when often he&#8217;ll know there won&#8217;t be a narrowing conversion, or an accidental non-initialization of a POD?</p>
+<p>So for now I&#8217;m recommending pervasive use of { } except in cases like this of simple initialization of a non-POD variable with a single value. We&#8217;ll see how it goes; our C++11 style is still settling down, but this seems like a reasonable place to be.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Frattanto nella blogosfera #39 &#171; Ok, panico				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4254</link>
+		<dc:creator><![CDATA[Frattanto nella blogosfera #39 &#171; Ok, panico]]></dc:creator>
+		<pubDate>Tue, 01 Nov 2011 09:02:16 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4254</guid>
+					<description><![CDATA[[...] Style - Herb: 2 post con lo stesso titolo; attenzione puntano a URL diversi, roba da C&#8211;  ::: Sutter&#8217;s Mill ::: Sutter&#8217;s [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Style &#8211; Herb: 2 post con lo stesso titolo; attenzione puntano a URL diversi, roba da C&#8211;  ::: Sutter&#8217;s Mill ::: Sutter&#8217;s [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Hmm				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4245</link>
+		<dc:creator><![CDATA[Hmm]]></dc:creator>
+		<pubDate>Mon, 31 Oct 2011 16:27:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4245</guid>
+					<description><![CDATA[Herb, since you&#039;re in the C++ standard&#039;s committee, I&#039;ll ask you this question.
+
+Are there any plans to add networking capabilities(perhaps based on boost.asio) to the C++ standard library?]]></description>
+		<content:encoded><![CDATA[<p>Herb, since you&#8217;re in the C++ standard&#8217;s committee, I&#8217;ll ask you this question.</p>
+<p>Are there any plans to add networking capabilities(perhaps based on boost.asio) to the C++ standard library?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: CM				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4244</link>
+		<dc:creator><![CDATA[CM]]></dc:creator>
+		<pubDate>Mon, 31 Oct 2011 15:21:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4244</guid>
+					<description><![CDATA[Two notes:
+- &quot;always use shared_ptr&quot; = bad advice, imho, shared_ptr is much more expensive than plain pointer/reference and should not be used indiscriminately when you need only indirection (without ownership management). Even if you do need it -- hand-written refcounted pointer is often better (if you do not need thread safety, which happens quite regularly in my experience)
+- (N)RVO solved problem of returning by-value long ago, recently introduced &quot;semi-&quot;move semantic adds nothing new to this area]]></description>
+		<content:encoded><![CDATA[<p>Two notes:<br />
+&#8211; &#8220;always use shared_ptr&#8221; = bad advice, imho, shared_ptr is much more expensive than plain pointer/reference and should not be used indiscriminately when you need only indirection (without ownership management). Even if you do need it &#8212; hand-written refcounted pointer is often better (if you do not need thread safety, which happens quite regularly in my experience)<br />
+&#8211; (N)RVO solved problem of returning by-value long ago, recently introduced &#8220;semi-&#8220;move semantic adds nothing new to this area</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mmX				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4241</link>
+		<dc:creator><![CDATA[mmX]]></dc:creator>
+		<pubDate>Mon, 31 Oct 2011 13:39:12 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4241</guid>
+					<description><![CDATA[@Clayton H
+
+I don&#039;t know but guess: auto was already a keyword in C and C++ and so no valid program could declare a variable called auto, or whatever else. In this way, no previously valid program is broken, while if they used var they would have broken every program using &quot;var&quot; as a variable, method, class name, etc. Not only that, but it can be argued that in many contexts &quot;var&quot; could be a quite common variable name.]]></description>
+		<content:encoded><![CDATA[<p>@Clayton H</p>
+<p>I don&#8217;t know but guess: auto was already a keyword in C and C++ and so no valid program could declare a variable called auto, or whatever else. In this way, no previously valid program is broken, while if they used var they would have broken every program using &#8220;var&#8221; as a variable, method, class name, etc. Not only that, but it can be argued that in many contexts &#8220;var&#8221; could be a quite common variable name.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Clayton H				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4239</link>
+		<dc:creator><![CDATA[Clayton H]]></dc:creator>
+		<pubDate>Mon, 31 Oct 2011 11:28:35 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4239</guid>
+					<description><![CDATA[This has probably been discussed to death elsewhere, but why is it &quot;auto&quot; and not &quot;var&quot;?  I may be ignorant of the history here, but it seems like &quot;var&quot; is an established keyword in other languages, and &quot;auto&quot; is something that was just made up.]]></description>
+		<content:encoded><![CDATA[<p>This has probably been discussed to death elsewhere, but why is it &#8220;auto&#8221; and not &#8220;var&#8221;?  I may be ignorant of the history here, but it seems like &#8220;var&#8221; is an established keyword in other languages, and &#8220;auto&#8221; is something that was just made up.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: ZenJu				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4238</link>
+		<dc:creator><![CDATA[ZenJu]]></dc:creator>
+		<pubDate>Mon, 31 Oct 2011 10:53:48 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4238</guid>
+					<description><![CDATA[&#062; getting ready to resume writing a few new (or updated) Guru of the Week Item
+Please don&#039;t forget to update Copy &#038; Swap with C++11 &quot;unifying assignment&quot;
+http://en.wikibooks.org/wiki/More_C++_Idioms/Copy-and-swap
+I don&#039;t ever want to see needless checking for self and redundant init/teardown logic in library code *ever* again.]]></description>
+		<content:encoded><![CDATA[<p>&gt; getting ready to resume writing a few new (or updated) Guru of the Week Item<br />
+Please don&#8217;t forget to update Copy &amp; Swap with C++11 &#8220;unifying assignment&#8221;<br />
+<a href="http://en.wikibooks.org/wiki/More_C++_Idioms/Copy-and-swap" rel="nofollow">http://en.wikibooks.org/wiki/More_C++_Idioms/Copy-and-swap</a><br />
+I don&#8217;t ever want to see needless checking for self and redundant init/teardown logic in library code *ever* again.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter to revisit Guru of the Week for C++11 &#171; The other branch				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4236</link>
+		<dc:creator><![CDATA[Herb Sutter to revisit Guru of the Week for C++11 &#171; The other branch]]></dc:creator>
+		<pubDate>Mon, 31 Oct 2011 09:36:03 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4236</guid>
+					<description><![CDATA[[...] just read on Herb&#8217;s site that he will be revisiting his superbGuru of the Week column, revising and adding articles to cover [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] just read on Herb&#8217;s site that he will be revisiting his superbGuru of the Week column, revising and adding articles to cover [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Claudio Scordino				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4235</link>
+		<dc:creator><![CDATA[Claudio Scordino]]></dc:creator>
+		<pubDate>Mon, 31 Oct 2011 07:13:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4235</guid>
+					<description><![CDATA[Herb, I think you should definitely write a small book (kind of &quot;compendium&quot;) listing all new C++11 features and providing examples of usage. It would be important to boost the adoption of C++11 in the industry... I and the company I work for would certainly buy a few copies. The title could be &quot;Exceptional C++11&quot;, of course. :)]]></description>
+		<content:encoded><![CDATA[<p>Herb, I think you should definitely write a small book (kind of &#8220;compendium&#8221;) listing all new C++11 features and providing examples of usage. It would be important to boost the adoption of C++11 in the industry&#8230; I and the company I work for would certainly buy a few copies. The title could be &#8220;Exceptional C++11&#8221;, of course. :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Joe				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4230</link>
+		<dc:creator><![CDATA[Joe]]></dc:creator>
+		<pubDate>Mon, 31 Oct 2011 00:33:54 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4230</guid>
+					<description><![CDATA[I think that  we should prefer the new alias typedefs to the C-style typedefs, especially for more complex types.  I definitely would prefer to see
+
+    using callback =  int (*)(Widget);
+
+to 
+   typedef int (*callback)(Widget);]]></description>
+		<content:encoded><![CDATA[<p>I think that  we should prefer the new alias typedefs to the C-style typedefs, especially for more complex types.  I definitely would prefer to see</p>
+<p>    using callback =  int (*)(Widget);</p>
+<p>to<br />
+   typedef int (*callback)(Widget);</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4227</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sun, 30 Oct 2011 19:24:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4227</guid>
+					<description><![CDATA[@Brian: The range-for hardwired into the language does have a convenience advantage for the most common kind of visit-each-range-element-in-order loop, where the syntactic difference is small but desirable -- for( auto&#038; elem : coll ) { ... } vs. for_each( begin(coll), end(coll), [&#038;]( element_type&#038; elem ) { ... } );.
+
+Note that, like anything hardwired into the language, it&#039;s great when what you want is exactly what it&#039;s specified to do. If you want something even slightly different, such as the same algorithm but with a &quot;step&quot; to visit every nth element, you already need to write a different algorithm like a for_each_nth. It&#039;s easy to do, but it shows how flexible and extensible the algorithm approach is compared to the language feature.
+
+Sometime in the future when we get polymorphic lambdas and range-based algorithms, the syntactic difference favoring range-for will be much less -- for( auto&#038; elem : coll ) { ... } vs. something like for_each( coll, (elem){ ... } );. But range-for will be entrenched by then, and will still be a tiny bit nicer for the specific case it&#039;s designed to support.]]></description>
+		<content:encoded><![CDATA[<p>@Brian: The range-for hardwired into the language does have a convenience advantage for the most common kind of visit-each-range-element-in-order loop, where the syntactic difference is small but desirable &#8212; for( auto&amp; elem : coll ) { &#8230; } vs. for_each( begin(coll), end(coll), [&amp;]( element_type&amp; elem ) { &#8230; } );.</p>
+<p>Note that, like anything hardwired into the language, it&#8217;s great when what you want is exactly what it&#8217;s specified to do. If you want something even slightly different, such as the same algorithm but with a &#8220;step&#8221; to visit every nth element, you already need to write a different algorithm like a for_each_nth. It&#8217;s easy to do, but it shows how flexible and extensible the algorithm approach is compared to the language feature.</p>
+<p>Sometime in the future when we get polymorphic lambdas and range-based algorithms, the syntactic difference favoring range-for will be much less &#8212; for( auto&amp; elem : coll ) { &#8230; } vs. something like for_each( coll, (elem){ &#8230; } );. But range-for will be entrenched by then, and will still be a tiny bit nicer for the specific case it&#8217;s designed to support.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Brian M Jones				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4225</link>
+		<dc:creator><![CDATA[Brian M Jones]]></dc:creator>
+		<pubDate>Sun, 30 Oct 2011 14:44:32 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4225</guid>
+					<description><![CDATA[Herb, I remember at one of the windows 8 build sessions you suggested the for_each algorithm as a preferent to handwritten for loops, as the compiler may somehow optimize the function call. Does that still apply here, or does for(auto &#038; : container) offer some performance benefits over for_each and for(int i = 0, i &#060; max; ++i)?]]></description>
+		<content:encoded><![CDATA[<p>Herb, I remember at one of the windows 8 build sessions you suggested the for_each algorithm as a preferent to handwritten for loops, as the compiler may somehow optimize the function call. Does that still apply here, or does for(auto &amp; : container) offer some performance benefits over for_each and for(int i = 0, i &lt; max; ++i)?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Andrzej Krzemieński				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4224</link>
+		<dc:creator><![CDATA[Andrzej Krzemieński]]></dc:creator>
+		<pubDate>Sun, 30 Oct 2011 12:39:42 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4224</guid>
+					<description><![CDATA[Hi, I believe that the list of the most typical C++11 usage idioms should include the brace initialization syntax. It is difficult to judge about the trends of the thing so new as C++11, but the power of brace initialization syntax appears really huge, not only in the basic examples like range constructors for STL containers, but in the complex examples of nested data structures and the ability to avoid repeating yourself similar to that of keyword &#039;auto&#039;, as well as overcoming some syntactic limitations of initialization in C++03 that we had to deal with for long time. I have compiled some examples here:
+http://akrzemi1.wordpress.com/2011/06/29/brace-brace/
+
+Regards,
+&#038;rzej]]></description>
+		<content:encoded><![CDATA[<p>Hi, I believe that the list of the most typical C++11 usage idioms should include the brace initialization syntax. It is difficult to judge about the trends of the thing so new as C++11, but the power of brace initialization syntax appears really huge, not only in the basic examples like range constructors for STL containers, but in the complex examples of nested data structures and the ability to avoid repeating yourself similar to that of keyword &#8216;auto&#8217;, as well as overcoming some syntactic limitations of initialization in C++03 that we had to deal with for long time. I have compiled some examples here:<br />
+<a href="http://akrzemi1.wordpress.com/2011/06/29/brace-brace/" rel="nofollow">http://akrzemi1.wordpress.com/2011/06/29/brace-brace/</a></p>
+<p>Regards,<br />
+&amp;rzej</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mmX				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4209</link>
+		<dc:creator><![CDATA[mmX]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 19:51:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4209</guid>
+					<description><![CDATA[I don&#039;t have an experience with auto in C++ but I have with var in C# with is the same.
+
+I find it to be a lazy shortcut for developers and reducing readability of code in every situation except for the basic T a = new T(...) lines.
+
+I find Java solution (to omit the type on the right side, not on the left) much better than C# and C++.
+
+The first thing I want to see out of a variable is the type, and auto/var hide me the most precious information of all.]]></description>
+		<content:encoded><![CDATA[<p>I don&#8217;t have an experience with auto in C++ but I have with var in C# with is the same.</p>
+<p>I find it to be a lazy shortcut for developers and reducing readability of code in every situation except for the basic T a = new T(&#8230;) lines.</p>
+<p>I find Java solution (to omit the type on the right side, not on the left) much better than C# and C++.</p>
+<p>The first thing I want to see out of a variable is the type, and auto/var hide me the most precious information of all.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: ZenJu				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4207</link>
+		<dc:creator><![CDATA[ZenJu]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 17:01:02 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4207</guid>
+					<description><![CDATA[&#062; @ZenJu: Can you clarify why the sort would go out of bounds?
+I mentioned the same issue krzaq posted right after me.]]></description>
+		<content:encoded><![CDATA[<p>&gt; @ZenJu: Can you clarify why the sort would go out of bounds?<br />
+I mentioned the same issue krzaq posted right after me.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4205</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 16:14:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4205</guid>
+					<description><![CDATA[@pizer: Fixed, thanks. I see that&#039;s not needed for shared_ptr, as ~shared_ptr doesn&#039;t require T to be a complete type, but ~unique_ptr does. Thanks also to Howard Hinnant for &lt;a href=&quot;http://home.roadrunner.com/~hinnant/incomplete.html&quot; rel=&quot;nofollow&quot;&gt;clarifying this on his page&lt;/a&gt;.]]></description>
+		<content:encoded><![CDATA[<p>@pizer: Fixed, thanks. I see that&#8217;s not needed for shared_ptr, as ~shared_ptr doesn&#8217;t require T to be a complete type, but ~unique_ptr does. Thanks also to Howard Hinnant for <a href="http://home.roadrunner.com/~hinnant/incomplete.html" rel="nofollow">clarifying this on his page</a>.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4204</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 15:58:39 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4204</guid>
+					<description><![CDATA[@Alfonse: Actually my list does (embarrassingly) include at least some things that are not in Visual C++ -- for example, our compiler still doesn&#039;t have range-for, which is sad. We need to fix that, but I didn&#039;t keep range-for off the list just because our compiler doesn&#039;t have it yet. My goal for this list was to be independent of what any particular compiler supports. I&#039;m happy that it turns out we do have most of at least these core features, but (a) we &lt;i&gt;don&#039;t&lt;/i&gt; have even all of these which is bad, and (b) this is just the core set and we are woefully behind on other important C++11 conformance and we absolutely need to fix that.
+
+@Joshua: I have a longer list including initializer lists, uniform initialization, constexpr, =default/=delete, override/final, and more, and I originally had those written up on this page. I kept trimming and removing because I wanted this list to be the true &quot;core&quot; that will be used pervasively, that you can hardly look at a piece of code without seeing, and as I wrote up examples I saw that some of the good and useful features were not ones that were going to be used pervasively. Initializer lists and uniform initialization came closest, but unlike auto which you&#039;ll see virtually everywhere, as I wrote examples it seemed like you won&#039;t see the new { } initialization everywhere; in particular &quot;auto i = value;&quot;, which does not have { } syntax, seems like it will still be the default simplest way to initialize variables. Perhaps this will change as we get more experience, and I&#039;ll maintain the page to reflect current experience.
+
+@ZenJu: Can you clarify why the sort would go out of bounds? std::sort takes [begin,end) where the second is a one-past-the end iterator, and C and C++ allow you to form (but not dereference) a pointer to an element one past the end of an array.
+
+@krzaq: Fixed, thanks.]]></description>
+		<content:encoded><![CDATA[<p>@Alfonse: Actually my list does (embarrassingly) include at least some things that are not in Visual C++ &#8212; for example, our compiler still doesn&#8217;t have range-for, which is sad. We need to fix that, but I didn&#8217;t keep range-for off the list just because our compiler doesn&#8217;t have it yet. My goal for this list was to be independent of what any particular compiler supports. I&#8217;m happy that it turns out we do have most of at least these core features, but (a) we <i>don&#8217;t</i> have even all of these which is bad, and (b) this is just the core set and we are woefully behind on other important C++11 conformance and we absolutely need to fix that.</p>
+<p>@Joshua: I have a longer list including initializer lists, uniform initialization, constexpr, =default/=delete, override/final, and more, and I originally had those written up on this page. I kept trimming and removing because I wanted this list to be the true &#8220;core&#8221; that will be used pervasively, that you can hardly look at a piece of code without seeing, and as I wrote up examples I saw that some of the good and useful features were not ones that were going to be used pervasively. Initializer lists and uniform initialization came closest, but unlike auto which you&#8217;ll see virtually everywhere, as I wrote examples it seemed like you won&#8217;t see the new { } initialization everywhere; in particular &#8220;auto i = value;&#8221;, which does not have { } syntax, seems like it will still be the default simplest way to initialize variables. Perhaps this will change as we get more experience, and I&#8217;ll maintain the page to reflect current experience.</p>
+<p>@ZenJu: Can you clarify why the sort would go out of bounds? std::sort takes [begin,end) where the second is a one-past-the end iterator, and C and C++ allow you to form (but not dereference) a pointer to an element one past the end of an array.</p>
+<p>@krzaq: Fixed, thanks.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Joshua Burkholder				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4202</link>
+		<dc:creator><![CDATA[Joshua Burkholder]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 15:25:56 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4202</guid>
+					<description><![CDATA[All the things that you are writting about are definitely on my list too.  One more for your consideration is:
+
+constexpr
+
+With C++2011&#039;s constexpr, C++1998&#039;s template meta-programming is replaced by something vastly easier ... and makes sense to everyday programmers.  If a programmer specifies a function as a constexpr function (by just adding the constexpr specifier to a normal function), then if that function is called with constexpr arguments (like literals or the return of another constexpr function call), then that constexpr is evaluated and expanded at compile-time.  If the arguments are not constexpr, then the function is just a normal function ... and is evaluate at run-time.
+
+See N2235 and N2976 for the C++ Working Group papers ... and Section 5.19 in the C++ Working Draft Standard (N3291 ... I don&#039;t have a copy of the final standard yet ;-) ).
+
+And then there&#039;s constexpr constructors ...
+
+I initially overlooked this new keyword, but it seems like I&#039;m going use constexpr in many places ... maybe also where I previously used const ... and probably as much or more than I currently use auto.
+
+Very Respectfully,
+Joshua Burkholder]]></description>
+		<content:encoded><![CDATA[<p>All the things that you are writting about are definitely on my list too.  One more for your consideration is:</p>
+<p>constexpr</p>
+<p>With C++2011&#8217;s constexpr, C++1998&#8217;s template meta-programming is replaced by something vastly easier &#8230; and makes sense to everyday programmers.  If a programmer specifies a function as a constexpr function (by just adding the constexpr specifier to a normal function), then if that function is called with constexpr arguments (like literals or the return of another constexpr function call), then that constexpr is evaluated and expanded at compile-time.  If the arguments are not constexpr, then the function is just a normal function &#8230; and is evaluate at run-time.</p>
+<p>See N2235 and N2976 for the C++ Working Group papers &#8230; and Section 5.19 in the C++ Working Draft Standard (N3291 &#8230; I don&#8217;t have a copy of the final standard yet ;-) ).</p>
+<p>And then there&#8217;s constexpr constructors &#8230;</p>
+<p>I initially overlooked this new keyword, but it seems like I&#8217;m going use constexpr in many places &#8230; maybe also where I previously used const &#8230; and probably as much or more than I currently use auto.</p>
+<p>Very Respectfully,<br />
+Joshua Burkholder</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: krzaq				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4196</link>
+		<dc:creator><![CDATA[krzaq]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 12:22:16 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4196</guid>
+					<description><![CDATA[In your C++98 example, you should use 
+sort( &#038;a[0], &#038;a[0]+sizeof(a)/sizeof(a[0]) )
+
+Unless you&#039;re on a system with int size guaranteed to equal char size.]]></description>
+		<content:encoded><![CDATA[<p>In your C++98 example, you should use<br />
+sort( &amp;a[0], &amp;a[0]+sizeof(a)/sizeof(a[0]) )</p>
+<p>Unless you&#8217;re on a system with int size guaranteed to equal char size.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: ZenJu				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4194</link>
+		<dc:creator><![CDATA[ZenJu]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 11:04:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4194</guid>
+					<description><![CDATA[Just to make sure everything&#039;s been said:
+The C98 sort goes out of bounds.  :)
+sort( &#038;a[0], &#038;a[0]+sizeof(a) )]]></description>
+		<content:encoded><![CDATA[<p>Just to make sure everything&#8217;s been said:<br />
+The C98 sort goes out of bounds.  :)<br />
+sort( &amp;a[0], &amp;a[0]+sizeof(a) )</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: ZenJu				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4193</link>
+		<dc:creator><![CDATA[ZenJu]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 11:00:42 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4193</guid>
+					<description><![CDATA[&#062; Use C++11 auto wherever possible
+Really *that* often? The examples with iterators and lambdas are no-brainers, but the rest? Almost every type definition could be replaced by auto. In general I think there is still quite some semantical knowledge included in a type which should interest the reader: Before adding 1234 I&#039;ll want to see I&#039;m not working on a signed char, when dealing with file sizes I want to see the type is 64 bit (and not an int disguised by auto).
+Maybe the rule should be rather: Whereever it saves writing useless clutter. (like for iterator types). In cases where the type is short, like &quot;int a = 1&quot;, there doesn&#039;t seeem to be much to save (but quite something to loose.)]]></description>
+		<content:encoded><![CDATA[<p>&gt; Use C++11 auto wherever possible<br />
+Really *that* often? The examples with iterators and lambdas are no-brainers, but the rest? Almost every type definition could be replaced by auto. In general I think there is still quite some semantical knowledge included in a type which should interest the reader: Before adding 1234 I&#8217;ll want to see I&#8217;m not working on a signed char, when dealing with file sizes I want to see the type is 64 bit (and not an int disguised by auto).<br />
+Maybe the rule should be rather: Whereever it saves writing useless clutter. (like for iterator types). In cases where the type is short, like &#8220;int a = 1&#8221;, there doesn&#8217;t seeem to be much to save (but quite something to loose.)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: JSawyer				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4179</link>
+		<dc:creator><![CDATA[JSawyer]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 09:37:35 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4179</guid>
+					<description><![CDATA[I&#039;d like to use &#039;auto&#039;, but then Visual Assist X loses IntelliSense for class members of the &#039;auto&#039;-ed variable. Until the tooling properly supports auto, I&#039;m not using it.]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;d like to use &#8216;auto&#8217;, but then Visual Assist X loses IntelliSense for class members of the &#8216;auto&#8217;-ed variable. Until the tooling properly supports auto, I&#8217;m not using it.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pizer				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4177</link>
+		<dc:creator><![CDATA[pizer]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 08:24:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4177</guid>
+					<description><![CDATA[Herb, Edd has a point. Your widget example misses a declaration for a destructor. The destructor would have to be defined in the cpp as well (with an empty pair of braces). But it needs to be there because otherwise the compiler might be tempted to instantiate the unique_ptr&#039;s dtor in some place where the impl type is still incomplete.]]></description>
+		<content:encoded><![CDATA[<p>Herb, Edd has a point. Your widget example misses a declaration for a destructor. The destructor would have to be defined in the cpp as well (with an empty pair of braces). But it needs to be there because otherwise the compiler might be tempted to instantiate the unique_ptr&#8217;s dtor in some place where the impl type is still incomplete.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alfonse				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4174</link>
+		<dc:creator><![CDATA[Alfonse]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 05:51:08 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4174</guid>
+					<description><![CDATA[I have to say that I&#039;m disappointed (though not altogether surprised) in your list. Because those are all features that Visual Studio supports.
+
+What I mean by that is that, if you wanted a list of features that will &quot;change the styles and idioms you’ll use when writing C++ code, often including the way you’ll design C++ libraries,&quot; there is no way that Uniform Initialization and Initializer Lists should not be on that list. The list in incomplete so long as they&#039;re not on it.
+
+Not having to type typenames nearly so much, being able to initialize std::vectors like they were a regular array, these are all crucial things to a C++ programmer. A C++11 programmer will use these things *constantly*.
+
+But Visual Studio 2010 doesn&#039;t support them, and we&#039;ve already been told that they&#039;re not on tap for VCNext. So even though these features certainly fit that mark, you don&#039;t talk about them. My disappointment is that you&#039;re so focused on what VS supports that you look at C++11 as nothing more than &quot;What Visual Studio supports&quot;, rather than seeing VS&#039;s support as being sub-standard and in dire need of improvement.
+
+I hope that future discussion about C++11 features that aren&#039;t in Visual Studio won&#039;t have to wait until Microsoft bothers to actually implement them. I would have hoped that you could use C++11 articles to get the community pressuring Microsoft to speed up development of major C++11 features. But I guess not.]]></description>
+		<content:encoded><![CDATA[<p>I have to say that I&#8217;m disappointed (though not altogether surprised) in your list. Because those are all features that Visual Studio supports.</p>
+<p>What I mean by that is that, if you wanted a list of features that will &#8220;change the styles and idioms you’ll use when writing C++ code, often including the way you’ll design C++ libraries,&#8221; there is no way that Uniform Initialization and Initializer Lists should not be on that list. The list in incomplete so long as they&#8217;re not on it.</p>
+<p>Not having to type typenames nearly so much, being able to initialize std::vectors like they were a regular array, these are all crucial things to a C++ programmer. A C++11 programmer will use these things *constantly*.</p>
+<p>But Visual Studio 2010 doesn&#8217;t support them, and we&#8217;ve already been told that they&#8217;re not on tap for VCNext. So even though these features certainly fit that mark, you don&#8217;t talk about them. My disappointment is that you&#8217;re so focused on what VS supports that you look at C++11 as nothing more than &#8220;What Visual Studio supports&#8221;, rather than seeing VS&#8217;s support as being sub-standard and in dire need of improvement.</p>
+<p>I hope that future discussion about C++11 features that aren&#8217;t in Visual Studio won&#8217;t have to wait until Microsoft bothers to actually implement them. I would have hoped that you could use C++11 articles to get the community pressuring Microsoft to speed up development of major C++11 features. But I guess not.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4173</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 05:15:23 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4173</guid>
+					<description><![CDATA[@Edd: unique_ptr can indeed take an object of incomplete type. From the Standard:
+
+&lt;blockquote&gt;
+20.7.1.1 Default deleters [unique.ptr.dltr]
+20.7.1.1.1 In general [unique.ptr.dltr.general]
+1 The class template default_delete serves as the default deleter (destruction policy) for the class template unique_ptr.
+2 The template parameter T of default_delete may be an incomplete type.
+&lt;/blockquote&gt;
+
+@Andrew: Thanks, fixed. I cut-and-pasted from a slide where that example was labeled &quot;C++11 without lambdas&quot; and didn&#039;t notice it for the reason you said -- auto feels so natural so quickly that most people take to it like a duck to water and then hardly notice it. It&#039;s just long past time we had that.
+
+Obligatory auto note: As Bjarne is always quick to point out, &quot;auto&quot; is the oldest C++11 feature, which he first implemented in Cfront in 1983. They made him take it out. What a shame.]]></description>
+		<content:encoded><![CDATA[<p>@Edd: unique_ptr can indeed take an object of incomplete type. From the Standard:</p>
+<blockquote><p>
+20.7.1.1 Default deleters [unique.ptr.dltr]<br />
+20.7.1.1.1 In general [unique.ptr.dltr.general]<br />
+1 The class template default_delete serves as the default deleter (destruction policy) for the class template unique_ptr.<br />
+2 The template parameter T of default_delete may be an incomplete type.
+</p></blockquote>
+<p>@Andrew: Thanks, fixed. I cut-and-pasted from a slide where that example was labeled &#8220;C++11 without lambdas&#8221; and didn&#8217;t notice it for the reason you said &#8212; auto feels so natural so quickly that most people take to it like a duck to water and then hardly notice it. It&#8217;s just long past time we had that.</p>
+<p>Obligatory auto note: As Bjarne is always quick to point out, &#8220;auto&#8221; is the oldest C++11 feature, which he first implemented in Cfront in 1983. They made him take it out. What a shame.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Andrew Durward				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4171</link>
+		<dc:creator><![CDATA[Andrew Durward]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 03:28:16 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4171</guid>
+					<description><![CDATA[Nice summary, thanks Herb.  FYI, there&#039;s a very C++11 looking &#039;auto&#039; in the C++98 code of the Lambda section.  Seems that new habits die hard ;)]]></description>
+		<content:encoded><![CDATA[<p>Nice summary, thanks Herb.  FYI, there&#8217;s a very C++11 looking &#8216;auto&#8217; in the C++98 code of the Lambda section.  Seems that new habits die hard ;)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Edd				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4170</link>
+		<dc:creator><![CDATA[Edd]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 03:22:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4170</guid>
+					<description><![CDATA[Out of interest, in the pimpl/unique_ptr example, would widget require a user-defined destructor to ensure the unique_ptr deletes a pointer to a complete type, or does unique_ptr play a similar trick to shared_ptr and instantiate the deletion mechanism at construction time?]]></description>
+		<content:encoded><![CDATA[<p>Out of interest, in the pimpl/unique_ptr example, would widget require a user-defined destructor to ensure the unique_ptr deletes a pointer to a complete type, or does unique_ptr play a similar trick to shared_ptr and instantiate the deletion mechanism at construction time?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Attila				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4169</link>
+		<dc:creator><![CDATA[Attila]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 02:16:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4169</guid>
+					<description><![CDATA[scite worked nicely for me]]></description>
+		<content:encoded><![CDATA[<p>scite worked nicely for me</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michael Price				</title>
+				<link>https://herbsutter.com/2011/10/28/elements-of-modern-c-style/#comment-4168</link>
+		<dc:creator><![CDATA[Michael Price]]></dc:creator>
+		<pubDate>Sat, 29 Oct 2011 01:41:47 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2011/10/28/elements-of-modern-c-style/#comment-4168</guid>
+					<description><![CDATA[Granted, not everybody writes lots of nested templates, but the template bracket fix will change how I write code tremendously. I&#039;ve despised all those unnecessary spaces for years.]]></description>
+		<content:encoded><![CDATA[<p>Granted, not everybody writes lots of nested templates, but the template bracket fix will change how I write code tremendously. I&#8217;ve despised all those unnecessary spaces for years.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #104: Solution	</title>
+	<atom:link href="https://herbsutter.com/2012/06/05/gotw-104-solution/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2012/06/05/gotw-104-solution/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-104-solution/#comment-5655</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Wed, 06 Jun 2012 21:43:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1565#comment-5655</guid>
+					<description><![CDATA[@Adrian: The compiler will tell the caller all the places that delete so that one&#039;s fine. Just like it will tell you all the cases where the caller might try to convert to store the pointer as another type.]]></description>
+		<content:encoded><![CDATA[<p>@Adrian: The compiler will tell the caller all the places that delete so that one&#8217;s fine. Just like it will tell you all the cases where the caller might try to convert to store the pointer as another type.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adrian				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-104-solution/#comment-5651</link>
+		<dc:creator><![CDATA[Adrian]]></dc:creator>
+		<pubDate>Wed, 06 Jun 2012 16:20:00 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1565#comment-5651</guid>
+					<description><![CDATA[There&#039;s another ripple that the solution doesn&#039;t acknowledge.
+
+The original calling code has a raw pointer.  After all, it&#039;s modern and so it&#039;s using `auto` when it calls the factory function that returns a raw pointer.  Therefore, assuming the current calling code it correct, it&#039;s making at least one cleanup call (e.g., `delete widget;` or `free_widget(widget);`).  Changing the factory to a smart pointer means you&#039;ll have to search through all the calling code to delete those cleanup operations.
+
+I would have commented directly on the solution, but it seems you disable comments on the solutions.]]></description>
+		<content:encoded><![CDATA[<p>There&#8217;s another ripple that the solution doesn&#8217;t acknowledge.</p>
+<p>The original calling code has a raw pointer.  After all, it&#8217;s modern and so it&#8217;s using `auto` when it calls the factory function that returns a raw pointer.  Therefore, assuming the current calling code it correct, it&#8217;s making at least one cleanup call (e.g., `delete widget;` or `free_widget(widget);`).  Changing the factory to a smart pointer means you&#8217;ll have to search through all the calling code to delete those cleanup operations.</p>
+<p>I would have commented directly on the solution, but it seems you disable comments on the solutions.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: MF				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-104-solution/#comment-5644</link>
+		<dc:creator><![CDATA[MF]]></dc:creator>
+		<pubDate>Wed, 06 Jun 2012 09:22:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1565#comment-5644</guid>
+					<description><![CDATA[The suspicious thing is obviously shared_ptr&#060;T, null_deleter&#062;, not shared_ptr in general.]]></description>
+		<content:encoded><![CDATA[<p>The suspicious thing is obviously shared_ptr&lt;T, null_deleter&gt;, not shared_ptr in general.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: MF				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-104-solution/#comment-5643</link>
+		<dc:creator><![CDATA[MF]]></dc:creator>
+		<pubDate>Wed, 06 Jun 2012 09:20:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1565#comment-5643</guid>
+					<description><![CDATA[I think shared_ptr is rather suspicious since it breaks the lifetime semantics of shared_ptr.
+
+Normally having a shared_ptr implies that the pointed to object will be kept alive until all shared_ptr&#039;s to it are gone but if you use a null_deleter then you can end up with a valid shared_ptr that points to a deleted object.]]></description>
+		<content:encoded><![CDATA[<p>I think shared_ptr is rather suspicious since it breaks the lifetime semantics of shared_ptr.</p>
+<p>Normally having a shared_ptr implies that the pointed to object will be kept alive until all shared_ptr&#8217;s to it are gone but if you use a null_deleter then you can end up with a valid shared_ptr that points to a deleted object.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Joe Gottman				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-104-solution/#comment-5637</link>
+		<dc:creator><![CDATA[Joe Gottman]]></dc:creator>
+		<pubDate>Wed, 06 Jun 2012 01:15:52 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1565#comment-5637</guid>
+					<description><![CDATA[This case is handled by a shared_ptr with a user-defined deleter that does nothing.
+
+struct null_deleter
+{
+   void operator()(const void *) { /* Do nothing */ }
+};]]></description>
+		<content:encoded><![CDATA[<p>This case is handled by a shared_ptr with a user-defined deleter that does nothing.</p>
+<p>struct null_deleter<br />
+{<br />
+   void operator()(const void *) { /* Do nothing */ }<br />
+};</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Motti Lanzkron				</title>
+				<link>https://herbsutter.com/2012/06/05/gotw-104-solution/#comment-5628</link>
+		<dc:creator><![CDATA[Motti Lanzkron]]></dc:creator>
+		<pubDate>Tue, 05 Jun 2012 20:27:36 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1565#comment-5628</guid>
+					<description><![CDATA[There is another option, that the factory maintains some kind of pool of objects and that an object (once created) is never destroyed. This is probably a very rare case but it does happen (e.g. Singleton design pattern). In this case the factory is correctly written and shouldn&#039;t be changed. 
+
+What&#039;s missing from the standard is some kind of unowned_ptr&#060;T&#062; which would document these cases.]]></description>
+		<content:encoded><![CDATA[<p>There is another option, that the factory maintains some kind of pool of objects and that an object (once created) is never destroyed. This is probably a very rare case but it does happen (e.g. Singleton design pattern). In this case the factory is correctly written and shouldn&#8217;t be changed. </p>
+<p>What&#8217;s missing from the standard is some kind of unowned_ptr&lt;T&gt; which would document these cases.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

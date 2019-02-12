@@ -1,0 +1,555 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Concurrency | Sutter’s Mill | Page 3</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965769&amp;back=https%3A%2F%2Fherbsutter.com%2Fcategory%2Fconcurrency%2Fpage%2F3%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Concurrency Category Feed" href="https://herbsutter.com/category/concurrency/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJyNkN1uwjAMhV9onrUN1qtpz5K0JpjmT4kj1LfHpeoEglXcROck53Ns4zlDn6JQFAwNsm+OY0XPI1U8kWTTj3B1732tb/g8zvHAkWX6Ey+F5UhBf8nNYuAqk09p3AL7VEjvQzYyJwINbMhrjShbWMjfKzXLo060Ocw5axqszYVqBT0DtwBLsw/cCrmm1lJxMHeJtrEf0Pp03Z4tpkw4T0gPBZ4t4Z/obY88OJKKkjLkVFW9jNTUs/HAGrk3C8wYkyyPq9iq6iiBTmmEU7wzcPCGyxZaSPfjVDrU1I2dod/w87HffXZf3W7fnS4bTgAo?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s2.wp.com/_static/??-eJyF0G0KwjAMBuAL2dXJxP0Rz1Lr60hdP2zaDT29FSYiVIVAIHkISeQcBDk95hNYmhLXjHhbUmN4JX8BYWmIKqGx5F5Ye5fg0tNaf6QRIjOiGkqtDDr7iguekwVzQZXu50rkJsL8lxmkoPRFRDDdUTuEw3vn7x9Y1MHu267fbfp2263NA675cvs='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Posts about Concurrency written by Herb Sutter" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="archive paged category category-concurrency category-214618 paged-3 category-paged-3 mp6 customizer-styles-applied highlander-enabled highlander-light infinite-scroll neverending">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+	              <h2 class="pagetitle">Archive for the &#8216;Concurrency&#8217; Category</h2>
+      		
+			<div class="post-1271 post type-post status-publish format-standard hentry category-concurrency category-hardware category-opinion-editorial category-software-development" id="post-1271">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2011/12/29/welcome-to-the-jungle/" rel="bookmark">Welcome to the&nbsp;Jungle</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/hardware/" rel="category tag">Hardware</a>, <a href="https://herbsutter.com/category/opinion-editorial/" rel="category tag">Opinion &amp; Editorial</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a> on 2011-12-29|
+													<a href="https://herbsutter.com/2011/12/29/welcome-to-the-jungle/#comments">10 Comments &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p>With so much happening in the computing world, now seemed like the right time to write <a href="https://herbsutter.com/welcome-to-the-jungle/"><strong>“Welcome to the Jungle”</strong></a><strong> </strong>– a sequel to my earlier “The Free Lunch Is Over” essay. Here’s the introduction:</p>
+<p>&#160;</p>
+<blockquote>
+<h3><strong><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the Jungle</a></strong></h3>
+<p align="center"><em>In the twilight of Moore’s Law, the transitions to multicore processors, GPU computing, and HaaS cloud computing are not separate trends, but aspects of a single trend – mainstream computers from desktops to ‘smartphones’ are being permanently transformed into heterogeneous supercomputer clusters. Henceforth, a single compute-intensive application will need to harness different kinds of cores, in immense numbers, to get its job done.</em></p>
+<p align="center"><em>The free lunch is over. Now welcome to the hardware jungle.</em></p>
+<p>&#160;</p>
+<p>From 1975 to 2005, our industry accomplished a phenomenal mission: In 30 years, we put a personal computer on every desk, in every home, and in every pocket.</p>
+<p>In 2005, however, mainstream computing hit a wall. In <a href="http://www.gotw.ca/publications/concurrency-ddj.htm"><strong>“The Free Lunch Is Over”</strong> (December 2004)</a>, I described the reasons for the then-upcoming industry transition from single-core to multi-core CPUs in mainstream machines, why it would require changes throughout the software stack from operating systems to languages to tools, and why it would permanently affect the way we as software developers have to write our code if we want our applications to continue exploiting Moore’s transistor dividend.</p>
+<p>In 2005, our industry undertook a new mission: to put a personal parallel supercomputer on every desk, in every home, and in every pocket. 2011 was special: it’s the year that we completed the transition to parallel computing in all mainstream form factors, with the arrival of multicore tablets (e.g., iPad 2, Playbook, Kindle Fire, Nook Tablet) and smartphones (e.g., Galaxy S II, Droid X2, iPhone 4S). 2012 will see us continue to build out multicore with mainstream quad- and eight-core tablets (as Windows 8 brings a modern tablet experience to x86 as well as ARM), <a href="https://herbsutter.files.wordpress.com/2011/12/image_thumb99.png"><img style="background-image:none;padding-left:0;padding-right:0;display:inline;float:right;padding-top:0;border-width:0;margin:20px 0 0 10px;" title="image_thumb99" border="0" alt="image_thumb99" align="right" src="https://herbsutter.files.wordpress.com/2011/12/image_thumb99_thumb.png?w=480&#038;h=228" width="480" height="228" /></a>and the last single-core gaming console holdout will go multicore (as Nintendo’s Wii U replaces Wii).</p>
+<p>This time it took us just six years to deliver mainstream parallel computing in all popular form factors. And we know the transition to multicore is permanent, because multicore delivers compute performance that single-core cannot and there will always be mainstream applications that run better on a multi-core machine. There’s no going back.</p>
+<p>For the first time in the history of computing, mainstream hardware is no longer a single-processor von Neumann machine, and never will be again.</p>
+<p><em>That was the first act.&#160; . . .</em></p>
+</blockquote>
+<p>&#160;</p>
+<p>I hope you enjoy it.</p>
+					<p><a href="https://herbsutter.com/2011/12/29/welcome-to-the-jungle/" rel="bookmark" title="Permanent Link to Welcome to the&nbsp;Jungle">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+			<div class="post-597 post type-post status-publish format-standard hentry category-c category-concurrency category-hardware category-microsoft category-talks-events" id="post-597">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2011/06/19/c-amp-overview/" rel="bookmark">Daniel Moth&#8217;s C++ AMP session is now&nbsp;online</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/hardware/" rel="category tag">Hardware</a>, <a href="https://herbsutter.com/category/microsoft/" rel="category tag">Microsoft</a>, <a href="https://herbsutter.com/category/talks-events/" rel="category tag">Talks &amp; Events</a> on 2011-06-19|
+													<a href="https://herbsutter.com/2011/06/19/c-amp-overview/#comments">1 Comment &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p>In my keynote on Wednesday, I highlighted just the top two important features in the C++ AMP programming model. That afternoon, my coding colleague and demo demigod Daniel Moth gave a 45-minute session covering the entire C++ AMP programming model that walked through all the features with more examples. Daniel&#8217;s talk is now <a href="http://channel9.msdn.com/Events/AMD-Fusion-Developer-Summit/AMD-Fusion-Developer-Summit-11/DanielMothAMP">also online at Channel 9</a>. I hope you enjoy it.</p>
+<p>Note: The <a href="http://ecn.channel9.msdn.com/content/DanielMoth_CppAMP_Intro.pdf">PDF slides</a> link is small but important &#8212; the screen isn&#8217;t easy to see in the video itself.</p>
+					<p><a href="https://herbsutter.com/2011/06/19/c-amp-overview/" rel="bookmark" title="Permanent Link to Daniel Moth&#8217;s C++ AMP session is now&nbsp;online">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+			<div class="post-593 post type-post status-publish format-standard hentry category-c category-concurrency category-hardware category-microsoft category-software-development category-talks-events" id="post-593">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2011/06/16/c-amp-keynote/" rel="bookmark">C++ AMP keynote is&nbsp;online</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/hardware/" rel="category tag">Hardware</a>, <a href="https://herbsutter.com/category/microsoft/" rel="category tag">Microsoft</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a>, <a href="https://herbsutter.com/category/talks-events/" rel="category tag">Talks &amp; Events</a> on 2011-06-16|
+													<a href="https://herbsutter.com/2011/06/16/c-amp-keynote/#comments">31 Comments &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p>Yesterday I had the privilege of talking about some of the work we&#8217;ve been doing to support massive parallelism on GPUs in the next version of Visual C++. The video of my talk announcing C++ AMP <strong><a href="http://channel9.msdn.com/posts/AFDS-Keynote-Herb-Sutter-Heterogeneous-Computing-and-C-AMP">is now available on Channel 9</a></strong>. (Update: Here&#8217;s an <a href="http://channel9.msdn.com/Events/AMD-Fusion-Developer-Summit/AMD-Fusion-Developer-Summit-11/KEYNOTE">alternate link</a>; it seems to be posted twice.)</p>
+<p>The first 20 minutes has nothing to do with C++ in particular or any platform in particular, but tries to make the case that the right way to view the &#8220;trends&#8221; of multicore computing, GPU computing, and cloud computing (HaaS) is that they are not three trends at all, but merely facets of the same single trend &#8212; heterogeneous parallel computing.</p>
+<p>If they are, then one programming model should be able to address them all. We think we&#8217;ve found one.</p>
+<p>The main reasons we decided to build a new model is that we believe there needs to be a single model that has all of the following attributes:</p>
+<ul>
+<li><strong>C++, not C:</strong> It should leverage C++&#8217;s power for strong abstraction without sacrificing performance, not just be a dialect of C.</li>
+<li><strong>Mainstream:</strong> It should be programmable by millions of developers, not just by a priesthood. Litmus test: Is the Hello World parallel GPU program a page and half, or a couple of lines?</li>
+<li><strong>Minimal:</strong> It adds just one general-purpose language extension that addresses not only the immediate problem (dealing with cores that can&#8217;t support full C++) but many others. With the right general-purpose extension, the rest can be done as just a library.</li>
+<li><strong>Portable:</strong> It allows shipping a single EXE that can use any combination of GPU vendors&#8217; hardware. The initial implementation uses DirectCompute and supports all devices that are DX11 capable; DirectCompute is just an implementation detail of the first release, and the model can (and I expect will) be implemented to directly talk to any interesting hardware.</li>
+<li><strong>General and future-proof:</strong> The initial release will focus on GPU computing, but it&#8217;s intended to enable people to write code for the GPU in a way that in the future we can recompile with few or no changes to spread across any and all accessible compute cores, including ones in the cloud.</li>
+<li><strong>Open:</strong> I mentioned that Microsoft intends to make the C++ AMP specification open, and encourages its implementation on other C++ compilers for any hardware or OS target. AMD announced that they will implement C++ AMP in their FSA reference compiler. NVidia also announced support.</li>
+</ul>
+<p>We&#8217;re really excited about this, and I hope you find the information in the talk to be useful. A prerelease implementation in Visual C++ that runs on Windows will be available later this year. More to come&#8230;</p>
+					<p><a href="https://herbsutter.com/2011/06/16/c-amp-keynote/" rel="bookmark" title="Permanent Link to C++ AMP keynote is&nbsp;online">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+			<div class="post-589 post type-post status-publish format-standard hentry category-c category-concurrency category-microsoft category-software-development category-talks-events" id="post-589">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2011/06/14/afds-live-tream/" rel="bookmark">AFDS Keynote Live&nbsp;Stream</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/microsoft/" rel="category tag">Microsoft</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a>, <a href="https://herbsutter.com/category/talks-events/" rel="category tag">Talks &amp; Events</a> on 2011-06-14|
+											</p>
+				</div>
+
+				<div class="entry">
+					<p>Just a reminder for those interested in using C++ to harness GPUs for fast code: My keynote at AMD Fusion Developer&#8217;s Conference will be <strong><a href="http://developer.amd.com/afds/pages/webcast.aspx">webcast live</a></strong>. I&#8217;ll post another link when the recorded talk is available for on-demand viewing.</p>
+<p>The talk starts at 8:30am U.S. Pacific time tomorrow (Wed June 15).</p>
+<p>Today Jem Davies of ARM also gave a keynote. He&#8217;s a great speaker with a great message; look for it when it becomes available on demand. Recommended viewing whether or not you target ARM processors.</p>
+<p>&nbsp;</p>
+					<p><a href="https://herbsutter.com/2011/06/14/afds-live-tream/" rel="bookmark" title="Permanent Link to AFDS Keynote Live&nbsp;Stream">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+			<div class="post-561 post type-post status-publish format-standard hentry category-c-net category-c category-concurrency category-microsoft category-software-development category-talks-events" id="post-561">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2011/05/04/interview-on-channel-9-2/" rel="bookmark">Interview on Channel&nbsp;9</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/c-net/" rel="category tag">C# / .NET</a>, <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/microsoft/" rel="category tag">Microsoft</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a>, <a href="https://herbsutter.com/category/talks-events/" rel="category tag">Talks &amp; Events</a> on 2011-05-04|
+													<a href="https://herbsutter.com/2011/05/04/interview-on-channel-9-2/#comments">4 Comments &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p>Channel 9 just posted a new <a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11">interview with me</a> about ISO C++0x, C++&#8217;s place in the modern world, and all things C++. The topics we talked about ranged pretty widely, as you can see from the questions below.</p>
+<p>Here&#8217;s the blurb as posted on Channel 9 with links to specific questions in the interview. Enjoy.</p>
+<p>Herb</p>
+<blockquote><p>I was lucky enough to catch up with <a href="https://herbsutter.com/" target="_blank">Herb Sutter</a> not too long after the <a href="https://herbsutter.com/2011/03/25/we-have-fdis-trip-report-march-2011-c-standards-meeting/" target="_blank">FDIS announcement</a> (Final Draft International Standard is complete).</p>
+<p>As usual when talking to Herb, the conversation is all about C++ (well, we <em>do</em> talk about C# for a little while, but in the context of C++. Why? Tune in&#8230;).</p>
+<p>See below for the specific questions that were asked. You can simply click on a link to move directly to that point in the conversation. I do, however, strongly recommend that <em>you watch the entire thing</em>. I also recommend that you don&#8217;t get used to this level of categorization in my videos (it takes a fair amount of time to do this sort of thing, so enjoy the times when I actually do this, but don&#8217;t expect me to do this all of the time).</p>
+<p>It&#8217;s always great to talk to Herb and get a glimpse of what goes on in the C++ Standards Committee (which Herb chairs). In this specific conversation, it&#8217;s uplifting to see how excited Herb is for the future of one of the world&#8217;s most capable and widely used general purpose programming languages. C++ is a modern programming language for power and performance, but it&#8217;s also a highly abstracted general purpose language for building user mode applications, mobile apps, etc. The amazing part is how C++ can provide rich general programming abstractions and also ensure that your code can run at machine speeds. We talk about this, of course.</p>
+<p>Tune in. Learn. Go native!</p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=1m37s">1:37 -&gt; What were the goals of the C++0x standard, at a high level?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=2m40s">2:40 -&gt; Language and Library abstractions and performance (how high can you go and still be fast as possible?)&#8230;</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=5m23s">5:23 -&gt; C++ as an application development language (in addition to the traditional C++ is a systems programming language meme)&#8230;</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=7m17s">07:17 -&gt; C++0x or can we now call it C++11?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=9m21s">09:21 -&gt; Standards committees and real world user representation&#8230;</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=10m39s">10:39 -&gt; Who comes up with the new features that get standardized (or not&#8230;)?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=13m1s">13:01 -&gt; What were the goals of the C++0x standard (non-canned answer)?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=14m21s">14:21 -&gt; What does Bjarne mean by C++0x being a better C++ for novice programmers?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=15m51s">15:51 -&gt; Why can&#8217;t C++ look more like C#?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=18m50s">18:50 -&gt; At the end of the day, everything(in terms of programmer-controlled computing) boils down to memory, right?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=23m12s">23:12 -&gt; What are some of the most significant new features in C++0x?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=25m5s">25:05 -&gt; What can VC++ developers expect to see in terms of C++0x implementation in Visual C++ next?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=27m9s">27:09 -&gt; C++ and type safety&#8230;</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=29m5s">29:05 -&gt; C++0x and backwards compatibility: any big breaking changes?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=34m16s">34:16 -&gt; C++0x in the Standard Library&#8230;</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=37m1s">37:01 -&gt; Any thinking in the Committee about doing more frequent experimental releases C++?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=39m4s">39:04 -&gt; Are their features that didn&#8217;t make it into the standard that you really wanted to be standardized?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=41m45s">41:45 -&gt; Are you comfortable with C++&#8217;s current state? Is it modern enough?</a></p>
+<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Conversation-with-Herb-Sutter-Perspectives-on-Modern-C0x11#time=43m22s">43:22 -&gt; Conclusion (or Charles doesn&#8217;t end the conversation when his farewell begins &#8211; where does it go from there? )</a></p></blockquote>
+					<p><a href="https://herbsutter.com/2011/05/04/interview-on-channel-9-2/" rel="bookmark" title="Permanent Link to Interview on Channel&nbsp;9">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+			<div class="post-542 post type-post status-publish format-standard hentry category-c category-concurrency category-hardware category-microsoft category-software-development category-talks-events" id="post-542">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2011/04/06/fusion/" rel="bookmark">Keynote at the AMD Fusion Developer&nbsp;Summit</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/hardware/" rel="category tag">Hardware</a>, <a href="https://herbsutter.com/category/microsoft/" rel="category tag">Microsoft</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a>, <a href="https://herbsutter.com/category/talks-events/" rel="category tag">Talks &amp; Events</a> on 2011-04-06|
+													<a href="https://herbsutter.com/2011/04/06/fusion/#comments">7 Comments &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p>In a couple of months, I&#8217;ll be giving a keynote at the <a href="http://developer.amd.com/afds/">AMD Fusion Developer&#8217;s Summit</a>, which will be held on June 13-16, 2011, in Bellevue, WA, USA.</p>
+<p>Here&#8217;s my talk&#8217;s description as it <a href="http://developer.amd.com/afds/pages/keynote.aspx">appears</a> on the conference website:</p>
+<blockquote><p><strong><a href="http://developer.amd.com/afds/pages/keynote.aspx">AFDS Keynote: “Heterogeneous Parallelism at Microsoft”</a></strong><br />
+<em>Herb Sutter, Microsoft Principal Architect, Native Languages</em></p>
+<p>Parallelism is not just in full bloom, but increasingly in full variety. We know that getting full computational performance out of most machines—nearly all desktops and laptops, most game consoles, and the newest smartphones—already means harnessing local parallel hardware, mainly in the form of multicore CPU processing. This is the commoditization of the supercomputer.</p>
+<p>More and more, however, getting that full performance can also mean using gradually ever-more-heterogeneous processing, from local GPGPU and Accelerated Processing Unit (APU) flavors to “often-on” remote parallel computing power in the form of elastic compute clouds. This is the generalization of the heterogeneous cluster in all its NUMA glory, and it’s appearing at all scales from on-die to on-machine to on-cloud.</p>
+<p>In this talk, Microsoft’s chief native languages architect shares a vision of what this will mean for native software on Microsoft platforms from servers to devices, and showcases upcoming innovations that bring access to increasingly heterogeneous compute resources — from vector units and multicore, to GPGPU and APU, to elastic cloud — directly into the world’s most popular native languages.</p></blockquote>
+<p>If you&#8217;re interested in high performance code for <a href="http://en.wikipedia.org/wiki/GPGPU">GPUs</a>, <a href="http://sites.amd.com/us/fusion/apu/Pages/fusion.aspx">APUs</a>, and other high-performance <a href="http://en.wikipedia.org/wiki/Three-letter_acronym">TLAs</a>, I hope to see you there.</p>
+<p>Note: This talk is related to, but different from, the <a href="http://cppandbeyond.com/2011/04/02/session-announcement-c-and-the-gpu-and-beyond/">GPU talk I&#8217;ll be presenting</a> in August at <em><a href="https://herbsutter.com/2011/04/05/c-and-beyond-2011/">C++ and Beyond 2011</a></em> (aka C&amp;B). You can expect the above keynote to be, well, keynote-y&#8230; oriented toward software product features and of course AMD&#8217;s hardware, with plenty of forward-looking industry vision style material. My <a href="http://cppandbeyond.com/2011/04/02/session-announcement-c-and-the-gpu-and-beyond/">August C&amp;B technical talk</a> will be just that, an in-depth performance-oriented and sometimes-gritty technical session that will also mention product-related and hardware-specific stuff but is primarily about heterogeneous hardware, with a more pragmatically focused forward-looking eye.</p>
+					<p><a href="https://herbsutter.com/2011/04/06/fusion/" rel="bookmark" title="Permanent Link to Keynote at the AMD Fusion Developer&nbsp;Summit">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+			<div class="post-539 post type-post status-publish format-standard hentry category-c category-concurrency category-software-development category-talks-events" id="post-539">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2011/04/05/c-and-beyond-2011/" rel="bookmark">C++ and Beyond&nbsp;2011</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a>, <a href="https://herbsutter.com/category/talks-events/" rel="category tag">Talks &amp; Events</a> on 2011-04-05|
+													<a href="https://herbsutter.com/2011/04/05/c-and-beyond-2011/#comments">2 Comments &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p><img class="alignright" title="Beautiful Banff" src="https://cppandbeyond.files.wordpress.com/2011/02/banffsprings.jpg?w=240&#038;h=165" alt="" width="240" height="165" />I&#8217;m very much looking forward to <strong><a href="http://cppandbeyond.com">C++ and Beyond 2011</a></strong> this August, again with Scott Meyers and Andrei Alexandrescu. All of my own talks will be brand-new material never given publicly before.</p>
+<p>This year&#8217;s program will be heavily oriented toward performance (first) and C++0x (second). There are two talks announced so far:</p>
+<ul>
+<li>Andrei will be giving an in-depth talk on <strong><em><a href="http://cppandbeyond.com/2011/03/31/session-announcement-big/">&#8220;BIG: C++ Strategies, Data Structures, and Algorithms Aimed at Scalability.&#8221;</a></em></strong> Briefly, it&#8217;s about writing high-performance C++ code for  highly distributed architectures, focusing on translating C++&#8217;s strong modeling capabilities directly to great scaling and/or great savings, and finding the right but non-intuitive C++ techniques and data structures to get there.</li>
+<li>I&#8217;ll be giving a brand-new talk on <strong><em><a href="http://cppandbeyond.com/2011/04/02/session-announcement-c-and-the-gpu-and-beyond/">&#8220;C++ and the GPU&#8230; and Beyond.&#8221;</a></em></strong> I&#8217;ll cover the state of the art for using C++ (not just C) for <a href="http://en.wikipedia.org/wiki/GPGPU">general-purpose computation on graphics processing units (GPGPU)</a>. The first half of the talk discusses the most important issues and techniques to consider when using GPUs for high-performance computation, especially where we have to change our traditional advice for doing the same computation on the CPU. The second half focuses on upcoming C++ language and library extensions that bring key abstractions for GPGPU — and in time considerably more — directly into C++.</li>
+</ul>
+<p>An announcement for a third (also performance-focused) talk should be posted within the week, with more to come as we continue to announce the talk schedule as it firms up.</p>
+<p><a href="http://cppandbeyond2011.eventbrite.com/">Registration is now open.</a> I hope many of you will be able to make it.</p>
+					<p><a href="https://herbsutter.com/2011/04/05/c-and-beyond-2011/" rel="bookmark" title="Permanent Link to C++ and Beyond&nbsp;2011">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+		<p align="center"><a href="https://herbsutter.com/category/concurrency/page/2/" >&laquo; Newer Posts</a> - <a href="https://herbsutter.com/category/concurrency/page/4/" >Older Posts &raquo;</a></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/category/concurrency/page/3/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618 current-cat"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+		<script type="text/javascript">
+		//<![CDATA[
+		var infiniteScroll = {"settings":{"id":"content-main","ajaxurl":"https:\/\/herbsutter.com\/?infinity=scrolling","type":"scroll","wrapper":true,"wrapper_class":"infinite-wrap","footer":true,"click_handle":"1","text":"Older posts","totop":"Scroll back to top","currentday":"05.04.11","order":"DESC","scripts":[],"styles":[],"google_analytics":false,"offset":3,"history":{"host":"herbsutter.com","path":"\/category\/concurrency\/page\/%d\/","use_trailing_slashes":true,"parameters":""},"query_args":{"paged":3,"category_name":"concurrency","error":"","m":"","p":0,"post_parent":"","subpost":"","subpost_id":"","attachment":"","attachment_id":0,"name":"","pagename":"","page_id":0,"second":"","minute":"","hour":"","day":0,"monthnum":0,"year":0,"w":0,"tag":"","cat":214618,"tag_id":"","author":"","author_name":"","feed":"","tb":"","meta_key":"","meta_value":"","preview":"","s":"","sentence":"","title":"","fields":"","menu_order":"","embed":"","category__in":[],"category__not_in":[],"category__and":[],"post__in":[],"post__not_in":[],"post_name__in":[],"tag__in":[],"tag__not_in":[],"tag__and":[],"tag_slug__in":[],"tag_slug__and":[],"post_parent__in":[],"post_parent__not_in":[],"author__in":[],"author__not_in":[],"posts_per_page":7,"ignore_sticky_posts":false,"suppress_filters":false,"cache_results":false,"update_post_term_cache":true,"lazy_load_term_meta":true,"update_post_meta_cache":true,"post_type":"","nopaging":false,"comments_per_page":"50","no_found_rows":false,"order":"DESC"},"last_post_date":"2011-04-05 16:32:22","stats":"blog=3379246&v=wpcom&tz=-8&user_id=0&subd=herbsutter&x_pagetype=infinite"}};
+		//]]>
+		</script>
+		<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	</div>
+		<div id="infinite-footer">
+			<div class="container">
+				<div class="blog-info">
+					<a id="infinity-blog-title" href="https://herbsutter.com/" rel="home">
+						Sutter’s Mill					</a>
+				</div>
+				<div class="blog-credits">
+					<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a> 				</div>
+			</div>
+		</div><!-- #infinite-footer -->
+		
+	<div id="carousel-reblog-box">
+		<form action="#" name="carousel-reblog">
+			<textarea id="carousel-reblog-content" name="carousel-reblog-content" placeholder="Add your thoughts here... (optional)"></textarea>
+			<label for="carousel-reblog-to-blog-id" id="carousel-reblog-lblogid">Post to</label>
+			<select name="carousel-reblog-to-blog-id" id="carousel-reblog-to-blog-id">
+						</select>
+
+			<div class="submit">
+				<span class="canceltext"><a href="#" class="cancel">Cancel</a></span>
+				<input type="submit" name="carousel-reblog-submit" class="button" id="carousel-reblog-submit" value="Reblog Post" />
+				<input type="hidden" id="carousel-reblog-blog-id" value="3379246" />
+				<input type="hidden" id="carousel-reblog-blog-url" value="https://herbsutter.com" />
+				<input type="hidden" id="carousel-reblog-blog-title" value="Sutter’s Mill" />
+				<input type="hidden" id="carousel-reblog-post-url" value="" />
+				<input type="hidden" id="carousel-reblog-post-title" value="" />
+			</div>
+
+			<input type="hidden" id="_wpnonce" name="_wpnonce" value="c0f0a72e87" /><input type="hidden" name="_wp_http_referer" value="/category/concurrency/page/3/" />		</form>
+
+		<div class="arrow"></div>
+	</div>
+<link rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/carousel/jetpack-carousel.css?m=1524699534h&cssminify=yes' type='text/css' media='all' />
+<!--[if lte IE 8]>
+<link rel='stylesheet' id='jetpack-carousel-ie8fix-css'  href='https://s1.wp.com/wp-content/mu-plugins/carousel/jetpack-carousel-ie8fix.css?m=1412618825h&#038;ver=20121024' type='text/css' media='all' />
+<![endif]-->
+<link rel='stylesheet' id='all-css-2-2' href='https://s2.wp.com/wp-content/mu-plugins/tiled-gallery/tiled-gallery.css?m=1443731146h&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2011%2F12%2F29%2Fwelcome-to-the-jungle%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/category\/concurrency\/page\/3\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2Fcategory%2Fconcurrency%2Fpage%2F3%2F","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2011%2F12%2F29%2Fwelcome-to-the-jungle%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var jetpackCarouselStrings = {"widths":[370,700,1000,1200,1400,2000],"is_logged_in":"","lang":"en","ajaxurl":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"665015e67f","display_exif":"1","display_geo":"1","single_image_gallery":"1","single_image_gallery_media_file":"","background_color":"black","comment":"Comment","post_comment":"Post Comment","write_comment":"Write a Comment...","loading_comments":"Loading Comments...","download_original":"View full size <span class=\"photo-size\">{0}<span class=\"photo-size-times\">\u00d7<\/span>{1}<\/span>","no_comment_text":"Please be sure to submit some text with your comment.","no_comment_email":"Please provide an email address to comment.","no_comment_author":"Please provide your name to comment.","comment_post_error":"Sorry, but there was an error posting your comment. Please try again later.","comment_approved":"Your comment was approved.","comment_unapproved":"Your comment is in moderation.","camera":"Camera","aperture":"Aperture","shutter_speed":"Shutter Speed","focal_length":"Focal Length","copyright":"Copyright","comment_registration":"0","require_name_email":"1","login_url":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2011%2F04%2F05%2Fc-and-beyond-2011%2F","blog_id":"3379246","meta_data":["camera","aperture","shutter_speed","focal_length","copyright"],"local_comments_commenting_as":"<fieldset><label for=\"email\">Email (Required)<\/label> <input type=\"text\" name=\"email\" class=\"jp-carousel-comment-form-field jp-carousel-comment-form-text-field\" id=\"jp-carousel-comment-form-email-field\" \/><\/fieldset><fieldset><label for=\"author\">Name (Required)<\/label> <input type=\"text\" name=\"author\" class=\"jp-carousel-comment-form-field jp-carousel-comment-form-text-field\" id=\"jp-carousel-comment-form-author-field\" \/><\/fieldset><fieldset><label for=\"url\">Website<\/label> <input type=\"text\" name=\"url\" class=\"jp-carousel-comment-form-field jp-carousel-comment-form-text-field\" id=\"jp-carousel-comment-form-url-field\" \/><\/fieldset>","reblog":"Reblog","reblogged":"Reblogged","reblog_add_thoughts":"Add your thoughts here... (optional)","reblogging":"Reblogging...","post_reblog":"Post Reblog","stats_query_args":"blog=3379246&v=wpcom&tz=-8&user_id=0&subd=herbsutter","is_public":"1","reblog_enabled":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVUNEOwiAM/CGxGqM+Gb8FWXVFVpCWqX8vmmwxGpf4QHJc77ijcE3GRVZkBS/QYE8O023uZQZvo66YFMqJWCDQGQUuBQu2lpuAeUJMfCQmvY/gUzsI5c5qby2d2lCPYv5mJmJs0xGbg83QWanSikzsMWdqateR+/MFzdadZcrklCI/TSMa1MQulGd4Xapcj/Hg0emvz/e1ZgQrgvoyvO4po0yFO5tjEQzgUVMtagaievbdbrlebZbb7WK98A97a7cy'></script>
+<script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVy0sOQEAMANALqcYvYSHOgmkmpWoyirg9WyuxfIuHZ4BxVSM1XHYIsnvWDe1kM4owSD/OA0cHgQmVDoqkjtWn05bgnxu+Hws58L0IxeutZ3VLm1V5WRVlU+fTDQ0qQ9Y='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script type="text/javascript">
+			jQuery.extend( infiniteScroll.settings.scripts, ["jquery-core","jquery-migrate","jquery","mobile-useragent-info","postmessage","jquery_inview","jetpack_resize","spin","jquery.spin","grofiles-cards","wpgroho","devicepx","jetpack_likes_queuehandler","the-neverending-homepage","syntaxhighlighter","wpcom-masterbar-js","wpcom-masterbar-tracks-js","wpcom-actionbar-bar","swfobject","videopress","jetpack-carousel","twitter-widgets","twitter-widgets-infinity","twitter-widgets-pending","tiled-gallery"] );
+			jQuery.extend( infiniteScroll.settings.styles, ["jetpack_likes","the-neverending-homepage","infinity-mistylook","wpcom-core-compat-playlist-styles","mp6hacks","wpcom-bbpress2-staff-css","wp-block-library","mistylook","jetpack-top-posts-widget","jetpack-widget-social-icons-styles","noticons","geo-location-flair","reblogging","a8c-global-print","wpcom-actionbar-bar","h4-global","jetpack-carousel","tiled-gallery","jetpack-carousel-ie8fix"] );
+		</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sajl0NlBKWjRhQ0VEJkNLVTA2UXpOdVRjWnBQRjRDbUNDQVY/JVpHZnVRWjVdMzFQY3NdbWNKUnp1T3ZFLjd3azc4flNnLHRddFZ1bXNreX5iWmQ5WGxyP3Z2Qi5VZ2V5aSxvYnksfGt0RkVFVU5aZFtsN104N2Q2NkY/bV18Tys0L3p2LkUlS2ZxVEI3Mj9uPzNyZCZWSGR1NHh6LltadGFxX1s2UllHTXxXbXVfTUsucmg='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '0' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

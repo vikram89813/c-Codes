@@ -1,0 +1,839 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #92 Solution: Auto Variables, Part 1 | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965304&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F06%2F07%2Fgotw-92-solution-auto-variables-part-1%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #92 Solution: Auto Variables, Part&nbsp;1 Comments Feed" href="https://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #92: Auto Variables, Part&nbsp;1' href='https://herbsutter.com/2013/06/05/gotw-92-auto-variables-part-1/' />
+<link rel='next' title='GotW #93: Auto Variables, Part&nbsp;2' href='https://herbsutter.com/2013/06/07/gotw-93-auto-variables-part-2/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-y1' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F06%2F07%2Fgotw-92-solution-auto-variables-part-1%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F06%2F07%2Fgotw-92-solution-auto-variables-part-1%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #92 Solution: Auto Variables, Part 1" />
+<meta property="og:url" content="https://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/" />
+<meta property="og:description" content="What does auto do on variable declarations, exactly? And how should we think about auto? In this GotW, we&#8217;ll start taking a look at C++&#8217;s oldest new feature.  Problem JG Questions 1. Wh…" />
+<meta property="article:published_time" content="2013-06-07T13:34:05+00:00" />
+<meta property="article:modified_time" content="2013-06-10T17:27:54+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://herbsutter.files.wordpress.com/2013/06/061013_1727_gotw92solut1.png" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #92 Solution: Auto Variables, Part&nbsp;1" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="What does auto do on variable declarations, exactly? And how should we think about auto? In this GotW, we&#039;ll start taking a look at C++&#039;s oldest new feature.  Problem JG Questions 1. What is the oldest C++11 feature? Explain. 2. What does auto mean when declaring a local variable? Guru Questions 3. In the following&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2109 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/06/05/gotw-92-auto-variables-part-1/" rel="prev">GotW #92: Auto Variables, Part&nbsp;1</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/06/07/gotw-93-auto-variables-part-2/" rel="next">GotW #93: Auto Variables, Part&nbsp;2</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2109 post type-post status-publish format-standard hentry category-gotw" id="post-2109">
+				<div class="posttitle">
+					<h2>GotW #92 Solution: Auto Variables, Part&nbsp;1</h2>
+					<p class="post-info">2013-06-07 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>What does auto do on variable declarations, exactly? And how should we think about auto? In this GotW, we&#8217;ll start taking a look at C++&#8217;s oldest new feature.<br />
+</em></span></p>
+<p>
+ </p>
+<h1>Problem<br />
+</h1>
+<h2>JG Questions<br />
+</h2>
+<p>1. What is the oldest C++11 feature? Explain.
+</p>
+<p>2. What does <span style="color:#2e74b5;">auto</span> mean when declaring a local variable?
+</p>
+<h2>Guru Questions<br />
+</h2>
+<p>3. In the following code, what is the type of variables <span style="color:#2e74b5;">a</span> through <span style="color:#2e74b5;">k</span>, and why? Explain.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>int         val = 0;<br />auto        a   = val;<br />auto&amp;       b   = val;<br />const auto  c   = val;<br />const auto&amp; d   = val;<br /><br />int&amp;        ir  = val;<br />auto        e   = ir;<br /><br />int*        ip  = &amp;val; <br />auto        f   = ip;<br /><br />const int   ci  = val;<br />auto        g   = ci;<br /><br />const int&amp;  cir = val;<br />auto        h   = cir;<br /><br />const int*  cip = &amp;val;<br />auto        i   = cip;<br /><br />int* const  ipc = &amp;val;<br />auto        j   = ipc;<br /><br />const int* const cipc = &amp;val;<br />auto             k    = cipc;
+</code></pre>
+</p>
+<p>4. In the following code, what type does <span style="color:#2e74b5;">auto</span> deduce for variables <span style="color:#2e74b5;">a</span> and <span style="color:#2e74b5;">b</span>, and why? Explain.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>int val = 0;<br /><br />auto a { val };<br />auto b = { val };
+</code></pre>
+</p>
+<p>
+ </p>
+<h1>Solution<br />
+</h1>
+<h2>1. What is the oldest C++11 feature? Explain.<br />
+</h2>
+<p><span style="color:#2e74b5;">auto x = something;</span> to declare a new local variable whose type is deduced from <span style="color:#2e74b5;">something</span>, and isn&#8217;t just always <span style="color:#2e74b5;">int</span>.
+</p>
+<p>Bjarne Stroustrup likes to point out that <span style="color:#2e74b5;">auto</span> for deducing the type of local variables is the oldest feature added in the 2011 release of the C++ standard. He implemented it in C++ 28 years earlier, in 1983—which incidentally was the same year the language&#8217;s name was changed to C++ from C with Classes (the new name was unveiled publicly on January 1, 1984), and the same year Stroustrup added other fundamental features including <span style="color:#2e74b5;">const</span> (later adopted by C), <span style="color:#2e74b5;">virtual</span> functions, <span style="color:#2e74b5;">&amp;</span> references, and BCPL-style <span style="color:#2e74b5;">//</span> comments.
+</p>
+<p>Alas, Stroustrup was forced to remove <span style="color:#2e74b5;">auto</span> because of compatibility concerns with C&#8217;s then-existing implicit <span style="color:#2e74b5;">int</span> rule, which has since been abandoned in C. We&#8217;re glad <span style="color:#2e74b5;">auto</span> is now back and here to stay.
+</p>
+<h2>2. What does auto mean when declaring a local variable?<br />
+</h2>
+<p>It means to deduce the type from the expression used to initialize the new variable. In particular, <span style="color:#2e74b5;">auto</span> local variables deduction is exactly the same as type deduction for parameters of function templates—by specification, the rule for <span style="color:#2e74b5;">auto</span> variables says &#8220;do what function templates are required to do&#8221;—plus they can capture <span style="color:#2e74b5;">initializer_list</span> as a type. For example:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>template&lt;class T&gt; void f( T ) { }<br /><br />int val = 0;<br /><br />f( val );                // deduces T == int, calls f&lt;int&gt;( val )<br />auto x = val;            // deduces T == int, x is of type int
+</code></pre>
+</p>
+<p>When you&#8217;re new to <span style="color:#2e74b5;">auto</span>, the key thing to remember is that you really are declaring your own new local variable. That is, &#8220;what&#8217;s on the left&#8221; is my new variable, and &#8220;what&#8217;s on the right&#8221; is just its initial value:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>auto my_new_variable = its_initial_value;
+</code></pre>
+</p>
+<p>You want <em>your new variable</em> to be just like <em>some existing variable</em> or expression over there, and be initialized from it, but that only means that you want the same basic type, not necessarily that other variable&#8217;s own personal secondary attributes such as top-level <span style="color:#2e74b5;">const</span>&#8211; or <span style="color:#2e74b5;">volatile</span>-ness and <span style="color:#2e74b5;">&amp;</span>/<span style="color:#2e74b5;">&amp;&amp;</span> reference-ness which are per-variable. For example, just because he&#8217;s <span style="color:#2e74b5;">const</span> doesn&#8217;t mean you&#8217;re <span style="color:#2e74b5;">const</span>, and vice versa.
+</p>
+<p>It&#8217;s kind of like being identical twins: Andy may be genetically <em>just like</em> his brother Bobby and is part of the same family, but he&#8217;s not the same person; he&#8217;s a distinct person and can make his own choice of clothes and/or jewelry, go to be seen on the scene in different parts of town, and so forth. So your new variable will be <em>just like</em> that other one and be part of the same type family, but it&#8217;s not the same variable; it&#8217;s a distinct variable with its own choice of whether it wants to be dressed with <span style="color:#2e74b5;">const</span>, <span style="color:#2e74b5;">volatile</span>, and/or a <span style="color:#2e74b5;">&amp;</span> or <span style="color:#2e74b5;">&amp;&amp;</span> reference, may be visible to different threads, and so forth.
+</p>
+<p>Remembering this will let us easily answer the rest of our questions.
+</p>
+<h2>3. In the following code, what is the type of variables a through k, and why? Explain.<br />
+</h2>
+<p>Quick reminder: <span style="color:#2e74b5;">auto</span> means &#8220;take exactly the type on the right-hand side, but strip off top-level <span style="color:#2e74b5;">const</span>/<span style="color:#2e74b5;">volatile</span> and <span style="color:#2e74b5;">&amp;</span>/<span style="color:#2e74b5;">&amp;&amp;</span>.&#8221; Armed with that, these are mostly pretty easy.
+</p>
+<p>For simplicity, these examples use <span style="color:#2e74b5;">const</span> and <span style="color:#2e74b5;">&amp;</span>. The rules for adding or removing <span style="color:#2e74b5;">const</span> and <span style="color:#2e74b5;">volatile</span> are the same, and the rules for adding or removing <span style="color:#2e74b5;">&amp;</span> and <span style="color:#2e74b5;">&amp;&amp;</span> are the same.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>int         val = 0;<br />auto        a   = val;<br />auto&amp;       b   = val;<br />const auto  c   = val;<br />const auto&amp; d   = val;
+</code></pre>
+</p>
+<p>For <span style="color:#2e74b5;">a</span> through <span style="color:#2e74b5;">d</span>, the type is what you get from replacing <span style="color:#2e74b5;">auto</span> with <span style="color:#2e74b5;">int</span>: <span style="color:#2e74b5;">int</span>, <span style="color:#2e74b5;">int&amp;</span>, <span style="color:#2e74b5;">const int</span>, and <span style="color:#2e74b5;">const int&amp;</span>, respectively. The same ability to add <span style="color:#2e74b5;">const</span> applies to <span style="color:#2e74b5;">volatile</span>, and the same ability to add <span style="color:#2e74b5;">&amp;</span> applies to <span style="color:#2e74b5;">&amp;&amp;</span>. (Note that <span style="color:#2e74b5;">&amp;&amp;</span> will be what Scott Meyers calls a universal reference, just as with templates, and does in some cases bring across the <span style="color:#2e74b5;">const</span>-ness if it&#8217;s binding to something <span style="color:#2e74b5;">const</span>.)
+</p>
+<p>Now that we&#8217;ve exercised adding top-level <span style="color:#2e74b5;">const</span> (or <span style="color:#2e74b5;">volatile</span>) and <span style="color:#2e74b5;">&amp;</span> (or <span style="color:#2e74b5;">&amp;&amp;</span>) on the left, let&#8217;s consider how they&#8217;re removed on the right. Note that the left hand side of <span style="color:#2e74b5;">a</span> through <span style="color:#2e74b5;">d</span> can be used in any combination with the right hand side of <span style="color:#2e74b5;">e</span> through <span style="color:#2e74b5;">k</span>.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>int&amp;        ir  = val;<br />auto        e   = ir;
+</code></pre>
+</p>
+<p>The type of <span style="color:#2e74b5;">e</span> is <span style="color:#2e74b5;">int</span>. Because <span style="color:#2e74b5;">ir</span> is a reference to <span style="color:#2e74b5;">val</span>, which makes <span style="color:#2e74b5;">ir</span> just another name for <span style="color:#2e74b5;">val</span>, it&#8217;s exactly the same as if we had written <span style="color:#2e74b5;">auto e = val;</span> here.
+</p>
+<p>Remember, just because <span style="color:#2e74b5;">ir</span> is a reference (another name for the existing variable <span style="color:#2e74b5;">val</span>) doesn&#8217;t have any bearing on whether we want <span style="color:#2e74b5;">e</span> to be a reference. If we wanted <span style="color:#2e74b5;">e</span> to be a reference, we would have said <span style="color:#2e74b5;">auto&amp;</span> as we did in case <span style="color:#2e74b5;">b</span> above, and it would have been a reference irrespective of whether <span style="color:#2e74b5;">ir</span> happened to be a reference or not.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>int*        ip  = &amp;val; <br />auto        f   = ip;
+</code></pre>
+</p>
+<p>The type of <span style="color:#2e74b5;">f</span> is <span style="color:#2e74b5;">int*</span>.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>const int   ci  = val;<br />auto        g   = ci;
+</code></pre>
+</p>
+<p>The type of <span style="color:#2e74b5;">g</span> is <span style="color:#2e74b5;">int</span>.
+</p>
+<p>Remember, just because <span style="color:#2e74b5;">ci</span> is <span style="color:#2e74b5;">const</span> (read-only) doesn&#8217;t have any bearing on whether we want <span style="color:#2e74b5;">g</span> to be <span style="color:#2e74b5;">const</span>. It&#8217;s a separate variable. If we wanted <span style="color:#2e74b5;">g</span> to be const, we would have said <span style="color:#2e74b5;">const auto</span> as we did in case <span style="color:#2e74b5;">c</span> above, and it would have been <span style="color:#2e74b5;">const</span> irrespective of whether <span style="color:#2e74b5;">ci</span> happened to be <span style="color:#2e74b5;">const</span> or not.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>const int&amp;  cir = val;<br />auto        h   = cir;
+</code></pre>
+</p>
+<p>The type of <span style="color:#2e74b5;">h</span> is <span style="color:#2e74b5;">int</span>.
+</p>
+<p>Again, remember we just drop top-level <span style="color:#2e74b5;">const</span> and <span style="color:#2e74b5;">&amp;</span> to get the basic type. If we wanted <span style="color:#2e74b5;">h</span> to be <span style="color:#2e74b5;">const</span> and/or <span style="color:#2e74b5;">&amp;</span>, we could just add it as shown with <span style="color:#2e74b5;">b</span>, <span style="color:#2e74b5;">c</span>, and <span style="color:#2e74b5;">d</span> above.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>const int*  cip = &amp;val;<br />auto        i   = cip;
+</code></pre>
+</p>
+<p>The type of <span style="color:#2e74b5;">i</span> is <span style="color:#2e74b5;">const int*</span>.
+</p>
+<p>Note that this isn&#8217;t a top-level <span style="color:#2e74b5;">const</span>, so we don&#8217;t drop it. We pronounce <span style="color:#2e74b5;">cip</span>&#8216;s declaration right to left: The type of <span style="color:#2e74b5;">cip</span> is &#8220;pointer to <span style="color:#2e74b5;">const int</span>,&#8221; not &#8220;<span style="color:#2e74b5;">const</span> pointer to <span style="color:#2e74b5;">int</span>.&#8221; What&#8217;s <span style="color:#2e74b5;">const</span> is not <span style="color:#2e74b5;">cip</span>, but rather <span style="color:#2e74b5;">*cip</span>, the <span style="color:#2e74b5;">int</span> it&#8217;s pointing to.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>int* const  ipc = &amp;val;<br />auto        j   = ipc;
+</code></pre>
+</p>
+<p>The type of <span style="color:#2e74b5;">j</span> is <span style="color:#2e74b5;">int*</span>. This <span style="color:#2e74b5;">const</span> is a top-level <span style="color:#2e74b5;">const</span>, and <span style="color:#2e74b5;">ipc</span>&#8216;s being <span style="color:#2e74b5;">const</span> is immaterial to whether we want <span style="color:#2e74b5;">j</span> to be <span style="color:#2e74b5;">const</span>.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>const int* const cipc = &amp;val;<br />auto             k    = cipc;
+</code></pre>
+</p>
+<p>The type of <span style="color:#2e74b5;">k</span> is <span style="color:#2e74b5;">const int*</span>.
+</p>
+<h2>4. In the following code, what type does auto deduce for variables a and b, and why? Explain.<br />
+</h2>
+<p>As we noted in #2, the only place where an <span style="color:#2e74b5;">auto</span> variable deduces anything different from a template parameter is that <span style="color:#2e74b5;">auto</span> deduces an <span style="color:#2e74b5;">initializer_list</span>. This brings us to the final cases:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>int val = 0;<br /><br />auto a { val };<br />auto b = { val };
+</code></pre>
+</p>
+<p>The type of both <span style="color:#2e74b5;">a</span> and <span style="color:#2e74b5;">b</span> is <span style="color:#2e74b5;">std::initializer_list&lt;int&gt;</span>.
+</p>
+<p>That&#8217;s the only difference between <span style="color:#2e74b5;">auto</span> variable deduction and template parameter deduction—by specification, because auto deduction is defined in the standard as &#8220;follow those rules over there in the templates clause, plus deduce <span style="color:#2e74b5;">initializer_list</span>.&#8221;
+</p>
+<p>If you&#8217;re familiar with templates and curious how <span style="color:#2e74b5;">auto</span> deduction and template deduction map to each other, the table below lists the main cases and shows the equivalent syntax between the two features. For the left column, I&#8217;ll put the variable and the initialization on separate lines to emphasize how they correspond to the separated template parameter and call site on the right.
+</p>
+<p style="text-align:center;"><img src="https://herbsutter.files.wordpress.com/2013/06/061013_1727_gotw92solut1.png?w=500" alt="" />
+	</p>
+<p>Not only are the cases equivalent in expressive power, but you might even feel that some of the <span style="color:#2e74b5;">auto</span> versions feel even slicker to you than their template counterparts.
+</p>
+<h2>Summary<br />
+</h2>
+<p>Having <span style="color:#2e74b5;">auto</span> variables really brings a feature we already had (template deduction) to an even wider audience. But so far we&#8217;ve only seen what <span style="color:#2e74b5;">auto</span> does. The even more interesting question is how to use it. Which brings us to our next GotW…
+</p>
+<h2>Acknowledgments<br />
+</h2>
+<p>Thanks in particular to the following for their feedback to improve this article: davidphilliposter, Phil Barila, Ralph Tandetzky, Marcel Wild.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											19 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">19 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="pingback even thread-even depth-1 highlander-comment" id="comment-28837">
+		<div id="div-comment-28837">
+		<div class="cmtinfo"><em> on <a href="#comment-28837" title="">2014-10-01 at 6:51 am</a></em>  <cite><a href='http://mariusbancila.ro/blog/2014/10/01/the-cpp-ten-commandments/' rel='external nofollow' class='url'>The C++ Ten Commandments | Marius Bancila&#039;s Blog</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_28837"></div><p>[&#8230;] is a large and complex subject and I recommend some additional readings: Auto Variables, Part 1, Auto Variables, Part 2, AAA Style (Almost Always [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14136">
+		<div id="div-comment-14136">
+		<div class="cmtinfo"><em> on <a href="#comment-14136" title="">2014-01-15 at 8:28 am</a></em>  <cite><a href='http://demo.zengine.info/?p=395' rel='external nofollow' class='url'>C++11语言扩展：常规特性 | zengine</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14136"></div><p>[&#8230;] Herb Sutter: GotW #92: Auto Variables, Part 1 [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-13969">
+		<div id="div-comment-13969">
+		<div class="cmtinfo"><em> on <a href="#comment-13969" title="">2013-12-31 at 5:57 am</a></em>  <cite><a href='http://feherenfekete.wordpress.com/2013/12/31/declaration-and-initialization-with-auto/' rel='external nofollow' class='url'>Declaration and initialization with auto | Feheren Fekete</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13969"></div><p>[&#8230;] <a href="https://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/" rel="nofollow">https://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/</a> [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11574">
+		<div id="div-comment-11574">
+		<div class="cmtinfo"><em> on <a href="#comment-11574" title="">2013-06-20 at 3:00 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/7785e6ad26e66b1cb16632bc27893c0c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Maxim Yanchenko</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11574"></div><p>@Herb, thanks for the article!<br />
+2 questions as I didn&#8217;t chase it closely:<br />
+1) Will auto pick type attributes like alignment? The code I mean is smth like:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+typedef float aligned_block[4] alignas(16);
+aligned_block a{...};
+auto b = a; // is b aligned on 16?
+</pre>
+<p>2) what about explicit auto? Is there any protection for private classes that we don&#8217;t want to expose (e.g. because it holds references to temporary objects from the enclosing full expression)?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11387">
+		<div id="div-comment-11387">
+		<div class="cmtinfo"><em> on <a href="#comment-11387" title="">2013-06-15 at 9:44 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f80eb98f480f76f5101cac3164474502?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/monamimani' rel='external nofollow' class='url'>monamimani</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11387"></div><p>@Leo Sorry for being late to reply. It still doesn&#8217;t make sense to me and I&#8217;ll point out to that the template argument deduction rule doesn&#8217;t either.</p>
+<p>To me the type of cir it a reference to a int the type of cir is not a int. Ref to int a and int are 2 different types. Then it confuses me that the deduced type it not int&amp;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mttpd odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11255">
+		<div id="div-comment-11255">
+		<div class="cmtinfo"><em> on <a href="#comment-11255" title="">2013-06-12 at 11:43 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1cc4a77a8256c3049728728c6c45625b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mttpd</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11255"></div><p>@Herb Hey, Overload Journal is still pretty good! :-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11237">
+		<div id="div-comment-11237">
+		<div class="cmtinfo"><em> on <a href="#comment-11237" title="">2013-06-12 at 1:08 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/dd001572ef01005cf4a27107e971638a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/abigagli' rel='external nofollow' class='url'>abigagli</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11237"></div><p>Great article as usual.<br />
+I just found a bit confusing the example for the case of &#8220;h&#8221;.<br />
+If I&#8217;m correct, const T&amp; is not a case of top-level const, so in case &#8220;h&#8221; what happens is actually that reference is stripped off _AND THEN_ what remains is a top level const that gets stripped as such. Am I right?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11180">
+		<div id="div-comment-11180">
+		<div class="cmtinfo"><em> on <a href="#comment-11180" title="">2013-06-10 at 9:29 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11180"></div><p>@Phil: Fixed, thanks.</p>
+<p>@Ralph: Good suggestion. I was trying to keep it simple, but volatile and &amp;&amp; should be mentioned up front. Updated.</p>
+<p>@nosenseetal: That’s very kind, thank you, but I don’t accept donations. I’ve also never run any ads. I have always published my GotW and other articles for free online, and only the final print/e-book versions have been for sale as they’re done through a commercial magazine or book publisher. (Magazines, remember those? How quaint! We do miss C++ Report…)</p>
+<p>@Marcel: Thanks, and I’ve adjusted the layout of the table to make things clearer.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11168">
+		<div id="div-comment-11168">
+		<div class="cmtinfo"><em> on <a href="#comment-11168" title="">2013-06-10 at 5:10 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/69f49a6f6d12844e9043c6916efe70d5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Marcel Wid</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11168"></div><p>I like to think about auto type deduction in terms of template argument deduction (@Herb: You should replace &#8220;parameter&#8221; by &#8220;argument&#8221; in the heading of the 2nd column). The above table may be extended to</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+auto         x = expr;    template&lt;class U&gt; void f(U t);         f(expr); //(1)
+const auto   x = expr;    template&lt;class U&gt; void f(const U t);   f(expr); //(2)
+auto&amp;        x = expr;    template&lt;class U&gt; void f(U&amp; t);        f(expr); //(3)
+const auto&amp;  x = expr;    template&lt;class U&gt; void f(const U&amp; t);  f(expr); //(4)
+auto&amp;&amp;       x = expr;    template&lt;class U&gt; void f(U&amp;&amp; t);       f(expr); //(5)
+const auto&amp;&amp; x = expr;    template&lt;class U&gt; void f(const U&amp;&amp; t); f(expr); //(6)
+</pre>
+<p>If expr has type &#8220;reference to T&#8221;, then this type is adjusted to &#8220;T&#8221; prior to any further analysis. This has nothing to do with auto, this is a general rule in C++. For auto type deduction this means that we can ignore any<br />
+reference-ness on expr. We denote this adjusted type of expr by A. To further analyse what&#8217;s going on behind the scene, it is comfortable to denote the parameter type of f by P, for example<br />
+in case (4) above P is &#8220;const U&amp;&#8221;, in case (5) it is &#8220;U&amp;&amp;&#8221;. Now we have to distinguish between the following cases:<br />
+&#8211; P is not a reference type (cases (1) and (2) above):<br />
+1. If A is an array or function type, A is replaced by the pointer resulting from array-to-pointer or function-to-pointer conversion</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+int a[7];
+const int b[7];
+auto x = a;
+auto y = b;
+</pre>
+<p>then x is of type int* and y of type const int*.<br />
+2. If A is a cv-qualified type, the the cv-qualifiers are ignored.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+const int&amp; cir = 0;
+auto         h = cir;
+</pre>
+<p>Here cir has type &#8220;reference to const int&#8221;. This is adjusted to &#8220;const int&#8221; (=A) and now const is ignored and the type of h is int.<br />
+&#8211; If P is cv-qualified the top-level cv-qualifiers are ignored for type deduction (case (2) above).</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+int&amp; ir      = 0;
+const auto x = ir;
+</pre>
+<p>Here again, &amp; is dropped from ir and const is ignored, so we have to determine U such that &#8220;f(int) = f(U)&#8221;, hence &#8220;U = int&#8221; and the type of x is const int.<br />
+Now it gets a bit more involved:<br />
+&#8211; If P is a reference type, type referred to by P is used for type deduction (and if this resulting type is cv-qualified, the cv-qualifiers are ignored). If P is an rvalue reference to a cv-unqualified template parameter<br />
+and the argument is an lvalue, the type “lvalue reference to A” is used in place of A for type deduction.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+const double&amp; rd = 1.0;
+int&amp;&amp;         ri = 0;
+auto&amp;&amp;         x = rd;
+auto&amp;&amp;         y = ri;
+</pre>
+<p>Here we are in case (5). P is an rvalue reference to a cv-unqualified template parameter (U&amp;&amp;) and the argument is an lvalue (rd), so A (which is &#8220;const int&#8221;, note that here const is not dropped!)<br />
+gets replaced by &#8220;const double&amp;&#8221; and U is deduced to be &#8220;const double&amp;&#8221;. Now reference collapsing comes in (&amp; &amp;&amp; becomes &amp;) and x is of type const double&amp;. Similarly, y is of type int&amp; (note that ri is an lvalue).</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+int&amp;&amp;         ri = 0;
+const auto&amp;&amp;   y = ri;
+</pre>
+<p>Here we are in case (6) and get a compiler error. Why? P is an rvalue reference to a cv-QUALIFIED template parameter. After dropping &amp; and const from P (A is int), we have to find U such that &#8220;f(U) = f(int)&#8221;. Hence &#8220;U = int&#8221;.<br />
+The type of y becomes &#8220;const int&amp;&amp;&#8221;, but binding an lvalue (ri) to an rvalue reference is not allowed.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+const int&amp; cir = 0;
+auto&amp;        x = cir;
+</pre>
+<p>Here we are in case (3). A is &#8220;const int&#8221; and we have to deduce U such that &#8220;f(const int) = f(U)&#8221;, thus &#8220;U = const int&#8221;. The type of x is const int&amp;. I hope, this helps clarifying how auto works.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11122">
+		<div id="div-comment-11122">
+		<div class="cmtinfo"><em> on <a href="#comment-11122" title="">2013-06-08 at 12:17 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/e117145b01b2f09961aae4b0f9e2d7e9?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mathias Stearn</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11122"></div><p>It might be worth adding the following examples. After reading this article I felt the need to test these cases since auto expands to &#8220;const int&#8221; which does have a top-level const even though the full types of g2 and h2 don&#8217;t.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+const int   ci  = val;
+auto        g   = ci;
+auto&amp;       g2  = ci;
+
+const int&amp;  cir = val;
+auto        h   = cir;
+auto&amp;       h2  = cir;
+</pre>
+<p>Also, I&#8217;m curious about auto&amp;&amp;. I think it would only be an rvalue-ref when the right hand side was a value or rvalue-ref returned from a function. Is there any detail I&#8217;m missing?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-nosenseetal even thread-even depth-1 highlander-comment" id="comment-11112">
+		<div id="div-comment-11112">
+		<div class="cmtinfo"><em> on <a href="#comment-11112" title="">2013-06-08 at 5:25 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6aea6e2f57f2a7b1cd6870375fbdc42f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>nosenseetal</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11112"></div><p>@Herb<br />
+did you consider putting donate button on your site&#8230; I personally dont really buy books, but I appreciate your work with refresnihg GotW and new GotWs and I would like to have option to show my appreciation with my euros. :D<br />
+IDK if other ppl agree so this is just IMO :D</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11097">
+		<div id="div-comment-11097">
+		<div class="cmtinfo"><em> on <a href="#comment-11097" title="">2013-06-07 at 3:19 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/78b03ab78af3dd9bdd2f767d2efa97bf?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Amali</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11097"></div><p>The image was blocked in my system, now I can see the image.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11093">
+		<div id="div-comment-11093">
+		<div class="cmtinfo"><em> on <a href="#comment-11093" title="">2013-06-07 at 3:05 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/78b03ab78af3dd9bdd2f767d2efa97bf?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Amali</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11093"></div><p>@Herb,<br />
+The table you mentioned for question 4 is only visible in this post in your website, but not in the post I received in my inbox. I wonder why?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11083">
+		<div id="div-comment-11083">
+		<div class="cmtinfo"><em> on <a href="#comment-11083" title="">2013-06-07 at 11:54 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/4b177a2cb931b1996fc3572a5ee70d6c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ralph Tandetzky</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11083"></div><p>Maybe you should mention that volatile is also stripped from the right hand side type for completeness. This highlights the symmetry of const and volatile. Are there any other things that can be stripped? In the second section you say &#8220;such as top-level const-ness and reference-ness&#8221;. Instead you could say &#8220;which are top-level const-ness, volatile-ness and reference-ness&#8221;. Just a thought.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11082">
+		<div id="div-comment-11082">
+		<div class="cmtinfo"><em> on <a href="#comment-11082" title="">2013-06-07 at 11:48 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d51032a14bd8da40bbc1f0d7412b090b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Leo</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11082"></div><p>@monamimani<br />
+Take a look at what Herb wrote about e. Similar reasoning applies to h. cir is a reference to val and it would not allow to change val. But</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+auto h = cir;
+</pre>
+<p>is equivalent to</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+auto h = val;
+</pre>
+<p>In the case of f ip is not a different name for val. It&#8217;s a pointer to a location in memory, it contains an address.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+auto f = ip;
+</pre>
+<p>assigns to f the address contained in ip, not the integer contained in val.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11076">
+		<div id="div-comment-11076">
+		<div class="cmtinfo"><em> on <a href="#comment-11076" title="">2013-06-07 at 9:14 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/82e40e44de475ebd021bdfab266306cc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Phil Barila</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11076"></div><p>The first letter of the explanatory paragraph after:<br />
+&#8220;The type of i is const int*.&#8221;<br />
+is a stray &#8216;s&#8217;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-monamimani even thread-even depth-1 highlander-comment" id="comment-11075">
+		<div id="div-comment-11075">
+		<div class="cmtinfo"><em> on <a href="#comment-11075" title="">2013-06-07 at 9:03 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/132fe2655104c0d97a247a340538303a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>monamimani</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11075"></div><p>I really don&#8217;t understand why f is a int* while h is int. That doesn&#8217;t make sense to me. Anybody can explain? To me I don&#8217;t see any common rule to this.</p>
+<p>Thanks</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11067">
+		<div id="div-comment-11067">
+		<div class="cmtinfo"><em> on <a href="#comment-11067" title="">2013-06-07 at 6:39 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11067"></div><p>@davidphilliposter: Fixed, thanks. I&#8217;ll keep the comment, I like accountability and giving credit.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11064">
+		<div id="div-comment-11064">
+		<div class="cmtinfo"><em> on <a href="#comment-11064" title="">2013-06-07 at 6:32 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/505e87e63feab96107ec631d16f193b4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/davidphilliposter' rel='external nofollow' class='url'>davidphilliposter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11064"></div><p>typo &#8220;you really are declaring a your own new local variable&#8221; extra &#8220;a&#8221; (Feel free to delete this comment)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-7785e6ad26e66b1cb16632bc27893c0c">
+	</div>
+	<div class="grofile-hash-map-f80eb98f480f76f5101cac3164474502">
+	</div>
+	<div class="grofile-hash-map-1cc4a77a8256c3049728728c6c45625b">
+	</div>
+	<div class="grofile-hash-map-dd001572ef01005cf4a27107e971638a">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-69f49a6f6d12844e9043c6916efe70d5">
+	</div>
+	<div class="grofile-hash-map-e117145b01b2f09961aae4b0f9e2d7e9">
+	</div>
+	<div class="grofile-hash-map-6aea6e2f57f2a7b1cd6870375fbdc42f">
+	</div>
+	<div class="grofile-hash-map-78b03ab78af3dd9bdd2f767d2efa97bf">
+	</div>
+	<div class="grofile-hash-map-4b177a2cb931b1996fc3572a5ee70d6c">
+	</div>
+	<div class="grofile-hash-map-d51032a14bd8da40bbc1f0d7412b090b">
+	</div>
+	<div class="grofile-hash-map-82e40e44de475ebd021bdfab266306cc">
+	</div>
+	<div class="grofile-hash-map-132fe2655104c0d97a247a340538303a">
+	</div>
+	<div class="grofile-hash-map-505e87e63feab96107ec631d16f193b4">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_28837={"id":468178,"unique_id":"wp-comment-28837","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20is%20a%20large%20and%20complex%20subject%20and%20I%20recommend%20some%20additional%20readings%3A%20Auto%20Variables%2C%20Part%201%2C%20Auto%20Variables%2C%20Part%202%2C%20AAA%20Style%20%28Almost%20Always%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-28837","item_id":"_comm_28837"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_28837 == 'undefined' ){PDRTJS_468178_comm_28837 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_28837 );}}PDRTJS_settings_468178_comm_14136={"id":468178,"unique_id":"wp-comment-14136","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20Herb%20Sutter%3AGotW%20%2392%3A%20Auto%20Variables%2C%20Part%201%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-14136","item_id":"_comm_14136"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14136 == 'undefined' ){PDRTJS_468178_comm_14136 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14136 );}}PDRTJS_settings_468178_comm_13969={"id":468178,"unique_id":"wp-comment-13969","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20http%3A%2F%2Fherbsutter.com%2F2013%2F06%2F07%2Fgotw-92-solution-auto-variables-part-1%2F%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-13969","item_id":"_comm_13969"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13969 == 'undefined' ){PDRTJS_468178_comm_13969 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13969 );}}PDRTJS_settings_468178_comm_11574={"id":468178,"unique_id":"wp-comment-11574","title":"%40Herb%2C%20thanks%20for%20the%20article%212%20questions%20as%20I%20didn%26%23039%3Bt%20chase%20it%20closely%3A1%29%20Will%20auto%20pick%20type%20attributes%20like%20alignment%3F%20The%20code%20I%20mean%20is%20smth%20like%3A%26%23091%3Bcode%26%23093%3Btypedef%20float%20aligned_block%26%23091%3B4%26%23093%3B%20alignas%28...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11574","item_id":"_comm_11574"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11574 == 'undefined' ){PDRTJS_468178_comm_11574 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11574 );}}PDRTJS_settings_468178_comm_11387={"id":468178,"unique_id":"wp-comment-11387","title":"%40Leo%20Sorry%20for%20being%20late%20to%20reply.%20It%20still%20doesn%26%23039%3Bt%20make%20sense%20to%20me%20and%20I%26%23039%3Bll%20point%20out%20to%20that%20the%20template%20argument%20deduction%20rule%20doesn%26%23039%3Bt%20either.To%20me%20the%20type%20of%20cir%20it%20a%20reference%20to%20a%20int%20...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11387","item_id":"_comm_11387"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11387 == 'undefined' ){PDRTJS_468178_comm_11387 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11387 );}}PDRTJS_settings_468178_comm_11255={"id":468178,"unique_id":"wp-comment-11255","title":"%40Herb%20Hey%2C%20Overload%20Journal%20is%20still%20pretty%20good%21%20%3A-%29...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11255","item_id":"_comm_11255"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11255 == 'undefined' ){PDRTJS_468178_comm_11255 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11255 );}}PDRTJS_settings_468178_comm_11237={"id":468178,"unique_id":"wp-comment-11237","title":"Great%20article%20as%20usual.I%20just%20found%20a%20bit%20confusing%20the%20example%20for%20the%20case%20of%20%26quot%3Bh%26quot%3B.If%20I%26%23039%3Bm%20correct%2C%20const%20T%26amp%3B%20is%20not%20a%20case%20of%20top-level%20const%2C%20so%20in%20case%20%26quot%3Bh%26quot%3B%20what%20happens%20is%20actually%20that%20ref...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11237","item_id":"_comm_11237"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11237 == 'undefined' ){PDRTJS_468178_comm_11237 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11237 );}}PDRTJS_settings_468178_comm_11180={"id":468178,"unique_id":"wp-comment-11180","title":"%40Phil%3A%20Fixed%2C%20thanks.%40Ralph%3A%20Good%20suggestion.%20I%20was%20trying%20to%20keep%20it%20simple%2C%20but%20volatile%20and%20%26amp%3B%26amp%3B%20should%20be%20mentioned%20up%20front.%20Updated.%40nosenseetal%3A%20Thats%20very%20kind%2C%20thank%20you%2C%20but%20I%20don...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11180","item_id":"_comm_11180"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11180 == 'undefined' ){PDRTJS_468178_comm_11180 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11180 );}}PDRTJS_settings_468178_comm_11168={"id":468178,"unique_id":"wp-comment-11168","title":"I%20like%20to%20think%20about%20auto%20type%20deduction%20in%20terms%20of%20template%20argument%20deduction%20%28%40Herb%3A%20You%20should%20replace%20%26quot%3Bparameter%26quot%3B%20by%20%26quot%3Bargument%26quot%3B%20in%20the%20heading%20of%20the%202nd%20column%29.%20The%20above%20table%20may%20be%20ex...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11168","item_id":"_comm_11168"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11168 == 'undefined' ){PDRTJS_468178_comm_11168 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11168 );}}PDRTJS_settings_468178_comm_11122={"id":468178,"unique_id":"wp-comment-11122","title":"It%20might%20be%20worth%20adding%20the%20following%20examples.%20After%20reading%20this%20article%20I%20felt%20the%20need%20to%20test%20these%20cases%20since%20auto%20expands%20to%20%26quot%3Bconst%20int%26quot%3B%20which%20does%20have%20a%20top-level%20const%20even%20though%20the...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11122","item_id":"_comm_11122"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11122 == 'undefined' ){PDRTJS_468178_comm_11122 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11122 );}}PDRTJS_settings_468178_comm_11112={"id":468178,"unique_id":"wp-comment-11112","title":"%40Herb%20did%20you%20consider%20putting%20donate%20button%20on%20your%20site...%20I%20personally%20dont%20really%20buy%20books%2C%20but%20I%20appreciate%20your%20work%20with%20refresnihg%20GotW%20and%20new%20GotWs%20and%20I%20would%20like%20to%20have%20option%20to%20s...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11112","item_id":"_comm_11112"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11112 == 'undefined' ){PDRTJS_468178_comm_11112 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11112 );}}PDRTJS_settings_468178_comm_11097={"id":468178,"unique_id":"wp-comment-11097","title":"The%20image%20was%20blocked%20in%20my%20system%2C%20now%20I%20can%20see%20the%20image....","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11097","item_id":"_comm_11097"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11097 == 'undefined' ){PDRTJS_468178_comm_11097 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11097 );}}PDRTJS_settings_468178_comm_11093={"id":468178,"unique_id":"wp-comment-11093","title":"%40Herb%2CThe%20table%20you%20mentioned%20for%20question%204%20is%20only%20visible%20in%20this%20post%20in%20your%20website%2C%20but%20not%20in%20the%20post%20I%20received%20in%20my%20inbox.%20I%20wonder%20why%3F...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11093","item_id":"_comm_11093"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11093 == 'undefined' ){PDRTJS_468178_comm_11093 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11093 );}}PDRTJS_settings_468178_comm_11083={"id":468178,"unique_id":"wp-comment-11083","title":"Maybe%20you%20should%20mention%20that%20volatile%20is%20also%20stripped%20from%20the%20right%20hand%20side%20type%20for%20completeness.%20This%20highlights%20the%20symmetry%20of%20const%20and%20volatile.%20Are%20there%20any%20other%20things%20that%20can%20be%20...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11083","item_id":"_comm_11083"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11083 == 'undefined' ){PDRTJS_468178_comm_11083 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11083 );}}PDRTJS_settings_468178_comm_11082={"id":468178,"unique_id":"wp-comment-11082","title":"%40monamimaniTake%20a%20look%20at%20what%20Herb%20wrote%20about%20e.%20Similar%20reasoning%20applies%20to%20h.%20cir%20is%20a%20reference%20to%20val%20and%20it%20would%20not%20allow%20to%20change%20val.%20But%26%23091%3Bcode%26%23093%3Bauto%20h%20%3D%20cir%3B%26%23091%3B%2Fcode%26%23093%3Bis%20equivalent%20to%26%23091%3Bco...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11082","item_id":"_comm_11082"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11082 == 'undefined' ){PDRTJS_468178_comm_11082 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11082 );}}PDRTJS_settings_468178_comm_11076={"id":468178,"unique_id":"wp-comment-11076","title":"The%20first%20letter%20of%20the%20explanatory%20paragraph%20after%3A%26quot%3BThe%20type%20of%20i%20is%20const%20int%2A.%26quot%3Bis%20a%20stray%20%26%23039%3Bs%26%23039%3B....","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11076","item_id":"_comm_11076"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11076 == 'undefined' ){PDRTJS_468178_comm_11076 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11076 );}}PDRTJS_settings_468178_comm_11075={"id":468178,"unique_id":"wp-comment-11075","title":"I%20really%20don%26%23039%3Bt%20understand%20why%20f%20is%20a%20int%2A%20while%20h%20is%20int.%20That%20doesn%26%23039%3Bt%20make%20sense%20to%20me.%20Anybody%20can%20explain%3F%20To%20me%20I%20don%26%23039%3Bt%20see%20any%20common%20rule%20to%20this.Thanks...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11075","item_id":"_comm_11075"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11075 == 'undefined' ){PDRTJS_468178_comm_11075 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11075 );}}PDRTJS_settings_468178_comm_11067={"id":468178,"unique_id":"wp-comment-11067","title":"%40davidphilliposter%3A%20Fixed%2C%20thanks.%20I%26%23039%3Bll%20keep%20the%20comment%2C%20I%20like%20accountability%20and%20giving%20credit....","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11067","item_id":"_comm_11067"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11067 == 'undefined' ){PDRTJS_468178_comm_11067 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11067 );}}PDRTJS_settings_468178_comm_11064={"id":468178,"unique_id":"wp-comment-11064","title":"typo%20%26quot%3Byou%20really%20are%20declaring%20a%20your%20own%20new%20local%20variable%26quot%3B%20extra%20%26quot%3Ba%26quot%3B%20%28Feel%20free%20to%20delete%20this%20comment%29...","permalink":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/#comment-11064","item_id":"_comm_11064"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11064 == 'undefined' ){PDRTJS_468178_comm_11064 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11064 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F06%2F07%2Fgotw-92-solution-auto-variables-part-1%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F06%2F07%2Fgotw-92-solution-auto-variables-part-1%2F","postID":"2109","shortlink":"https:\/\/wp.me\/peb5Y-y1","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2109","statsLink":"https:\/\/wordpress.com\/stats\/post\/2109\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F06%2F07%2Fgotw-92-solution-auto-variables-part-1%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2109','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLnw4UXNRelNyMk1TVz1+MUlmblhEPSs5UURXWWZSNFgzc0syWDVwb3ZTdTV6Y04uaU9JQkMvOCx3JTk0ZlR1OE16R2Y/dUZ2QUQ1N0F+MGRIX2QyT3loWHhTZ3xDS2o9cFI3SEZVVHdpdDZYSmE5dD9acmEzZFRTb0Y/TVVVTHFpXV9KQTZvaU9xak91W08udWpLdixfTmp0cm4saWdPVXF2T0RdMHg2UGU0OU51N0Y5MWZhdkpRVlV8UkRGNlVGQiVbUjFdbg=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2109' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

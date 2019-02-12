@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #95: Thread Safety and Synchronization	</title>
+	<atom:link href="https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: nosenseetal				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14095</link>
+		<dc:creator><![CDATA[nosenseetal]]></dc:creator>
+		<pubDate>Thu, 09 Jan 2014 21:13:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14095</guid>
+					<description><![CDATA[btw  thou shalt not return reference to a member variable... idk if that is answer to one of this questions but if it is not it should  be added... it is extremly easy to forgett about that when you decide to mutexify your class by adding a lock_guard to ever method. :)]]></description>
+		<content:encoded><![CDATA[<p>btw  thou shalt not return reference to a member variable&#8230; idk if that is answer to one of this questions but if it is not it should  be added&#8230; it is extremly easy to forgett about that when you decide to mutexify your class by adding a lock_guard to ever method. :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bartosz Milewski				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14094</link>
+		<dc:creator><![CDATA[Bartosz Milewski]]></dc:creator>
+		<pubDate>Thu, 09 Jan 2014 19:47:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14094</guid>
+					<description><![CDATA[As it often happens in OO programming, there is some confusion about what is meant by &quot;object&quot;. From the point of view of concurrency, a mutex protecting an object protects the transitive closure of all the pointers in that data structure. But that&#039;s probably not what most people understand as an object, so the problem of pointers (references) going out of an object arises. If these pointers point to data that is independently shared -- meaning: not only through the parent object -- then there&#039;s need for additional synchronization. It&#039;s cases like these that may lead to deadlocks, but that&#039;s probably a topic for another GotW.]]></description>
+		<content:encoded><![CDATA[<p>As it often happens in OO programming, there is some confusion about what is meant by &#8220;object&#8221;. From the point of view of concurrency, a mutex protecting an object protects the transitive closure of all the pointers in that data structure. But that&#8217;s probably not what most people understand as an object, so the problem of pointers (references) going out of an object arises. If these pointers point to data that is independently shared &#8212; meaning: not only through the parent object &#8212; then there&#8217;s need for additional synchronization. It&#8217;s cases like these that may lead to deadlocks, but that&#8217;s probably a topic for another GotW.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Ralph Tandetzky				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14089</link>
+		<dc:creator><![CDATA[Ralph Tandetzky]]></dc:creator>
+		<pubDate>Wed, 08 Jan 2014 23:44:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14089</guid>
+					<description><![CDATA[1. What is a race condition, and how serious is it?
+
+Well, a race condition is the unpredictable behavior of a piece of software due to a dependence on sequence and timing of different threads or processes. A data race is a race condition that follows from a write access to a non-atomic variable and access by an other thread (read or write) to that same variable. Access to atomic variables from multiple threads can still lead to race condition. However, as long as the end result of the program does not depend on it we&#039;re fine and the program is correctly synchronized. 
+A data race as defined above is much more dangerous since it implies undefined behavior. And undefined behavior means that your program may actually do **anything** including sending an e-mail to your boss that you quit or starting world war III against mankind. So a data race is indeed very serious!
+
+2. What is a correctly synchronized program? How do you achieve it? Be specific. 
+
+A function is correctly synchronized, if the result of it does not depend on timing of threads or processes. A program is correctly synchronized if it consists of correctly synchronized functions only. That means that at least shared access to a common data amoung multiple threads must be safe: either the variables are atomic or it is ensured that while one thread writes to a location there are no accesses to the same location from other threads at the same time. Typically this is achieved by protecting the data by a mutex. 
+
+3. The types in (a)-(d) are not thread safe in the sense that concurrent read and write access is guaranteed to be without data race. Therefore, the program will not be correctly synchronized in these cases. 
+
+The types in (e)-(g) are thread safe. Hence, there will be no data race as defined above. However, the execution of the program may still depend on the order in which the variable is modified and read by the two functions. Therefore, the program might be correctly synchronized but it is also possible that the program is not correctly synchronized and there&#039;s a latent hard to detect bug. (Even though there&#039;s no undefined behavior.)
+
+4. (a) What is the normal external synchronization responsibility of code that owns and uses a given shared variable?
+
+The code must make sure that whenever there is a write to that variable there are no concurrent read or write accesses to it by other threads. Concurrent read accesses are allowed. 
+
+4. (b) What is the “basic thread safety guarantee” that all types must obey to enable calling code to perform normal external synchronization?
+
+All access to a &lt;code&gt;const&lt;/code&gt; object of that type must be thread-safe. Furthermore, if there are multiple instances of that type then it must be possible to access (read or write) different objects concurrently as long as each write to each object is mutually exclusive. In other words: As long as one thread has write access to an object there must be no other accesses from other threads to that objects, but other threads may access other objects at the same time. 
+
+This is what the standard library guarantees for all its types and functions (with only a few exceptions like &lt;code&gt;rand()&lt;/code&gt;). The standard library also expects this from user types, for example when used as template arguments.
+
+4. (c) What partial internal synchronization can still be required within the shared variable’s implementation?
+
+If functions of a type access static or global data, then this access must be protected in order to provide the basic thread safety guarantee. Also different instances of a type may internally refer to some shared state. Access to that shared state must also be protected, if writes are possible. An example for this would be &lt;code&gt;shared_ptr&lt;/code&gt;. When copying a &lt;code&gt;shared_ptr&lt;/code&gt; the two resulting smart pointers will internally refer to the same object **and** the same reference counter. It is expected from the user to protect accesses to the pointee, but accesses to the reference counter must be synchronized internally. That&#039;s the reason &lt;code&gt;shared_ptr&lt;/code&gt; may incur a performance penalty compared to &lt;code&gt;unique_ptr&lt;/code&gt; which is as efficient as a raw pointer in most cases. 
+
+5. What types should be fully internally synchronized, and why?
+
+Types that are used in order to communicate between different threads or that enable synchronization between threads such as mutexes, condition variables, futures and concurrent containers should be internally synchronized. For almost all other types internal synchronization is not necessary. 
+
+There&#039;s the so called monitor pattern which in essence turns a type providing the basic thread safety guarantee into a thread-safe type by adding a mutex and protecting every access to an instance by locking that mutex. This serializes the data accesses. Sometimes this kind of behavior is safer, but not very useful. An example are streams: E. g. writing to &lt;code&gt;cout&lt;/code&gt; is thread-safe, but the letters arriving in the standard output might be interleaved. (That&#039;s a race condition, but no data race as defined above. The program is not correctly synchronized.) That&#039;s a mess with different threads and external synchronization is the only thing that really helps this issue. 
+
+For normal types there is no use in making them thread-safe, but it is usually better to let the caller decide on how to synchronize access. Most types don&#039;t need to know about multi-threading. It a bit like exceptions. Most types don&#039;t need to worry about exceptions, they let the caller take care of them. Don&#039;t try to give every type the responsibility of synchronizing itself. Most often it is not necessary and it only slows down the program and external synchronization, if at all necessary, is the better alternative. 
+
+From my experience hardly any types need internal synchronization. Exceptions are typically types that are used for synchronization or types that have only one global instance (such as the standard output stream or particular pieces of hardware).]]></description>
+		<content:encoded><![CDATA[<p>1. What is a race condition, and how serious is it?</p>
+<p>Well, a race condition is the unpredictable behavior of a piece of software due to a dependence on sequence and timing of different threads or processes. A data race is a race condition that follows from a write access to a non-atomic variable and access by an other thread (read or write) to that same variable. Access to atomic variables from multiple threads can still lead to race condition. However, as long as the end result of the program does not depend on it we&#8217;re fine and the program is correctly synchronized.<br />
+A data race as defined above is much more dangerous since it implies undefined behavior. And undefined behavior means that your program may actually do **anything** including sending an e-mail to your boss that you quit or starting world war III against mankind. So a data race is indeed very serious!</p>
+<p>2. What is a correctly synchronized program? How do you achieve it? Be specific. </p>
+<p>A function is correctly synchronized, if the result of it does not depend on timing of threads or processes. A program is correctly synchronized if it consists of correctly synchronized functions only. That means that at least shared access to a common data amoung multiple threads must be safe: either the variables are atomic or it is ensured that while one thread writes to a location there are no accesses to the same location from other threads at the same time. Typically this is achieved by protecting the data by a mutex. </p>
+<p>3. The types in (a)-(d) are not thread safe in the sense that concurrent read and write access is guaranteed to be without data race. Therefore, the program will not be correctly synchronized in these cases. </p>
+<p>The types in (e)-(g) are thread safe. Hence, there will be no data race as defined above. However, the execution of the program may still depend on the order in which the variable is modified and read by the two functions. Therefore, the program might be correctly synchronized but it is also possible that the program is not correctly synchronized and there&#8217;s a latent hard to detect bug. (Even though there&#8217;s no undefined behavior.)</p>
+<p>4. (a) What is the normal external synchronization responsibility of code that owns and uses a given shared variable?</p>
+<p>The code must make sure that whenever there is a write to that variable there are no concurrent read or write accesses to it by other threads. Concurrent read accesses are allowed. </p>
+<p>4. (b) What is the “basic thread safety guarantee” that all types must obey to enable calling code to perform normal external synchronization?</p>
+<p>All access to a <code>const</code> object of that type must be thread-safe. Furthermore, if there are multiple instances of that type then it must be possible to access (read or write) different objects concurrently as long as each write to each object is mutually exclusive. In other words: As long as one thread has write access to an object there must be no other accesses from other threads to that objects, but other threads may access other objects at the same time. </p>
+<p>This is what the standard library guarantees for all its types and functions (with only a few exceptions like <code>rand()</code>). The standard library also expects this from user types, for example when used as template arguments.</p>
+<p>4. (c) What partial internal synchronization can still be required within the shared variable’s implementation?</p>
+<p>If functions of a type access static or global data, then this access must be protected in order to provide the basic thread safety guarantee. Also different instances of a type may internally refer to some shared state. Access to that shared state must also be protected, if writes are possible. An example for this would be <code>shared_ptr</code>. When copying a <code>shared_ptr</code> the two resulting smart pointers will internally refer to the same object **and** the same reference counter. It is expected from the user to protect accesses to the pointee, but accesses to the reference counter must be synchronized internally. That&#8217;s the reason <code>shared_ptr</code> may incur a performance penalty compared to <code>unique_ptr</code> which is as efficient as a raw pointer in most cases. </p>
+<p>5. What types should be fully internally synchronized, and why?</p>
+<p>Types that are used in order to communicate between different threads or that enable synchronization between threads such as mutexes, condition variables, futures and concurrent containers should be internally synchronized. For almost all other types internal synchronization is not necessary. </p>
+<p>There&#8217;s the so called monitor pattern which in essence turns a type providing the basic thread safety guarantee into a thread-safe type by adding a mutex and protecting every access to an instance by locking that mutex. This serializes the data accesses. Sometimes this kind of behavior is safer, but not very useful. An example are streams: E. g. writing to <code>cout</code> is thread-safe, but the letters arriving in the standard output might be interleaved. (That&#8217;s a race condition, but no data race as defined above. The program is not correctly synchronized.) That&#8217;s a mess with different threads and external synchronization is the only thing that really helps this issue. </p>
+<p>For normal types there is no use in making them thread-safe, but it is usually better to let the caller decide on how to synchronize access. Most types don&#8217;t need to know about multi-threading. It a bit like exceptions. Most types don&#8217;t need to worry about exceptions, they let the caller take care of them. Don&#8217;t try to give every type the responsibility of synchronizing itself. Most often it is not necessary and it only slows down the program and external synchronization, if at all necessary, is the better alternative. </p>
+<p>From my experience hardly any types need internal synchronization. Exceptions are typically types that are used for synchronization or types that have only one global instance (such as the standard output stream or particular pieces of hardware).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: nosenseetal				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14088</link>
+		<dc:creator><![CDATA[nosenseetal]]></dc:creator>
+		<pubDate>Wed, 08 Jan 2014 23:15:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14088</guid>
+					<description><![CDATA[@Bartosz nice A, I think Herb in 5 is aiming for stuff from his talk you dont know const and mutable...
+and his M&#038;M rule, mutexes and mutable, aka you should make your mutex mutable so external callers can call const methods although those methods modify the mutex by locking it...]]></description>
+		<content:encoded><![CDATA[<p>@Bartosz nice A, I think Herb in 5 is aiming for stuff from his talk you dont know const and mutable&#8230;<br />
+and his M&amp;M rule, mutexes and mutable, aka you should make your mutex mutable so external callers can call const methods although those methods modify the mutex by locking it&#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: cmeerw				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14086</link>
+		<dc:creator><![CDATA[cmeerw]]></dc:creator>
+		<pubDate>Wed, 08 Jan 2014 15:33:09 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14086</guid>
+					<description><![CDATA[I guess for question 4 you have your &quot;You Don’t Know const and mutable&quot; talk in mind (i.e. &quot;const&quot; means thread-safe)]]></description>
+		<content:encoded><![CDATA[<p>I guess for question 4 you have your &#8220;You Don’t Know const and mutable&#8221; talk in mind (i.e. &#8220;const&#8221; means thread-safe)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Luís Marques				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14085</link>
+		<dc:creator><![CDATA[Luís Marques]]></dc:creator>
+		<pubDate>Wed, 08 Jan 2014 13:59:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14085</guid>
+					<description><![CDATA[Weird. This second time my comment appears and says explicitly that &quot;Your comment is awaiting moderation.&quot; Must have been a bug the first time...]]></description>
+		<content:encoded><![CDATA[<p>Weird. This second time my comment appears and says explicitly that &#8220;Your comment is awaiting moderation.&#8221; Must have been a bug the first time&#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Luís Marques				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14084</link>
+		<dc:creator><![CDATA[Luís Marques]]></dc:creator>
+		<pubDate>Wed, 08 Jan 2014 13:54:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14084</guid>
+					<description><![CDATA[Ah, my comment now appeared (was it stuck in moderation limbo? wordpress would only say I was repeating myself if I posted it again). When I posted my comment Bartosz Milewski had not replied yet, I see now that I was not too off base :-) Bartosz, please bring your wizardry back to the D world!]]></description>
+		<content:encoded><![CDATA[<p>Ah, my comment now appeared (was it stuck in moderation limbo? wordpress would only say I was repeating myself if I posted it again). When I posted my comment Bartosz Milewski had not replied yet, I see now that I was not too off base :-) Bartosz, please bring your wizardry back to the D world!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Xin Huang				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14083</link>
+		<dc:creator><![CDATA[Xin Huang]]></dc:creator>
+		<pubDate>Wed, 08 Jan 2014 12:30:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14083</guid>
+					<description><![CDATA[I agree most on Bartosz&#039;s reply, except for 4(c) which I don&#039;t quite understand. 
+
+A little comment on 3(a):
+
+It&#039;s not safe to access an int concurrently, even only 1 thread will write. Because you will never know what the compiler would do, it can just load the int into one register and never read it again; or it can rewrite the int value back to the memory. (yes, unchanged value! See http://software.intel.com/en-us/blogs/2013/01/06/benign-data-races-what-could-possibly-go-wrong)
+
+There is no benign data races.]]></description>
+		<content:encoded><![CDATA[<p>I agree most on Bartosz&#8217;s reply, except for 4(c) which I don&#8217;t quite understand. </p>
+<p>A little comment on 3(a):</p>
+<p>It&#8217;s not safe to access an int concurrently, even only 1 thread will write. Because you will never know what the compiler would do, it can just load the int into one register and never read it again; or it can rewrite the int value back to the memory. (yes, unchanged value! See <a href="http://software.intel.com/en-us/blogs/2013/01/06/benign-data-races-what-could-possibly-go-wrong" rel="nofollow">http://software.intel.com/en-us/blogs/2013/01/06/benign-data-races-what-could-possibly-go-wrong</a>)</p>
+<p>There is no benign data races.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Łukasz Łucek				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14082</link>
+		<dc:creator><![CDATA[Łukasz Łucek]]></dc:creator>
+		<pubDate>Wed, 08 Jan 2014 10:13:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14082</guid>
+					<description><![CDATA[Let me try my luck :) I should state that i&#039;m not a native english speaker so don&#039;t mind my writing problems.
+
+So for the first two questions I think the answers are allready in the comments.
+
+For question 3: mutex, condition_variable, and atomic are ok. Int is close but not quite there, because of possible code reordering and lack of sequential consistency.
+
+4. (a) The tesponsibility of the code that uses a shared object is to make sure that when some thread is wrinting to an object it is the only thread that has access to this object. No other thread should be allowed acces to object neither for writing nor reading. On the other hand there can be many reader threads accessing the object in the same time, but as long as noone is writing to it.
+
+4. (b) I belive that this &quot;basic thread safety guarantee&quot; is the constness of an object. That means that the type which is to be synchronized cannot change a single bit of itself in const methods. Especially copy constructor and comparison operations cannot change anything in the memory of an object.
+
+4. (c) I Made a mistake in answer to (b), but it is on purpouse. An object is allowed to change its state (bits in memory) in the const operations as long as those changes are internally synchronizeb by that object. Only then this object can be properly externally synchronized.
+
+5. My guess is that you should design types to be thread-safe if you intend to share objects of this type across threads :). If cost of designing and using such a type is lower than a cost of synchronizing objects of this type externally then go for it - the code using your type will be much nicer to read, and less error prone :). The tricky question is: Is it possible to make internal synchronization without signifficant cost on performance? For example can you afford to lock/unlock a mutex every time you use your variable.]]></description>
+		<content:encoded><![CDATA[<p>Let me try my luck :) I should state that i&#8217;m not a native english speaker so don&#8217;t mind my writing problems.</p>
+<p>So for the first two questions I think the answers are allready in the comments.</p>
+<p>For question 3: mutex, condition_variable, and atomic are ok. Int is close but not quite there, because of possible code reordering and lack of sequential consistency.</p>
+<p>4. (a) The tesponsibility of the code that uses a shared object is to make sure that when some thread is wrinting to an object it is the only thread that has access to this object. No other thread should be allowed acces to object neither for writing nor reading. On the other hand there can be many reader threads accessing the object in the same time, but as long as noone is writing to it.</p>
+<p>4. (b) I belive that this &#8220;basic thread safety guarantee&#8221; is the constness of an object. That means that the type which is to be synchronized cannot change a single bit of itself in const methods. Especially copy constructor and comparison operations cannot change anything in the memory of an object.</p>
+<p>4. (c) I Made a mistake in answer to (b), but it is on purpouse. An object is allowed to change its state (bits in memory) in the const operations as long as those changes are internally synchronizeb by that object. Only then this object can be properly externally synchronized.</p>
+<p>5. My guess is that you should design types to be thread-safe if you intend to share objects of this type across threads :). If cost of designing and using such a type is lower than a cost of synchronizing objects of this type externally then go for it &#8211; the code using your type will be much nicer to read, and less error prone :). The tricky question is: Is it possible to make internal synchronization without signifficant cost on performance? For example can you afford to lock/unlock a mutex every time you use your variable.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Luís Marques				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14081</link>
+		<dc:creator><![CDATA[Luís Marques]]></dc:creator>
+		<pubDate>Wed, 08 Jan 2014 05:14:09 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14081</guid>
+					<description><![CDATA[My C++ is very rusty, but here is my 5:00 AM attempt!
+
+1. Consider a concurrent system, where some data can be accessed concurrently by two or more threads, at least one of which might modify the shared data. A race condition is present in the program if it can result in a pattern of interleaved reads and writes that breaks the guarantees of the language or of the problem domain.
+
+A race condition is very serious for various reasons. If we have a data race we are subject to undefined behavior in theory, and to torn writes in practice. Surely we do not want to access, say, a half written pointer? (In x86 perhaps that could happen in real-mode, when writing to a &quot;far&quot; pointer, if the segment and the offset were written by different instructions? Or a misaligned pointer? Particularly if it crosses cache lines and pages?). Even if we do not break the type system (perhaps &quot;the language rules&quot; might be more accurate?) a race condition in the problem domain logic is highly problematic, because the defect will tend to be very hard to reproduce and isolate, due to its non-deterministic nature.
+
+2. A correctly synchronized program is one which is free of data races and where you observe the relevant data with the causality guarantees required by your program / problem domain (I suppose that second part is not required by the &quot;data race free&quot; first part?). Generally those causality guarantees would be achieved by providing sequential consistency on top of the more fundamental data synchronization steps? (the &quot;atomic&quot; bit in the atomics, as opposed to the ordering guarantees and in contrast with relaxed atomics?) (BTW, does that mean we have &quot;total order for the parts of the program that matter to the relevant other parts&quot;, if we don&#039;t use relaxed atomics? Now that&#039;s a confusing question!).
+
+You achieve correct synchronization by first ditching your old broken compiler, and then not inserting race conditions of your own :-). That last part is done by either not mutating your data or by synchronizing access to it. That means you either make your objects internally synchronized (e.g., use an atomic, or require the object to be fundamentally thread-safe, like a mutex) or you use an external synchronization primitive, like a lock, to serialize and order your accesses.
+
+3. (a). I suppose that this is not safe / correctly synchronized, because you have a data race and an int is not internally synchronized (is it?). BTW, (assuming that is correct) I would imagine that the Java memory model departs the C++ memory model here, and that you could not observe a torn write to an int (or other undefined behaviours). Is this a correct guess? If so, I suppose that implies you can only reasonably (with acceptable performance) implement concurrent Java in a system where the native types are guaranteed by the host system to be atomic (not in the C++ sense of providing ordering guarantees)
+
+3. (b-d) Also not safe, but you can modify elements of the containers that you know won&#039;t accessed by thread 1?
+
+3. (e-g) These are correctly synchronized because they are internally synchronized?
+
+It&#039;s getting way too late, I&#039;ll continue tomorrow/soon (I don&#039;t know how long after the questions are the answers posted). I hope I was not too off base :-)]]></description>
+		<content:encoded><![CDATA[<p>My C++ is very rusty, but here is my 5:00 AM attempt!</p>
+<p>1. Consider a concurrent system, where some data can be accessed concurrently by two or more threads, at least one of which might modify the shared data. A race condition is present in the program if it can result in a pattern of interleaved reads and writes that breaks the guarantees of the language or of the problem domain.</p>
+<p>A race condition is very serious for various reasons. If we have a data race we are subject to undefined behavior in theory, and to torn writes in practice. Surely we do not want to access, say, a half written pointer? (In x86 perhaps that could happen in real-mode, when writing to a &#8220;far&#8221; pointer, if the segment and the offset were written by different instructions? Or a misaligned pointer? Particularly if it crosses cache lines and pages?). Even if we do not break the type system (perhaps &#8220;the language rules&#8221; might be more accurate?) a race condition in the problem domain logic is highly problematic, because the defect will tend to be very hard to reproduce and isolate, due to its non-deterministic nature.</p>
+<p>2. A correctly synchronized program is one which is free of data races and where you observe the relevant data with the causality guarantees required by your program / problem domain (I suppose that second part is not required by the &#8220;data race free&#8221; first part?). Generally those causality guarantees would be achieved by providing sequential consistency on top of the more fundamental data synchronization steps? (the &#8220;atomic&#8221; bit in the atomics, as opposed to the ordering guarantees and in contrast with relaxed atomics?) (BTW, does that mean we have &#8220;total order for the parts of the program that matter to the relevant other parts&#8221;, if we don&#8217;t use relaxed atomics? Now that&#8217;s a confusing question!).</p>
+<p>You achieve correct synchronization by first ditching your old broken compiler, and then not inserting race conditions of your own :-). That last part is done by either not mutating your data or by synchronizing access to it. That means you either make your objects internally synchronized (e.g., use an atomic, or require the object to be fundamentally thread-safe, like a mutex) or you use an external synchronization primitive, like a lock, to serialize and order your accesses.</p>
+<p>3. (a). I suppose that this is not safe / correctly synchronized, because you have a data race and an int is not internally synchronized (is it?). BTW, (assuming that is correct) I would imagine that the Java memory model departs the C++ memory model here, and that you could not observe a torn write to an int (or other undefined behaviours). Is this a correct guess? If so, I suppose that implies you can only reasonably (with acceptable performance) implement concurrent Java in a system where the native types are guaranteed by the host system to be atomic (not in the C++ sense of providing ordering guarantees)</p>
+<p>3. (b-d) Also not safe, but you can modify elements of the containers that you know won&#8217;t accessed by thread 1?</p>
+<p>3. (e-g) These are correctly synchronized because they are internally synchronized?</p>
+<p>It&#8217;s getting way too late, I&#8217;ll continue tomorrow/soon (I don&#8217;t know how long after the questions are the answers posted). I hope I was not too off base :-)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bartosz Milewski				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14080</link>
+		<dc:creator><![CDATA[Bartosz Milewski]]></dc:creator>
+		<pubDate>Wed, 08 Jan 2014 02:26:55 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14080</guid>
+					<description><![CDATA[Since nobody raises their hand, let me give it a try.
+
+1. I think there is some subtlety in the nomenclature: data race vs. race condition, so without looking at the Standard: More than one thread accessing the same memory location without synchronization, at least one of them writing. (The tricky part is the definition of synchronization.) 
+
+It&#039;s deadly serious because a data race may go undetected for a long time until one day it causes a disaster. 
+
+2. A correctly synchronized program has no data races. You achieve it by making sure that all accesses to shared mutable memory are properly synchronized. The simplest approach is to associate a mutex with every such object (while trying to avoid deadlocks). If you&#039;re adventurous, you may use atomics. If you are reckless, you may use weak atomics.
+
+3. a, b, c, and d are not correctly synchronized. None provides its own synchronization. There is part of shared_ptr that&#039;s thread safe -- the reference counter -- but that doesn&#039;t protect the widget itself.
+
+Mutex provides synchronization for other data and is designed to be accessed from multiple threads. So is condition_variable, although it can only be used in tandem with a mutex. That mutex, however, is not there to protect the condition_variable itself, but the data that&#039;s used for signaling. Atomic variables are synchronized.
+
+4 a. The code should provide mutual exclusion. Any access, read or write, must occur under a lock. 
+
+4 b. I&#039;m not sure I understand this question. You probably have something very specific in mind. Shared data has to have the right granularity in order to be correctly protected -- you can&#039;t protect a single bit because there is no way to write a bit without touching other bits in the word. 
+
+4 c. This must be a tricky question. I would think that under total mutual exclusion you wouldn&#039;t need any additional synchronization. Are you thinking of (multiple) reader / writer locks? 
+
+5. I guess this is more of a design question. I guess if you are exporting objects from a multithreading library and your library must access them concurrently with your client, these objects should have internal synchronization.
+
+I&#039;m sure there is much more to it, but that should be enough to start a discussion.]]></description>
+		<content:encoded><![CDATA[<p>Since nobody raises their hand, let me give it a try.</p>
+<p>1. I think there is some subtlety in the nomenclature: data race vs. race condition, so without looking at the Standard: More than one thread accessing the same memory location without synchronization, at least one of them writing. (The tricky part is the definition of synchronization.) </p>
+<p>It&#8217;s deadly serious because a data race may go undetected for a long time until one day it causes a disaster. </p>
+<p>2. A correctly synchronized program has no data races. You achieve it by making sure that all accesses to shared mutable memory are properly synchronized. The simplest approach is to associate a mutex with every such object (while trying to avoid deadlocks). If you&#8217;re adventurous, you may use atomics. If you are reckless, you may use weak atomics.</p>
+<p>3. a, b, c, and d are not correctly synchronized. None provides its own synchronization. There is part of shared_ptr that&#8217;s thread safe &#8212; the reference counter &#8212; but that doesn&#8217;t protect the widget itself.</p>
+<p>Mutex provides synchronization for other data and is designed to be accessed from multiple threads. So is condition_variable, although it can only be used in tandem with a mutex. That mutex, however, is not there to protect the condition_variable itself, but the data that&#8217;s used for signaling. Atomic variables are synchronized.</p>
+<p>4 a. The code should provide mutual exclusion. Any access, read or write, must occur under a lock. </p>
+<p>4 b. I&#8217;m not sure I understand this question. You probably have something very specific in mind. Shared data has to have the right granularity in order to be correctly protected &#8212; you can&#8217;t protect a single bit because there is no way to write a bit without touching other bits in the word. </p>
+<p>4 c. This must be a tricky question. I would think that under total mutual exclusion you wouldn&#8217;t need any additional synchronization. Are you thinking of (multiple) reader / writer locks? </p>
+<p>5. I guess this is more of a design question. I guess if you are exporting objects from a multithreading library and your library must access them concurrently with your client, these objects should have internal synchronization.</p>
+<p>I&#8217;m sure there is much more to it, but that should be enough to start a discussion.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14079</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Tue, 07 Jan 2014 23:53:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14079</guid>
+					<description><![CDATA[The lack of answers is a sign that the question is either too easy or too hard. :) I doubt the former, and hopefully this GotW&#039;s solution will help if it&#039;s the latter...]]></description>
+		<content:encoded><![CDATA[<p>The lack of answers is a sign that the question is either too easy or too hard. :) I doubt the former, and hopefully this GotW&#8217;s solution will help if it&#8217;s the latter&#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: sbohmann				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14078</link>
+		<dc:creator><![CDATA[sbohmann]]></dc:creator>
+		<pubDate>Tue, 07 Jan 2014 23:10:29 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14078</guid>
+					<description><![CDATA[Btw., Herb, would you say that C++ as of version /14 can now, as these high-level models for memory and concurrency have entered the stage, add CommonLisp to its tree of ancestors? :)]]></description>
+		<content:encoded><![CDATA[<p>Btw., Herb, would you say that C++ as of version /14 can now, as these high-level models for memory and concurrency have entered the stage, add CommonLisp to its tree of ancestors? :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Sebastian Bohmann				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14077</link>
+		<dc:creator><![CDATA[Sebastian Bohmann]]></dc:creator>
+		<pubDate>Tue, 07 Jan 2014 20:29:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14077</guid>
+					<description><![CDATA[There&#039;s a truly baffling number of incredibly deep sub-questions and sub-topics in that :)
+
+(I know I&#039;m overusing adjectives here from a stylistic point of view, but gosh...)
+
+To me it&#039;s a bit like, now that C++ finally is getting comprehensive abstract memory and threading models plus all the necessary abstractions in the STL, please go and learn everything possible about it... and I most certainly will attempt that, but I&#039;m so looking forward to Herb&#039;s answer post as a starting point ;)]]></description>
+		<content:encoded><![CDATA[<p>There&#8217;s a truly baffling number of incredibly deep sub-questions and sub-topics in that :)</p>
+<p>(I know I&#8217;m overusing adjectives here from a stylistic point of view, but gosh&#8230;)</p>
+<p>To me it&#8217;s a bit like, now that C++ finally is getting comprehensive abstract memory and threading models plus all the necessary abstractions in the STL, please go and learn everything possible about it&#8230; and I most certainly will attempt that, but I&#8217;m so looking forward to Herb&#8217;s answer post as a starting point ;)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Guru of the week 7 &#124; C++, Qt, OpenGL, CUDA				</title>
+				<link>https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/#comment-14058</link>
+		<dc:creator><![CDATA[Guru of the week 7 &#124; C++, Qt, OpenGL, CUDA]]></dc:creator>
+		<pubDate>Mon, 06 Jan 2014 17:21:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2401#comment-14058</guid>
+					<description><![CDATA[[&#8230;] En complément, la question du GotW 95 : GotW #95: Thread Safety and Synchronization [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] En complément, la question du GotW 95 : GotW #95: Thread Safety and Synchronization [&#8230;]</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

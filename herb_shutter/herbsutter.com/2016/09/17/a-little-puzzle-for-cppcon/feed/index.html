@@ -1,0 +1,1105 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: A little puzzle for CppCon	</title>
+	<atom:link href="https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Alfonso				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39448</link>
+		<dc:creator><![CDATA[Alfonso]]></dc:creator>
+		<pubDate>Wed, 12 Oct 2016 07:40:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39448</guid>
+					<description><![CDATA[will this be acceptable ?
+[code]
+class MyGraph {
+public:
+    class Node : public Counter {
+        vector&#060;shared_ptr&#060;Node&#062;&#062; children;
+        vector&#060;weak_ptr&#060;Node&#062;&#062; o_children;
+        unsigned int id;
+        static unsigned int acc; 
+    public:
+        Node() : id( acc++ ) {}
+        void AddChild(const shared_ptr&#060;Node&#062;&#038; node) {
+            if ( id &#060; node-&#062;id ) children.push_back(node);
+            else o_children.push_back( node );
+        }
+        void RemoveChild(const shared_ptr&#060;Node&#062;&#038; node) {
+            auto it = std::find( children.begin(), children.end(), node );
+            if ( it != children.end() ) children.erase( it );
+            o_children.erase(
+                std::remove_if( o_children.begin(), o_children.end(), 
+                [node](const weak_ptr&#060;Node&#062; &#038; i ){ 
+                    auto sp_i = i.lock();
+                    if ( !sp_i ) return true;
+                    return node.get() == sp_i.get();
+                    }),
+                o_children.end() );
+        }
+    };
+    void SetRoot(const shared_ptr&#060;Node&#062;&#038; node) {root = node;    }
+    void ShrinkToFit() {}
+    static auto MakeNode() { return make_shared&#060;MyGraph::Node&#062;(); }
+private:
+    shared_ptr&#060;Node&#062; root;
+};
+unsigned int MyGraph::Node::acc = 0;
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>will this be acceptable ?</p>
+<pre class="brush: plain; title: ; notranslate">
+class MyGraph {
+public:
+    class Node : public Counter {
+        vector&lt;shared_ptr&lt;Node&gt;&gt; children;
+        vector&lt;weak_ptr&lt;Node&gt;&gt; o_children;
+        unsigned int id;
+        static unsigned int acc; 
+    public:
+        Node() : id( acc++ ) {}
+        void AddChild(const shared_ptr&lt;Node&gt;&amp; node) {
+            if ( id &lt; node-&gt;id ) children.push_back(node);
+            else o_children.push_back( node );
+        }
+        void RemoveChild(const shared_ptr&lt;Node&gt;&amp; node) {
+            auto it = std::find( children.begin(), children.end(), node );
+            if ( it != children.end() ) children.erase( it );
+            o_children.erase(
+                std::remove_if( o_children.begin(), o_children.end(), 
+                [node](const weak_ptr&lt;Node&gt; &amp; i ){ 
+                    auto sp_i = i.lock();
+                    if ( !sp_i ) return true;
+                    return node.get() == sp_i.get();
+                    }),
+                o_children.end() );
+        }
+    };
+    void SetRoot(const shared_ptr&lt;Node&gt;&amp; node) {root = node;    }
+    void ShrinkToFit() {}
+    static auto MakeNode() { return make_shared&lt;MyGraph::Node&gt;(); }
+private:
+    shared_ptr&lt;Node&gt; root;
+};
+unsigned int MyGraph::Node::acc = 0;
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adrian				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39409</link>
+		<dc:creator><![CDATA[Adrian]]></dc:creator>
+		<pubDate>Fri, 23 Sep 2016 21:24:48 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39409</guid>
+					<description><![CDATA[I agree with intvnut.  This API seems contrived to make a clean solution impossible (without introducing something with a program-global view, like a GC).  If I were building an API for cyclic directed graphs, I wouldn&#039;t set it up this way.
+
+Making Add- and RemoveChild members of Node rather than MyGraph prevents any sort of graph-wide analysis at those steps.  They cannot even queue things up for the ShrinkToFit method.  Likewise, making MakeNode a static member of MyGraph (why not a static member of Node?).
+
+But graph-wide analysis is not enough, so why is ShrinkToFit a member of MyGraph rather than a global function (or static method)?  After all, a single MyGraph won&#039;t have the visibility necessary to deal with things the current API allows, like splicing two distinct MyGraphs into one.
+
+The fact that you can change the root at any time also means you could disconnect a subtree (that you would then expect to go away), but then change the root to a node within that subtree and completely change the set of Nodes that need to be cleaned up.
+
+The proposed API has weird separation (and conflation) of concerns.  For example, creating a node is completely distinct from inserting one into the graph, yet removing one from the graph probably should be associated with the node&#039;s destruction.
+
+Solutions that depend on arbitrarily deep stacks (for recursive cleanup) or ones that depend on a clean-up step that takes an unpredictable amount of time are both objectionable in any sort of real-time domain.
+
+It seems wisest to provide a single graph API (rather than graph + node + global static APIs).  With a single API, you can enforce the graph invariants at every step.  The current design requires sprinkling enforcement of the invariant across classes that don&#039;t have the necessary visibility into each other to actually do that.
+
+For example, you might decide that an invariant for your graph should be that there is no more than one edge from node A to node B.  You might decide against splicing two distinct MyGraphs together.
+
+I&#039;d propose a graph class that owns the nodes and hands back some sort of handle to them.  It can then offer methods to create and destroy (directed) edges between nodes.  This provides a useful, usable API, that has a clean separation of concerns, allows for a variety of implementations, and can prevent (or explicitly allow) strange operations like splicing together otherwise distinct graphs.]]></description>
+		<content:encoded><![CDATA[<p>I agree with intvnut.  This API seems contrived to make a clean solution impossible (without introducing something with a program-global view, like a GC).  If I were building an API for cyclic directed graphs, I wouldn&#8217;t set it up this way.</p>
+<p>Making Add- and RemoveChild members of Node rather than MyGraph prevents any sort of graph-wide analysis at those steps.  They cannot even queue things up for the ShrinkToFit method.  Likewise, making MakeNode a static member of MyGraph (why not a static member of Node?).</p>
+<p>But graph-wide analysis is not enough, so why is ShrinkToFit a member of MyGraph rather than a global function (or static method)?  After all, a single MyGraph won&#8217;t have the visibility necessary to deal with things the current API allows, like splicing two distinct MyGraphs into one.</p>
+<p>The fact that you can change the root at any time also means you could disconnect a subtree (that you would then expect to go away), but then change the root to a node within that subtree and completely change the set of Nodes that need to be cleaned up.</p>
+<p>The proposed API has weird separation (and conflation) of concerns.  For example, creating a node is completely distinct from inserting one into the graph, yet removing one from the graph probably should be associated with the node&#8217;s destruction.</p>
+<p>Solutions that depend on arbitrarily deep stacks (for recursive cleanup) or ones that depend on a clean-up step that takes an unpredictable amount of time are both objectionable in any sort of real-time domain.</p>
+<p>It seems wisest to provide a single graph API (rather than graph + node + global static APIs).  With a single API, you can enforce the graph invariants at every step.  The current design requires sprinkling enforcement of the invariant across classes that don&#8217;t have the necessary visibility into each other to actually do that.</p>
+<p>For example, you might decide that an invariant for your graph should be that there is no more than one edge from node A to node B.  You might decide against splicing two distinct MyGraphs together.</p>
+<p>I&#8217;d propose a graph class that owns the nodes and hands back some sort of handle to them.  It can then offer methods to create and destroy (directed) edges between nodes.  This provides a useful, usable API, that has a clean separation of concerns, allows for a variety of implementations, and can prevent (or explicitly allow) strange operations like splicing together otherwise distinct graphs.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: My talk tomorrow, and a little experimental library &#124; Sutter’s Mill				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39406</link>
+		<dc:creator><![CDATA[My talk tomorrow, and a little experimental library &#124; Sutter’s Mill]]></dc:creator>
+		<pubDate>Thu, 22 Sep 2016 16:31:27 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39406</guid>
+					<description><![CDATA[[&#8230;] &#171; A little puzzle for&#160;CppCon [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] &laquo; A little puzzle for&nbsp;CppCon [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marco Magdy				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39405</link>
+		<dc:creator><![CDATA[Marco Magdy]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 19:06:08 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39405</guid>
+					<description><![CDATA[duh, I see my wrong now. Thanks!]]></description>
+		<content:encoded><![CDATA[<p>duh, I see my wrong now. Thanks!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: intvnut				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39404</link>
+		<dc:creator><![CDATA[intvnut]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 18:27:38 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39404</guid>
+					<description><![CDATA[@Marco:  But, the graph is a -&#062; c -&#062; b, and so the count should remain 3.]]></description>
+		<content:encoded><![CDATA[<p>@Marco:  But, the graph is a -&gt; c -&gt; b, and so the count should remain 3.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marco Magdy				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39403</link>
+		<dc:creator><![CDATA[Marco Magdy]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 18:11:32 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39403</guid>
+					<description><![CDATA[@intvnut, adding a-&#062;RemoveChild(b) means that the remaining count should be 2 (a &#038; c). If you change return Counter::count() == 2 to return Counter::count() == 2 it passes.]]></description>
+		<content:encoded><![CDATA[<p>@intvnut, adding a-&gt;RemoveChild(b) means that the remaining count should be 2 (a &amp; c). If you change return Counter::count() == 2 to return Counter::count() == 2 it passes.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marco Magdy				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39402</link>
+		<dc:creator><![CDATA[Marco Magdy]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 18:07:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39402</guid>
+					<description><![CDATA[@intvnut, when you do a-&#062;RemoveChild(b) you need to update the count check to be == 2 instead 3. It doesn&#039;t fail for me.]]></description>
+		<content:encoded><![CDATA[<p>@intvnut, when you do a-&gt;RemoveChild(b) you need to update the count check to be == 2 instead 3. It doesn&#8217;t fail for me.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: intvnut				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39401</link>
+		<dc:creator><![CDATA[intvnut]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 18:03:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39401</guid>
+					<description><![CDATA[Fundamentally, solutions involving shared_ptr and weak_ptr I think will be flawed without some sort of outside structure that has a view of the graph.
+
+Reachability of a given node from the root is a property of the graph as a whole, not a node and its immediate neighbors.  Sure, a node is reachable from the root if one of its parents is reachable from the root, but which parent(s) could change over time.  Likewise for whether your parent participated in a cycle involving you.
+
+Unless you have some sort of propagating update to upgrade/downgrade between shared_ptr/weak_ptr based on changes to the connectivity in the graph overall, I think you&#039;re going to run into problems.]]></description>
+		<content:encoded><![CDATA[<p>Fundamentally, solutions involving shared_ptr and weak_ptr I think will be flawed without some sort of outside structure that has a view of the graph.</p>
+<p>Reachability of a given node from the root is a property of the graph as a whole, not a node and its immediate neighbors.  Sure, a node is reachable from the root if one of its parents is reachable from the root, but which parent(s) could change over time.  Likewise for whether your parent participated in a cycle involving you.</p>
+<p>Unless you have some sort of propagating update to upgrade/downgrade between shared_ptr/weak_ptr based on changes to the connectivity in the graph overall, I think you&#8217;re going to run into problems.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: intvnut				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39400</link>
+		<dc:creator><![CDATA[intvnut]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 17:55:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39400</guid>
+					<description><![CDATA[@Marco:  You&#039;re missing a-&#062;RemoveChild(b).
+
+When I add that, it fails.]]></description>
+		<content:encoded><![CDATA[<p>@Marco:  You&#8217;re missing a-&gt;RemoveChild(b).</p>
+<p>When I add that, it fails.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marco Magdy				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39399</link>
+		<dc:creator><![CDATA[Marco Magdy]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 17:17:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39399</guid>
+					<description><![CDATA[@intvnut, I just tried your test case and it works.
+
+http://ideone.com/ROcgcz]]></description>
+		<content:encoded><![CDATA[<p>@intvnut, I just tried your test case and it works.</p>
+<p><a href="http://ideone.com/ROcgcz" rel="nofollow">http://ideone.com/ROcgcz</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: intvnut				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39398</link>
+		<dc:creator><![CDATA[intvnut]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 16:57:48 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39398</guid>
+					<description><![CDATA[@Marco:  Isn&#039;t &#039;parents&#039; a bad name here?  They&#039;re still children.  Maybe &#039;weak_children&#039;.
+
+Also, isn&#039;t this sensitive to the order of operations?  Some orders of operations succeed, others fail.  Sure, Herb&#039;s test might cases pass, but...  
+
+For example:
+
+[code]
+{
+    auto a = MyGraph::MakeNode();
+    g.SetRoot(a);
+    auto b = MyGraph::MakeNode();
+    a-&#062;AddChild(b);
+    auto c = MyGraph::MakeNode();
+    a-&#062;AddChild(c);
+    b-&#062;AddChild(c);
+    c-&#062;AddChild(b);
+    a-&#062;RemoveChild(b);
+    b-&#062;RemoveChild(c);
+}
+[/code]
+
+This sequence should result in a -&#062; c -&#062; b.  But, &#039;a&#039; will only hold a weak_ptr to &#039;c&#039;.
+
+Sure, you could do some careful shuffling to ensure you always have one shared_ptr in the vector&#060;shared_ptr&#062;, but I&#039;m pretty sure that just means you need a slightly larger graph to show the problem.]]></description>
+		<content:encoded><![CDATA[<p>@Marco:  Isn&#8217;t &#8216;parents&#8217; a bad name here?  They&#8217;re still children.  Maybe &#8216;weak_children&#8217;.</p>
+<p>Also, isn&#8217;t this sensitive to the order of operations?  Some orders of operations succeed, others fail.  Sure, Herb&#8217;s test might cases pass, but&#8230;  </p>
+<p>For example:</p>
+<pre class="brush: plain; title: ; notranslate">
+{
+    auto a = MyGraph::MakeNode();
+    g.SetRoot(a);
+    auto b = MyGraph::MakeNode();
+    a-&gt;AddChild(b);
+    auto c = MyGraph::MakeNode();
+    a-&gt;AddChild(c);
+    b-&gt;AddChild(c);
+    c-&gt;AddChild(b);
+    a-&gt;RemoveChild(b);
+    b-&gt;RemoveChild(c);
+}
+</pre>
+<p>This sequence should result in a -&gt; c -&gt; b.  But, &#8216;a&#8217; will only hold a weak_ptr to &#8216;c&#8217;.</p>
+<p>Sure, you could do some careful shuffling to ensure you always have one shared_ptr in the vector&lt;shared_ptr&gt;, but I&#8217;m pretty sure that just means you need a slightly larger graph to show the problem.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marco Magdy				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39397</link>
+		<dc:creator><![CDATA[Marco Magdy]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 07:07:04 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39397</guid>
+					<description><![CDATA[[code]
+class Node : public Counter {
+  vector&#060;shared_ptr&#060;Node&#062;&#062; children;
+  vector&#060;weak_ptr&#060;Node&#062;&#062; parents;
+  bool hasParent;
+  void 
+  // ...      
+void AddChild(const shared_ptr&#060;Node&#062;&#038; node) {
+   if(node-&#062;hasParent) {
+     parents.push_back(node);
+   } else {
+      node-&#062;hasParent = true;
+      children.push_back(node);
+   }
+}
+
+[/code]
+
+Not sure if I&#039;m missing a use case, but adding a flag to the Node class to determine if it&#039;s been added before, and adding it to another collection of weak_ptrs solves the problem.
+
+You might still want to use ShrinkToFit to queue up the nodes for deletion to avoid overflowing the stack.]]></description>
+		<content:encoded><![CDATA[<pre class="brush: plain; title: ; notranslate">
+class Node : public Counter {
+  vector&lt;shared_ptr&lt;Node&gt;&gt; children;
+  vector&lt;weak_ptr&lt;Node&gt;&gt; parents;
+  bool hasParent;
+  void 
+  // ...      
+void AddChild(const shared_ptr&lt;Node&gt;&amp; node) {
+   if(node-&gt;hasParent) {
+     parents.push_back(node);
+   } else {
+      node-&gt;hasParent = true;
+      children.push_back(node);
+   }
+}
+
+</pre>
+<p>Not sure if I&#8217;m missing a use case, but adding a flag to the Node class to determine if it&#8217;s been added before, and adding it to another collection of weak_ptrs solves the problem.</p>
+<p>You might still want to use ShrinkToFit to queue up the nodes for deletion to avoid overflowing the stack.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: tonko				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39396</link>
+		<dc:creator><![CDATA[tonko]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 03:49:12 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39396</guid>
+					<description><![CDATA[The solution was:
+class MyGraph {
+public:
+    class Node : public Counter, public std::enable_shared_from_this {
+        vector&#060;shared_ptr&#062; children;
+        vector&#060;weak_ptr&#062; parents;
+    public:
+        void AddChild(const shared_ptr&#038; node) {
+            children.push_back(node);
+            std::weak_ptr wp = shared_from_this();
+            node-&#062;AddParent(wp);
+        }
+        void RemoveChild(const shared_ptr&#038; node) {
+            auto it(std::find(children.begin(), children.end(), node));
+            
+            if(it != children.end())
+            {
+                node-&#062;RemoveParent(this);
+                children.erase(it);
+            }
+            // child has only me as the parent or my only parent is my child
+            if(!node-&#062;parents.size() &#124;&#124; node-&#062;MyOnlyparentIsMyChild())
+                node-&#062;RemoveAllChildren();
+        }
+        
+        void AddParent(const weak_ptr&#038; node) {
+            parents.push_back(node);
+        }
+        
+        void RemoveParent(Node* node) {
+            auto it = parents.begin();
+            auto end = parents.end();
+            
+            for(; it!=end;)
+            {
+                shared_ptr cur = it-&#062;lock();
+                if(cur &#038;&#038; cur.get() == node)
+                {
+                    parents.erase(it);
+                    break;
+                }
+                else
+                    ++it;
+            } 
+        }
+        
+        void RemoveAllChildren() {
+            auto tmpchildren = children;
+            for(const auto&#038; child : tmpchildren)
+            {
+                RemoveChild(child);
+            }
+        }
+        
+        bool MyOnlyparentIsMyChild()
+        {
+            if(parents.size()&#062;1)
+                return false;
+            auto parent = parents.begin()-&#062;lock();    
+            auto it(std::find(children.begin(), children.end(), parent));
+            if(it != children.end())
+                return true;
+            return false;    
+        }
+    };
+ 
+    void SetRoot(const shared_ptr&#038; node) {
+        root = node;
+    }
+ 
+    void ShrinkToFit() {
+    }
+ 
+    static auto MakeNode() { return make_shared(); }
+ 
+private:
+    shared_ptr root;
+};]]></description>
+		<content:encoded><![CDATA[<p>The solution was:<br />
+class MyGraph {<br />
+public:<br />
+    class Node : public Counter, public std::enable_shared_from_this {<br />
+        vector&lt;shared_ptr&gt; children;<br />
+        vector&lt;weak_ptr&gt; parents;<br />
+    public:<br />
+        void AddChild(const shared_ptr&amp; node) {<br />
+            children.push_back(node);<br />
+            std::weak_ptr wp = shared_from_this();<br />
+            node-&gt;AddParent(wp);<br />
+        }<br />
+        void RemoveChild(const shared_ptr&amp; node) {<br />
+            auto it(std::find(children.begin(), children.end(), node));</p>
+<p>            if(it != children.end())<br />
+            {<br />
+                node-&gt;RemoveParent(this);<br />
+                children.erase(it);<br />
+            }<br />
+            // child has only me as the parent or my only parent is my child<br />
+            if(!node-&gt;parents.size() || node-&gt;MyOnlyparentIsMyChild())<br />
+                node-&gt;RemoveAllChildren();<br />
+        }</p>
+<p>        void AddParent(const weak_ptr&amp; node) {<br />
+            parents.push_back(node);<br />
+        }</p>
+<p>        void RemoveParent(Node* node) {<br />
+            auto it = parents.begin();<br />
+            auto end = parents.end();</p>
+<p>            for(; it!=end;)<br />
+            {<br />
+                shared_ptr cur = it-&gt;lock();<br />
+                if(cur &amp;&amp; cur.get() == node)<br />
+                {<br />
+                    parents.erase(it);<br />
+                    break;<br />
+                }<br />
+                else<br />
+                    ++it;<br />
+            }<br />
+        }</p>
+<p>        void RemoveAllChildren() {<br />
+            auto tmpchildren = children;<br />
+            for(const auto&amp; child : tmpchildren)<br />
+            {<br />
+                RemoveChild(child);<br />
+            }<br />
+        }</p>
+<p>        bool MyOnlyparentIsMyChild()<br />
+        {<br />
+            if(parents.size()&gt;1)<br />
+                return false;<br />
+            auto parent = parents.begin()-&gt;lock();<br />
+            auto it(std::find(children.begin(), children.end(), parent));<br />
+            if(it != children.end())<br />
+                return true;<br />
+            return false;<br />
+        }<br />
+    };</p>
+<p>    void SetRoot(const shared_ptr&amp; node) {<br />
+        root = node;<br />
+    }</p>
+<p>    void ShrinkToFit() {<br />
+    }</p>
+<p>    static auto MakeNode() { return make_shared(); }</p>
+<p>private:<br />
+    shared_ptr root;<br />
+};</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Tony				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39395</link>
+		<dc:creator><![CDATA[Tony]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 03:47:35 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39395</guid>
+					<description><![CDATA[Darn :) Before Motti proposed 4-th test case, I had a solution:]]></description>
+		<content:encoded><![CDATA[<p>Darn :) Before Motti proposed 4-th test case, I had a solution:</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: alteryxned				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39394</link>
+		<dc:creator><![CDATA[alteryxned]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 01:59:03 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39394</guid>
+					<description><![CDATA[I was just hinting at using weak_ptrs and pulling the ownership out to another structure to resolve the circular references.  You don&#039;t need a full garbage collector to pass the tests.  Someone using everything you can imagine out of those APIs might require it, but getting a quick and dirty solution just for the presented tests isn&#039;t that hard.]]></description>
+		<content:encoded><![CDATA[<p>I was just hinting at using weak_ptrs and pulling the ownership out to another structure to resolve the circular references.  You don&#8217;t need a full garbage collector to pass the tests.  Someone using everything you can imagine out of those APIs might require it, but getting a quick and dirty solution just for the presented tests isn&#8217;t that hard.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: David Grayson				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39393</link>
+		<dc:creator><![CDATA[David Grayson]]></dc:creator>
+		<pubDate>Mon, 19 Sep 2016 00:21:29 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39393</guid>
+					<description><![CDATA[Based on the problem description and alteryxned&#039;s little hint, I think there must be some way to do this without implementing a mark and sweep garbage collector.  However, it depends on knowing some feature of the C++ standard library.]]></description>
+		<content:encoded><![CDATA[<p>Based on the problem description and alteryxned&#8217;s little hint, I think there must be some way to do this without implementing a mark and sweep garbage collector.  However, it depends on knowing some feature of the C++ standard library.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: intvnut				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39392</link>
+		<dc:creator><![CDATA[intvnut]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 19:15:42 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39392</guid>
+					<description><![CDATA[@Juan:  The circular reference is *the* problem.  It&#039;s the piece not handled automagically by shared_ptr.
+
+If the graph were acyclic, the normal reference counting of shared_ptr takes care of garbage collecting nodes.  The moment you remove the last parent to a node, the node gets deleted.  If that node was the last parent of any of its children, those children get deleted, etc. recursively.  All this, with no additional code from you.  It&#039;s all in shared_ptr&#039;s reference counting.
+
+The moment you introduce a cycle, that breaks.
+
+The reference count in shared_ptr keeps track of how many parents a node has, but not whether any of those parents is reachable from the root without passing through the node itself.
+
+In some circular data structures, you can use a weak_ptr to break this cyclic dependence.  But you can&#039;t really do that here easily.  Consider this graph:
+
+[code]
+auto a = MyGraph::MakeNode();
+auto b = MyGraph::MakeNode();
+auto c = MyGraph::MakeNode();
+g.SetRoot(a);
+a-&#062;AddChild(b);
+a-&#062;AddChild(c);
+b-&#062;AddChild(c);
+c-&#062;AddChild(b);
+[/code]
+
+You now have &#039;b&#039; and &#039;c&#039; both as children of &#039;a&#039;, and &#039;b&#039; and &#039;c&#039; form a cycle.  You might attempt to replace one of the shared_ptr between &#039;b&#039; and &#039;c&#039; with a weak_ptr instead.  (Note, I&#039;m still referring just to child pointers; no parent pointers involved here.)
+
+Now remove &#039;b&#039; and &#039;c&#039; from &#039;a&#039; in an arbitrary order:
+[code]
+if (rand() &#038; 1) {
+  a-&#062;RemoveChild(b);
+  a-&#062;RemoveChild(c);
+} else {
+  a-&#062;RemoveChild(c);
+  a-&#062;RemoveChild(b);
+}
+[/code]
+
+If you had put the weak_ptr on c =&#062; b, but remove the link &#039;a =&#062; b&#039; first, you&#039;re broken.  If you put the weak_ptr on b =&#062; c, but remove the link &#039;a =&#062; c&#039; first, you&#039;re broken.
+
+Also, nothing in the API forces you to construct the graph in any particular order, including when you call SetRoot, or how many times you&#039;re permitted to call SetRoot.
+
+To me, this all suggests a solution that uses some form of reachability analysis in ShrinkToFit() to figure things out.]]></description>
+		<content:encoded><![CDATA[<p>@Juan:  The circular reference is *the* problem.  It&#8217;s the piece not handled automagically by shared_ptr.</p>
+<p>If the graph were acyclic, the normal reference counting of shared_ptr takes care of garbage collecting nodes.  The moment you remove the last parent to a node, the node gets deleted.  If that node was the last parent of any of its children, those children get deleted, etc. recursively.  All this, with no additional code from you.  It&#8217;s all in shared_ptr&#8217;s reference counting.</p>
+<p>The moment you introduce a cycle, that breaks.</p>
+<p>The reference count in shared_ptr keeps track of how many parents a node has, but not whether any of those parents is reachable from the root without passing through the node itself.</p>
+<p>In some circular data structures, you can use a weak_ptr to break this cyclic dependence.  But you can&#8217;t really do that here easily.  Consider this graph:</p>
+<pre class="brush: plain; title: ; notranslate">
+auto a = MyGraph::MakeNode();
+auto b = MyGraph::MakeNode();
+auto c = MyGraph::MakeNode();
+g.SetRoot(a);
+a-&gt;AddChild(b);
+a-&gt;AddChild(c);
+b-&gt;AddChild(c);
+c-&gt;AddChild(b);
+</pre>
+<p>You now have &#8216;b&#8217; and &#8216;c&#8217; both as children of &#8216;a&#8217;, and &#8216;b&#8217; and &#8216;c&#8217; form a cycle.  You might attempt to replace one of the shared_ptr between &#8216;b&#8217; and &#8216;c&#8217; with a weak_ptr instead.  (Note, I&#8217;m still referring just to child pointers; no parent pointers involved here.)</p>
+<p>Now remove &#8216;b&#8217; and &#8216;c&#8217; from &#8216;a&#8217; in an arbitrary order:</p>
+<pre class="brush: plain; title: ; notranslate">
+if (rand() &amp; 1) {
+  a-&gt;RemoveChild(b);
+  a-&gt;RemoveChild(c);
+} else {
+  a-&gt;RemoveChild(c);
+  a-&gt;RemoveChild(b);
+}
+</pre>
+<p>If you had put the weak_ptr on c =&gt; b, but remove the link &#8216;a =&gt; b&#8217; first, you&#8217;re broken.  If you put the weak_ptr on b =&gt; c, but remove the link &#8216;a =&gt; c&#8217; first, you&#8217;re broken.</p>
+<p>Also, nothing in the API forces you to construct the graph in any particular order, including when you call SetRoot, or how many times you&#8217;re permitted to call SetRoot.</p>
+<p>To me, this all suggests a solution that uses some form of reachability analysis in ShrinkToFit() to figure things out.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Juan (@ichramm)				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39391</link>
+		<dc:creator><![CDATA[Juan (@ichramm)]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 18:48:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39391</guid>
+					<description><![CDATA[@intvnut
+
+I get your point, there&#039;s a circular reference there. The circle can be broken by removing C from B or B from C.
+
+Going further, the last line remove A from list of parents of B, leaving that list with only one element: C
+
+The list of parent elements of C also contains only B.
+
+Besides the circular reference I don&#039;t see any problems. Of course this kind of issue must be treated with care but I still think the reference to the parent is needed in order to prevent from erasing all the childs of an element when it is being removed by its parent.]]></description>
+		<content:encoded><![CDATA[<p>@intvnut</p>
+<p>I get your point, there&#8217;s a circular reference there. The circle can be broken by removing C from B or B from C.</p>
+<p>Going further, the last line remove A from list of parents of B, leaving that list with only one element: C</p>
+<p>The list of parent elements of C also contains only B.</p>
+<p>Besides the circular reference I don&#8217;t see any problems. Of course this kind of issue must be treated with care but I still think the reference to the parent is needed in order to prevent from erasing all the childs of an element when it is being removed by its parent.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bender				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39390</link>
+		<dc:creator><![CDATA[Bender]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 17:55:29 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39390</guid>
+					<description><![CDATA[@Motti I caught the same problem and I ragequit and went to sleep. :) My testcase is only a bit different. 
+		{
+			auto a = MyGraph::MakeNode();
+			g.SetRoot(a);
+			auto b = MyGraph::MakeNode();
+			a-&#062;AddChild(b);
+			auto c = MyGraph::MakeNode();
+			b-&#062;AddChild(c);
+			auto d = MyGraph::MakeNode();
+			b-&#062;AddChild(d);
+			d-&#062;AddChild(b);
+			b-&#062;RemoveChild(c);
+		}
+
+
+But my code passes all the Herb&#039;s tests. :P
+My guess is that Herb will try to use my failure as excuse to propose gcnew for C++. :)
+I know it was his pet peeve for long time, including I think some lock free algs being easy to do if you have gc. 
+But anyway here is how I passed Herb&#039;s tests:
+
+SPOILER SPOILER SPOILER
+Did you use weak_ptr to parrent like I did? It works oksih, but on destruction of Graph if you have shared_ptr cycle it can not be GCed.]]></description>
+		<content:encoded><![CDATA[<p>@Motti I caught the same problem and I ragequit and went to sleep. :) My testcase is only a bit different.<br />
+		{<br />
+			auto a = MyGraph::MakeNode();<br />
+			g.SetRoot(a);<br />
+			auto b = MyGraph::MakeNode();<br />
+			a-&gt;AddChild(b);<br />
+			auto c = MyGraph::MakeNode();<br />
+			b-&gt;AddChild(c);<br />
+			auto d = MyGraph::MakeNode();<br />
+			b-&gt;AddChild(d);<br />
+			d-&gt;AddChild(b);<br />
+			b-&gt;RemoveChild(c);<br />
+		}</p>
+<p>But my code passes all the Herb&#8217;s tests. :P<br />
+My guess is that Herb will try to use my failure as excuse to propose gcnew for C++. :)<br />
+I know it was his pet peeve for long time, including I think some lock free algs being easy to do if you have gc.<br />
+But anyway here is how I passed Herb&#8217;s tests:</p>
+<p>SPOILER SPOILER SPOILER<br />
+Did you use weak_ptr to parrent like I did? It works oksih, but on destruction of Graph if you have shared_ptr cycle it can not be GCed.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: intvnut				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39389</link>
+		<dc:creator><![CDATA[intvnut]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 16:27:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39389</guid>
+					<description><![CDATA[@Juan:  A mental exercise:  What do the child and parent pointers look like for  &#039;b&#039; and &#039;c&#039; after this sequence?
+
+[code]
+        a-&#062;AddChild(b);
+        b-&#062;AddChild(c);
+        c-&#062;AddChild(b);
+        a-&#062;RemoveChild(b);
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>@Juan:  A mental exercise:  What do the child and parent pointers look like for  &#8216;b&#8217; and &#8216;c&#8217; after this sequence?</p>
+<pre class="brush: plain; title: ; notranslate">
+        a-&gt;AddChild(b);
+        b-&gt;AddChild(c);
+        c-&gt;AddChild(b);
+        a-&gt;RemoveChild(b);
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Juan (@ichramm)				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39388</link>
+		<dc:creator><![CDATA[Juan (@ichramm)]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 16:21:39 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39388</guid>
+					<description><![CDATA[Hi there,
+
+I think each node should have a list of weak pointers to his parent node.
+
+When a child node is removed the parent is removed from that list too. If the list of parents is empty, the node is considered orphan and then cleared.]]></description>
+		<content:encoded><![CDATA[<p>Hi there,</p>
+<p>I think each node should have a list of weak pointers to his parent node.</p>
+<p>When a child node is removed the parent is removed from that list too. If the list of parents is empty, the node is considered orphan and then cleared.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Christian Vetter				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39387</link>
+		<dc:creator><![CDATA[Christian Vetter]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 15:56:45 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39387</guid>
+					<description><![CDATA[Having MakeNode as a static function, but ShrinkToFit not opens this up to a lot of problems:
+- User can construct cycles without adding them to a graph causing leaks
+- Nodes could belong to multiple graphs
+- It&#039;s much harder to optimize the graph by using identifiers/compact storage (avoiding allocation, etc)
+
+I would normally change all functions to be direct (non-static) member function of the graph, including AddChild/RemoveChild:
+- That prevents the user from constructing cycles without a graph
+- Makes it easy to optimize storage of nodes
+- Makes it easier to keep track of cycles]]></description>
+		<content:encoded><![CDATA[<p>Having MakeNode as a static function, but ShrinkToFit not opens this up to a lot of problems:<br />
+&#8211; User can construct cycles without adding them to a graph causing leaks<br />
+&#8211; Nodes could belong to multiple graphs<br />
+&#8211; It&#8217;s much harder to optimize the graph by using identifiers/compact storage (avoiding allocation, etc)</p>
+<p>I would normally change all functions to be direct (non-static) member function of the graph, including AddChild/RemoveChild:<br />
+&#8211; That prevents the user from constructing cycles without a graph<br />
+&#8211; Makes it easy to optimize storage of nodes<br />
+&#8211; Makes it easier to keep track of cycles</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: ians				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39386</link>
+		<dc:creator><![CDATA[ians]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 14:49:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39386</guid>
+					<description><![CDATA[I submitted a solution, but it&#039;s not very satisfactory. I took the existence of the ShrinkToFit method to be a special garbage collection routine which the user is expected to trigger, and which will clean up all nodes which are not part of the final graph. Given the API, I think that makes sense; the user can make and connect nodes in an arbitrary order, and maybe only assign a root node at the end. Until the root node is assigned, we don&#039;t know what&#039;s garbage and what&#039;s not.
+
+However, lots of aspects seem clunky to me. Firstly, the user can still generate memory leaks: they can wire up a cycle of nodes, and then not make any of them part of a MyGraph: ShrinkToFit has no knowledge of these nodes and can do nothing about them. The user can also break the system by assigning a node to more than instance of MyGraph. Also, the existence of a special graph class with a manual garbage collection routine seems unwieldy; it ought to be possible to do this without needing the user to trigger a special clean-up step.]]></description>
+		<content:encoded><![CDATA[<p>I submitted a solution, but it&#8217;s not very satisfactory. I took the existence of the ShrinkToFit method to be a special garbage collection routine which the user is expected to trigger, and which will clean up all nodes which are not part of the final graph. Given the API, I think that makes sense; the user can make and connect nodes in an arbitrary order, and maybe only assign a root node at the end. Until the root node is assigned, we don&#8217;t know what&#8217;s garbage and what&#8217;s not.</p>
+<p>However, lots of aspects seem clunky to me. Firstly, the user can still generate memory leaks: they can wire up a cycle of nodes, and then not make any of them part of a MyGraph: ShrinkToFit has no knowledge of these nodes and can do nothing about them. The user can also break the system by assigning a node to more than instance of MyGraph. Also, the existence of a special graph class with a manual garbage collection routine seems unwieldy; it ought to be possible to do this without needing the user to trigger a special clean-up step.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: -.-				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39385</link>
+		<dc:creator><![CDATA[-.-]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 14:09:59 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39385</guid>
+					<description><![CDATA[Why is the MakeNode function static? That seems a bit weird. Also, I guess we&#039;re supposed to do the cleanup once in the ShrinkToFit function, and not after each RemoveChild call?]]></description>
+		<content:encoded><![CDATA[<p>Why is the MakeNode function static? That seems a bit weird. Also, I guess we&#8217;re supposed to do the cleanup once in the ShrinkToFit function, and not after each RemoveChild call?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: alteryxned				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39384</link>
+		<dc:creator><![CDATA[alteryxned]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 13:10:54 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39384</guid>
+					<description><![CDATA[The solutions here (so far) seem to all have in common that they delete too much.  All that really shows is that test driven development is very difficult and the tests are not a proxy for knowing that a bit of code is working correctly.  Integration testing often pick up additional issues.
+
+Motti Lanzkron&#039;s test should be added.  That is clearly the intention of the problem.  Not giving too big a hint - fortunately C++ has exactly the feature that is needed to accomplish this task.]]></description>
+		<content:encoded><![CDATA[<p>The solutions here (so far) seem to all have in common that they delete too much.  All that really shows is that test driven development is very difficult and the tests are not a proxy for knowing that a bit of code is working correctly.  Integration testing often pick up additional issues.</p>
+<p>Motti Lanzkron&#8217;s test should be added.  That is clearly the intention of the problem.  Not giving too big a hint &#8211; fortunately C++ has exactly the feature that is needed to accomplish this task.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Martin Ueding				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39383</link>
+		<dc:creator><![CDATA[Martin Ueding]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 11:44:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39383</guid>
+					<description><![CDATA[I have the same solution that Cooper posted, with the simplification that Motti Lanzkron mentioned. And my ShrinkToFit is also empty. It seems a bit strange that I did not need that. Perhaps I delete to much or so?]]></description>
+		<content:encoded><![CDATA[<p>I have the same solution that Cooper posted, with the simplification that Motti Lanzkron mentioned. And my ShrinkToFit is also empty. It seems a bit strange that I did not need that. Perhaps I delete to much or so?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Motti Lanzkron				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39382</link>
+		<dc:creator><![CDATA[Motti Lanzkron]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 11:00:27 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39382</guid>
+					<description><![CDATA[Here&#039;s a test case that I think should be added:
+[code]
+bool TestCase4() {
+	MyGraph g;
+	{
+		auto a = MyGraph::MakeNode();
+		g.SetRoot(a);
+		auto b = MyGraph::MakeNode();
+		a-&#062;AddChild(b);
+		auto c = MyGraph::MakeNode();
+		b-&#062;AddChild(c);
+		auto d = MyGraph::MakeNode();
+		b-&#062;AddChild(d);
+		d-&#062;AddChild(b);
+		d-&#062;RemoveChild(b);
+	}
+	g.ShrinkToFit();
+	return Counter::count() == 4;
+}
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>Here&#8217;s a test case that I think should be added:</p>
+<pre class="brush: plain; title: ; notranslate">
+bool TestCase4() {
+	MyGraph g;
+	{
+		auto a = MyGraph::MakeNode();
+		g.SetRoot(a);
+		auto b = MyGraph::MakeNode();
+		a-&gt;AddChild(b);
+		auto c = MyGraph::MakeNode();
+		b-&gt;AddChild(c);
+		auto d = MyGraph::MakeNode();
+		b-&gt;AddChild(d);
+		d-&gt;AddChild(b);
+		d-&gt;RemoveChild(b);
+	}
+	g.ShrinkToFit();
+	return Counter::count() == 4;
+}
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Motti Lanzkron				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39381</link>
+		<dc:creator><![CDATA[Motti Lanzkron]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 10:41:58 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39381</guid>
+					<description><![CDATA[@Cooper your solution can be simplified to calling [code]node-&#062;children.clear()[/code] in [code]RemoveChild[/code], this is what I initially wrote and it passes all the test cases but it&#039;s too eager since it will clear a nodes children even if it has remaining parents.]]></description>
+		<content:encoded><![CDATA[<p>@Cooper your solution can be simplified to calling </p>
+<pre class="brush: plain; title: ; notranslate">node-&gt;children.clear()</pre>
+<p> in </p>
+<pre class="brush: plain; title: ; notranslate">RemoveChild</pre>
+<p>, this is what I initially wrote and it passes all the test cases but it&#8217;s too eager since it will clear a nodes children even if it has remaining parents.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: intvnut				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39380</link>
+		<dc:creator><![CDATA[intvnut]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 10:11:04 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39380</guid>
+					<description><![CDATA[@Jason Hise:  I figured that&#039;s what Herb was getting at with his simple example, but I wanted to avoid spoiling the fun for folks who might be encountering it the first time.   I was immediately reminded of one of the MIT AI Hacker Koans when I saw it:
+
+----
+
+One day a student came to Moon and said: “I understand how to make a better garbage collector. We must keep a reference count of the pointers to each cons.”
+
+Moon patiently told the student the following story:
+
+    “One day a student came to Moon and said: ‘I understand how to make a better garbage collector...]]></description>
+		<content:encoded><![CDATA[<p>@Jason Hise:  I figured that&#8217;s what Herb was getting at with his simple example, but I wanted to avoid spoiling the fun for folks who might be encountering it the first time.   I was immediately reminded of one of the MIT AI Hacker Koans when I saw it:</p>
+<p>&#8212;-</p>
+<p>One day a student came to Moon and said: “I understand how to make a better garbage collector. We must keep a reference count of the pointers to each cons.”</p>
+<p>Moon patiently told the student the following story:</p>
+<p>    “One day a student came to Moon and said: ‘I understand how to make a better garbage collector&#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: intvnut				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39379</link>
+		<dc:creator><![CDATA[intvnut]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 10:07:14 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39379</guid>
+					<description><![CDATA[Yeah, it was either smaller stack footprint, or tail recursion elimination if I was [i]really[/i] lucky.
+
+It was an inverted tree structure (children point to parents) in a solver.  Whenever I killed a potential solution, it would automatically unwind to the branch-point in the tree.  IIRC, the parent link was the first member of the class, so it would also be the last thing destroyed.  I didn&#039;t have a dtor of my own in that class either; just the compiler-generated dtor.
+
+I have no way to measure the code now.  It remains at my previous employer.
+
+And, since we were always chronically deprived for time and developer resource (part of the reason that&#039;s my [i]previous[/i] employer), I didn&#039;t work on solving the recursion problem.  I just raised the ulimit instead and moved on to solving some rather larger problems that remained.  :-P]]></description>
+		<content:encoded><![CDATA[<p>Yeah, it was either smaller stack footprint, or tail recursion elimination if I was [i]really[/i] lucky.</p>
+<p>It was an inverted tree structure (children point to parents) in a solver.  Whenever I killed a potential solution, it would automatically unwind to the branch-point in the tree.  IIRC, the parent link was the first member of the class, so it would also be the last thing destroyed.  I didn&#8217;t have a dtor of my own in that class either; just the compiler-generated dtor.</p>
+<p>I have no way to measure the code now.  It remains at my previous employer.</p>
+<p>And, since we were always chronically deprived for time and developer resource (part of the reason that&#8217;s my [i]previous[/i] employer), I didn&#8217;t work on solving the recursion problem.  I just raised the ulimit instead and moved on to solving some rather larger problems that remained.  :-P</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Norbert				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39377</link>
+		<dc:creator><![CDATA[Norbert]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 10:00:29 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39377</guid>
+					<description><![CDATA[That sort of test driven development brought out the evil minimalist coder in me. The result is horrible and I know it, but it&#039;s fun to apply the &quot;Beyonce Rule&quot; I just learned from Titus Winters in the last cppcast episode (&quot;If you want to file an issue there should&#039;ve been a test for it.&quot;).
+
+Thanks for some fun on a bad weather Sunday.]]></description>
+		<content:encoded><![CDATA[<p>That sort of test driven development brought out the evil minimalist coder in me. The result is horrible and I know it, but it&#8217;s fun to apply the &#8220;Beyonce Rule&#8221; I just learned from Titus Winters in the last cppcast episode (&#8220;If you want to file an issue there should&#8217;ve been a test for it.&#8221;).</p>
+<p>Thanks for some fun on a bad weather Sunday.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Cooper				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39376</link>
+		<dc:creator><![CDATA[Cooper]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 08:53:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39376</guid>
+					<description><![CDATA[What about this? The recursion in not what we want but it works. Still I think it&#039;s not the solution we&#039;re looking for because ShrinkToFit() is empty. I guess Herb wanted to help us with this call:)
+
+[code]class MyGraph {
+public:
+    class Node : public Counter {
+        vector&#060;shared_ptr&#060;Node&#062;&#062; children;
+ 
+    public:
+        void AddChild(const shared_ptr&#060;Node&#062;&#038; node) {
+            children.push_back(node);
+        }
+        void RemoveChild(const shared_ptr&#060;Node&#062;&#038; node) {
+            auto it = std::find(cbegin(children), cend(children), node);
+            if(*it)
+            {
+                (*it)-&#062;RemoveAllChildren();
+            }
+            children.erase(it);
+        }
+    private:
+        void RemoveAllChildren()
+        {
+            for(auto&#038; child : children)
+                RemoveChild(child);
+        }
+    };
+ 
+    void SetRoot(const shared_ptr&#060;Node&#062;&#038; node) {
+        root = node;
+    }
+ 
+    void ShrinkToFit() {
+    }
+ 
+    static auto MakeNode() { return make_shared&#060;MyGraph::Node&#062;(); }
+ 
+private:
+    shared_ptr&#060;Node&#062; root;
+};[/code]]]></description>
+		<content:encoded><![CDATA[<p>What about this? The recursion in not what we want but it works. Still I think it&#8217;s not the solution we&#8217;re looking for because ShrinkToFit() is empty. I guess Herb wanted to help us with this call:)</p>
+<pre class="brush: plain; title: ; notranslate">class MyGraph {
+public:
+    class Node : public Counter {
+        vector&lt;shared_ptr&lt;Node&gt;&gt; children;
+ 
+    public:
+        void AddChild(const shared_ptr&lt;Node&gt;&amp; node) {
+            children.push_back(node);
+        }
+        void RemoveChild(const shared_ptr&lt;Node&gt;&amp; node) {
+            auto it = std::find(cbegin(children), cend(children), node);
+            if(*it)
+            {
+                (*it)-&gt;RemoveAllChildren();
+            }
+            children.erase(it);
+        }
+    private:
+        void RemoveAllChildren()
+        {
+            for(auto&amp; child : children)
+                RemoveChild(child);
+        }
+    };
+ 
+    void SetRoot(const shared_ptr&lt;Node&gt;&amp; node) {
+        root = node;
+    }
+ 
+    void ShrinkToFit() {
+    }
+ 
+    static auto MakeNode() { return make_shared&lt;MyGraph::Node&gt;(); }
+ 
+private:
+    shared_ptr&lt;Node&gt; root;
+};</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Motti Lanzkron				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39375</link>
+		<dc:creator><![CDATA[Motti Lanzkron]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 08:34:39 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39375</guid>
+					<description><![CDATA[You should add a test case that detects overly destructive solutions. I cleared the children member of the removed node prior to removing it from its parent and this passed all the tests :(]]></description>
+		<content:encoded><![CDATA[<p>You should add a test case that detects overly destructive solutions. I cleared the children member of the removed node prior to removing it from its parent and this passed all the tests :(</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jason Hise				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39374</link>
+		<dc:creator><![CDATA[Jason Hise]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 07:26:55 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39374</guid>
+					<description><![CDATA[The problem posed here is equivalent to the problem of writing a general purpose garbage collector, capable of cleaning up islands of references as soon as they are no longer reachable from any variable on the stack.  Reference counting as a solution breaks down when ownership relationships can be circular; any algorithm that determines which nodes can be freed will require traversing the graph to identify the reachable objects.  If this operation has to happen immediately when the link is broken, the most efficient algorithm I can think of would have to traverse and tag everything downstream of the broken link.]]></description>
+		<content:encoded><![CDATA[<p>The problem posed here is equivalent to the problem of writing a general purpose garbage collector, capable of cleaning up islands of references as soon as they are no longer reachable from any variable on the stack.  Reference counting as a solution breaks down when ownership relationships can be circular; any algorithm that determines which nodes can be freed will require traversing the graph to identify the reachable objects.  If this operation has to happen immediately when the link is broken, the most efficient algorithm I can think of would have to traverse and tag everything downstream of the broken link.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bender				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39373</link>
+		<dc:creator><![CDATA[Bender]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 05:24:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39373</guid>
+					<description><![CDATA[PSA: webpage is buggy(It caches the result of the run and you can not force it to rerun stuff even if you delete almost all the code) and it will not let you c/p the code so have fun debugging anything with this.]]></description>
+		<content:encoded><![CDATA[<p>PSA: webpage is buggy(It caches the result of the run and you can not force it to rerun stuff even if you delete almost all the code) and it will not let you c/p the code so have fun debugging anything with this.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bender				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39372</link>
+		<dc:creator><![CDATA[Bender]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 03:15:04 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39372</guid>
+					<description><![CDATA[@ intvnut probably opt code had smaller stack usage. If you still have this code you can verify this by looking at the difference of the addresses between local variables at depth n and n+1 of recursion.]]></description>
+		<content:encoded><![CDATA[<p>@ intvnut probably opt code had smaller stack usage. If you still have this code you can verify this by looking at the difference of the addresses between local variables at depth n and n+1 of recursion.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Ben Craig				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39371</link>
+		<dc:creator><![CDATA[Ben Craig]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 02:49:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39371</guid>
+					<description><![CDATA[My implementation is definitely a reflection of Greenspuns Tenth Rule Of Programming:
+   Any sufficiently complicated C or Fortran program contains an ad-hoc, informally-specified, bug-ridden, slow implementation of half of CommonLisp.
+
+
+I would have liked my solution better had the Node factory function not been static.]]></description>
+		<content:encoded><![CDATA[<p>My implementation is definitely a reflection of Greenspuns Tenth Rule Of Programming:<br />
+   Any sufficiently complicated C or Fortran program contains an ad-hoc, informally-specified, bug-ridden, slow implementation of half of CommonLisp.</p>
+<p>I would have liked my solution better had the Node factory function not been static.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: intvnut				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39370</link>
+		<dc:creator><![CDATA[intvnut]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 01:32:47 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39370</guid>
+					<description><![CDATA[I actually hit the case Bender describes in on program I wrote.  I hadn&#039;t internalized the recursive nature of the destructors, but it was obvious in retrospect.  Interestingly, the program was fine with optimization enabled, and broke when compiling for debug.
+
+In any case, for this brain-teaser:  Can SetRoot be called at any time?  That can alter node reachability rather differently than just deleting an edge in a directed graph.  Not that any of the test cases do that...]]></description>
+		<content:encoded><![CDATA[<p>I actually hit the case Bender describes in on program I wrote.  I hadn&#8217;t internalized the recursive nature of the destructors, but it was obvious in retrospect.  Interestingly, the program was fine with optimization enabled, and broke when compiling for debug.</p>
+<p>In any case, for this brain-teaser:  Can SetRoot be called at any time?  That can alter node reachability rather differently than just deleting an edge in a directed graph.  Not that any of the test cases do that&#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39368</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 01:24:06 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39368</guid>
+					<description><![CDATA[@Bender O:-) Yes, that&#039;s an interesting point, isn&#039;t it?]]></description>
+		<content:encoded><![CDATA[<p>@Bender O:-) Yes, that&#8217;s an interesting point, isn&#8217;t it?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bender				</title>
+				<link>https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/#comment-39366</link>
+		<dc:creator><![CDATA[Bender]]></dc:creator>
+		<pubDate>Sun, 18 Sep 2016 00:57:12 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2731#comment-39366</guid>
+					<description><![CDATA[Herb I hate to be the one to tell you this, but your code is bad. 
+Any deep tree will stack overflow on destruction of root or any other node that has enough children for recursive dtor calls to cause stack overflow. 
+I know it is a borderline case to have tree this deep, but still I would not ever use library like this. 
+That aside off I go to try to solve the problem with shared ptr.]]></description>
+		<content:encoded><![CDATA[<p>Herb I hate to be the one to tell you this, but your code is bad.<br />
+Any deep tree will stack overflow on destruction of root or any other node that has enough children for recursive dtor calls to cause stack overflow.<br />
+I know it is a borderline case to have tree this deep, but still I would not ever use library like this.<br />
+That aside off I go to try to solve the problem with shared ptr.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

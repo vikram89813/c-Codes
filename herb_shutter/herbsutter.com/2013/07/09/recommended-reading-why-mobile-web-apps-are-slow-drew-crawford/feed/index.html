@@ -1,0 +1,630 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: Recommended reading: Why mobile web apps are slow (Drew Crawford)	</title>
+	<atom:link href="https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Sebastian Bohmann				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-13392</link>
+		<dc:creator><![CDATA[Sebastian Bohmann]]></dc:creator>
+		<pubDate>Sun, 24 Nov 2013 18:11:29 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-13392</guid>
+					<description><![CDATA[Basically, it boils down to this:
+
+In case you really absolutely have to use JavaScript with its high overall performance impact in an environment without massive headroom for memory, memory throughput, CPU power, &#038;c., by all means do so, but:
+
+Keep things as simple and flat as possible. Do not use higher abstraction idioms and automation patterns that by definition generate lots of heap allocations.
+
+Refrain from following the otherwise great suggestion to use immutable instances for avoiding shared immutable state.
+
+Just reuse preallocated instances of what you need, i.e. do your own flat memory management, and learn to live with all kinds of coroutine safety issues due to shared mutable state (it doesn&#039;t take threads for that becoming an issue at all), and just generally behave as if you were writing C code for a micro controller with harsh memory limits.
+
+And by all means refrain from heavy manipulation of the DOM tree - instead switch things to being visible / invisible, and just set basic numeric attributes for changing their appearance - may be tricky sometimes, but this way the tree&#039;s structure isn&#039;t modified, which would be way more heavyweight.
+
+Also, restrict use of hash maps (including objects, as they are implemented in JS using them) - it&#039;s best to initialize all complex data on startup and leave their structure alone from then on. Just setting values for existing keys is not that much of a problem, of course - without being allowed to do that, mutating instances of objects wouldn&#039;t be possible as well...
+
+Just forget about the idea that you&#039;re dealing with a platform that supports OOP, except for data structures that can be set up once in the beginning and just used from that point without changing the object graphs.
+
+It really is just a question of selecting an appropriate architecture, and refraining from doing the kind of UI projects  this way that need all the flexibility and performance you get by writing native code.
+
+Due to the inherently lower degree of abstraction that results from the flat approach I am proposing, it is often less work to just write the UI with the right degree of abstraction in Objective C and C++ (and / or maybe Java / C#) for the three predominant mobile platforms, plus maybe a shared core in C++, than to jump through all the hoops that become necessary if you give up most tools for achieving a higher level of abstraction as described.
+
+The time saved by being able to correctly model state with immutable value representations and not having to chase race conditions caused by mutation from different parts of the call stack alone will probably more than justify doing several things twice, or even thrice :)]]></description>
+		<content:encoded><![CDATA[<p>Basically, it boils down to this:</p>
+<p>In case you really absolutely have to use JavaScript with its high overall performance impact in an environment without massive headroom for memory, memory throughput, CPU power, &amp;c., by all means do so, but:</p>
+<p>Keep things as simple and flat as possible. Do not use higher abstraction idioms and automation patterns that by definition generate lots of heap allocations.</p>
+<p>Refrain from following the otherwise great suggestion to use immutable instances for avoiding shared immutable state.</p>
+<p>Just reuse preallocated instances of what you need, i.e. do your own flat memory management, and learn to live with all kinds of coroutine safety issues due to shared mutable state (it doesn&#8217;t take threads for that becoming an issue at all), and just generally behave as if you were writing C code for a micro controller with harsh memory limits.</p>
+<p>And by all means refrain from heavy manipulation of the DOM tree &#8211; instead switch things to being visible / invisible, and just set basic numeric attributes for changing their appearance &#8211; may be tricky sometimes, but this way the tree&#8217;s structure isn&#8217;t modified, which would be way more heavyweight.</p>
+<p>Also, restrict use of hash maps (including objects, as they are implemented in JS using them) &#8211; it&#8217;s best to initialize all complex data on startup and leave their structure alone from then on. Just setting values for existing keys is not that much of a problem, of course &#8211; without being allowed to do that, mutating instances of objects wouldn&#8217;t be possible as well&#8230;</p>
+<p>Just forget about the idea that you&#8217;re dealing with a platform that supports OOP, except for data structures that can be set up once in the beginning and just used from that point without changing the object graphs.</p>
+<p>It really is just a question of selecting an appropriate architecture, and refraining from doing the kind of UI projects  this way that need all the flexibility and performance you get by writing native code.</p>
+<p>Due to the inherently lower degree of abstraction that results from the flat approach I am proposing, it is often less work to just write the UI with the right degree of abstraction in Objective C and C++ (and / or maybe Java / C#) for the three predominant mobile platforms, plus maybe a shared core in C++, than to jump through all the hoops that become necessary if you give up most tools for achieving a higher level of abstraction as described.</p>
+<p>The time saved by being able to correctly model state with immutable value representations and not having to chase race conditions caused by mutation from different parts of the call stack alone will probably more than justify doing several things twice, or even thrice :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Taylan				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-12757</link>
+		<dc:creator><![CDATA[Taylan]]></dc:creator>
+		<pubDate>Wed, 25 Sep 2013 06:25:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-12757</guid>
+					<description><![CDATA[I&#039;m sorry but I urge you to reconsider your appreciation of Crawford&#039;s article, and if possible, post a correction mentioning what I now will, for I don&#039;t have the publicity to correct the misinformation spread by Crawford. As apparent from my e-mail exchange with him (linked below), he is extremely ignorant on garbage collection, loves misinterpreting academic papers, and the claims in his article regarding garbage collection are clearly a result of misinterpretation of a linked paper; the article grossly misrepresents the results of the paper, whose value are I think dubious even if interpreted correctly.
+
+http://taylan.uni.cx:8080/webapps-js-gc/
+
+If you have difficulties with the above link, contact me via taylanbayirli at Google Mail and I will send you a copy.
+
+It disturbs me greatly that an article with this level of misinformation is nevertheless written this well, and enjoys the publicity and appreciation it does, please help correct this for the sake of the public&#039;s information and education.]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;m sorry but I urge you to reconsider your appreciation of Crawford&#8217;s article, and if possible, post a correction mentioning what I now will, for I don&#8217;t have the publicity to correct the misinformation spread by Crawford. As apparent from my e-mail exchange with him (linked below), he is extremely ignorant on garbage collection, loves misinterpreting academic papers, and the claims in his article regarding garbage collection are clearly a result of misinterpretation of a linked paper; the article grossly misrepresents the results of the paper, whose value are I think dubious even if interpreted correctly.</p>
+<p><a href="http://taylan.uni.cx:8080/webapps-js-gc/" rel="nofollow">http://taylan.uni.cx:8080/webapps-js-gc/</a></p>
+<p>If you have difficulties with the above link, contact me via taylanbayirli at Google Mail and I will send you a copy.</p>
+<p>It disturbs me greatly that an article with this level of misinformation is nevertheless written this well, and enjoys the publicity and appreciation it does, please help correct this for the sake of the public&#8217;s information and education.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: バリー バッグ				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-12448</link>
+		<dc:creator><![CDATA[バリー バッグ]]></dc:creator>
+		<pubDate>Tue, 10 Sep 2013 03:06:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-12448</guid>
+					<description><![CDATA[ダコタ 財布 バリー バッグ http://www.bagsoray.info/]]></description>
+		<content:encoded><![CDATA[<p>ダコタ 財布 バリー バッグ <a href="http://www.bagsoray.info/" rel="nofollow">http://www.bagsoray.info/</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Douglas Arrol				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-12125</link>
+		<dc:creator><![CDATA[Douglas Arrol]]></dc:creator>
+		<pubDate>Fri, 09 Aug 2013 21:27:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-12125</guid>
+					<description><![CDATA[Hi Herb, 
+
+This is the last email I have received from Sutter&#039;s Mill.  Do you close for the summer? 
+
+I miss your emails so hope they start coming again soon! 
+
+Thanks, 
+
+Jan Arrol]]></description>
+		<content:encoded><![CDATA[<p>Hi Herb, </p>
+<p>This is the last email I have received from Sutter&#8217;s Mill.  Do you close for the summer? </p>
+<p>I miss your emails so hope they start coming again soon! </p>
+<p>Thanks, </p>
+<p>Jan Arrol</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: grvmullany				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-12088</link>
+		<dc:creator><![CDATA[grvmullany]]></dc:creator>
+		<pubDate>Sat, 03 Aug 2013 01:04:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-12088</guid>
+					<description><![CDATA[Drew is mostly wrong - here is a detailed blog post with data that shows that mobile web performance is increasing rapidly and it&#039;s not about the javascript: 
+
+http://www.sencha.com/blog/5-myths-about-mobile-web-performance/]]></description>
+		<content:encoded><![CDATA[<p>Drew is mostly wrong &#8211; here is a detailed blog post with data that shows that mobile web performance is increasing rapidly and it&#8217;s not about the javascript: </p>
+<p><a href="http://www.sencha.com/blog/5-myths-about-mobile-web-performance/" rel="nofollow">http://www.sencha.com/blog/5-myths-about-mobile-web-performance/</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Dmitry Leskov				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-12079</link>
+		<dc:creator><![CDATA[Dmitry Leskov]]></dc:creator>
+		<pubDate>Thu, 01 Aug 2013 11:23:43 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-12079</guid>
+					<description><![CDATA[Unfortunately, Drew&#039;s reasoning about Garbage Collection is based on a research article from 2005. We conducted the same experiments on today&#039;s HotSpot VM, and the results are not so pessimistic for GC, at least in terms of memory constraints&#039; impact on performance: 
+
+http://www.excelsior-usa.com/blog/java/5plus-garbage-collectors/]]></description>
+		<content:encoded><![CDATA[<p>Unfortunately, Drew&#8217;s reasoning about Garbage Collection is based on a research article from 2005. We conducted the same experiments on today&#8217;s HotSpot VM, and the results are not so pessimistic for GC, at least in terms of memory constraints&#8217; impact on performance: </p>
+<p><a href="http://www.excelsior-usa.com/blog/java/5plus-garbage-collectors/" rel="nofollow">http://www.excelsior-usa.com/blog/java/5plus-garbage-collectors/</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: HTML5SALON沙龙				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-12045</link>
+		<dc:creator><![CDATA[HTML5SALON沙龙]]></dc:creator>
+		<pubDate>Thu, 25 Jul 2013 06:20:06 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-12045</guid>
+					<description><![CDATA[[&#8230;] Sutter在自己的博客中推荐了一篇文章《Why mobile web apps are [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Sutter在自己的博客中推荐了一篇文章《Why mobile web apps are [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: 为什么移动Web应用程序很慢（译） &#8211; tangzhnju &#124; 查问题				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-12041</link>
+		<dc:creator><![CDATA[为什么移动Web应用程序很慢（译） &#8211; tangzhnju &#124; 查问题]]></dc:creator>
+		<pubDate>Wed, 24 Jul 2013 16:33:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-12041</guid>
+					<description><![CDATA[[&#8230;] Sutter在自己的博客中推荐了一篇文章《Why mobile web apps are [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Sutter在自己的博客中推荐了一篇文章《Why mobile web apps are [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Fredrik				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-12009</link>
+		<dc:creator><![CDATA[Fredrik]]></dc:creator>
+		<pubDate>Sun, 21 Jul 2013 11:20:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-12009</guid>
+					<description><![CDATA[Yet I&#039;ve NEVER experienced anything even remotely close to a GC slowdown on my Windows Phone. Or when trying out older WP7 phones or low memory WP8s.]]></description>
+		<content:encoded><![CDATA[<p>Yet I&#8217;ve NEVER experienced anything even remotely close to a GC slowdown on my Windows Phone. Or when trying out older WP7 phones or low memory WP8s.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Zeckul				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11981</link>
+		<dc:creator><![CDATA[Zeckul]]></dc:creator>
+		<pubDate>Tue, 16 Jul 2013 20:40:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11981</guid>
+					<description><![CDATA[@HerbSutter: I think that even in an application containing lots of performance-sensitive code, only a small fraction of types need being placed contiguously in arrays for fast access in tight loops. Moreoever these types are typically raw-data-like, i.e. numerical or geometric data for instance. In addition, implementation inheritance would typically not be used for such types anyway because it becomes difficult to understand their memory layout which is kind of the whole point. Note that value types can implement interfaces (and these methods can be called without boxing with proper use of generics).
+
+With that said, while you are right to say that value types are limited compared to reference types in .NET, these restrictions are not an issue in the concrete cases where value types are indeed required. I would be curious to see an example to the contrary.]]></description>
+		<content:encoded><![CDATA[<p>@HerbSutter: I think that even in an application containing lots of performance-sensitive code, only a small fraction of types need being placed contiguously in arrays for fast access in tight loops. Moreoever these types are typically raw-data-like, i.e. numerical or geometric data for instance. In addition, implementation inheritance would typically not be used for such types anyway because it becomes difficult to understand their memory layout which is kind of the whole point. Note that value types can implement interfaces (and these methods can be called without boxing with proper use of generics).</p>
+<p>With that said, while you are right to say that value types are limited compared to reference types in .NET, these restrictions are not an issue in the concrete cases where value types are indeed required. I would be curious to see an example to the contrary.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11979</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Tue, 16 Jul 2013 19:07:52 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11979</guid>
+					<description><![CDATA[@Zeckul: &quot;The equivalent of an array of MyClass in C# would be an array of MyClass* or MyClass&#038; in C++; the equivalent of an array of MyClass in C++ would be an array of MyStruct in C#. Let’s not compare apple to oranges.&quot;
+
+&quot;Array of MyClass&quot; is exactly an apples-to-apples comparison that shows how the barrel of apples is much smaller on the managed side. In C++ you only need to resort to an array of * or &#038; only when you want polymorphism, for fundamental reasons that would apply to any language. In C# you have to resort to its equivalent for nearly all types.
+
+You simply cannot do a true (contiguous) array of any old type in C# or Java. You can in C++. Yes, you can do it for all value types (which can be user-defined types at least in C#) but that&#039;s a small and restricted subset of types that are not useful for all kinds of types -- objects must be bitcopyable, you cannot even inherit, etc. They are first-class in a sense, but they are absolutely not general-purpose. When you want an array of arbitrary Objects (cap intentional), including boxed value types, you can&#039;t get it contiguously.
+
+To get contiguity, you have to drop down to value types, which is very restrictive and which I correctly said is actively working against an environment and language built around an Object base class of nearly all types -- including even boxed value types which can&#039;t be held contiguously.]]></description>
+		<content:encoded><![CDATA[<p>@Zeckul: &#8220;The equivalent of an array of MyClass in C# would be an array of MyClass* or MyClass&amp; in C++; the equivalent of an array of MyClass in C++ would be an array of MyStruct in C#. Let’s not compare apple to oranges.&#8221;</p>
+<p>&#8220;Array of MyClass&#8221; is exactly an apples-to-apples comparison that shows how the barrel of apples is much smaller on the managed side. In C++ you only need to resort to an array of * or &amp; only when you want polymorphism, for fundamental reasons that would apply to any language. In C# you have to resort to its equivalent for nearly all types.</p>
+<p>You simply cannot do a true (contiguous) array of any old type in C# or Java. You can in C++. Yes, you can do it for all value types (which can be user-defined types at least in C#) but that&#8217;s a small and restricted subset of types that are not useful for all kinds of types &#8212; objects must be bitcopyable, you cannot even inherit, etc. They are first-class in a sense, but they are absolutely not general-purpose. When you want an array of arbitrary Objects (cap intentional), including boxed value types, you can&#8217;t get it contiguously.</p>
+<p>To get contiguity, you have to drop down to value types, which is very restrictive and which I correctly said is actively working against an environment and language built around an Object base class of nearly all types &#8212; including even boxed value types which can&#8217;t be held contiguously.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Zeckul				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11976</link>
+		<dc:creator><![CDATA[Zeckul]]></dc:creator>
+		<pubDate>Tue, 16 Jul 2013 16:03:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11976</guid>
+					<description><![CDATA[@HerbSutter: thanks for clarifying your point. The equivalent of an array of MyClass in C# would be an array of MyClass* or MyClass&#038; in C++; the equivalent of an array of MyClass in C++ would be an array of MyStruct in C#. Let&#039;s not compare apple to oranges. .NET arrays and Lists are contiguous blobs of memory exactly like native arrays and std::vectors. It&#039;s up to the programmer, in both cases, to make use of that contiguity for data locality as need be.
+
+I understand your point on different emphasis, but even then I find it unfair since, as I said, value types are first class citizens of .NET; they&#039;re fully supported and easy to write and use. It&#039;s not like value types were an esoteric feature (as could be said of many C++ features ;) ). For example, all geometric and math primitives in the XNA Framework are value types. If someone cares about performance and avoiding GC overhead it&#039;s entirely feasible to rely heavily on value types and contiguous arrays in managed code, and it&#039;s not particularly difficult or obscure code to write either. At any rate it&#039;s certainly less obscure than most C++ code out there.
+
+&quot;you can’t make use of contiguity unless you pin (that’s a major performance penalty)&quot; -&#062; You get the data locality performance benefits whether you pin or not, but granted, you can only use pointer arithmetic if you pin. That said, pinning only hurts performance if the array is small (LOH is never moved in memory) and if GC happens to run while it&#039;s pinned; if you only pin for brief amounts of time as is idiomatic with the fixed statement, and do some manual memory management (object pools, value types etc) to avoid putting too much pressure on the GC, the impact can be kept minimal.
+
+&quot;you can only make arrays up to a 32-bit index size&quot; -&#062; Not likely to be an issue even for most performance-sensitive programs. One can always allocate unmanaged memory if need be, exactly as they would in native code.
+
+&quot;multidimensional arrays are not contiguous&quot; -&#062; What is called a &quot;multidimensional array&quot; in .NET *is* contiguous in memory ( http://stackoverflow.com/a/597790/154766 ), although array access are unfortunately not inlined by the CLR. Jagged arrays require an indirection per dimension, but so they do in C++ as well, i.e. an unsigned char** is two layers of indirection exactly like a C# byte[][].
+
+&quot;typically there’s no alignment control&quot; -&#062; There&#039;s no built-in wrapper for alignment control but nothing stops someone from allocating a chunk of unmanaged memory (using aligned malloc if need be) and using pointers in C#. While this is not particularly easy, I don&#039;t find C++ to make things so much easier in that regard either.
+
+&quot;True (fully contiguous) arrays just aren’t used as much in managed code, whereas they’re the recommended default container ([] and std::vector) in C and C++ code.&quot; -&#062; Strange, I thought [] and List were the recommended default containers in C# as well. If you browse MSDN samples for C# those are by far the most commonly used collections. But if managed code litterature makes heavier use of fancy data structures in .NET, perhaps it is simply because they&#039;re more abundant and easier to use.
+
+Similar to how C++ lets you opt-in to use certain &quot;heavyweight&quot; features (virtual methods, exceptions), C# lets you opt-out of GC and type checking (value types, unsafe code). Certainly the defaults and emphasis are different, but let&#039;s not underestimate the possibilities of managed code.]]></description>
+		<content:encoded><![CDATA[<p>@HerbSutter: thanks for clarifying your point. The equivalent of an array of MyClass in C# would be an array of MyClass* or MyClass&amp; in C++; the equivalent of an array of MyClass in C++ would be an array of MyStruct in C#. Let&#8217;s not compare apple to oranges. .NET arrays and Lists are contiguous blobs of memory exactly like native arrays and std::vectors. It&#8217;s up to the programmer, in both cases, to make use of that contiguity for data locality as need be.</p>
+<p>I understand your point on different emphasis, but even then I find it unfair since, as I said, value types are first class citizens of .NET; they&#8217;re fully supported and easy to write and use. It&#8217;s not like value types were an esoteric feature (as could be said of many C++ features ;) ). For example, all geometric and math primitives in the XNA Framework are value types. If someone cares about performance and avoiding GC overhead it&#8217;s entirely feasible to rely heavily on value types and contiguous arrays in managed code, and it&#8217;s not particularly difficult or obscure code to write either. At any rate it&#8217;s certainly less obscure than most C++ code out there.</p>
+<p>&#8220;you can’t make use of contiguity unless you pin (that’s a major performance penalty)&#8221; -&gt; You get the data locality performance benefits whether you pin or not, but granted, you can only use pointer arithmetic if you pin. That said, pinning only hurts performance if the array is small (LOH is never moved in memory) and if GC happens to run while it&#8217;s pinned; if you only pin for brief amounts of time as is idiomatic with the fixed statement, and do some manual memory management (object pools, value types etc) to avoid putting too much pressure on the GC, the impact can be kept minimal.</p>
+<p>&#8220;you can only make arrays up to a 32-bit index size&#8221; -&gt; Not likely to be an issue even for most performance-sensitive programs. One can always allocate unmanaged memory if need be, exactly as they would in native code.</p>
+<p>&#8220;multidimensional arrays are not contiguous&#8221; -&gt; What is called a &#8220;multidimensional array&#8221; in .NET *is* contiguous in memory ( <a href="http://stackoverflow.com/a/597790/154766" rel="nofollow">http://stackoverflow.com/a/597790/154766</a> ), although array access are unfortunately not inlined by the CLR. Jagged arrays require an indirection per dimension, but so they do in C++ as well, i.e. an unsigned char** is two layers of indirection exactly like a C# byte[][].</p>
+<p>&#8220;typically there’s no alignment control&#8221; -&gt; There&#8217;s no built-in wrapper for alignment control but nothing stops someone from allocating a chunk of unmanaged memory (using aligned malloc if need be) and using pointers in C#. While this is not particularly easy, I don&#8217;t find C++ to make things so much easier in that regard either.</p>
+<p>&#8220;True (fully contiguous) arrays just aren’t used as much in managed code, whereas they’re the recommended default container ([] and std::vector) in C and C++ code.&#8221; -&gt; Strange, I thought [] and List were the recommended default containers in C# as well. If you browse MSDN samples for C# those are by far the most commonly used collections. But if managed code litterature makes heavier use of fancy data structures in .NET, perhaps it is simply because they&#8217;re more abundant and easier to use.</p>
+<p>Similar to how C++ lets you opt-in to use certain &#8220;heavyweight&#8221; features (virtual methods, exceptions), C# lets you opt-out of GC and type checking (value types, unsafe code). Certainly the defaults and emphasis are different, but let&#8217;s not underestimate the possibilities of managed code.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pjmlp				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11974</link>
+		<dc:creator><![CDATA[pjmlp]]></dc:creator>
+		<pubDate>Tue, 16 Jul 2013 06:38:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11974</guid>
+					<description><![CDATA[C# and Java are not the only languages with GC, there are quite a few that offer the same memory control that C and C++ do, besides GC.
+
+As mentioned, so far they failed to make a dent into then mainstream due to lack of corporation support, but that doesn&#039;t mean we should now take C# and Java as examples of the only way to implement GC in system languages and its performance.]]></description>
+		<content:encoded><![CDATA[<p>C# and Java are not the only languages with GC, there are quite a few that offer the same memory control that C and C++ do, besides GC.</p>
+<p>As mentioned, so far they failed to make a dent into then mainstream due to lack of corporation support, but that doesn&#8217;t mean we should now take C# and Java as examples of the only way to implement GC in system languages and its performance.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11971</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Mon, 15 Jul 2013 22:24:32 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11971</guid>
+					<description><![CDATA[@Zeckul: Alas, &#039;t&#039;ain&#039;t so. Quick example -- given a class MyClass { }, try an array of MyClass in C++ and C#. Are they really exactly the same, including memory layout which was a major aspect of the point? Quick read: http://stackoverflow.com/questions/6943229/c-sharp-equivalent-of-c-vector-with-contiguous-memory .
+
+Longer answer follows:
+
+Yes, the emphasis is on &quot;graphs&quot; which popular GC-based languages are built around and encourage. Having said that, GC&#039;d object graphs add an additional layer of performance overhead because they need to be traversed by the system, which adds extra memory operations and in some cases contention with program threads/cores.
+
+You can get array allocation, but have to fight the system&#039;s natural way of working and don&#039;t get full support -- for example, common limitations/gotchas of arrays in managed languages include that you can only use them with true contiguity with a subset of types (typically fundamental/value types and arrays of big-Oh Objects aren&#039;t contiguous but are really arrays of references), you can&#039;t make use of contiguity unless you pin (that&#039;s a major performance penalty), you can only make arrays up to a 32-bit index size, multidimensional arrays are not contiguous, typically there&#039;s no alignment control, and/or other limitations. BTW, I said &quot;GC-based languages&quot; in the previous paragraph because the language design itself often assumes a GC, making node-based allocation and GC semantics inherent in the language in places -- you&#039;re fighting those assumptions and that normal common-path way of working when you opt for arrays, that&#039;s all.
+
+True (fully contiguous) arrays just aren&#039;t used as much in managed code, whereas they&#039;re the recommended default container ([] and std::vector) in C and C++ code. I haven&#039;t done this experiment, but try counting the mentions of techniques that use arrays in books/articles about managed code vs. books/articles about native code. Note: If you want to try this experiment, be careful when you count, because types called &quot;*Array*&quot; in C# and Java are not always actually arrays in the contiguous sense we mean! -- which is symptomatic of what I&#039;m talking about.]]></description>
+		<content:encoded><![CDATA[<p>@Zeckul: Alas, &#8216;t&#8217;ain&#8217;t so. Quick example &#8212; given a class MyClass { }, try an array of MyClass in C++ and C#. Are they really exactly the same, including memory layout which was a major aspect of the point? Quick read: <a href="http://stackoverflow.com/questions/6943229/c-sharp-equivalent-of-c-vector-with-contiguous-memory" rel="nofollow">http://stackoverflow.com/questions/6943229/c-sharp-equivalent-of-c-vector-with-contiguous-memory</a> .</p>
+<p>Longer answer follows:</p>
+<p>Yes, the emphasis is on &#8220;graphs&#8221; which popular GC-based languages are built around and encourage. Having said that, GC&#8217;d object graphs add an additional layer of performance overhead because they need to be traversed by the system, which adds extra memory operations and in some cases contention with program threads/cores.</p>
+<p>You can get array allocation, but have to fight the system&#8217;s natural way of working and don&#8217;t get full support &#8212; for example, common limitations/gotchas of arrays in managed languages include that you can only use them with true contiguity with a subset of types (typically fundamental/value types and arrays of big-Oh Objects aren&#8217;t contiguous but are really arrays of references), you can&#8217;t make use of contiguity unless you pin (that&#8217;s a major performance penalty), you can only make arrays up to a 32-bit index size, multidimensional arrays are not contiguous, typically there&#8217;s no alignment control, and/or other limitations. BTW, I said &#8220;GC-based languages&#8221; in the previous paragraph because the language design itself often assumes a GC, making node-based allocation and GC semantics inherent in the language in places &#8212; you&#8217;re fighting those assumptions and that normal common-path way of working when you opt for arrays, that&#8217;s all.</p>
+<p>True (fully contiguous) arrays just aren&#8217;t used as much in managed code, whereas they&#8217;re the recommended default container ([] and std::vector) in C and C++ code. I haven&#8217;t done this experiment, but try counting the mentions of techniques that use arrays in books/articles about managed code vs. books/articles about native code. Note: If you want to try this experiment, be careful when you count, because types called &#8220;*Array*&#8221; in C# and Java are not always actually arrays in the contiguous sense we mean! &#8212; which is symptomatic of what I&#8217;m talking about.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Zeckul				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11969</link>
+		<dc:creator><![CDATA[Zeckul]]></dc:creator>
+		<pubDate>Mon, 15 Jul 2013 21:50:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11969</guid>
+					<description><![CDATA[@HerbSutter: “GC’d object graphs are antithetical to performance” -&#062; I don’t see what “GC’d” has to do with the performance of object graphs vs arrays. Object graphs have poor data locality whether they’re GCed or not.
+
+“you can still get arrays but you’re fighting against the system” -&#062; How are you fighting the system? Arrays and value types are first-class in .NET and popular .NET languages. The syntax, semantics and performance characteristics are the same. If using first-class citizens of the runtime and language is fighting the system then worse should be said about automatic pointers, memory pools and such techniques in C++.
+
+“control over hold/cold data separation and cache line layouts both of which are hard in managed environments that often don’t give you the control you need to specify things like alignment directly” -&#062; .NET offers the same control over data layout as C++. Alignement is certainly a valid example where things are easier in C++ but it’s not exactly rocket science to do it in managed code either.
+
+The article applied to Javascript and I find that generalizing to all GC’d/managed environments is unfair. .NET and C# were clearly designed with performance and low-level control in mind unlike Javascript, and save from writing intrinsics or inline assembly there are precious few cases where dropping down to native code is necessary. It’s entirely possible to avoid GC by managing object pools and arrays exactly like it’s done in C++, and it’s not “fighting the system” any more than trying to do the same in C++.]]></description>
+		<content:encoded><![CDATA[<p>@HerbSutter: “GC’d object graphs are antithetical to performance” -&gt; I don’t see what “GC’d” has to do with the performance of object graphs vs arrays. Object graphs have poor data locality whether they’re GCed or not.</p>
+<p>“you can still get arrays but you’re fighting against the system” -&gt; How are you fighting the system? Arrays and value types are first-class in .NET and popular .NET languages. The syntax, semantics and performance characteristics are the same. If using first-class citizens of the runtime and language is fighting the system then worse should be said about automatic pointers, memory pools and such techniques in C++.</p>
+<p>“control over hold/cold data separation and cache line layouts both of which are hard in managed environments that often don’t give you the control you need to specify things like alignment directly” -&gt; .NET offers the same control over data layout as C++. Alignement is certainly a valid example where things are easier in C++ but it’s not exactly rocket science to do it in managed code either.</p>
+<p>The article applied to Javascript and I find that generalizing to all GC’d/managed environments is unfair. .NET and C# were clearly designed with performance and low-level control in mind unlike Javascript, and save from writing intrinsics or inline assembly there are precious few cases where dropping down to native code is necessary. It’s entirely possible to avoid GC by managing object pools and arrays exactly like it’s done in C++, and it’s not “fighting the system” any more than trying to do the same in C++.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Brian M				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11949</link>
+		<dc:creator><![CDATA[Brian M]]></dc:creator>
+		<pubDate>Sun, 14 Jul 2013 13:30:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11949</guid>
+					<description><![CDATA[Wasn&#039;t aware of the API GC in c++ 11 but if optional no real point.  
+Your comment does remind me of the one flaw in biological evolution of the survival of the fittest, which is not the same as the best solution and so it is with languages and compilers. If something is just good enough, then often it grows in popularity beyond potentialy better solutions. JavaScript and c/c++ have typically eclipsed potentially better solutions as both do the job well enough to survive - that&#039;s evolution and boils down to right time and place!]]></description>
+		<content:encoded><![CDATA[<p>Wasn&#8217;t aware of the API GC in c++ 11 but if optional no real point.<br />
+Your comment does remind me of the one flaw in biological evolution of the survival of the fittest, which is not the same as the best solution and so it is with languages and compilers. If something is just good enough, then often it grows in popularity beyond potentialy better solutions. JavaScript and c/c++ have typically eclipsed potentially better solutions as both do the job well enough to survive &#8211; that&#8217;s evolution and boils down to right time and place!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Timo Kinnunen				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11941</link>
+		<dc:creator><![CDATA[Timo Kinnunen]]></dc:creator>
+		<pubDate>Sat, 13 Jul 2013 07:19:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11941</guid>
+					<description><![CDATA[@Herb: I don&#039;t feel that &quot;fighting the design&quot; is a totally unbiased characterization. If you&#039;re trying to get low-latency framerates, is the Desktop Window Manager actively working against you so you&#039;re forced to fight the design of Windows? And then when Windows 8.1 gets GetFrameLatencyWaitableObject and SetMaximumFrameLatency, is it because the design of Windows was changed from anti-low-latency to pro-low-latency? No, a more likely explanation is that enough people made enough noise to get some other features bumped for these controls that let you work better with and within this managed windowing environment.
+
+Likewise garbage collectors provide settings to tune. Likewise if one started providing SetStopTheWorldGCDeferment that would be an incremental improvement rather than a design U-turn. But suppose you don&#039;t want any GC pauses at all and reject GC completely? In that case you can&#039;t go on to make a game that has a screen that says &quot;Stopping the game world while managing memory...&quot; aka &quot;Loading...&quot; nor can you be managing memory for LuaJIT, because that would be ironic.]]></description>
+		<content:encoded><![CDATA[<p>@Herb: I don&#8217;t feel that &#8220;fighting the design&#8221; is a totally unbiased characterization. If you&#8217;re trying to get low-latency framerates, is the Desktop Window Manager actively working against you so you&#8217;re forced to fight the design of Windows? And then when Windows 8.1 gets GetFrameLatencyWaitableObject and SetMaximumFrameLatency, is it because the design of Windows was changed from anti-low-latency to pro-low-latency? No, a more likely explanation is that enough people made enough noise to get some other features bumped for these controls that let you work better with and within this managed windowing environment.</p>
+<p>Likewise garbage collectors provide settings to tune. Likewise if one started providing SetStopTheWorldGCDeferment that would be an incremental improvement rather than a design U-turn. But suppose you don&#8217;t want any GC pauses at all and reject GC completely? In that case you can&#8217;t go on to make a game that has a screen that says &#8220;Stopping the game world while managing memory&#8230;&#8221; aka &#8220;Loading&#8230;&#8221; nor can you be managing memory for LuaJIT, because that would be ironic.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pjmlp				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11939</link>
+		<dc:creator><![CDATA[pjmlp]]></dc:creator>
+		<pubDate>Sat, 13 Jul 2013 06:47:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11939</guid>
+					<description><![CDATA[@Brian M:
+
+C++11 defines an API for GC integration, it is up to the compiler vendors to offer a GC if they feel like to.
+
+C++ can only have a conservative GC due to the way the language allows for pointer tricks and by being unsafe by default.
+
+The current smart pointers suffer from performance problems, because every change of ownership carries with it the weight of counter changes. As well as some complexity as shown by Herb post about how to pass pointers around when doing functions and member functions calls.
+
+It would be nice if the standard also defined that the compilers should be smart pointer aware and were able to elide smart pointer operations if at the exit of a basic block the counter is to have the same value as at the entry. This is done in Objective-C ARC and ParaSail, for example.
+
+But yeah, what I really miss are comparison with optimizing compilers for other languages, and the main issue is that they don&#039;t exist.
+
+VM based languages took over the enterprise the last decade and developers not versed in compiler design tend to mix those language features with being managed, while being unaware that quite a few languages with similar set of features, but with native compilers, failed to make an impression in the industry.
+
+So the existing compilers for those languages are mostly good enough compilers compared with the 30 years of compiler research that has been put into commercial C and C++ compilers.
+
+For example, how performant would Modula-3 or Active Oberon be if they haven&#039;t died in academia and had an optimizer with 30 years of research built into the compiler, even with GC. Or Microsoft&#039;s own Sing# if Singularity didn&#039;t died as project?]]></description>
+		<content:encoded><![CDATA[<p>@Brian M:</p>
+<p>C++11 defines an API for GC integration, it is up to the compiler vendors to offer a GC if they feel like to.</p>
+<p>C++ can only have a conservative GC due to the way the language allows for pointer tricks and by being unsafe by default.</p>
+<p>The current smart pointers suffer from performance problems, because every change of ownership carries with it the weight of counter changes. As well as some complexity as shown by Herb post about how to pass pointers around when doing functions and member functions calls.</p>
+<p>It would be nice if the standard also defined that the compilers should be smart pointer aware and were able to elide smart pointer operations if at the exit of a basic block the counter is to have the same value as at the entry. This is done in Objective-C ARC and ParaSail, for example.</p>
+<p>But yeah, what I really miss are comparison with optimizing compilers for other languages, and the main issue is that they don&#8217;t exist.</p>
+<p>VM based languages took over the enterprise the last decade and developers not versed in compiler design tend to mix those language features with being managed, while being unaware that quite a few languages with similar set of features, but with native compilers, failed to make an impression in the industry.</p>
+<p>So the existing compilers for those languages are mostly good enough compilers compared with the 30 years of compiler research that has been put into commercial C and C++ compilers.</p>
+<p>For example, how performant would Modula-3 or Active Oberon be if they haven&#8217;t died in academia and had an optimizer with 30 years of research built into the compiler, even with GC. Or Microsoft&#8217;s own Sing# if Singularity didn&#8217;t died as project?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pjmlp				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11938</link>
+		<dc:creator><![CDATA[pjmlp]]></dc:creator>
+		<pubDate>Sat, 13 Jul 2013 06:31:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11938</guid>
+					<description><![CDATA[@M.S. Babaei:
+
+I did some contributions to Go before giving up on his simplicity. I was thinking more in the Oberon language family, Modula-3, D, Haskell, OCaml, Lisp.]]></description>
+		<content:encoded><![CDATA[<p>@M.S. Babaei:</p>
+<p>I did some contributions to Go before giving up on his simplicity. I was thinking more in the Oberon language family, Modula-3, D, Haskell, OCaml, Lisp.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Brian M				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11932</link>
+		<dc:creator><![CDATA[Brian M]]></dc:creator>
+		<pubDate>Fri, 12 Jul 2013 17:17:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11932</guid>
+					<description><![CDATA[@pjmlp Suspect the actual GC is probable (hopefully!) well optimised, its the data (memory) that it has to process that might be less so. Given the amount of time the JIT has to optimise compared to a native compiler you may well have an interesting question! 
+
+Be surprised if the c++ standards people didn&#039;t consider the viability of GC given its attractions to developers. The current c++ smart pointers are not a million miles away from it, or a least from a sort of declare and forget point of view! This might hint that GC is just too expensive?]]></description>
+		<content:encoded><![CDATA[<p>@pjmlp Suspect the actual GC is probable (hopefully!) well optimised, its the data (memory) that it has to process that might be less so. Given the amount of time the JIT has to optimise compared to a native compiler you may well have an interesting question! </p>
+<p>Be surprised if the c++ standards people didn&#8217;t consider the viability of GC given its attractions to developers. The current c++ smart pointers are not a million miles away from it, or a least from a sort of declare and forget point of view! This might hint that GC is just too expensive?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: M.S. Babaei				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11931</link>
+		<dc:creator><![CDATA[M.S. Babaei]]></dc:creator>
+		<pubDate>Fri, 12 Jul 2013 16:37:51 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11931</guid>
+					<description><![CDATA[@pjmlp
+
+Go does. Go has gc and compiles to native.]]></description>
+		<content:encoded><![CDATA[<p>@pjmlp</p>
+<p>Go does. Go has gc and compiles to native.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pjmlp				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11927</link>
+		<dc:creator><![CDATA[pjmlp]]></dc:creator>
+		<pubDate>Fri, 12 Jul 2013 12:02:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11927</guid>
+					<description><![CDATA[@Herb: I am no expert in compiler design. Just someone that got really interested into the field during the university and still follows with passion this subject. Although, like many, I tend to write standard line of business applications in C++/JVM and .NET languages.
+
+The article you pointed you is very interesting read as I mentioned in a previous comment.
+
+What I think is usually missing from these discussions, is that GC and JIT tend to be mixed up with VM based environments when discussing managed versus native.
+
+Although, there are quite a few languages with GC, sadly not mainstream, that compile to native code.
+
+What would actually interest me is to know how well such languages would fare, if their native compilers had an optimizer with the same amount of investment as C and C++ compilers enjoy since the early 80&#039;s.]]></description>
+		<content:encoded><![CDATA[<p>@Herb: I am no expert in compiler design. Just someone that got really interested into the field during the university and still follows with passion this subject. Although, like many, I tend to write standard line of business applications in C++/JVM and .NET languages.</p>
+<p>The article you pointed you is very interesting read as I mentioned in a previous comment.</p>
+<p>What I think is usually missing from these discussions, is that GC and JIT tend to be mixed up with VM based environments when discussing managed versus native.</p>
+<p>Although, there are quite a few languages with GC, sadly not mainstream, that compile to native code.</p>
+<p>What would actually interest me is to know how well such languages would fare, if their native compilers had an optimizer with the same amount of investment as C and C++ compilers enjoy since the early 80&#8217;s.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Brian M				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11926</link>
+		<dc:creator><![CDATA[Brian M]]></dc:creator>
+		<pubDate>Fri, 12 Jul 2013 09:28:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11926</guid>
+					<description><![CDATA[@Timo the trouble is the &#039;no brainier&#039; and &#039;if you can afford it&#039; is the problem.  Not every platform is going to have the luxury of copious amounts of memory! It&#039;s not that long ago smartphones had just  512Mbtes of RAM and even that is generous compared to small web connecting devices even today.]]></description>
+		<content:encoded><![CDATA[<p>@Timo the trouble is the &#8216;no brainier&#8217; and &#8216;if you can afford it&#8217; is the problem.  Not every platform is going to have the luxury of copious amounts of memory! It&#8217;s not that long ago smartphones had just  512Mbtes of RAM and even that is generous compared to small web connecting devices even today.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11921</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Fri, 12 Jul 2013 00:09:52 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11921</guid>
+					<description><![CDATA[@Timo: It&#039;s not just about the performance of GC (requiring 5x space cost to be comparable in perf). Even beyond that, it&#039;s also about determinism (which the article alludes to briefly) and control over where things are allocated (e.g., if you&#039;re serious about performance, you&#039;ll often use arrays and GC&#039;d object graphs are antithetical to performance in many cases -- you can still get arrays but you&#039;re fighting against the system to get performant data layouts; and control over hold/cold data separation and cache line layouts both of which are hard in managed environments that often don&#039;t give you the control you need to specify things like alignment directly).]]></description>
+		<content:encoded><![CDATA[<p>@Timo: It&#8217;s not just about the performance of GC (requiring 5x space cost to be comparable in perf). Even beyond that, it&#8217;s also about determinism (which the article alludes to briefly) and control over where things are allocated (e.g., if you&#8217;re serious about performance, you&#8217;ll often use arrays and GC&#8217;d object graphs are antithetical to performance in many cases &#8212; you can still get arrays but you&#8217;re fighting against the system to get performant data layouts; and control over hold/cold data separation and cache line layouts both of which are hard in managed environments that often don&#8217;t give you the control you need to specify things like alignment directly).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Timo Kinnunen				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11920</link>
+		<dc:creator><![CDATA[Timo Kinnunen]]></dc:creator>
+		<pubDate>Thu, 11 Jul 2013 20:22:14 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11920</guid>
+					<description><![CDATA[It&#039;s an interesting article to be sure. That chart is really striking in showing what the effect of not using the best possible Garbage Collector implementation can be. The difference between Non-compacting Mark-Sweep which I guess was and still is comparable to the Boehm-GC and Generational Mark-Sweep like in Java in 2005 doesn&#039;t even fit into the same chart!
+
+Quantifying the Performance of Garbage Collection vs. Explicit Memory Management, the paper from which that chart is from also has other interesting charts. Now if I&#039;m reading the benchmark results from Figure 7a-f right, as the available memory increases between 50-&#062;70MB, 70-&#062;110MB, 60-&#062;90MB, 40-&#062;60MB, 45-&#062;50MB and 40-&#062;50MB for the six different benchmarks, Generational Mark-Sweep GC from 2005 goes on to perform just as well as clairvoyant malloc&#038;free. 
+
+To me in 2013 sitting at a computer with 11936MB of memory just caching files that are currently not used, the tradeoff seems like a no-brainer as long as you can afford it.]]></description>
+		<content:encoded><![CDATA[<p>It&#8217;s an interesting article to be sure. That chart is really striking in showing what the effect of not using the best possible Garbage Collector implementation can be. The difference between Non-compacting Mark-Sweep which I guess was and still is comparable to the Boehm-GC and Generational Mark-Sweep like in Java in 2005 doesn&#8217;t even fit into the same chart!</p>
+<p>Quantifying the Performance of Garbage Collection vs. Explicit Memory Management, the paper from which that chart is from also has other interesting charts. Now if I&#8217;m reading the benchmark results from Figure 7a-f right, as the available memory increases between 50-&gt;70MB, 70-&gt;110MB, 60-&gt;90MB, 40-&gt;60MB, 45-&gt;50MB and 40-&gt;50MB for the six different benchmarks, Generational Mark-Sweep GC from 2005 goes on to perform just as well as clairvoyant malloc&amp;free. </p>
+<p>To me in 2013 sitting at a computer with 11936MB of memory just caching files that are currently not used, the tradeoff seems like a no-brainer as long as you can afford it.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mobile web apps &#124; Ideas 2 Websites				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11917</link>
+		<dc:creator><![CDATA[mobile web apps &#124; Ideas 2 Websites]]></dc:creator>
+		<pubDate>Thu, 11 Jul 2013 07:45:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11917</guid>
+					<description><![CDATA[[&#8230;] Recommended reading: Why mobile web apps are slow (Drew &#8230; https://herbsutter.com/Why mobile web apps are slow. by Drew Crawford … So if you are trying to figure out exactly what brand of crazy all your native developer friends are on for continuing to write the evil native applications on the cusp of the &#8230; [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Recommended reading: Why mobile web apps are slow (Drew &#8230; <a href="https://herbsutter.com/Why" rel="nofollow">https://herbsutter.com/Why</a> mobile web apps are slow. by Drew Crawford … So if you are trying to figure out exactly what brand of crazy all your native developer friends are on for continuing to write the evil native applications on the cusp of the &#8230; [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11915</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Wed, 10 Jul 2013 23:17:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11915</guid>
+					<description><![CDATA[@Concerned: The AST work is just an internal compiler implementation detail that I thought I&#039;d mention for general interest, not as a product or API in itself or anything; just a &quot;one of the things we need to do&quot; items. It enables the implementation of new C++11/14 language features, and I gave a timeline for completion of those in the roadmap we shared at Build.]]></description>
+		<content:encoded><![CDATA[<p>@Concerned: The AST work is just an internal compiler implementation detail that I thought I&#8217;d mention for general interest, not as a product or API in itself or anything; just a &#8220;one of the things we need to do&#8221; items. It enables the implementation of new C++11/14 language features, and I gave a timeline for completion of those in the roadmap we shared at Build.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pip010 (@ppetrovdotnet)				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11912</link>
+		<dc:creator><![CDATA[pip010 (@ppetrovdotnet)]]></dc:creator>
+		<pubDate>Wed, 10 Jul 2013 12:36:45 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11912</guid>
+					<description><![CDATA[insightful, revelating and darn disturbing to be honest !]]></description>
+		<content:encoded><![CDATA[<p>insightful, revelating and darn disturbing to be honest !</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Brian M				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11911</link>
+		<dc:creator><![CDATA[Brian M]]></dc:creator>
+		<pubDate>Wed, 10 Jul 2013 09:19:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11911</guid>
+					<description><![CDATA[Long but interesting article, but absolutely no surprises, just confirmation of the naysayers critism of .net and Java languages when they were first introduced. Great ideas let down by dogma, and as for Javascript that&#039;s one compromised sick dog of a language that is well past  its sell buy date, but  still selling well and causing tummy bugs to anyone who consumes more than a few lines :)
+
+Main worry is that c++ is headed the same way as JavaScript with so many additions that the environment becomes polluted, the KISS principle is so often forgotten by standard organisations!]]></description>
+		<content:encoded><![CDATA[<p>Long but interesting article, but absolutely no surprises, just confirmation of the naysayers critism of .net and Java languages when they were first introduced. Great ideas let down by dogma, and as for Javascript that&#8217;s one compromised sick dog of a language that is well past  its sell buy date, but  still selling well and causing tummy bugs to anyone who consumes more than a few lines :)</p>
+<p>Main worry is that c++ is headed the same way as JavaScript with so many additions that the environment becomes polluted, the KISS principle is so often forgotten by standard organisations!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Why Mobile Web Apps are so Slow, Drew Crawford &#124; musingstudio				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11910</link>
+		<dc:creator><![CDATA[Why Mobile Web Apps are so Slow, Drew Crawford &#124; musingstudio]]></dc:creator>
+		<pubDate>Wed, 10 Jul 2013 08:03:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11910</guid>
+					<description><![CDATA[[&#8230;] of reasons why mobile web apps aren&#8217;t going to get faster anytime soon. Herb Sutter&#8217;s blog post lists some of the contents and a [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] of reasons why mobile web apps aren&#8217;t going to get faster anytime soon. Herb Sutter&#8217;s blog post lists some of the contents and a [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mark Garcia				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11909</link>
+		<dc:creator><![CDATA[Mark Garcia]]></dc:creator>
+		<pubDate>Wed, 10 Jul 2013 05:46:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11909</guid>
+					<description><![CDATA[A very good article. Thank you very much for sharing.
+
+After reading the whole of it, I gained much appreciation for modern C++&#039;s flexibility, TBH. Maybe it&#039;s now a good time to say that GCs need to collect themselves! :-)]]></description>
+		<content:encoded><![CDATA[<p>A very good article. Thank you very much for sharing.</p>
+<p>After reading the whole of it, I gained much appreciation for modern C++&#8217;s flexibility, TBH. Maybe it&#8217;s now a good time to say that GCs need to collect themselves! :-)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: M.S. Babaei				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11906</link>
+		<dc:creator><![CDATA[M.S. Babaei]]></dc:creator>
+		<pubDate>Wed, 10 Jul 2013 01:03:43 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11906</guid>
+					<description><![CDATA[Thanks for sharing. Very good read indeed.
+
+@Jasper There is a good alternative to XAML. Way more powerful than XAML. And it&#039;s QML.
+
+Naturally, as a C++ developer I&#039;ve always avoided using it. Until I used Qt Quick 2.1 in my recent project.
+And, I admit I fell for it.]]></description>
+		<content:encoded><![CDATA[<p>Thanks for sharing. Very good read indeed.</p>
+<p>@Jasper There is a good alternative to XAML. Way more powerful than XAML. And it&#8217;s QML.</p>
+<p>Naturally, as a C++ developer I&#8217;ve always avoided using it. Until I used Qt Quick 2.1 in my recent project.<br />
+And, I admit I fell for it.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Concerned Programmer				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11903</link>
+		<dc:creator><![CDATA[Concerned Programmer]]></dc:creator>
+		<pubDate>Tue, 09 Jul 2013 22:25:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11903</guid>
+					<description><![CDATA[@Herb, thanks for the interesting link. 
+
+That said, I was wondering if you could give us all an update on the status of the addition of an AST to the MS C++ compiler. Is there a time-line for completion? will it be available for use in vs2013 RTM. I think we&#039;re all VERY interested to hear your take on this very important issue.]]></description>
+		<content:encoded><![CDATA[<p>@Herb, thanks for the interesting link. </p>
+<p>That said, I was wondering if you could give us all an update on the status of the addition of an AST to the MS C++ compiler. Is there a time-line for completion? will it be available for use in vs2013 RTM. I think we&#8217;re all VERY interested to hear your take on this very important issue.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pjmlp				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11898</link>
+		<dc:creator><![CDATA[pjmlp]]></dc:creator>
+		<pubDate>Tue, 09 Jul 2013 18:10:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11898</guid>
+					<description><![CDATA[Thanks for sharing, very nice and interesting article.
+
+I know it is not really your area, but it would be nice that Microsoft eventually has a real optimizing native compiler for C#, not ngen.
+
+With the same kind of knobs that languages like C++, Ada and Delphi offer for code generation.]]></description>
+		<content:encoded><![CDATA[<p>Thanks for sharing, very nice and interesting article.</p>
+<p>I know it is not really your area, but it would be nice that Microsoft eventually has a real optimizing native compiler for C#, not ngen.</p>
+<p>With the same kind of knobs that languages like C++, Ada and Delphi offer for code generation.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jasper				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11897</link>
+		<dc:creator><![CDATA[Jasper]]></dc:creator>
+		<pubDate>Tue, 09 Jul 2013 17:43:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11897</guid>
+					<description><![CDATA[And yet, MSFT tries to move developers away from C++ (not Herb or the VC++ but everybody else):
+- I saw build 2013 videos where MSFT People said that C# delivers better Performance that native code. 
+- Even worse is the Windows Phone Team that argues that .NET Overhead is just around 5 MB. 
+- Most Metro apps from MSFT (Mail, Photos, Music/Videos, Weather, Store, etc.) are all written in HTML/Javascript. The Performance on ARM (Surface RT) is horrible. Apparently, they just don&#039;t care.
+- Most Enterprise products don&#039;t Support C++. Anything from Webservices to Azure, if you are C++ developer, you better look somewhere else.
+- MSFTs own People (higher positions) promote Xamarin products. Basically a re-implementation of .NET that they SELL. They rather see you making apps in C# and Xamarin then in C++. Just sad.
+
+Luckily, there seems to be a glimpse of hope. The new XAML platform is available from C++ (still no UI platform or desktop developers) and we are getting more C++11 Features (the slowest from the Major C++ Compiler).]]></description>
+		<content:encoded><![CDATA[<p>And yet, MSFT tries to move developers away from C++ (not Herb or the VC++ but everybody else):<br />
+&#8211; I saw build 2013 videos where MSFT People said that C# delivers better Performance that native code.<br />
+&#8211; Even worse is the Windows Phone Team that argues that .NET Overhead is just around 5 MB.<br />
+&#8211; Most Metro apps from MSFT (Mail, Photos, Music/Videos, Weather, Store, etc.) are all written in HTML/Javascript. The Performance on ARM (Surface RT) is horrible. Apparently, they just don&#8217;t care.<br />
+&#8211; Most Enterprise products don&#8217;t Support C++. Anything from Webservices to Azure, if you are C++ developer, you better look somewhere else.<br />
+&#8211; MSFTs own People (higher positions) promote Xamarin products. Basically a re-implementation of .NET that they SELL. They rather see you making apps in C# and Xamarin then in C++. Just sad.</p>
+<p>Luckily, there seems to be a glimpse of hope. The new XAML platform is available from C++ (still no UI platform or desktop developers) and we are getting more C++11 Features (the slowest from the Major C++ Compiler).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mttpd				</title>
+				<link>https://herbsutter.com/2013/07/09/recommended-reading-why-mobile-web-apps-are-slow-drew-crawford/#comment-11893</link>
+		<dc:creator><![CDATA[mttpd]]></dc:creator>
+		<pubDate>Tue, 09 Jul 2013 16:56:29 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2224#comment-11893</guid>
+					<description><![CDATA[On a related note -- I&#039;m wondering, what are your thoughts on Steven Sinofsky&#039;s recent article? 
+// http://blog.learningbyshipping.com/2013/07/08/juggling-multiple-platforms-and-the-bumpy-road-ahead/
+
+He seems to be somewhat pessimistic (or perhaps realistic?), when saying that &quot;working across platforms will only get more difficult, not easier.&quot;]]></description>
+		<content:encoded><![CDATA[<p>On a related note &#8212; I&#8217;m wondering, what are your thoughts on Steven Sinofsky&#8217;s recent article?<br />
+// <a href="http://blog.learningbyshipping.com/2013/07/08/juggling-multiple-platforms-and-the-bumpy-road-ahead/" rel="nofollow">http://blog.learningbyshipping.com/2013/07/08/juggling-multiple-platforms-and-the-bumpy-road-ahead/</a></p>
+<p>He seems to be somewhat pessimistic (or perhaps realistic?), when saying that &#8220;working across platforms will only get more difficult, not easier.&#8221;</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

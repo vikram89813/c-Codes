@@ -1,0 +1,1721 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #4: Class Mechanics (7/10)	</title>
+	<atom:link href="https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Roger				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10246</link>
+		<dc:creator><![CDATA[Roger]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 15:23:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10246</guid>
+					<description><![CDATA[I&#039;m going to address one tiny part of this - the streaming. I&#039;ve always hated this form of implementing printing. I don&#039;t mean the fact that it is a member vs non-member function. I mean the assumption that one form of printing is good or correct. Perhaps it is due to the fact that I do a lot of map applications, but why the assumption that I have only one way to &#039;print&#039; (stream) something? In my application domain, a latitude can be printed as decimal degrees (32.3443534N), as deg/min, as deg/min/sec, we can use N/S or +/- to denote hemispheres, and so on. I may want to stream it to a file in a different format, to a SQL database in yet another format, and so on. 
+
+Also, you may need to stream to the cout stream, you may need to use Windows&#039; WriteFile function, or who knows what sink. 
+
+So, first of all, any kind of printing or streaming does not belong in the class. And, it should not assume some single representation. Hey, if your app requires a single representation,sure, go for it, but I would think that a class like Complex would span across more than one app if you are working in a space where you need complex numbers. 
+
+And, of course, this considers only half of the issue. Why are we implementing streaming to output, but not streaming from input to the class? Perhaps that makes the wide variety of possible formats clearer - you may be reading a file generated from a 3rd party app, you might be reading user input with errors in it, and so on. Clearly there is no &#039;one size fits all&#039; solution here. Yet we so often treat output that way.
+
+In short, I almost never use the &#060;&#062; operators to define streaming for a class because it is something that reasonably has to vary (to be fair, I&#039;ve always worked in industries where a piece of code like this is likely to hang around and be used for at least a few decades - I&#039;d write a stream function like this in a second for &#039;throwaway&#039; code)]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;m going to address one tiny part of this &#8211; the streaming. I&#8217;ve always hated this form of implementing printing. I don&#8217;t mean the fact that it is a member vs non-member function. I mean the assumption that one form of printing is good or correct. Perhaps it is due to the fact that I do a lot of map applications, but why the assumption that I have only one way to &#8216;print&#8217; (stream) something? In my application domain, a latitude can be printed as decimal degrees (32.3443534N), as deg/min, as deg/min/sec, we can use N/S or +/- to denote hemispheres, and so on. I may want to stream it to a file in a different format, to a SQL database in yet another format, and so on. </p>
+<p>Also, you may need to stream to the cout stream, you may need to use Windows&#8217; WriteFile function, or who knows what sink. </p>
+<p>So, first of all, any kind of printing or streaming does not belong in the class. And, it should not assume some single representation. Hey, if your app requires a single representation,sure, go for it, but I would think that a class like Complex would span across more than one app if you are working in a space where you need complex numbers. </p>
+<p>And, of course, this considers only half of the issue. Why are we implementing streaming to output, but not streaming from input to the class? Perhaps that makes the wide variety of possible formats clearer &#8211; you may be reading a file generated from a 3rd party app, you might be reading user input with errors in it, and so on. Clearly there is no &#8216;one size fits all&#8217; solution here. Yet we so often treat output that way.</p>
+<p>In short, I almost never use the &lt;&gt; operators to define streaming for a class because it is something that reasonably has to vary (to be fair, I&#8217;ve always worked in industries where a piece of code like this is likely to hang around and be used for at least a few decades &#8211; I&#8217;d write a stream function like this in a second for &#8216;throwaway&#8217; code)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bjarke Hammersholt Roune				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10244</link>
+		<dc:creator><![CDATA[Bjarke Hammersholt Roune]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 13:34:06 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10244</guid>
+					<description><![CDATA[Good interface design is an exercise in tradeoffs. There is no single meaning of something like “easy to use correctly, hard to use incorrectly” - like everything in life, it depends on context. This is a list of things to consider. It is a rare situation indeed where there is any way to do all of these things at the same time. It&#039;s a trade-off. In many cases, some of these items can&#039;t be done no matter what you do.
+
+ * If the main concern for your program is performance, and the interface will participate in performance-critical computations, then avoid designing an interface that makes it difficult or impossible to achieve top performance. In this case, correct use of an interface implies efficient use. For example, avoid unnecessary copying and memory allocation when possible.
+
+ * Make method names succinctly, aptly and clearly describe what the method does. I know what obj.setX(5) probably does, but I&#039;m much less sure about obj.adjustX(5). Use long method names if that is necessary. 
+
+ * Follow the conventions of the code that the interface is a part of.
+
+ * Avoid abbreviations unless you are sure that the user of the interface will understand them easily. Abbreviating pointer to ptr is probably fine. Abbreviating &quot;the identity function&quot; to &quot;id&quot; is only OK if you know for a fact that everyone who will have to deal with your interface is going to make the connection easily.
+
+ * If clearly describing what a method does requires a 30+ character name, try to see if you can&#039;t change what the function does so that you can give it a shorter name. Perhaps split it into two simpler methods.
+
+ * If a method is unavoidably so complicated that a user of it simply must read the documentation, give it a name that will trigger people to go look at the documentation. Don&#039;t let obj.setX(5) do something complicated - I&#039;m going to think that I know what it does and I&#039;ll be wrong. Rename it to something complicated or mysterious (yet still apt) so people will go look up its documentation because they realize that they can&#039;t figure out what that means without looking at the documentation. First, try to redesign the interface so you don&#039;t need that method in the first place.
+
+ * Consider how your interface will show up in intellisense and compiler error messages. For example, if you have a public foo(int) and a private foo(MyInternalType), users of your interface are going to see the private foo in error messages and in intellisense, which probably isn&#039;t what you want. Give the private foo a different name (oh, and don&#039;t name your methods foo).
+
+ * Avoid methods with many parameters of the same type. If you&#039;ve got a function like foo(bool, bool, bool, bool), then likely each parameter does something different and it will be difficult for people to see at a glance whether the order of the parameters is correct. Sometimes there&#039;s no good way around this, but a possible replacement would be fooA(bool), fooB(bool), fooC(bool) and fooD(bool), where A, B, C and D are descriptions of what those bools do.
+
+ * Avoid designing an interface where obj.doSomething(false) causes something to be done. For example, doSomething(bool) might do what it does in a different way depending on the parameter. This is confusing. It looks like you are asking for something not to be done.
+
+ * Suppose that you know that most of the people who will be using the interface do not understand some advanced concept, like template-templates in C++ or topologically sorted directed acyclic graphs. If you must use such a concept anyway, you need to document the concept carefully, perhaps by offering a link to an online resource. First, try to avoid using the concept.
+
+ * Minimize preconditions. For example, suppose you take a std::vector&#038; as a parameter and that you need this vector to be sorted and that you need to hold on to the vector for a while. You could have a precondition stating that the vector must be already sorted and that it must stay alive and be unchanged for the life-time of your object. Instead, you could simplify the precondition by copying the vector and then sorting it yourself.
+
+ * Avoid potentially bad interactions between the methods in the interface. If every call to foo() must be followed by a call to bar(), and if something bad happens if you do it the other way around, then that makes the interface harder to use correctly. There&#039;s often no good way around this.
+
+ * Design the interface so that it is possible to follow the Liskov substitution principle. From Wikipedia: &quot;if S is a subtype of T, then objects of type T may be replaced with objects of type S (i.e., objects of type S may be substituted for objects of type T) without altering any of the desirable properties of that program (correctness, task performed, etc.).&quot;
+
+ * Minimize visible state in your interface. The dynamic type of an object is one example of a state. That kind of state is accessed through virtual functions and the Liskov substitution principle is essentially stating that the client code should not have to know the sub-type. More generally, it is desirable for an interface not to have any state at all, or if it does have state, then client code should ideally not have to worry about what the state is. Some kinds of state are not a problem, for example because it is very simple (setName() and getName()) or because it&#039;s not visible (a transparent cache).
+
+ * If your interface participates in parallel computation, make it very clear what the contract for parallel use of the interface is.
+
+ * Design the interface so that it is possible to use the type system to check for bugs. You do that by making as many bugs as possible cause compile-time errors or at least warnings. You could try to expand this by making your interface easy for static analysis tools to understand, perhaps by annotating it.
+
+ * Design your interface so that there is no tricky or repetitive thing that the user of the interface has to remember to do. Returning a pointer that has to be deleted is a great/horrible example of that (use a smart pointer). Returning an error code that must be checked is another example (use exceptions).
+
+ * Offer exception guarantees. Offer the strong exception guarantee when you can. If you can&#039;t, offer the weak one. Document what guarantee you are giving - maybe not always, but at least in all cases where the answer is not what one would expect.
+
+ * Don&#039;t design an interface that can&#039;t be implemented without using global state. (Singletons are global state).
+
+ * Design the interface so that it is possible for the implementation of the interface to check that it is being used correctly at run-time. For example, if the parameter t to obj.foo(t) must be less than some number X, then you could make it mandatory to inform obj about X, so that t can be checked inside foo, even if it would not otherwise be necessary to know the value of X to implement the interface.
+
+ * Make it testable. If you can&#039;t test to the interface in a reasonable way, there&#039;s more likely to be bugs that you won&#039;t be aware of until the worst possible time. It&#039;s hard to use an interface correctly if it wasn&#039;t implemented correctly.
+
+ * Encapsulate. The interface should not reveal how it is being implemented.
+
+ * Don&#039;t do too much. An interface with too many responsibilities tends to be hard to use.
+
+ * Make it general. You want to be able to use this interface in different contexts, so don&#039;t make your interface specific to a context for no reason.
+
+ * Do something well. If you make your interface too general, you might end up with something that will work in every relevant circumstance, but that doesn&#039;t fit well to any specific use. Make sure your interface is a good fit in at least one situation.
+
+ * Consider the impact of your interface on the whole program&#039;s complexity - both statically and at run-time. It is sometimes possible to make an interface really simple and nice-looking, but programs that use that interface end up having to build very complicated structures in memory. For example, the observer pattern is simple (and sometimes a good choice), yet you can use it to create an impossibly complex maze of calls-backs at run-time. If your interface encourages or even requires that sort of thing, then that makes it harder to use correctly. Sometimes it&#039;s better to complicate your interface if the result is that client code ends up constructing simpler structures in memory. Pushing complexity from your interface into the surrounding code or into the run-time characteristics of the program isn&#039;t always a good idea.]]></description>
+		<content:encoded><![CDATA[<p>Good interface design is an exercise in tradeoffs. There is no single meaning of something like “easy to use correctly, hard to use incorrectly” &#8211; like everything in life, it depends on context. This is a list of things to consider. It is a rare situation indeed where there is any way to do all of these things at the same time. It&#8217;s a trade-off. In many cases, some of these items can&#8217;t be done no matter what you do.</p>
+<p> * If the main concern for your program is performance, and the interface will participate in performance-critical computations, then avoid designing an interface that makes it difficult or impossible to achieve top performance. In this case, correct use of an interface implies efficient use. For example, avoid unnecessary copying and memory allocation when possible.</p>
+<p> * Make method names succinctly, aptly and clearly describe what the method does. I know what obj.setX(5) probably does, but I&#8217;m much less sure about obj.adjustX(5). Use long method names if that is necessary. </p>
+<p> * Follow the conventions of the code that the interface is a part of.</p>
+<p> * Avoid abbreviations unless you are sure that the user of the interface will understand them easily. Abbreviating pointer to ptr is probably fine. Abbreviating &#8220;the identity function&#8221; to &#8220;id&#8221; is only OK if you know for a fact that everyone who will have to deal with your interface is going to make the connection easily.</p>
+<p> * If clearly describing what a method does requires a 30+ character name, try to see if you can&#8217;t change what the function does so that you can give it a shorter name. Perhaps split it into two simpler methods.</p>
+<p> * If a method is unavoidably so complicated that a user of it simply must read the documentation, give it a name that will trigger people to go look at the documentation. Don&#8217;t let obj.setX(5) do something complicated &#8211; I&#8217;m going to think that I know what it does and I&#8217;ll be wrong. Rename it to something complicated or mysterious (yet still apt) so people will go look up its documentation because they realize that they can&#8217;t figure out what that means without looking at the documentation. First, try to redesign the interface so you don&#8217;t need that method in the first place.</p>
+<p> * Consider how your interface will show up in intellisense and compiler error messages. For example, if you have a public foo(int) and a private foo(MyInternalType), users of your interface are going to see the private foo in error messages and in intellisense, which probably isn&#8217;t what you want. Give the private foo a different name (oh, and don&#8217;t name your methods foo).</p>
+<p> * Avoid methods with many parameters of the same type. If you&#8217;ve got a function like foo(bool, bool, bool, bool), then likely each parameter does something different and it will be difficult for people to see at a glance whether the order of the parameters is correct. Sometimes there&#8217;s no good way around this, but a possible replacement would be fooA(bool), fooB(bool), fooC(bool) and fooD(bool), where A, B, C and D are descriptions of what those bools do.</p>
+<p> * Avoid designing an interface where obj.doSomething(false) causes something to be done. For example, doSomething(bool) might do what it does in a different way depending on the parameter. This is confusing. It looks like you are asking for something not to be done.</p>
+<p> * Suppose that you know that most of the people who will be using the interface do not understand some advanced concept, like template-templates in C++ or topologically sorted directed acyclic graphs. If you must use such a concept anyway, you need to document the concept carefully, perhaps by offering a link to an online resource. First, try to avoid using the concept.</p>
+<p> * Minimize preconditions. For example, suppose you take a std::vector&amp; as a parameter and that you need this vector to be sorted and that you need to hold on to the vector for a while. You could have a precondition stating that the vector must be already sorted and that it must stay alive and be unchanged for the life-time of your object. Instead, you could simplify the precondition by copying the vector and then sorting it yourself.</p>
+<p> * Avoid potentially bad interactions between the methods in the interface. If every call to foo() must be followed by a call to bar(), and if something bad happens if you do it the other way around, then that makes the interface harder to use correctly. There&#8217;s often no good way around this.</p>
+<p> * Design the interface so that it is possible to follow the Liskov substitution principle. From Wikipedia: &#8220;if S is a subtype of T, then objects of type T may be replaced with objects of type S (i.e., objects of type S may be substituted for objects of type T) without altering any of the desirable properties of that program (correctness, task performed, etc.).&#8221;</p>
+<p> * Minimize visible state in your interface. The dynamic type of an object is one example of a state. That kind of state is accessed through virtual functions and the Liskov substitution principle is essentially stating that the client code should not have to know the sub-type. More generally, it is desirable for an interface not to have any state at all, or if it does have state, then client code should ideally not have to worry about what the state is. Some kinds of state are not a problem, for example because it is very simple (setName() and getName()) or because it&#8217;s not visible (a transparent cache).</p>
+<p> * If your interface participates in parallel computation, make it very clear what the contract for parallel use of the interface is.</p>
+<p> * Design the interface so that it is possible to use the type system to check for bugs. You do that by making as many bugs as possible cause compile-time errors or at least warnings. You could try to expand this by making your interface easy for static analysis tools to understand, perhaps by annotating it.</p>
+<p> * Design your interface so that there is no tricky or repetitive thing that the user of the interface has to remember to do. Returning a pointer that has to be deleted is a great/horrible example of that (use a smart pointer). Returning an error code that must be checked is another example (use exceptions).</p>
+<p> * Offer exception guarantees. Offer the strong exception guarantee when you can. If you can&#8217;t, offer the weak one. Document what guarantee you are giving &#8211; maybe not always, but at least in all cases where the answer is not what one would expect.</p>
+<p> * Don&#8217;t design an interface that can&#8217;t be implemented without using global state. (Singletons are global state).</p>
+<p> * Design the interface so that it is possible for the implementation of the interface to check that it is being used correctly at run-time. For example, if the parameter t to obj.foo(t) must be less than some number X, then you could make it mandatory to inform obj about X, so that t can be checked inside foo, even if it would not otherwise be necessary to know the value of X to implement the interface.</p>
+<p> * Make it testable. If you can&#8217;t test to the interface in a reasonable way, there&#8217;s more likely to be bugs that you won&#8217;t be aware of until the worst possible time. It&#8217;s hard to use an interface correctly if it wasn&#8217;t implemented correctly.</p>
+<p> * Encapsulate. The interface should not reveal how it is being implemented.</p>
+<p> * Don&#8217;t do too much. An interface with too many responsibilities tends to be hard to use.</p>
+<p> * Make it general. You want to be able to use this interface in different contexts, so don&#8217;t make your interface specific to a context for no reason.</p>
+<p> * Do something well. If you make your interface too general, you might end up with something that will work in every relevant circumstance, but that doesn&#8217;t fit well to any specific use. Make sure your interface is a good fit in at least one situation.</p>
+<p> * Consider the impact of your interface on the whole program&#8217;s complexity &#8211; both statically and at run-time. It is sometimes possible to make an interface really simple and nice-looking, but programs that use that interface end up having to build very complicated structures in memory. For example, the observer pattern is simple (and sometimes a good choice), yet you can use it to create an impossibly complex maze of calls-backs at run-time. If your interface encourages or even requires that sort of thing, then that makes it harder to use correctly. Sometimes it&#8217;s better to complicate your interface if the result is that client code ends up constructing simpler structures in memory. Pushing complexity from your interface into the surrounding code or into the run-time characteristics of the program isn&#8217;t always a good idea.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: rbrown				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10243</link>
+		<dc:creator><![CDATA[rbrown]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 13:08:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10243</guid>
+					<description><![CDATA[To those suggesting that the constructor be made explicit, it&#039;s worth noting out that std::complex has a constructor of the form (note the lack of an &quot;explicit&quot; keyword):
+
+[code]constexpr complex(double re = 0.0, double im = 0.0);[/code]
+
+As litb1 pointed out, making the constructor explicit will prevent the use of a C++11 initializer list for copy-initialization. For example, the following won&#039;t compile:
+
+[code]void f(complex c);
+f({ 1.0, 1.0 });
+f({ 1.0 })[/code]
+
+I think in this case an implicit conversion is natural, and I don&#039;t see it leading to unintended side-effects (unlike, say, going from std::string to const char *).]]></description>
+		<content:encoded><![CDATA[<p>To those suggesting that the constructor be made explicit, it&#8217;s worth noting out that std::complex has a constructor of the form (note the lack of an &#8220;explicit&#8221; keyword):</p>
+<pre class="brush: plain; title: ; notranslate">constexpr complex(double re = 0.0, double im = 0.0);</pre>
+<p>As litb1 pointed out, making the constructor explicit will prevent the use of a C++11 initializer list for copy-initialization. For example, the following won&#8217;t compile:</p>
+<pre class="brush: plain; title: ; notranslate">void f(complex c);
+f({ 1.0, 1.0 });
+f({ 1.0 })</pre>
+<p>I think in this case an implicit conversion is natural, and I don&#8217;t see it leading to unintended side-effects (unlike, say, going from std::string to const char *).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: qdii				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10242</link>
+		<dc:creator><![CDATA[qdii]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 09:28:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10242</guid>
+					<description><![CDATA[@Crazy Eddie
+I disagree with your idea of adding getters to this class.
+
+A complex number can be defined in different ways, one of them being the sum of a and ib, as it is here. Another implementation could rely on its absolute value and its argument.
+
+To make an example, consider a complex class implemented in term of absolute value and argument:
+
+[code]
+class complex
+{
+public:
+    double getReal() const { return /* formula */; }  
+    double getImaginary() const { return /* formula */; }
+
+private:
+    double argument;
+    double absoluteValue;
+};
+[/code]
+
+Now what would operator==() code be?
+
+[code]
+bool operator==(const complex&#038; a, const complex&#038; b)
+{
+    return (a.getReal() == b.getReal()) &#038;&#038; (a.getImaginary() == b.getImaginary());
+}
+[/code]
+
+This probably won’t work because of round-up errors, and even if it does, it will under-perform because of all the computation needed by getReal() and getImaginary(). This is why operator== needs access to the inner guts of the class, in a perfect world it would really be part of the class, but for design reasons (namely, symmetry), it was cast away.]]></description>
+		<content:encoded><![CDATA[<p>@Crazy Eddie<br />
+I disagree with your idea of adding getters to this class.</p>
+<p>A complex number can be defined in different ways, one of them being the sum of a and ib, as it is here. Another implementation could rely on its absolute value and its argument.</p>
+<p>To make an example, consider a complex class implemented in term of absolute value and argument:</p>
+<pre class="brush: plain; title: ; notranslate">
+class complex
+{
+public:
+    double getReal() const { return /* formula */; }  
+    double getImaginary() const { return /* formula */; }
+
+private:
+    double argument;
+    double absoluteValue;
+};
+</pre>
+<p>Now what would operator==() code be?</p>
+<pre class="brush: plain; title: ; notranslate">
+bool operator==(const complex&amp; a, const complex&amp; b)
+{
+    return (a.getReal() == b.getReal()) &amp;&amp; (a.getImaginary() == b.getImaginary());
+}
+</pre>
+<p>This probably won’t work because of round-up errors, and even if it does, it will under-perform because of all the computation needed by getReal() and getImaginary(). This is why operator== needs access to the inner guts of the class, in a perfect world it would really be part of the class, but for design reasons (namely, symmetry), it was cast away.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: litb1				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10203</link>
+		<dc:creator><![CDATA[litb1]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 22:33:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10203</guid>
+					<description><![CDATA[You also need to consider multi element initializer lists when making a constructor &quot;explicit&quot; (see the tuple &quot;explicit&quot; constructor).
+
+The question becomes, do you want this to work?
+
+    void f (complex c);
+    f ({ 0.f, 1.f });
+
+Simply making the two parameter constructor explicit just to guard against the one-argument case then is unsuitable because it guards against the multi arg case too. You will need to overload it (possibly using constructor delegation in the implementation).]]></description>
+		<content:encoded><![CDATA[<p>You also need to consider multi element initializer lists when making a constructor &#8220;explicit&#8221; (see the tuple &#8220;explicit&#8221; constructor).</p>
+<p>The question becomes, do you want this to work?</p>
+<p>    void f (complex c);<br />
+    f ({ 0.f, 1.f });</p>
+<p>Simply making the two parameter constructor explicit just to guard against the one-argument case then is unsuitable because it guards against the multi arg case too. You will need to overload it (possibly using constructor delegation in the implementation).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: GregM				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10202</link>
+		<dc:creator><![CDATA[GregM]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 21:47:01 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10202</guid>
+					<description><![CDATA[&quot;Just focusing one issue I haven’t seen mentioned by others already, I’d question the appropriateness of offering the increment operators at all.&quot;
+
+I had a similar thought when I read the class, &quot;what exactly does it mean to increment a complex number?&quot;.  I don&#039;t think I&#039;ve ever used increment on a floating point number.]]></description>
+		<content:encoded><![CDATA[<p>&#8220;Just focusing one issue I haven’t seen mentioned by others already, I’d question the appropriateness of offering the increment operators at all.&#8221;</p>
+<p>I had a similar thought when I read the class, &#8220;what exactly does it mean to increment a complex number?&#8221;.  I don&#8217;t think I&#8217;ve ever used increment on a floating point number.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Klaim - Joel Lamotte (@MJKlaim)				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10201</link>
+		<dc:creator><![CDATA[Klaim - Joel Lamotte (@MJKlaim)]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 21:43:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10201</guid>
+					<description><![CDATA[To make an easy to use interface:
+
+1. Make it impossible or very hard to use incorrectly (fail to compile, crashes, etc when used incorrectly - see std::chrono as a simple example) - this is the most important guideline for type design because it both prevent errors by mistake and, more importantly, it drives the usage (it&#039;s like walls for a blind: when you touch it you know you can&#039;t go this way);
+2. Make sure each operation have only one way to be done - this actually improve composition (note that if two functions does the same thing but in a different way that impact the semantic, it&#039;s two operations);
+3. Hide complexity. Unfortunately it is not always efficient to hide totally the implementation details of our types (maybe it will be with modules but don&#039;t count on it until we got implementations), but if you can hide the details, the only thing visible is how to use it.
+4. Give a unique responsability to the type, not more.
+5. Make it as short as possible, that is, a minimum of functions (depends on the domain and responsability);
+6. Use names as obvious as possible in the domain context;
+7. Document the interface. I put this at last because I consider it of last resort but you always end up doing it for member functions doing not that obvious operations.]]></description>
+		<content:encoded><![CDATA[<p>To make an easy to use interface:</p>
+<p>1. Make it impossible or very hard to use incorrectly (fail to compile, crashes, etc when used incorrectly &#8211; see std::chrono as a simple example) &#8211; this is the most important guideline for type design because it both prevent errors by mistake and, more importantly, it drives the usage (it&#8217;s like walls for a blind: when you touch it you know you can&#8217;t go this way);<br />
+2. Make sure each operation have only one way to be done &#8211; this actually improve composition (note that if two functions does the same thing but in a different way that impact the semantic, it&#8217;s two operations);<br />
+3. Hide complexity. Unfortunately it is not always efficient to hide totally the implementation details of our types (maybe it will be with modules but don&#8217;t count on it until we got implementations), but if you can hide the details, the only thing visible is how to use it.<br />
+4. Give a unique responsability to the type, not more.<br />
+5. Make it as short as possible, that is, a minimum of functions (depends on the domain and responsability);<br />
+6. Use names as obvious as possible in the domain context;<br />
+7. Document the interface. I put this at last because I consider it of last resort but you always end up doing it for member functions doing not that obvious operations.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Dave Harris				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10198</link>
+		<dc:creator><![CDATA[Dave Harris]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 20:48:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10198</guid>
+					<description><![CDATA[Interfaces are easy to use correctly if they follow established conventions and best practices. (Ideally your established conventions will reflect best practice, but best practice evolves, so the longer your conventions have been established the greater the danger they are out of date.) They should follow the principle of least surprise. Ideally a reasonably skilled programmer using them would not need to look up the documentation to see how they work.
+
+The example class is presumably intended to be a numeric type, so it should follow the conventions established by int, double and other numeric types. It doesn&#039;t. Note that its definition of operator+() isn&#039;t [i]intrinsically[/i] wrong; it isn&#039;t impossible to use correctly: but it is different to how operator+() works for double so very liable to be used incorrectly. It doesn&#039;t matter if the documentation describes the idiosyncratic behaviour correctly and lucidly. Few programmers will think to read it.
+
+Programmers have ample opportunities to be creative. Deciding the behaviour of operator+() is not one of them.]]></description>
+		<content:encoded><![CDATA[<p>Interfaces are easy to use correctly if they follow established conventions and best practices. (Ideally your established conventions will reflect best practice, but best practice evolves, so the longer your conventions have been established the greater the danger they are out of date.) They should follow the principle of least surprise. Ideally a reasonably skilled programmer using them would not need to look up the documentation to see how they work.</p>
+<p>The example class is presumably intended to be a numeric type, so it should follow the conventions established by int, double and other numeric types. It doesn&#8217;t. Note that its definition of operator+() isn&#8217;t [i]intrinsically[/i] wrong; it isn&#8217;t impossible to use correctly: but it is different to how operator+() works for double so very liable to be used incorrectly. It doesn&#8217;t matter if the documentation describes the idiosyncratic behaviour correctly and lucidly. Few programmers will think to read it.</p>
+<p>Programmers have ample opportunities to be creative. Deciding the behaviour of operator+() is not one of them.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mikhail Belyaev				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10197</link>
+		<dc:creator><![CDATA[Mikhail Belyaev]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 20:45:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10197</guid>
+					<description><![CDATA[Another thought: if we do not make it a template (which we possibly do not want) the whole class is actually better off being a constexpr class. It won&#039;t hurt, it&#039;ll help in some cases and it is certainly a good thing to do with classes this simple.
+It won&#039;t optimize anything, but lets you actually say in your code that that whole bunch of complex arithmetics on constants should run at compile-time.]]></description>
+		<content:encoded><![CDATA[<p>Another thought: if we do not make it a template (which we possibly do not want) the whole class is actually better off being a constexpr class. It won&#8217;t hurt, it&#8217;ll help in some cases and it is certainly a good thing to do with classes this simple.<br />
+It won&#8217;t optimize anything, but lets you actually say in your code that that whole bunch of complex arithmetics on constants should run at compile-time.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mttpd				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10192</link>
+		<dc:creator><![CDATA[mttpd]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 17:32:26 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10192</guid>
+					<description><![CDATA[Good points in the previous comments.
+
+One more thing which comes to mind -- given that it makes sense for &quot;complex&quot; to have value semantics (as opposed to reference semantics), we&#039;d probably want to consider preventing inheritance (for the same reason it&#039;s not a good idea to inherit from an STL container).
+
+As in:
+Guideline #4: A base class destructor should be either public and virtual, or protected and nonvirtual. 
+http://www.gotw.ca/publications/mill18.htm
+
+I don&#039;t see the case for public &#038; virtual (since I don&#039;t see the case for our &quot;complex&quot; class having reference semantics). Hence, I&#039;d go with the other alternative.
+
+This is where C++11 comes in, as it allows us to use &quot;final&quot; to prevent inheritance:
+http://en.cppreference.com/w/cpp/language/final]]></description>
+		<content:encoded><![CDATA[<p>Good points in the previous comments.</p>
+<p>One more thing which comes to mind &#8212; given that it makes sense for &#8220;complex&#8221; to have value semantics (as opposed to reference semantics), we&#8217;d probably want to consider preventing inheritance (for the same reason it&#8217;s not a good idea to inherit from an STL container).</p>
+<p>As in:<br />
+Guideline #4: A base class destructor should be either public and virtual, or protected and nonvirtual.<br />
+<a href="http://www.gotw.ca/publications/mill18.htm" rel="nofollow">http://www.gotw.ca/publications/mill18.htm</a></p>
+<p>I don&#8217;t see the case for public &amp; virtual (since I don&#8217;t see the case for our &#8220;complex&#8221; class having reference semantics). Hence, I&#8217;d go with the other alternative.</p>
+<p>This is where C++11 comes in, as it allows us to use &#8220;final&#8221; to prevent inheritance:<br />
+<a href="http://en.cppreference.com/w/cpp/language/final" rel="nofollow">http://en.cppreference.com/w/cpp/language/final</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adrian				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10190</link>
+		<dc:creator><![CDATA[Adrian]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 17:11:09 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10190</guid>
+					<description><![CDATA[Just focusing one issue I haven&#039;t seen mentioned by others already, I&#039;d question the appropriateness of offering the increment operators at all.
+
+The increment and decrement operators make intuitive sense for discrete types, like counters, chars, certain enumerations, even bools.
+
+Perhaps because I&#039;ve always thought of these operators as analogues of Pascal&#039;s succ() and pred(), it&#039;s always seemed odd to me that C and C++ provide them for floating point types.  What does it mean to increment a type that approximates a continuous quantity?  It&#039;s not intuitive (to me), given a double d, what [code]++d[/code] would mean.  Does it increment by 1.0 or does it increment by some epsilon to get to the next higher, representable value?  Both would be useful, and, given that I could always write [code]d += 1.0;[/code] for the former, defining operator++ for the latter would make the most sense.  But alas, that&#039;s not the case.  That might just be my own bias.
+
+Even if I make peace with increment and decrement on a double, what should they mean on a complex?  That&#039;s even less intuitive.  A complex is a two-dimensional quantity.  Should increment affect the real part or the imaginary part or both?  It&#039;s simply not obvious--at least not to everyone.
+
+In the interest of making it easy to use correctly and difficult to use incorrectly, I&#039;d leave out the increment and decrement operators for this class at least until a client of the class made a strong case for them.  (A strong case might be that having these operators enables a class or function template that otherwise can&#039;t use them.)  In the mean time, a client can write [code]c += 1.0;[/code], which is not only correct, it&#039;s _obviously_ correct.  To everyone.
+
+To me, that&#039;s the difference between a well-implemented class interface and a well-_designed_ one.]]></description>
+		<content:encoded><![CDATA[<p>Just focusing one issue I haven&#8217;t seen mentioned by others already, I&#8217;d question the appropriateness of offering the increment operators at all.</p>
+<p>The increment and decrement operators make intuitive sense for discrete types, like counters, chars, certain enumerations, even bools.</p>
+<p>Perhaps because I&#8217;ve always thought of these operators as analogues of Pascal&#8217;s succ() and pred(), it&#8217;s always seemed odd to me that C and C++ provide them for floating point types.  What does it mean to increment a type that approximates a continuous quantity?  It&#8217;s not intuitive (to me), given a double d, what </p>
+<pre class="brush: plain; title: ; notranslate">++d</pre>
+<p> would mean.  Does it increment by 1.0 or does it increment by some epsilon to get to the next higher, representable value?  Both would be useful, and, given that I could always write </p>
+<pre class="brush: plain; title: ; notranslate">d += 1.0;</pre>
+<p> for the former, defining operator++ for the latter would make the most sense.  But alas, that&#8217;s not the case.  That might just be my own bias.</p>
+<p>Even if I make peace with increment and decrement on a double, what should they mean on a complex?  That&#8217;s even less intuitive.  A complex is a two-dimensional quantity.  Should increment affect the real part or the imaginary part or both?  It&#8217;s simply not obvious&#8211;at least not to everyone.</p>
+<p>In the interest of making it easy to use correctly and difficult to use incorrectly, I&#8217;d leave out the increment and decrement operators for this class at least until a client of the class made a strong case for them.  (A strong case might be that having these operators enables a class or function template that otherwise can&#8217;t use them.)  In the mean time, a client can write </p>
+<pre class="brush: plain; title: ; notranslate">c += 1.0;</pre>
+<p>, which is not only correct, it&#8217;s _obviously_ correct.  To everyone.</p>
+<p>To me, that&#8217;s the difference between a well-implemented class interface and a well-_designed_ one.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Rainer Blome				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10180</link>
+		<dc:creator><![CDATA[Rainer Blome]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 13:00:58 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10180</guid>
+					<description><![CDATA[1. What makes interfaces “easy to use correctly, hard to use incorrectly”?
+
+The first answer coming to my mind is &quot;Documentation&quot;.
+The standard classes are quite well documented - imagine how difficult it would be to use them correctly without this documentation, and how easy it would be to use them incorrectly.
+
+It makes me a little sad that no one mentioned this so far.
+
+Among the very effective programmers that I got to know, the share of those who actually write good documentation is surprisingly low. There are even some who explicitly argue against documentation. I often wonder why this is so.
+
+Reasons might be:
+
+* Documentation is (usually) not being paid for. What usually matters is functionality.
+
+* Not every one is a born writer. Some very effective programmers that I got to know write surprisingly bad natural language. My guess is that most of these actually know this (but some don&#039;t :-). Many people dislike doing things that they are not good at. Thus I assume that some simply hate writing documentation because it makes them feel bad, or even inadequate.
+
+* Writing good documentation is a skill that by most people must be learned. This takes at least effort and time, and thereby usually money.
+
+* Tools that check for language errors in documentation are not widespread. This is in contrast to the code, where the compiler and tools like lint can help to work out the kinks.
+
+Granted, in contexts where the code is not likely to ever be read, writing documentation has only one benefit that I can think of: The writer can hone his writing skills. 
+
+However, in contexts where the code is likely to be read, maintained or reused, documentation is crucial. In my professional experience (15y), this is the case in by far the majority of projects. In some circumstances, especially when key people leave a project, missing or bad documentation can become extremely expensive.]]></description>
+		<content:encoded><![CDATA[<p>1. What makes interfaces “easy to use correctly, hard to use incorrectly”?</p>
+<p>The first answer coming to my mind is &#8220;Documentation&#8221;.<br />
+The standard classes are quite well documented &#8211; imagine how difficult it would be to use them correctly without this documentation, and how easy it would be to use them incorrectly.</p>
+<p>It makes me a little sad that no one mentioned this so far.</p>
+<p>Among the very effective programmers that I got to know, the share of those who actually write good documentation is surprisingly low. There are even some who explicitly argue against documentation. I often wonder why this is so.</p>
+<p>Reasons might be:</p>
+<p>* Documentation is (usually) not being paid for. What usually matters is functionality.</p>
+<p>* Not every one is a born writer. Some very effective programmers that I got to know write surprisingly bad natural language. My guess is that most of these actually know this (but some don&#8217;t :-). Many people dislike doing things that they are not good at. Thus I assume that some simply hate writing documentation because it makes them feel bad, or even inadequate.</p>
+<p>* Writing good documentation is a skill that by most people must be learned. This takes at least effort and time, and thereby usually money.</p>
+<p>* Tools that check for language errors in documentation are not widespread. This is in contrast to the code, where the compiler and tools like lint can help to work out the kinks.</p>
+<p>Granted, in contexts where the code is not likely to ever be read, writing documentation has only one benefit that I can think of: The writer can hone his writing skills. </p>
+<p>However, in contexts where the code is likely to be read, maintained or reused, documentation is crucial. In my professional experience (15y), this is the case in by far the majority of projects. In some circumstances, especially when key people leave a project, missing or bad documentation can become extremely expensive.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marc				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10177</link>
+		<dc:creator><![CDATA[Marc]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 12:18:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10177</guid>
+					<description><![CDATA[Just had to give it a final try.
+
+[code]
+class complex 
+{
+	// allow access to private members
+	friend ostream&#038; operator&#060;&#060;( ostream&#038; os, const complex&#038; c );
+
+public:
+	// doubles as default ctor
+	complex( double r = 0, double i = 0 ) : real(r), imag(i) { }
+
+	// to efficiently implement operator+ 
+	complex&#038; operator+=(const complex&#038; c) 
+	{
+		real += c.real;
+		imag += c.imag;
+
+		return *this;
+	}
+
+	// return reference to result
+	complex&#038; operator++()
+	{        
+		++real;        
+		return *this;    
+	}    
+
+	// return unchanged object by value
+	complex operator++( int ) 
+	{        
+		auto temp = *this;        
+		++real;        
+		return temp;    
+	}   
+
+	// ... more functions that complement the above ...
+private:    
+	double real, imag;
+};
+
+// IO operator cannot be a class member. 
+// Class member ops require the left operand to be a class object
+ostream&#038; operator&#060;&#060;( ostream&#038; os, const complex&#038; c ) 
+{        
+	os &#060;&#060; &#034;(&#034; &#060;&#060; c.real &#060;&#060; &#034;,&#034; &#060;&#060; c.imag &#060;&#060; &#034;)&#034;;
+	return os;
+}
+
+// allows implicit conversion of operands
+complex operator+ ( const complex &#038;c1, const complex&#038; c2 ) 
+{   
+	complex c(c1);
+	c += c2; 
+	return c;
+}  
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>Just had to give it a final try.</p>
+<pre class="brush: plain; title: ; notranslate">
+class complex 
+{
+	// allow access to private members
+	friend ostream&amp; operator&lt;&lt;( ostream&amp; os, const complex&amp; c );
+
+public:
+	// doubles as default ctor
+	complex( double r = 0, double i = 0 ) : real(r), imag(i) { }
+
+	// to efficiently implement operator+ 
+	complex&amp; operator+=(const complex&amp; c) 
+	{
+		real += c.real;
+		imag += c.imag;
+
+		return *this;
+	}
+
+	// return reference to result
+	complex&amp; operator++()
+	{        
+		++real;        
+		return *this;    
+	}    
+
+	// return unchanged object by value
+	complex operator++( int ) 
+	{        
+		auto temp = *this;        
+		++real;        
+		return temp;    
+	}   
+
+	// ... more functions that complement the above ...
+private:    
+	double real, imag;
+};
+
+// IO operator cannot be a class member. 
+// Class member ops require the left operand to be a class object
+ostream&amp; operator&lt;&lt;( ostream&amp; os, const complex&amp; c ) 
+{        
+	os &lt;&lt; &quot;(&quot; &lt;&lt; c.real &lt;&lt; &quot;,&quot; &lt;&lt; c.imag &lt;&lt; &quot;)&quot;;
+	return os;
+}
+
+// allows implicit conversion of operands
+complex operator+ ( const complex &amp;c1, const complex&amp; c2 ) 
+{   
+	complex c(c1);
+	c += c2; 
+	return c;
+}  
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Brian M				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10174</link>
+		<dc:creator><![CDATA[Brian M]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 09:07:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10174</guid>
+					<description><![CDATA[Think I would as reviewer simply say use a std:: complex or other library and go off and have lunch!
+But was never any good with made up exam questions....
+
+ps Unfortunately saw similar when someone was writing a linked list class. It was a good lunch!]]></description>
+		<content:encoded><![CDATA[<p>Think I would as reviewer simply say use a std:: complex or other library and go off and have lunch!<br />
+But was never any good with made up exam questions&#8230;.</p>
+<p>ps Unfortunately saw similar when someone was writing a linked list class. It was a good lunch!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: khurshid				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10171</link>
+		<dc:creator><![CDATA[khurshid]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 08:00:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10171</guid>
+					<description><![CDATA[Sorry,  forgot default ctor.
+
+[code]
+class complex{
+   complex() = default;
+   complex( const complex&#038; other) = default;
+   complex&#038; operator = (const complex&#038; other) = default;
+   // other method and ctors   ..............................
+}
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>Sorry,  forgot default ctor.</p>
+<pre class="brush: plain; title: ; notranslate">
+class complex{
+   complex() = default;
+   complex( const complex&amp; other) = default;
+   complex&amp; operator = (const complex&amp; other) = default;
+   // other method and ctors   ..............................
+}
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: khurshid				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10170</link>
+		<dc:creator><![CDATA[khurshid]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 07:50:29 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10170</guid>
+					<description><![CDATA[[code]
+
+class complex 
+{
+public:
+   constexpr explicit complex( double r, double i = 0.0 ) noexcept
+        : real_ { r }
+       , imag_ { i }
+    { }
+
+   constexpr complex operator+ ( const complex&#038; other ) const noexcept
+   {
+        return complex( real_ + other.real_,  imag_ + other.imag_ );
+    }
+
+  complex&#038; operator++() noexcept
+   {
+        ++real_;
+        return *this;
+    }
+
+    complex operator++( int )  noexcept
+   {
+        auto temp = *this;
+        ++real_;
+        return temp;
+    }
+
+    // ... more functions that complement the above ...
+    
+    constexpr double real()const noexcept { return real_; }
+    constexpr double imaginary() const noexcept { return imag_;}
+    
+private:
+    double real_ = 0.0;
+    double imag_ = 0.0;
+};
+
+std::ostream&#038;  operator &#060;&#060; (std::ostream&#038; os,  const complex&#038; c)
+{
+       return os &#060;&#060; &#039;(&#039; &#060;&#060; c.real() &#060;&#060; &#039;,&#039; &#060;&#060; c.imaginary() &#060;&#060; &#039;)&#039; ;
+}
+
+[/code]]]></description>
+		<content:encoded><![CDATA[<pre class="brush: plain; title: ; notranslate">
+
+class complex 
+{
+public:
+   constexpr explicit complex( double r, double i = 0.0 ) noexcept
+        : real_ { r }
+       , imag_ { i }
+    { }
+
+   constexpr complex operator+ ( const complex&amp; other ) const noexcept
+   {
+        return complex( real_ + other.real_,  imag_ + other.imag_ );
+    }
+
+  complex&amp; operator++() noexcept
+   {
+        ++real_;
+        return *this;
+    }
+
+    complex operator++( int )  noexcept
+   {
+        auto temp = *this;
+        ++real_;
+        return temp;
+    }
+
+    // ... more functions that complement the above ...
+    
+    constexpr double real()const noexcept { return real_; }
+    constexpr double imaginary() const noexcept { return imag_;}
+    
+private:
+    double real_ = 0.0;
+    double imag_ = 0.0;
+};
+
+std::ostream&amp;  operator &lt;&lt; (std::ostream&amp; os,  const complex&amp; c)
+{
+       return os &lt;&lt; '(' &lt;&lt; c.real() &lt;&lt; ',' &lt;&lt; c.imaginary() &lt;&lt; ')' ;
+}
+
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marc				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10169</link>
+		<dc:creator><![CDATA[Marc]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 07:48:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10169</guid>
+					<description><![CDATA[But made error(s). So, back to work]]></description>
+		<content:encoded><![CDATA[<p>But made error(s). So, back to work</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marc				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10168</link>
+		<dc:creator><![CDATA[Marc]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 07:36:27 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10168</guid>
+					<description><![CDATA[Thought I&#039;d give it a try
+
+[code]
+using namespace std;
+
+// IO operator cannot be a class member. 
+// Class member ops require the left operand to be a class object
+ostream&#038; operator&#060;&#060;( ostream&#038; os, const complex&#038; c ) 
+{        
+	os &#060;&#060; &#034;(&#034; &#060;&#060; c.real &#060;&#060; &#034;,&#034; &#060;&#060; c.imag &#060;&#060; &#034;)&#034;;
+
+	return os;
+}
+
+complex operator+ ( const&#038; complex c1, const&#038; complex c2 ) 
+{   
+	complex c = c1;
+	c.real += c2.real; // &#039;+=&#039; assumed
+	c.imag += c2.imag;
+
+	return c;
+}  
+
+class complex 
+{
+	// allow access to private members
+	friend ostream&#038; operator&#060;&#060;( ostream&#038; os, const complex&#038; c );
+	friend complex operator+ ( const&#038; complex c1, const&#038; complex c2 );
+
+public:
+	complex( double r = 0, double i = 0 ) : real(r), imag(i) { } // doubles as default ctor
+
+	complex&#038; operator++() // return reference to result
+	{        
+		++real;        
+		return *this;    
+	}    
+
+	complex operator++( int ) 
+	{        
+		auto temp = *this;        
+		++real;        
+		return temp;    
+	}   
+
+	// ... more functions that complement the above ...
+private:    
+	double real, imag;
+};
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>Thought I&#8217;d give it a try</p>
+<pre class="brush: plain; title: ; notranslate">
+using namespace std;
+
+// IO operator cannot be a class member. 
+// Class member ops require the left operand to be a class object
+ostream&amp; operator&lt;&lt;( ostream&amp; os, const complex&amp; c ) 
+{        
+	os &lt;&lt; &quot;(&quot; &lt;&lt; c.real &lt;&lt; &quot;,&quot; &lt;&lt; c.imag &lt;&lt; &quot;)&quot;;
+
+	return os;
+}
+
+complex operator+ ( const&amp; complex c1, const&amp; complex c2 ) 
+{   
+	complex c = c1;
+	c.real += c2.real; // '+=' assumed
+	c.imag += c2.imag;
+
+	return c;
+}  
+
+class complex 
+{
+	// allow access to private members
+	friend ostream&amp; operator&lt;&lt;( ostream&amp; os, const complex&amp; c );
+	friend complex operator+ ( const&amp; complex c1, const&amp; complex c2 );
+
+public:
+	complex( double r = 0, double i = 0 ) : real(r), imag(i) { } // doubles as default ctor
+
+	complex&amp; operator++() // return reference to result
+	{        
+		++real;        
+		return *this;    
+	}    
+
+	complex operator++( int ) 
+	{        
+		auto temp = *this;        
+		++real;        
+		return temp;    
+	}   
+
+	// ... more functions that complement the above ...
+private:    
+	double real, imag;
+};
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Eric Duhon (@duhonedd)				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10167</link>
+		<dc:creator><![CDATA[Eric Duhon (@duhonedd)]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 07:25:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10167</guid>
+					<description><![CDATA[I figured using user literals would helps with syntax and avoid implicit cast problems from float(i.e. was the float a real or imaginary). Ended up with a lot of code though.
+
+&lt;code&gt;
+#include 
+
+using namespace std;
+
+//template
+class Imaginary
+{
+public:
+    constexpr Imaginary() = default;
+    constexpr Imaginary(const Imaginary&#038;) = default;
+    Imaginary&#038; operator=(const Imaginary&#038;) = default;
+    explicit constexpr Imaginary(double _value) : m_Value(_value) { }
+    
+    Imaginary&#038; operator-()
+    {
+        m_Value = -m_Value;
+        return *this;
+    }
+    
+    Imaginary&#038; operator+=(const Imaginary&#038; _other)
+    {
+        m_Value += _other.m_Value;
+        return *this;
+    }
+    
+    ostream&#038; PrintToStream(ostream&#038; _stream) const
+    {
+        _stream &#060;&#060; m_Value &#060;&#060; &#039;i&#039;;
+        return _stream;
+    }
+    
+private:
+    //Don&#039;t want getters/setters for this, don&#039;t want a way to treat this as a standard float.
+    double m_Value = 0;
+};
+
+Imaginary operator+(const Imaginary&#038; _arg1, const Imaginary&#038; _arg2)
+{
+    Imaginary result = _arg1;
+    result += _arg2;
+    return result;
+}
+
+ostream&#038; operator&#060;&#060;(ostream&#038; _stream, const Imaginary&#038; _value)
+{
+    return _value.PrintToStream(_stream);
+}
+
+//could use _fi or something for Imaginary and then templatize the Complex and Imaginary class
+constexpr Imaginary operator&quot;&quot; _i (long double _value)
+{
+    return Imaginary(static_cast(_value));
+}
+
+constexpr Imaginary operator&quot;&quot; _i (unsigned long long _value)
+{
+    return Imaginary(static_cast(_value));
+}
+
+class Complex
+{
+public:
+    constexpr Complex() = default;
+    constexpr Complex(const Complex&#038;) = default;
+    Complex&#038; operator=(const Complex&#038;) = default;
+    
+    constexpr Complex(double _real, const Imaginary&#038; _imag) : m_Real(_real), m_Imag(_imag) {}
+    constexpr Complex(double _real) : Complex(_real, 0_i) {}
+    constexpr Complex(const Imaginary&#038; _imag) : Complex(0, _imag) {}
+
+    Complex&#038; operator+=(const Complex&#038; _other)
+    {
+        m_Real += _other.m_Real;
+        m_Imag += _other.m_Imag;
+        return *this;
+    }
+
+    Complex&#038; operator++() 
+    {
+        *this += 1;
+        return *this;
+    }
+    
+    Complex operator++(int)
+    {
+        Complex result = *this;
+        ++(*this);        
+        return result;
+    }
+    
+    ostream&#038; PrintToStream(ostream&#038; _stream) const
+    {
+        _stream &#060;&#060; m_Real &#060;&#060; &#034;+&#034; &#060;&#060; m_Imag;
+        return _stream;
+    }
+
+private:
+    double m_Real = 0;
+    Imaginary m_Imag = 0_i;
+};
+
+Complex operator+(const Complex&#038; _arg1, const Complex&#038; _arg2)
+{
+    Complex result = _arg1;
+    result += _arg2;
+    return result;
+}
+
+Complex operator+(double _real, const Imaginary&#038; _imag)
+{
+    return Complex(_real, _imag);
+}
+
+Complex operator+(const Imaginary&#038; _imag, double _real)
+{
+    return Complex(_real, _imag);
+}
+
+ostream&#038; operator&#060;&#060;(ostream&#038; _stream, const Complex&#038; _value)
+{
+    return _value.PrintToStream(_stream);
+}
+
+int main(int argc, const char * argv[])
+{
+    auto im = -4_i;    
+    cout &#060;&#060; im &#060;&#060; endl;
+    
+    auto im2 = 2_i + im;
+    cout &#060;&#060; im2 &#060;&#060; endl;
+    
+    Complex cx1 = 1 + 3_i;
+    cout &#060;&#060; cx1 &#060;&#060; endl;
+    
+    Complex cx2 = 4_i + -3;
+    cx2 += cx1;
+    cout &#060;&#060; cx2 &#060;&#060; endl;
+    
+    cout &#060;&#060; ++cx2 &#060;&#060; endl;
+    cout &#060;&#060; cx2++ &#060;&#060; endl;
+    cout &#060;&#060; cx2 &#060;&#060; endl;
+    
+    cx2 = cx2 + cx1;
+    cout &#060;&#060; cx2 &#060;&#060; endl;
+    
+    cx2 += -14_i;
+    cout &#060;&#060; cx2 &#060;&#060; endl;
+    
+    return 0;
+}
+&lt;/code&gt;]]></description>
+		<content:encoded><![CDATA[<p>I figured using user literals would helps with syntax and avoid implicit cast problems from float(i.e. was the float a real or imaginary). Ended up with a lot of code though.</p>
+<p><code><br />
+#include </p>
+<p>using namespace std;</p>
+<p>//template<br />
+class Imaginary<br />
+{<br />
+public:<br />
+    constexpr Imaginary() = default;<br />
+    constexpr Imaginary(const Imaginary&amp;) = default;<br />
+    Imaginary&amp; operator=(const Imaginary&amp;) = default;<br />
+    explicit constexpr Imaginary(double _value) : m_Value(_value) { }</p>
+<p>    Imaginary&amp; operator-()<br />
+    {<br />
+        m_Value = -m_Value;<br />
+        return *this;<br />
+    }</p>
+<p>    Imaginary&amp; operator+=(const Imaginary&amp; _other)<br />
+    {<br />
+        m_Value += _other.m_Value;<br />
+        return *this;<br />
+    }</p>
+<p>    ostream&amp; PrintToStream(ostream&amp; _stream) const<br />
+    {<br />
+        _stream &lt;&lt; m_Value &lt;&lt; &#039;i&#039;;<br />
+        return _stream;<br />
+    }</p>
+<p>private:<br />
+    //Don&#039;t want getters/setters for this, don&#039;t want a way to treat this as a standard float.<br />
+    double m_Value = 0;<br />
+};</p>
+<p>Imaginary operator+(const Imaginary&amp; _arg1, const Imaginary&amp; _arg2)<br />
+{<br />
+    Imaginary result = _arg1;<br />
+    result += _arg2;<br />
+    return result;<br />
+}</p>
+<p>ostream&amp; operator&lt;&lt;(ostream&amp; _stream, const Imaginary&amp; _value)<br />
+{<br />
+    return _value.PrintToStream(_stream);<br />
+}</p>
+<p>//could use _fi or something for Imaginary and then templatize the Complex and Imaginary class<br />
+constexpr Imaginary operator"" _i (long double _value)<br />
+{<br />
+    return Imaginary(static_cast(_value));<br />
+}</p>
+<p>constexpr Imaginary operator"" _i (unsigned long long _value)<br />
+{<br />
+    return Imaginary(static_cast(_value));<br />
+}</p>
+<p>class Complex<br />
+{<br />
+public:<br />
+    constexpr Complex() = default;<br />
+    constexpr Complex(const Complex&amp;) = default;<br />
+    Complex&amp; operator=(const Complex&amp;) = default;</p>
+<p>    constexpr Complex(double _real, const Imaginary&amp; _imag) : m_Real(_real), m_Imag(_imag) {}<br />
+    constexpr Complex(double _real) : Complex(_real, 0_i) {}<br />
+    constexpr Complex(const Imaginary&amp; _imag) : Complex(0, _imag) {}</p>
+<p>    Complex&amp; operator+=(const Complex&amp; _other)<br />
+    {<br />
+        m_Real += _other.m_Real;<br />
+        m_Imag += _other.m_Imag;<br />
+        return *this;<br />
+    }</p>
+<p>    Complex&amp; operator++()<br />
+    {<br />
+        *this += 1;<br />
+        return *this;<br />
+    }</p>
+<p>    Complex operator++(int)<br />
+    {<br />
+        Complex result = *this;<br />
+        ++(*this);<br />
+        return result;<br />
+    }</p>
+<p>    ostream&amp; PrintToStream(ostream&amp; _stream) const<br />
+    {<br />
+        _stream &lt;&lt; m_Real &lt;&lt; &quot;+&quot; &lt;&lt; m_Imag;<br />
+        return _stream;<br />
+    }</p>
+<p>private:<br />
+    double m_Real = 0;<br />
+    Imaginary m_Imag = 0_i;<br />
+};</p>
+<p>Complex operator+(const Complex&amp; _arg1, const Complex&amp; _arg2)<br />
+{<br />
+    Complex result = _arg1;<br />
+    result += _arg2;<br />
+    return result;<br />
+}</p>
+<p>Complex operator+(double _real, const Imaginary&amp; _imag)<br />
+{<br />
+    return Complex(_real, _imag);<br />
+}</p>
+<p>Complex operator+(const Imaginary&amp; _imag, double _real)<br />
+{<br />
+    return Complex(_real, _imag);<br />
+}</p>
+<p>ostream&amp; operator&lt;&lt;(ostream&amp; _stream, const Complex&amp; _value)<br />
+{<br />
+    return _value.PrintToStream(_stream);<br />
+}</p>
+<p>int main(int argc, const char * argv[])<br />
+{<br />
+    auto im = -4_i;<br />
+    cout &lt;&lt; im &lt;&lt; endl;</p>
+<p>    auto im2 = 2_i + im;<br />
+    cout &lt;&lt; im2 &lt;&lt; endl;</p>
+<p>    Complex cx1 = 1 + 3_i;<br />
+    cout &lt;&lt; cx1 &lt;&lt; endl;</p>
+<p>    Complex cx2 = 4_i + -3;<br />
+    cx2 += cx1;<br />
+    cout &lt;&lt; cx2 &lt;&lt; endl;</p>
+<p>    cout &lt;&lt; ++cx2 &lt;&lt; endl;<br />
+    cout &lt;&lt; cx2++ &lt;&lt; endl;<br />
+    cout &lt;&lt; cx2 &lt;&lt; endl;</p>
+<p>    cx2 = cx2 + cx1;<br />
+    cout &lt;&lt; cx2 &lt;&lt; endl;</p>
+<p>    cx2 += -14_i;<br />
+    cout &lt;&lt; cx2 &lt;&lt; endl;</p>
+<p>    return 0;<br />
+}<br />
+</code></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10165</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 05:07:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10165</guid>
+					<description><![CDATA[The notion of &quot;easy to use correctly and hard to use incorrectly&quot; is generally a good idea, but not always. As an example, a simple 2D mutable &lt;code&gt;Point&lt;/code&gt; class is easiest to use correctly when it just has two public members and a constructor or two. Improbable as it may seem, for &lt;code&gt;double&#062;/code&#062; members Visual C++ has a hard time optimizing optimizing code that accesses the members indirectly, or at least, it still was a bit deficient re such optimizations the year before last, so this has also to do with fundamental low-level efficiency.
+
+The &quot;easy to use correctly&quot; has to do with the class as a provider of practically useful operations and with the class as a single well understood abstraction, which is more at the language independent design level, while the &quot;hard to use incorrectly&quot; has to do with the class as an enforcer of design constraints, which is more at the language specific and even compiler specific level, Accommodating Visual C++&#039;s optimization problems is an example of possibly valid compiler-specific concerns. I think such choices need to be DOCUMENTED in order to be understood by maintenance programmers or even just by client code programmers.
+
+Having noted that efficiency is a valid consideration, one should also note that it&#039;s easy to walk into the premature optimization trap. And the class presented in this question looks like an example of that. Apparently it&#039;s meant to provide a convenient increment operator, a &lt;code&gt;operator++&lt;/code&gt;, but that would be better provided for a class derived from &lt;code&gt;std::complex&#038;lt&#062;T&lt;/code&gt; (derived class in order to minimize the problem of multiple definitions of such an operator).
+
+The above addresses some main concerns of the &quot;JG&quot; question, question 1. Others have already discussed the trivia of the &quot;Guru&quot; question, question 2, what the compiler can tell you if you give it the code. I think the &quot;Guru&quot; designation for that is a bit misplaced: nowadays it&#039;s not hard to feed some code to a compiler.
+
+So far the existing answers have failed to mention what a compiler can&#039;t tell you, such as the pros and cons of choosing `void` as result type for `operator++`. Much in the same vein as choosing an as yet somewhat unconventional signed size type. This has to do with the more challenging &quot;hard to use incorrectly&quot; aspect &#8211; challenging in part because some established conventions in C++ are at odds with that goal.]]></description>
+		<content:encoded><![CDATA[<p>The notion of &#8220;easy to use correctly and hard to use incorrectly&#8221; is generally a good idea, but not always. As an example, a simple 2D mutable <code>Point</code> class is easiest to use correctly when it just has two public members and a constructor or two. Improbable as it may seem, for <code>double&gt;/code&gt; members Visual C++ has a hard time optimizing optimizing code that accesses the members indirectly, or at least, it still was a bit deficient re such optimizations the year before last, so this has also to do with fundamental low-level efficiency.</p>
+<p>The "easy to use correctly" has to do with the class as a provider of practically useful operations and with the class as a single well understood abstraction, which is more at the language independent design level, while the "hard to use incorrectly" has to do with the class as an enforcer of design constraints, which is more at the language specific and even compiler specific level, Accommodating Visual C++'s optimization problems is an example of possibly valid compiler-specific concerns. I think such choices need to be DOCUMENTED in order to be understood by maintenance programmers or even just by client code programmers.</p>
+<p>Having noted that efficiency is a valid consideration, one should also note that it's easy to walk into the premature optimization trap. And the class presented in this question looks like an example of that. Apparently it's meant to provide a convenient increment operator, a </code><code>operator++</code>, but that would be better provided for a class derived from <code>std::complex&amp;lt&gt;T</code> (derived class in order to minimize the problem of multiple definitions of such an operator).</p>
+<p>The above addresses some main concerns of the "JG" question, question 1. Others have already discussed the trivia of the "Guru" question, question 2, what the compiler can tell you if you give it the code. I think the "Guru" designation for that is a bit misplaced: nowadays it's not hard to feed some code to a compiler.</p>
+<p>So far the existing answers have failed to mention what a compiler can't tell you, such as the pros and cons of choosing `void` as result type for `operator++`. Much in the same vein as choosing an as yet somewhat unconventional signed size type. This has to do with the more challenging "hard to use incorrectly" aspect &ndash; challenging in part because some established conventions in C++ are at odds with that goal.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: infogulch				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10163</link>
+		<dc:creator><![CDATA[infogulch]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 02:47:06 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10163</guid>
+					<description><![CDATA[GregM &quot;It is when all but one of the parameters is defaulted.&quot;
+
+Ah I didn&#039;t catch that, thanks.]]></description>
+		<content:encoded><![CDATA[<p>GregM &#8220;It is when all but one of the parameters is defaulted.&#8221;</p>
+<p>Ah I didn&#8217;t catch that, thanks.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Crazy Eddie				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10162</link>
+		<dc:creator><![CDATA[Crazy Eddie]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 02:37:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10162</guid>
+					<description><![CDATA[Well, others have mentioned that the postfix ++ should be based on prefix ++ so I wont reiterate that.  The problem with &#060;&#060; being part of the class likewise has been covered, but making it a friend is a mistake.
+
+What this class needs is &#039;getters&#039; for real and imag.  Then + and &#060;&#060; can be implemented as non-friend functions.  Although setters for simple data in a class is sometimes a mistake, it&#039;s warranted here.  The sanity that the operators provide is simply to keep two values locked together in a sensible way.  There are a great many reasons why we&#039;d want getters for real and imag and the class is rather useless without them.
+
+Adding the getters (not necessarily setters) also obeys the principle that you should be able to tell if two objects are equal based on their public interface alone.  In other words, we want to be able to write == as a non-friend function as well.  I forget where I got this principle but it&#039;s a good one.
+
+That said, operator + should defer to +=, which should be added.
+
+[code]
+complex operator + (complex left, complex const&#038; right)
+{
+  return left += right;
+}
+[/code]
+
+The compiler will get rid of the unnecessary temporaries either by using move construction or RVO.]]></description>
+		<content:encoded><![CDATA[<p>Well, others have mentioned that the postfix ++ should be based on prefix ++ so I wont reiterate that.  The problem with &lt;&lt; being part of the class likewise has been covered, but making it a friend is a mistake.</p>
+<p>What this class needs is &#039;getters&#039; for real and imag.  Then + and &lt;&lt; can be implemented as non-friend functions.  Although setters for simple data in a class is sometimes a mistake, it&#039;s warranted here.  The sanity that the operators provide is simply to keep two values locked together in a sensible way.  There are a great many reasons why we&#039;d want getters for real and imag and the class is rather useless without them.</p>
+<p>Adding the getters (not necessarily setters) also obeys the principle that you should be able to tell if two objects are equal based on their public interface alone.  In other words, we want to be able to write == as a non-friend function as well.  I forget where I got this principle but it&#039;s a good one.</p>
+<p>That said, operator + should defer to +=, which should be added.</p>
+<pre class="brush: plain; title: ; notranslate">
+complex operator + (complex left, complex const&amp; right)
+{
+  return left += right;
+}
+</pre>
+<p>The compiler will get rid of the unnecessary temporaries either by using move construction or RVO.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mikhail Belyaev				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10160</link>
+		<dc:creator><![CDATA[Mikhail Belyaev]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 02:24:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10160</guid>
+					<description><![CDATA[Follow-up:
+
+My bad. It is generally better to write operator+ as a friend for classes with implicit constructors:
+
+[code]
+//... inside the class
+friend complex operator+(const complex&#038; lhv, const complex&#038; rhv) {
+    return { lhv.real+rhv.real, lhv.imag+rhv.imag };
+}
+//...
+[/code]
+
+This way both cmplx + 2.2 and 2.2 + cmplx will work.]]></description>
+		<content:encoded><![CDATA[<p>Follow-up:</p>
+<p>My bad. It is generally better to write operator+ as a friend for classes with implicit constructors:</p>
+<pre class="brush: plain; title: ; notranslate">
+//... inside the class
+friend complex operator+(const complex&amp; lhv, const complex&amp; rhv) {
+    return { lhv.real+rhv.real, lhv.imag+rhv.imag };
+}
+//...
+</pre>
+<p>This way both cmplx + 2.2 and 2.2 + cmplx will work.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mikhail Belyaev				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10159</link>
+		<dc:creator><![CDATA[Mikhail Belyaev]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 02:19:14 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10159</guid>
+					<description><![CDATA[[code]
+// 1. why not use std::complex?
+class complex {
+public:
+    // 2. where&#039;s the default/move/copy constructor?
+    complex() = default;
+    complex(const complex&#038;) = default;
+    // the 0 instead of 0.0 is not really an issue, but why not be a kind Samaritan?
+    complex( double r, double i = 0.0 ): real(r), imag(i) { }
+
+    // 3. this was messed up
+    complex operator+ (const complex&#038; other ) {
+        return { real+other.real, imag+other.imag };
+    }
+
+    // 4. this was way totally messed up
+    friend ostream&#038; operator &#060;&#060; (ostream&#038; os, const complex&#038; cm) {
+        return os &#060;&#060; &#034;(&#034; &#060;&#060; cm.real &#060;&#060; &#034;,&#034; &#060;&#060; cm.imag &#060;&#060; &#034;)&#034;;
+    }
+
+    // 5. as was this
+    const complex&#038; operator++() {
+        ++real;
+        return *this;
+    }
+
+    // 6. the postfix ++ was actually the only operator that worked as it should
+    // but it&#039;s generally better to write it using prefix ++
+    complex operator++( int ) {
+        auto temp = *this;
+        ++*this;
+        return temp;
+    }
+
+    // ... more functions that complement the above ...
+
+private:
+    double real, imag;
+};
+
+[/code]]]></description>
+		<content:encoded><![CDATA[<pre class="brush: plain; title: ; notranslate">
+// 1. why not use std::complex?
+class complex {
+public:
+    // 2. where's the default/move/copy constructor?
+    complex() = default;
+    complex(const complex&amp;) = default;
+    // the 0 instead of 0.0 is not really an issue, but why not be a kind Samaritan?
+    complex( double r, double i = 0.0 ): real(r), imag(i) { }
+
+    // 3. this was messed up
+    complex operator+ (const complex&amp; other ) {
+        return { real+other.real, imag+other.imag };
+    }
+
+    // 4. this was way totally messed up
+    friend ostream&amp; operator &lt;&lt; (ostream&amp; os, const complex&amp; cm) {
+        return os &lt;&lt; &quot;(&quot; &lt;&lt; cm.real &lt;&lt; &quot;,&quot; &lt;&lt; cm.imag &lt;&lt; &quot;)&quot;;
+    }
+
+    // 5. as was this
+    const complex&amp; operator++() {
+        ++real;
+        return *this;
+    }
+
+    // 6. the postfix ++ was actually the only operator that worked as it should
+    // but it's generally better to write it using prefix ++
+    complex operator++( int ) {
+        auto temp = *this;
+        ++*this;
+        return temp;
+    }
+
+    // ... more functions that complement the above ...
+
+private:
+    double real, imag;
+};
+
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: GregM				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10157</link>
+		<dc:creator><![CDATA[GregM]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 01:15:43 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10157</guid>
+					<description><![CDATA[Joe &quot;I don’t think explicit is necessary because implicit conversion isn’t possible with multi-parameter constructors.&quot;
+
+It is when all but one of the parameters is defaulted.]]></description>
+		<content:encoded><![CDATA[<p>Joe &#8220;I don’t think explicit is necessary because implicit conversion isn’t possible with multi-parameter constructors.&#8221;</p>
+<p>It is when all but one of the parameters is defaulted.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Tom				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10156</link>
+		<dc:creator><![CDATA[Tom]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 01:00:06 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10156</guid>
+					<description><![CDATA[[code]
+template&#060;typename FloatType = double&#062;
+class complex {
+public:
+    inline complex(const FloatType r = FloatType(),const FloatType i = FloatType() )
+        : real{r}, imag{i}
+    { }
+ 
+    complex&#038; operator+= (const FloatType&#038; r) {
+        real += r; 
+        return *this;
+    }
+ 
+    friend
+    inline complex operator+ (const complex&#038; a, const complex&#038; b) {
+        return {a.real + b.real, a.imag + b.imag};
+    }
+ 
+    friend
+    inline ostream&#038; operator&#060;&#060;( ostream&#038; os, const complex&#038; cp ) const {
+        return os &#060;&#060; &#034;(&#034; &#060;&#060; cp.real &#060;&#060; &#034;,&#034; &#060;&#060; cp.imag &#060;&#060; &#034;)&#034;;
+    }
+ 
+    inline complex&#038; operator++() {
+        ++real;
+        return *this;
+    }
+ 
+    inline complex operator++( FloatType ) {
+        auto temp = *this;
+        ++real;
+        return temp;
+    }
+ 
+    // ... more functions that complement the above ...
+ 
+private:
+    FloatType real, imag;
+};
+[/code]]]></description>
+		<content:encoded><![CDATA[<pre class="brush: plain; title: ; notranslate">
+template&lt;typename FloatType = double&gt;
+class complex {
+public:
+    inline complex(const FloatType r = FloatType(),const FloatType i = FloatType() )
+        : real{r}, imag{i}
+    { }
+ 
+    complex&amp; operator+= (const FloatType&amp; r) {
+        real += r; 
+        return *this;
+    }
+ 
+    friend
+    inline complex operator+ (const complex&amp; a, const complex&amp; b) {
+        return {a.real + b.real, a.imag + b.imag};
+    }
+ 
+    friend
+    inline ostream&amp; operator&lt;&lt;( ostream&amp; os, const complex&amp; cp ) const {
+        return os &lt;&lt; &quot;(&quot; &lt;&lt; cp.real &lt;&lt; &quot;,&quot; &lt;&lt; cp.imag &lt;&lt; &quot;)&quot;;
+    }
+ 
+    inline complex&amp; operator++() {
+        ++real;
+        return *this;
+    }
+ 
+    inline complex operator++( FloatType ) {
+        auto temp = *this;
+        ++real;
+        return temp;
+    }
+ 
+    // ... more functions that complement the above ...
+ 
+private:
+    FloatType real, imag;
+};
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: sehe (@sehetw)				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10148</link>
+		<dc:creator><![CDATA[sehe (@sehetw)]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 21:36:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10148</guid>
+					<description><![CDATA[0. implicit conversion constructor could be undesired
+1. missing includes iosfwd
+2. ostream not by reference
+3. operator &#060;&#060; wrong param ordering
+4. operator &#060;&#060; &#034;wrong&#034; return type (no chaining)
+   fixing operator&#060;&#060;:
+[code]
+    // in class
+    friend std::ostream&#038; operator&#060;&#060;( std::ostream&#038; os, complex const&#038; c); 
+
+    // in cpp
+    #include &#060;ostream&#062;
+
+    std::ostream&#038; operator&#060;&#060;( std::ostream&#038; os, complex const&#038; c) {
+        return os &#060;&#060; &#039;(&#039; &#060;&#060; c.real &#060;&#060; &#039;,&#039; &#060;&#060; c.imag &#060;&#060; &#039;)&#039;;
+    }
+[/code]
+
+5. operator+() actually implements more of `operator+=` and could take a const&#038; to allow for rvalues (implicit conversions)
+
+   fixing it as operator+ (note const): 
+
+[code]
+    complex operator+ ( complex const &#038;other ) const {
+        return { real + other.real, imag + other.imag };
+    }
+[/code]
+
+6. operator++() (prefix version) should return by reference
+
+7. Consider using friend operator+ instead of member operator+ to allow for implicit conversion of the first operand as well:
+
+[code]
+    friend complex operator+ ( complex const&#038; a, complex const &#038;other )  {
+        return { a.real + other.real, a.imag + other.imag };
+    }
+[/code]
+
+   Note this becomes less useful if the constructor was made explicit]]></description>
+		<content:encoded><![CDATA[<p>0. implicit conversion constructor could be undesired<br />
+1. missing includes iosfwd<br />
+2. ostream not by reference<br />
+3. operator &lt;&lt; wrong param ordering<br />
+4. operator &lt;&lt; &quot;wrong&quot; return type (no chaining)<br />
+   fixing operator&lt;&lt;:</p>
+<pre class="brush: plain; title: ; notranslate">
+    // in class
+    friend std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, complex const&amp; c); 
+
+    // in cpp
+    #include &lt;ostream&gt;
+
+    std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, complex const&amp; c) {
+        return os &lt;&lt; &#039;(&#039; &lt;&lt; c.real &lt;&lt; &#039;,&#039; &lt;&lt; c.imag &lt;&lt; &#039;)&#039;;
+    }
+</pre>
+<p>5. operator+() actually implements more of `operator+=` and could take a const&amp; to allow for rvalues (implicit conversions)</p>
+<p>   fixing it as operator+ (note const): </p>
+<pre class="brush: plain; title: ; notranslate">
+    complex operator+ ( complex const &amp;other ) const {
+        return { real + other.real, imag + other.imag };
+    }
+</pre>
+<p>6. operator++() (prefix version) should return by reference</p>
+<p>7. Consider using friend operator+ instead of member operator+ to allow for implicit conversion of the first operand as well:</p>
+<pre class="brush: plain; title: ; notranslate">
+    friend complex operator+ ( complex const&amp; a, complex const &amp;other )  {
+        return { a.real + other.real, a.imag + other.imag };
+    }
+</pre>
+<p>   Note this becomes less useful if the constructor was made explicit</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Tianyu Zhu				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10147</link>
+		<dc:creator><![CDATA[Tianyu Zhu]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 21:30:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10147</guid>
+					<description><![CDATA[Something other people haven&#039;t pointer out:
+operator + is actually operator +=. That is, the following code:
+
+Complex a(1, 0), b(0, 1);
+a + b;
+
+Actually changes the value of a.
+
+I would probably implement operator + like this:
+
+complex operator +(complex other) const {
+    return complex(real+other.real, imag+other.imag);
+}
+
+Or perhaps in terms of an implemented += operator.
+
+I wouldn&#039;t necessarily take arguments by const&#038; since this is a relatively small class and it may not be necessary.]]></description>
+		<content:encoded><![CDATA[<p>Something other people haven&#8217;t pointer out:<br />
+operator + is actually operator +=. That is, the following code:</p>
+<p>Complex a(1, 0), b(0, 1);<br />
+a + b;</p>
+<p>Actually changes the value of a.</p>
+<p>I would probably implement operator + like this:</p>
+<p>complex operator +(complex other) const {<br />
+    return complex(real+other.real, imag+other.imag);<br />
+}</p>
+<p>Or perhaps in terms of an implemented += operator.</p>
+<p>I wouldn&#8217;t necessarily take arguments by const&amp; since this is a relatively small class and it may not be necessary.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Daniel Angel Muñoz Trejo				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10145</link>
+		<dc:creator><![CDATA[Daniel Angel Muñoz Trejo]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 21:25:53 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10145</guid>
+					<description><![CDATA[[code]class complex {
+public:
+    complex( double r, double i = 0.0 )
+        : real(r), imag(i)
+    { }
+
+    complex operator+ (const complex&#038; other ) const {
+        return complex(real + other.real, imag + other.imag);
+    }
+
+    ostream&#038; operator&#060;&#060;( ostream&#038; os ) const {
+        return os &#060;&#060; &#034;(&#034; &#060;&#060; real &#060;&#060; &#034;,&#034; &#060;&#060; imag &#060;&#060; &#034;)&#034;;
+    }
+
+    complex&#038; operator++() {
+        ++real;
+        return *this;
+    }
+
+    complex operator++( int ) {
+        auto temp = *this;
+        ++real;
+        return temp;
+    }
+
+    // ... more functions that complement the above ...
+
+private:
+    double real, imag;
+};[/code]]]></description>
+		<content:encoded><![CDATA[<pre class="brush: plain; title: ; notranslate">class complex {
+public:
+    complex( double r, double i = 0.0 )
+        : real(r), imag(i)
+    { }
+
+    complex operator+ (const complex&amp; other ) const {
+        return complex(real + other.real, imag + other.imag);
+    }
+
+    ostream&amp; operator&lt;&lt;( ostream&amp; os ) const {
+        return os &lt;&lt; &quot;(&quot; &lt;&lt; real &lt;&lt; &quot;,&quot; &lt;&lt; imag &lt;&lt; &quot;)&quot;;
+    }
+
+    complex&amp; operator++() {
+        ++real;
+        return *this;
+    }
+
+    complex operator++( int ) {
+        auto temp = *this;
+        ++real;
+        return temp;
+    }
+
+    // ... more functions that complement the above ...
+
+private:
+    double real, imag;
+};</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Joe Taber				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10144</link>
+		<dc:creator><![CDATA[Joe Taber]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 21:21:58 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10144</guid>
+					<description><![CDATA[@Kris:
+
+Should `operator+()` and `operator++(int)` return `complex` as `const` instead?
+
+I don&#039;t think explicit is necessary because implicit conversion isn&#039;t possible with multi-parameter constructors.]]></description>
+		<content:encoded><![CDATA[<p>@Kris:</p>
+<p>Should `operator+()` and `operator++(int)` return `complex` as `const` instead?</p>
+<p>I don&#8217;t think explicit is necessary because implicit conversion isn&#8217;t possible with multi-parameter constructors.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: BHR				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10143</link>
+		<dc:creator><![CDATA[BHR]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 21:15:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10143</guid>
+					<description><![CDATA[operator+ seems to be a typo, since it changes the object - it probably was intended to say operator+=. In that case a reference to *this should be returned, rather than void. If it really is intended to be operator+, it should be const and not change the object, instead it should return a temporary that is the sum.
+
+The member operator &#060;&#060; is a poor choice. As written, you would have to write &#034;complex(1,2) &#060;&#060; std::cout&#034; instead of the more natural &#034;std::cout &#060;&#060; complex(1,2)&#034;. It would be better to make a free-standing operator&#060;&#060; that reverses the operator order. When doing that, an ostream&#038; should be returned instead of void. Also, the parameter should be an ostream&#038;, not an ostream.
+
+std::ostream is written as just ostream. This requires a preceding &#034;using std::ostream;&#034; or &#034;using namespace std;&#034;. Putting that in a header puts that using declaration into all code that includes the header. Whether that is OK depends on the local coding convention, though I&#039;d avoid it. As a minor point, the strings that are being written to os are all one character long, so they could as well be chars. That probably won&#039;t matter much, but writing &#039;(&#039; is no more complicated than &#034;(&#034;, so you might as well choose the one that&#039;s likely to be faster.
+
+operator++() should return a complex&#038;.
+
+All of the parameters and the local variable temp in operator++(int) could be const. So a coder following the rule &#034;if it can be const, it should be const&#034; would make them const. However, reasonable people can disagree about whether taking consting to this level makes sense. I would do it.
+
+A more philosophical note is whether incrementing a floating point complex number is a natural notion. It isn&#039;t to me so I&#039;d prefer there not to be an operator++.]]></description>
+		<content:encoded><![CDATA[<p>operator+ seems to be a typo, since it changes the object &#8211; it probably was intended to say operator+=. In that case a reference to *this should be returned, rather than void. If it really is intended to be operator+, it should be const and not change the object, instead it should return a temporary that is the sum.</p>
+<p>The member operator &lt;&lt; is a poor choice. As written, you would have to write &quot;complex(1,2) &lt;&lt; std::cout&quot; instead of the more natural &quot;std::cout &lt;&lt; complex(1,2)&quot;. It would be better to make a free-standing operator&lt;&lt; that reverses the operator order. When doing that, an ostream&amp; should be returned instead of void. Also, the parameter should be an ostream&amp;, not an ostream.</p>
+<p>std::ostream is written as just ostream. This requires a preceding &quot;using std::ostream;&quot; or &quot;using namespace std;&quot;. Putting that in a header puts that using declaration into all code that includes the header. Whether that is OK depends on the local coding convention, though I&#039;d avoid it. As a minor point, the strings that are being written to os are all one character long, so they could as well be chars. That probably won&#039;t matter much, but writing &#039;(&#039; is no more complicated than &quot;(&quot;, so you might as well choose the one that&#039;s likely to be faster.</p>
+<p>operator++() should return a complex&amp;.</p>
+<p>All of the parameters and the local variable temp in operator++(int) could be const. So a coder following the rule &quot;if it can be const, it should be const&quot; would make them const. However, reasonable people can disagree about whether taking consting to this level makes sense. I would do it.</p>
+<p>A more philosophical note is whether incrementing a floating point complex number is a natural notion. It isn&#039;t to me so I&#039;d prefer there not to be an operator++.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: BK				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10142</link>
+		<dc:creator><![CDATA[BK]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 21:09:32 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10142</guid>
+					<description><![CDATA[1. Operator + should take take the arg by const ref (pointed out in the prior response)
+2. Pre-increment should return a reference.
+3. operator&#060;&#060; takes an ostream by value --- change to ref (also, would be better if the ouput method were moved out of the class)
+4. I would also add a move constructor. The post increment operator is returing a complex by value, a temporary can be eliminated here using the move ctor.]]></description>
+		<content:encoded><![CDATA[<p>1. Operator + should take take the arg by const ref (pointed out in the prior response)<br />
+2. Pre-increment should return a reference.<br />
+3. operator&lt;&lt; takes an ostream by value &#8212; change to ref (also, would be better if the ouput method were moved out of the class)<br />
+4. I would also add a move constructor. The post increment operator is returing a complex by value, a temporary can be eliminated here using the move ctor.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Kris				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10138</link>
+		<dc:creator><![CDATA[Kris]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 20:53:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10138</guid>
+					<description><![CDATA[* first of all should have used `std::complex&#039; instead of implementing their own
+* constructor should be `explicit&#039; to avoid implicid (unexpected) conversions
+* `operator+()&#039; should return `complex&#039;, take the argument by const reference and be declared as `const&#039;
+[code]
+    complex operator+ ( const complex&#038; other ) const {
+        return complex(real + other.real, imag + other.imag);
+    }
+[/code]
+* stream operator should be a friend free function returning `std::ostream&#039; and taking a const reference to `complex as the second argument
+[code]
+    friend
+    std::ostream&#038; operator&#060;&#060;( std::ostream&#038; os, const complex&#038; c ) {
+        return os &#060;&#060; &#034;(&#034; &#060;&#060; c.real &#060;&#060; &#034;,&#034; &#060;&#060; c.imag &#060;&#060; &#034;)&#034;;
+    }
+[/code]
+* both increment operators do not make much sense, but leaving this aside:
+** pre-increment `operator++()&#039; should return reference to `complex&#039;
+** post-increment `operator++(int)&#039; ideally should be implemented in terms the former one
+[code]
+    complex operator++( int ) const {
+        return ++complex(*this);
+    }
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>* first of all should have used `std::complex&#8217; instead of implementing their own<br />
+* constructor should be `explicit&#8217; to avoid implicid (unexpected) conversions<br />
+* `operator+()&#8217; should return `complex&#8217;, take the argument by const reference and be declared as `const&#8217;</p>
+<pre class="brush: plain; title: ; notranslate">
+    complex operator+ ( const complex&amp; other ) const {
+        return complex(real + other.real, imag + other.imag);
+    }
+</pre>
+<p>* stream operator should be a friend free function returning `std::ostream&#8217; and taking a const reference to `complex as the second argument</p>
+<pre class="brush: plain; title: ; notranslate">
+    friend
+    std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, const complex&amp; c ) {
+        return os &lt;&lt; &quot;(&quot; &lt;&lt; c.real &lt;&lt; &quot;,&quot; &lt;&lt; c.imag &lt;&lt; &quot;)&quot;;
+    }
+</pre>
+<p>* both increment operators do not make much sense, but leaving this aside:<br />
+** pre-increment `operator++()&#8217; should return reference to `complex&#8217;<br />
+** post-increment `operator++(int)&#8217; ideally should be implemented in terms the former one</p>
+<pre class="brush: plain; title: ; notranslate">
+    complex operator++( int ) const {
+        return ++complex(*this);
+    }
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Matt P. Dziubinski				</title>
+				<link>https://herbsutter.com/2013/05/16/gotw-4-class-mechanics-710/#comment-10135</link>
+		<dc:creator><![CDATA[Matt P. Dziubinski]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 20:26:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1920#comment-10135</guid>
+					<description><![CDATA[A few thoughts on first sight:
+- let&#039;s wrap this in a namespace, we wouldn&#039;t want a clash with some other class named &quot;complex&quot;
+- let&#039;s make it a class template instead of hard-coding the underlying type &quot;double&quot; (for &quot;real&quot;, &quot;imag&quot;, &quot;r&quot;, &quot;i&quot;, etc.)
+- optional: possibly use compile-time constraint on the underlying type, for instance, using type-trait like &quot;std::is_floating_point&quot; (or at least &quot;std::is_arithmetic&quot;) coupled with static_assert and/or std::enable_if // although we&#039;re facing some trade-offs here -- for instance, we could like to also use Boost.Multiprecision types (which is one of the reasons for making &quot;complex&quot; a class template in the first place)
+- use value-initialization instead of hard-coding &quot;double i = 0&quot; default argument (with unnecessary implicit conversion)
+- operator+ -- result: make it return the result (by const-ref), use += for the components (or, even better, implement it in terms of operator += working for the class);
+- operator+ -- arguments: I was about to say something about using const-ref, but then I recalled N3445 and thought pass-by-value might be fit better here:
+http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3445.html
+- operator&#060;&#060; -- make it behave like the operator&#060;&#060; in the Standard IOStream (take-and-return stream by reference)
+- (prefix) operator++ -- there&#039;s an avoidable (by reference) copy in the pre-increment operator++
+- (postfix) operator++ -- implement in terms of the prefix operator++ instead of handcoding ++real]]></description>
+		<content:encoded><![CDATA[<p>A few thoughts on first sight:<br />
+&#8211; let&#8217;s wrap this in a namespace, we wouldn&#8217;t want a clash with some other class named &#8220;complex&#8221;<br />
+&#8211; let&#8217;s make it a class template instead of hard-coding the underlying type &#8220;double&#8221; (for &#8220;real&#8221;, &#8220;imag&#8221;, &#8220;r&#8221;, &#8220;i&#8221;, etc.)<br />
+&#8211; optional: possibly use compile-time constraint on the underlying type, for instance, using type-trait like &#8220;std::is_floating_point&#8221; (or at least &#8220;std::is_arithmetic&#8221;) coupled with static_assert and/or std::enable_if // although we&#8217;re facing some trade-offs here &#8212; for instance, we could like to also use Boost.Multiprecision types (which is one of the reasons for making &#8220;complex&#8221; a class template in the first place)<br />
+&#8211; use value-initialization instead of hard-coding &#8220;double i = 0&#8221; default argument (with unnecessary implicit conversion)<br />
+&#8211; operator+ &#8212; result: make it return the result (by const-ref), use += for the components (or, even better, implement it in terms of operator += working for the class);<br />
+&#8211; operator+ &#8212; arguments: I was about to say something about using const-ref, but then I recalled N3445 and thought pass-by-value might be fit better here:<br />
+<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3445.html" rel="nofollow">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3445.html</a><br />
+&#8211; operator&lt;&lt; &#8212; make it behave like the operator&lt;&lt; in the Standard IOStream (take-and-return stream by reference)<br />
+&#8211; (prefix) operator++ &#8212; there&#039;s an avoidable (by reference) copy in the pre-increment operator++<br />
+&#8211; (postfix) operator++ &#8212; implement in terms of the prefix operator++ instead of handcoding ++real</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

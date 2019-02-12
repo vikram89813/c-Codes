@@ -1,0 +1,567 @@
+<!doctype html>
+<html amp lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+	
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #6b Solution: Const-Correctness, Part 2" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/" />
+<meta property="og:description" content="const and mutable are powerful tools for writing safer code. Use them consistently. Problem Guru Question In the following code, add or remove const (including minor variants and related keywords) …" />
+<meta property="article:published_time" content="2013-05-29T00:05:43+00:00" />
+<meta property="article:modified_time" content="2013-12-23T14:30:00+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965397" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #6b Solution: Const-Correctness, Part 2" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+	<title>GotW #6b Solution: Const-Correctness, Part 2 &#8211; Sutter’s Mill</title>
+		<link rel="canonical" href="https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/" />
+	<script src="https://cdn.ampproject.org/v0.js" async></script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic">	<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+		<script type="application/ld+json">{"@context":"http:\/\/schema.org","@type":"BlogPosting","mainEntityOfPage":"https:\/\/herbsutter.com\/2013\/05\/28\/gotw-6b-solution-const-correctness-part-2\/","publisher":{"@type":"Organization","name":"Sutter\u2019s Mill","logo":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=60&d=https%3A%2F%2Fs0.wp.com%2Fi%2Ffavicons%2Fapple-touch-icon-60x60.png","width":60,"height":60}},"headline":"GotW #6b Solution: Const-Correctness, Part 2","datePublished":"2013-05-28T16:05:43+00:00","dateModified":"2013-12-23T06:30:00+00:00","author":{"@type":"Person","name":"Herb Sutter"},"image":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=200","width":200,"height":200}}</script>
+	<meta name="generator" content="AMP Plugin v0.6.2" />	<style amp-custom>
+		/* Generic WP styling */
+
+.alignright {
+	float: right;
+}
+
+.alignleft {
+	float: left;
+}
+
+.aligncenter {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.amp-wp-enforced-sizes {
+	/** Our sizes fallback is 100vw, and we have a padding on the container; the max-width here prevents the element from overflowing. **/
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+.amp-wp-unknown-size img {
+	/** Worst case scenario when we can't figure out dimensions for an image. **/
+	/** Force the image into a box of fixed dimensions and use object-fit to scale. **/
+	object-fit: contain;
+}
+
+/* Template Styles */
+
+.amp-wp-content,
+.amp-wp-title-bar div {
+		margin: 0 auto;
+	max-width: 500px;
+	}
+
+html {
+	background: #0a89c0;
+}
+
+body {
+	background: #fff;
+	color: #353535;
+	font-family: 'Merriweather', 'Times New Roman', Times, Serif;
+	font-weight: 300;
+	line-height: 1.75em;
+}
+
+p,
+ol,
+ul,
+figure {
+	margin: 0 0 1em;
+	padding: 0;
+}
+
+a,
+a:visited {
+	color: #0a89c0;
+}
+
+a:hover,
+a:active,
+a:focus {
+	color: #353535;
+}
+
+/* Quotes */
+
+blockquote {
+	color: #353535;
+	background: rgba(127,127,127,.125);
+	border-left: 2px solid #0a89c0;
+	margin: 8px 0 24px 0;
+	padding: 16px;
+}
+
+blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+/* UI Fonts */
+
+.amp-wp-meta,
+.amp-wp-header div,
+.amp-wp-title,
+.wp-caption-text,
+.amp-wp-tax-category,
+.amp-wp-tax-tag,
+.amp-wp-comments-link,
+.amp-wp-footer p,
+.back-to-top {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen-Sans", "Ubuntu", "Cantarell", "Helvetica Neue", sans-serif;
+}
+
+/* Header */
+
+.amp-wp-header {
+	background-color: #0a89c0;
+}
+
+.amp-wp-header div {
+	color: #fff;
+	font-size: 1em;
+	font-weight: 400;
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: .875em 16px;
+	position: relative;
+}
+
+.amp-wp-header a {
+	color: #fff;
+	text-decoration: none;
+}
+
+/* Site Icon */
+
+.amp-wp-header .amp-wp-site-icon {
+	/** site icon is 32px **/
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 50%;
+	position: absolute;
+	right: 18px;
+	top: 10px;
+}
+
+/* Article */
+
+.amp-wp-article {
+	color: #353535;
+	font-weight: 400;
+	margin: 1.5em auto;
+	max-width: 840px;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+}
+
+/* Article Header */
+
+.amp-wp-article-header {
+	align-items: center;
+	align-content: stretch;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin: 1.5em 16px 0;
+}
+
+.amp-wp-title {
+	color: #353535;
+	display: block;
+	flex: 1 0 100%;
+	font-weight: 900;
+	margin: 0 0 .625em;
+	width: 100%;
+}
+
+/* Article Meta */
+
+.amp-wp-meta {
+	color: #696969;
+	display: inline-block;
+	flex: 2 1 50%;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0 0 1.5em;
+	padding: 0;
+}
+
+.amp-wp-article-header .amp-wp-meta:last-of-type {
+	text-align: right;
+}
+
+.amp-wp-article-header .amp-wp-meta:first-of-type {
+	text-align: left;
+}
+
+.amp-wp-byline amp-img,
+.amp-wp-byline .amp-wp-author {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.amp-wp-byline amp-img {
+	border: 1px solid #0a89c0;
+	border-radius: 50%;
+	position: relative;
+	margin-right: 6px;
+}
+
+.amp-wp-posted-on {
+	text-align: right;
+}
+
+/* Featured image */
+
+.amp-wp-article-featured-image {
+	margin: 0 0 1em;
+}
+.amp-wp-article-featured-image amp-img {
+	margin: 0 auto;
+}
+.amp-wp-article-featured-image.wp-caption .wp-caption-text {
+	margin: 0 18px;
+}
+
+/* Article Content */
+
+.amp-wp-article-content {
+	margin: 0 16px;
+}
+
+.amp-wp-article-content ul,
+.amp-wp-article-content ol {
+	margin-left: 1em;
+}
+
+.amp-wp-article-content amp-img {
+	margin: 0 auto;
+}
+
+.amp-wp-article-content amp-img.alignright {
+	margin: 0 0 1em 16px;
+}
+
+.amp-wp-article-content amp-img.alignleft {
+	margin: 0 16px 1em 0;
+}
+
+/* Captions */
+
+.wp-caption {
+	padding: 0;
+}
+
+.wp-caption.alignleft {
+	margin-right: 16px;
+}
+
+.wp-caption.alignright {
+	margin-left: 16px;
+}
+
+.wp-caption .wp-caption-text {
+	border-bottom: 1px solid #c2c2c2;
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0;
+	padding: .66em 10px .75em;
+}
+
+/* AMP Media */
+
+amp-carousel {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+amp-iframe,
+amp-youtube,
+amp-instagram,
+amp-vine {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+
+.amp-wp-article-content amp-carousel amp-img {
+	border: none;
+}
+
+amp-carousel > amp-img > img {
+	object-fit: contain;
+}
+
+.amp-wp-iframe-placeholder {
+	background: #c2c2c2 url( https://s2.wp.com/wp-content/plugins/amp/assets/images/placeholder-icon.png ) no-repeat center 40%;
+	background-size: 48px 48px;
+	min-height: 48px;
+}
+
+/* Article Footer Meta */
+
+.amp-wp-article-footer .amp-wp-meta {
+	display: block;
+}
+
+.amp-wp-tax-category,
+.amp-wp-tax-tag {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 1.5em 16px;
+}
+
+.amp-wp-comments-link {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	text-align: center;
+	margin: 2.25em 0 1.5em;
+}
+
+.amp-wp-comments-link a {
+	border-style: solid;
+	border-color: #c2c2c2;
+	border-width: 1px 1px 2px;
+	border-radius: 4px;
+	background-color: transparent;
+	color: #0a89c0;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 18px;
+	margin: 0 auto;
+	max-width: 200px;
+	padding: 11px 16px;
+	text-decoration: none;
+	width: 50%;
+	-webkit-transition: background-color 0.2s ease;
+			transition: background-color 0.2s ease;
+}
+
+/* AMP Footer */
+
+.amp-wp-footer {
+	border-top: 1px solid #c2c2c2;
+	margin: calc(1.5em - 1px) 0 0;
+}
+
+.amp-wp-footer div {
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: 1.25em 16px 1.25em;
+	position: relative;
+}
+
+.amp-wp-footer h2 {
+	font-size: 1em;
+	line-height: 1.375em;
+	margin: 0 0 .5em;
+}
+
+.amp-wp-footer p {
+	color: #696969;
+	font-size: .8em;
+	line-height: 1.5em;
+	margin: 0 85px 0 0;
+}
+
+.amp-wp-footer a {
+	text-decoration: none;
+}
+
+.back-to-top {
+	bottom: 1.275em;
+	font-size: .8em;
+	font-weight: 600;
+	line-height: 2em;
+	position: absolute;
+	right: 16px;
+}
+		/* Inline styles */
+.amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe{background:#ffffcc;margin-left:14pt;}.amp-wp-inline-e118b89cb574341583297a20935ac54c{color:#2e74b5;}.amp-wp-inline-61cd676b7bd65a074cc1d867fbbea1de{text-decoration:underline;}.amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b{color:#5a5a5a;}	</style>
+</head>
+
+<body class="">
+
+<header id="top" class="amp-wp-header">
+	<div>
+		<a href="https://herbsutter.com">
+									<span class="amp-site-title">
+				Sutter’s Mill			</span>
+		</a>
+	</div>
+</header>
+
+<article class="amp-wp-article">
+	<header class="amp-wp-article-header">
+		<h1 class="amp-wp-title">GotW #6b Solution: Const-Correctness, Part 2</h1>
+			<div class="amp-wp-meta amp-wp-byline">
+					<amp-img src="https://secure.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=24&#038;d=identicon&#038;r=g" width="24" height="24" layout="fixed"></amp-img>
+				<span class="amp-wp-author author vcard">Herb Sutter</span>
+	</div>
+<div class="amp-wp-meta amp-wp-posted-on">
+	<time datetime="2013-05-28T16:05:43+00:00">
+		5 years ago	</time>
+</div>
+	</header>
+
+	
+	<div class="amp-wp-article-content">
+		<p><span class="amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b"><em>const and mutable are powerful tools for writing safer code. Use them consistently.</em></span>
+	</p><h1>Problem<br/></h1><h2>Guru Question<br/></h2><p>In the following code, add or remove <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> (including minor variants and related keywords) wherever appropriate. Note: Don’t comment on or change the structure of this program. It’s contrived and condensed for illustration only.
+</p><p>For bonus points: In what places are the program’s results undefined or uncompilable due to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> errors?
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>class polygon {<br/>public:<br/>    polygon() : area{-1} {}<br/><br/>    void add_point( const point pt ) { area = -1;<br/>                                       points.push_back(pt); }<br/><br/>    point get_point( const int i ) { return points[i]; }<br/><br/>    int get_num_points() { return points.size(); }<br/><br/>    double get_area() {<br/>        if( area &lt; 0 )   // if not yet calculated and cached<br/>            calc_area();     // calculate now<br/>        return area;<br/>    }<br/><br/>private:<br/>    void calc_area() {<br/>        area = 0;<br/>        vector&lt;point&gt;::iterator i;<br/>        for( i = begin(points); i != end(points); ++i )<br/>            area += /* some work using *i */;<br/>    }<br/><br/>    vector&lt;point&gt; points;<br/>    double        area;<br/>};<br/><br/>polygon operator+( polygon&amp; lhs, polygon&amp; rhs ) {<br/>    auto ret = lhs;<br/>    auto last = rhs.get_num_points();<br/>    for( auto i = 0; i &lt; last; ++i ) // concatenate<br/>        ret.add_point( rhs.get_point(i) );<br/>    return ret;<br/>}<br/><br/>void f( const polygon&amp; poly ) {<br/>    const_cast&lt;polygon&amp;&gt;(poly).add_point( {0,0} );<br/>}<br/><br/>void g( polygon&amp; const poly ) { poly.add_point( {1,1} ); }<br/><br/>void h( polygon* const poly ) { poly-&gt;add_point( {2,2} ); }<br/><br/>int main() {<br/>    polygon poly;<br/>    const polygon cpoly;<br/><br/>    f(poly);<br/>    f(cpoly);<br/>    g(poly);<br/>    h(&amp;poly);<br/>}
+</code></pre><p>
+ </p><h1>Solution<br/></h1><p>When I pose this kind of problem, I find that most people think the problem is on the easy side and address only the more-usual <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> issues. There are, however, subtleties that are worth knowing, and hence this Item.
+</p><h3>1. The point object is passed by value, so there is little benefit to declaring it const.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    void  add_point( const point pt )<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">
+				</span></code></pre><p>In this particular case, because the function is defined inline, the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> value parameter can make sense. This is because for inline functions the declaration and definition are the same. Otherwise, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> value parameters should appear only on the definition, not on the declaration. Let’s see why.
+</p><p>Putting the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> on a value parameter in a function declaration is irrelevant <em>outside</em> the function—it makes no difference to the caller and can only confuse readers. To the compiler, the function signature is the same whether you include this <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> in front of a value parameter or not. For example:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// value parameter: top-level const is not part of function signature<br/>int f( int );<br/>int f( const int );    // <span class="amp-wp-inline-61cd676b7bd65a074cc1d867fbbea1de">redeclares</span> f(int): this is the same function<br/><br/>// non-value parameter: top-level const is part of function signature<br/>int g( int&amp; );<br/>int g( const int&amp; );   // overloads g(int&amp;): these are two functions<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">
+				</span></code></pre><p>But putting the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> on the value parameter does make a difference to how it can be used <em>inside</em> the function’s actual definition. Remember that, inside a function, the parameters are just the first set of local variables, so putting a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> on a value parameter simply means that the function can’t modify its local variable, which only happens to be a parameter. Here’s an example that declares and then defines the same function <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span>:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>int f( int );          // declaration: no const<br/><br/>int f( const int i ) { // definition: use const to express "read-only"<br/><br/>    vector&lt;int&gt; v;<br/>    v.push_back(i);    // ok, only reads from i<br/><br/>    i = 42;            // error, attempts to modify i<br/><br/>}
+</code></pre><blockquote>
+<p><strong>Guideline:</strong> Consider not writing <strong>const</strong> on pass-by-value function parameters when only forward-declaring a function. You can always add it on the definition to express a read-only parameter.
+</p>
+</blockquote><h3>2. get_point and get_num_points should be const.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    point get_point( const int i ) { return points[i]; }<br/><br/>    int   get_num_points() { return points.size(); }
+</code></pre><p>These functions should be marked <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>, because they don’t change the state of the object.
+</p><h3>3. get_area should be const.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    double get_area() {<br/>        if( area &lt; 0 )   // if not yet calculated and cached<br/>            calc_area();     // calculate now<br/>        return area;<br/>    }
+</code></pre><p>Even though this function modifies the object’s internal state, we should consider making it <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>. Why? Because this function does not modify the object’s <em>observable</em> state; we are doing some caching here, but that’s an internal implementation detail and the object is logically <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> even if it isn’t physically <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>.
+</p><h3>4. Therefore calc_area should also be const.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    void calc_area() {<br/>        area = 0;<br/>        vector&lt;point&gt;::iterator i;<br/>        for( i = begin(points); i != end(points); ++i )<br/>            area += /* some work using *i */;<br/>    }
+</code></pre><p>Once we make <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">get_area</span> be <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>, this private helper function ought also to be <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>.
+</p><p>In turn, once you make this function <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>, the compiler will tell you that you also need to do something about the member variable <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">area</span>, which should be:
+</p><ul><li>declared <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">mutable</span>, so that it’s writable in a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> member function; and
+</li>
+<li>synchronized using a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">mutex</span> or made <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">atomic&lt;&gt;</span>, so that it’s concurrency-safe, as discussed in GotW #6a.
+</li>
+</ul><h3>5. Also, calc_area should use a const_iterator.<br/></h3><p>The iterator should not change the state of the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">points</span> collection, and so it ought to be a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const_iterator</span>. We’re now forced to make this change anyway if we’re making <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">calc_area</span> be a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> member function, but note that if we had said <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> for the iterator’s type we wouldn’t have had to make any change at all. While we’re at it, the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop inside <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">calc_area</span>: It should prefer to use the range-based <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop, as well as <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span>.
+</p><p>Combining all that, we get this simpler and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>-correct code:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>      for( auto&amp; pt : points )<br/>          area += /* some work using pt */;
+</code></pre><blockquote>
+<p><strong>Guideline:</strong> Prefer declaring variables using <strong>auto</strong>.
+</p>
+</blockquote><blockquote>
+<p><strong>Guideline:</strong> Prefer range-based <strong>for</strong> loops to naked iterator-incrementing <strong>for</strong> loops when visiting the elements of the range in order.
+</p>
+</blockquote><h3>6. area should be mutable and synchronized.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    double        area;
+</code></pre><p>As noted already, in conjunction with the other changes the internal cache variable will <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">area</span> now want to be <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">mutable </span>so that it can be used correctly and safely inside <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> member functions, and because it is now a shared variable potentially used by multiple concurrent <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> operations it must also be synchronized—protected with a mutex or made <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">atomic</span>.
+</p><p><strong>Bonus Question: Before reading on, which should it be: Protected by a mutex? or made atomic&lt;double&gt;?<br/></strong></p><p>Have you thought about it? All right, let’s continue…
+</p><p>Both work, but a mutex is usually overkill for a single variable.
+</p><p>Option 1 is to use a mutex in the perhaps-soon-to-be-canonical “<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">mutable mutex mutables</span>” pattern:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// Option 1: Use a mutex <br/><br/>    double get_area() const {<br/>        auto lock = unique_lock&lt;mutex&gt;{mutables};<br/>        if( area &lt; 0 )   // if not yet calculated and cached<br/>            calc_area();     // calculate now<br/>        return area;<br/>    }<br/><br/>private:<br/>    // ...<br/>    mutable mutex  mutables;      // canonical pattern: mutex that<br/>    mutable double area;          //   covers all mutable members
+</code></pre><p>Option 1 generalizes well if you add more data members in the future. However, it’s also more invasive and generalizes less well if you add more <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> member functions in the future that use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">area</span>, because they will all have to remember to acquire a lock on the mutex before using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">area</span>.
+</p><p>Option 2 is to just change <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">double</span> to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">mutable atomic&lt;double&gt;</span>. This is attractive because the “<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">mutable</span> part” of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">polygon</span> is just a single variable. That can work, but you have to be careful because that’s not the only necessary change, for two reasons:
+</p><ul><li>The minor reason is that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">atomic&lt;double&gt;</span> doesn’t support <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">+=</span>, so if we only change <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">area</span>‘s type then <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">calc_area</span> will no longer compile. That can be worked around, but leads us to the major reason…
+</li>
+<li>The major reason is that, because <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">calc_area</span> is a compound operation and must be safe to run on multiple threads concurrently, we must restructure <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">calc_area</span> to be safe to run concurrently. In particular it should not perform intermediate updates to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">area</span>, and should ensure that multiple competing concurrent updates to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">area</span> don’t cause overwrites that lose written values.
+</li>
+</ul><p>There are several ways to do it, but the simplest is probably to allow benign redundant recalculations in the case of concurrent calls to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">calc_area</span>, on the grounds that it’s probably no worse than blocking the concurrent calls which would have to wait anyway.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// Option 2: Use an atomic<br/><br/>    void calc_area() const {<br/>        auto tmp = 0.0;              // do all the work off to the side<br/>        for( auto&amp; pt : points )<br/>            tmp += /* some work using pt */;<br/>        area = tmp;                  // then commit with a single write<br/>    }<br/><br/>private:<br/>    // ...<br/>    mutable atomic&lt;double&gt; area;
+</code></pre><p>Notice that concurrent <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> operations that call to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">calc_area</span> can still overlap and overwrite each other’s results, but that’s benign because they’re <em>concurrent <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> operations</em> so they will all calculate the same value. Also, concurrent <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">calc_area</span> calls use the shared <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">points</span> variable in a loop which should make us mentally check that it doesn’t cause cache contention, but because they’re all readers it won’t and so this too is fine.
+</p><h3>7. operator+’s rhs parameter should be a reference to const.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>polygon operator+( polygon&amp; lhs, polygon&amp; rhs ) {
+</code></pre><p>The <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">rhs</span> parameter should be passed by reference to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>, of course.
+</p><blockquote>
+<p><strong>Guideline:</strong> Prefer passing a read-only parameter by <strong>const&amp;</strong> if you are only going to read from it (not make a copy of it).
+</p>
+</blockquote><p>“But wait!” I can just hear some of you saying, “you forgot about <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">lhs</span>! Shouldn’t it be <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const&amp;</span> too?” Actually, not so much:
+</p><h3>8. operator+’s lhs parameter should be passed by value.<br/></h3><p>The key point is that we’re going to copy from it anyway, in this case immediately:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    auto ret = lhs;
+</code></pre><p>When you’re in the special case of “read-only parameter that you’re going to take copy of anyway,” there are several ways to accept the parameter, which I’ll cover in detail in another GotW. For now, suffice it to say that usually you shouldn’t overthink these options, and just use pass-by-value as the simplest method, which offers some advantages that we also touched on in GotW #4:
+</p><ul><li>If the caller passes a named <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">polygon</span> object (an lvalue), there’s no difference. Both pass-by-<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const&amp;</span> followed by an explicit copy and pass-by-value will perform one copy.
+</li>
+<li>
+<div>If the caller passes a temporary <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">polygon</span> object (an rvalue), the compiler automatically move-constructs <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">lhs</span> from that, which probably makes no difference for a small type like <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">polygon</span> but can be considerably cheaper for many types.
+</div>
+<blockquote>
+<p><strong>Guideline:</strong> Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments.
+</p>
+</blockquote>
+</li>
+</ul><h3>9. Also in operator+, last should be const.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    auto last = rhs.get_num_points();<br/>    for( auto i = 0; i &lt; last; ++i ) // concatenate<br/>        ret.add_point( rhs.get_point(i) );<br/>    return ret;<br/>}
+</code></pre><p>Since <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">last</span> should never change, prefer to say so by making it <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>.
+</p><blockquote>
+<p><strong>Guideline:</strong> Prefer to make variables, including locals, <strong>const</strong> if they should not change.
+</p>
+</blockquote><p>Incidentally, notice that once we make <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">rhs</span> a reference-to-<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> parameter as noted above, we see another reason why <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">get_point</span> should be a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> member function.
+</p><h3>10. f’s const_cast may give undefined behavior, and is morally wrong anyway.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>void f( const polygon&amp; poly ) {<br/>    const_cast&lt;polygon&amp;&gt;(poly).add_point( {0,0} );<br/>}
+</code></pre><p>Bonus: The result of the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const_cast</span> is undefined if the referenced object was declared as <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>—which it is in the case of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f(cpoly)</span> below.
+</p><p>The parameter isn’t really <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>, so don’t declare it as <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> and then try to modify it anyway. Lying to the compiler, never mind to the caller, is a bad idea, never mind morally reprehensible in most value systems.
+</p><h3>11. g’s const is illegal and useless.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>void g( polygon&amp; const poly ) { poly.add_point( {1,1} ); }
+</code></pre><p>This <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> is illegal; you can’t apply <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> directly to the reference itself, besides which references are already <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> inasmuch as they cannot be reseated to refer to a different object.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>void h( polygon* const poly ) { poly-&gt;add_point( {2,2} ); }
+</code></pre><p>Note that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">h</span>‘s <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> merely ensures that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">h</span>‘s body won’t modify the pointer value. This is the same as the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> value parameters in <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">add_point</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">get_point</span>, and perfectly fine on the definition.
+</p><h3>12. Examining the mainline.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>int main() {<br/>    polygon poly;<br/>    const polygon cpoly;<br/><br/>    f(poly);
+</code></pre><p>This is fine.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    f(cpoly);
+</code></pre><p>As already noted, this causes undefined results when <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span> tries to cast away the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>-ness of its parameter and then modify it.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    g(poly);
+</code></pre><p>This is fine.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    h(&amp;poly);<br/>}
+</code></pre><p>This is fine.
+</p><h3>Summary<br/></h3><p>Here is a revised version of the code that corrects the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> issues noted above, but does not attempt to correct any other poor style. Note that because of the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">atomic</span> member, which is not copyable, we now provide <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">polygon</span>‘s copy and move operations explicitly.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>class polygon {<br/>public:<br/>    polygon() : area{-1} {}<br/><br/>    polygon( const polygon&amp; other ) : points{other.points}, area{-1} { }<br/><br/>    polygon( polygon&amp;&amp; other ) <br/>        : points{move(other.points)}, area{other.area.load()}<br/>        { other.area = -1; }<br/><br/>    polygon&amp; operator=( const polygon&amp; other )<br/>        { points = other.points; area = -1; return *this; }<br/><br/>    polygon&amp; operator=( polygon&amp;&amp; other ) {<br/>        points = move(other.points);<br/>        area = other.area.load();<br/>        other.area = -1;<br/>        return *this;<br/>    }<br/><br/>    void add_point( point pt ) <br/>        { area = -1; points.push_back(pt); }<br/><br/>    point get_point( int i ) const { return points[i]; }<br/><br/>    int get_num_points() const { return points.size(); }<br/><br/>    double get_area() const {<br/>        if( area &lt; 0 )   // if not yet calculated and cached<br/>            calc_area();     // calculate now<br/>        return area;<br/>    }<br/><br/>private:<br/>    void calc_area() const {<br/>        auto tmp = 0.0;<br/>        for( auto&amp; pt : points )<br/>            tmp += /* some work using pt */;<br/>        area = tmp;<br/>    }<br/><br/>    vector&lt;point&gt;          points;<br/>    mutable atomic&lt;double&gt; area;<br/>};<br/><br/>polygon operator+( polygon lhs, const polygon&amp; rhs ) {<br/>    const auto last = rhs.get_num_points();<br/>    for( auto i = 0; i &lt; last; ++i ) // concatenate<br/>        lhs.add_point( rhs.get_point(i) );<br/>    return lhs;<br/>}<br/><br/>void f( polygon&amp; poly ) { poly.add_point( {0,0} ); }<br/><br/>void g( polygon&amp; poly ) { poly.add_point( {1,1} ); }<br/><br/>void h( polygon* poly ) { poly-&gt;add_point( {2,2} ); }<br/><br/>int main() {<br/>    auto poly = polygon{};<br/><br/>    f(poly);<br/>    g(poly);<br/>    h(&amp;poly);<br/>}
+</code></pre><h2>Acknowledgments<br/></h2><p>Thanks in particular to the following for their feedback to improve this article: mttpd, Vincent Lascaux, jlehrer, Motti, Fernando Pelliccioni, Leo, Mathias Stearn.</p>	</div>
+
+	<footer class="amp-wp-article-footer">
+			<div class="amp-wp-meta amp-wp-tax-category">
+		Categories: <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a>	</div>
+
+		<div class="amp-wp-meta amp-wp-comments-link">
+		<a href="https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comments">
+			View Comments		</a>
+	</div>
+	</footer>
+</article>
+
+<footer class="amp-wp-footer">
+	<div>
+		<h2>Sutter’s Mill</h2>
+		<p>
+			<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a>
+		</p>
+		<a href="#top" class="back-to-top">Back to top</a>
+	</div>
+</footer>
+
+
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;host=herbsutter.com&#038;ref=DOCUMENT_REFERRER&#038;amp=1&#038;blog=3379246&#038;v=wpcom&#038;tz=-8&#038;user_id=0&#038;post=2023&#038;subd=herbsutter"></amp-pixel>
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;v=wpcom-no-pv&#038;crypt=UE40eW5QN0p8M2Y%2FRE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29%2BSmw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8%2FMkNtblkvY1d1TjBELytHc0k%2FMXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sQjlYYUFvWFE2QTk5bltbQ2IydXFvQV1zVC9KdH58OHwlVGw9bGNGK1NdV1dxcHxXRFl5RGRzMDJ4PWlocithJTkmTnh6NXRdMjdKUTNrYlFUQj9TazRsJSZzTDFkK2Rod2Q4ZA%3D%3D"></amp-pixel>
+	
+</body>
+</html>

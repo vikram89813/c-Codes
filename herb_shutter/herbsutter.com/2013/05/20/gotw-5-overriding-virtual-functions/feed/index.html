@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #5: Overriding Virtual Functions	</title>
+	<atom:link href="https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: pip010 (@ppetrovdotnet)				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/#comment-10349</link>
+		<dc:creator><![CDATA[pip010 (@ppetrovdotnet)]]></dc:creator>
+		<pubDate>Thu, 23 May 2013 08:57:48 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1960#comment-10349</guid>
+					<description><![CDATA[few quick ones:
+1) why do you need to define a virtual destructor to object having no dynamic memory / pointer members. not calling it has no mem leaks right?
+
+2) how exactly in this case:
+base    b;
+    derived d;
+    auto &#038; rb = d;
+
+auto will default to base type and not derive type. cause I expect to have the same effect as invoking a virtual call on base* and derive*, which has different outcome as we all know.
+
+
+3) about final , is the first time i hear about it. hope is not same semantic as in C#, though it looks like it is.
+PLEASE consider removing it. as someone pointed out please show one compelling case for it. where there are plenty of points i can give you against. it is a mess in C# !!! the most compelling reason being unit testing. mock frameworks cannot work against sealed classes. so it is a valid case regardless what were the design decision leading you to using sealed!]]></description>
+		<content:encoded><![CDATA[<p>few quick ones:<br />
+1) why do you need to define a virtual destructor to object having no dynamic memory / pointer members. not calling it has no mem leaks right?</p>
+<p>2) how exactly in this case:<br />
+base    b;<br />
+    derived d;<br />
+    auto &amp; rb = d;</p>
+<p>auto will default to base type and not derive type. cause I expect to have the same effect as invoking a virtual call on base* and derive*, which has different outcome as we all know.</p>
+<p>3) about final , is the first time i hear about it. hope is not same semantic as in C#, though it looks like it is.<br />
+PLEASE consider removing it. as someone pointed out please show one compelling case for it. where there are plenty of points i can give you against. it is a mess in C# !!! the most compelling reason being unit testing. mock frameworks cannot work against sealed classes. so it is a valid case regardless what were the design decision leading you to using sealed!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Tom				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/#comment-10324</link>
+		<dc:creator><![CDATA[Tom]]></dc:creator>
+		<pubDate>Wed, 22 May 2013 20:09:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1960#comment-10324</guid>
+					<description><![CDATA[Some times Curiously Recurring Template Pattern can help too.
+[code]
+#include &#060;iostream&#062;
+#include &#060;complex&#062;
+
+using namespace std;
+
+template &#060;class Derived&#062;
+class baseT {
+    Derived&#038; derived() {  return *static_cast&#060;Derived*&#062;(this);  }
+public:
+    void f( int ) { cout &#060;&#060; &#034;base::f(int)&#034; &#060;&#060; endl; }
+    void f( double ) { cout &#060;&#060; &#034;base::f(double)&#034; &#060;&#060; endl; }
+    void g( int i ) { derived().g(i); }
+    void g( ) { derived().g();  }
+};
+
+class base : public baseT&#060;base&#062; { 
+public:
+    void g( int i ) { cout &#060;&#060; i &#060;&#060; endl; }
+    void g( ) { g(10);  }
+};
+
+class derived : public baseT&#060;derived&#062; { 
+public:
+    using baseT&#060;derived&#062;::f; //make f() from base visible here
+    void f( const complex&#060;double&#062; &#038; ) { cout &#060;&#060; &#034;derived::f(complex)&#034; &#060;&#060; endl; }
+    void g( int i ) { cout &#060;&#060; &#034;derived::g() &#034; &#060;&#060; i &#060;&#060; endl; }
+    void g( )  { g(20); }
+};
+
+int main() {
+    base    b;
+    derived d;
+    auto &#038; rb = d;
+ 
+    b.f(1.0);       //base::f(double)
+    d.f(1.0);       //base::f(double)
+    rb.f(1.0);      //base::f(double)
+ 
+    b.g();          //10
+    d.g();          //derived::g() 20
+    rb.g();         //derived::g() 20
+
+    return 0;
+}
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>Some times Curiously Recurring Template Pattern can help too.</p>
+<pre class="brush: plain; title: ; notranslate">
+#include &lt;iostream&gt;
+#include &lt;complex&gt;
+
+using namespace std;
+
+template &lt;class Derived&gt;
+class baseT {
+    Derived&amp; derived() {  return *static_cast&lt;Derived*&gt;(this);  }
+public:
+    void f( int ) { cout &lt;&lt; &quot;base::f(int)&quot; &lt;&lt; endl; }
+    void f( double ) { cout &lt;&lt; &quot;base::f(double)&quot; &lt;&lt; endl; }
+    void g( int i ) { derived().g(i); }
+    void g( ) { derived().g();  }
+};
+
+class base : public baseT&lt;base&gt; { 
+public:
+    void g( int i ) { cout &lt;&lt; i &lt;&lt; endl; }
+    void g( ) { g(10);  }
+};
+
+class derived : public baseT&lt;derived&gt; { 
+public:
+    using baseT&lt;derived&gt;::f; //make f() from base visible here
+    void f( const complex&lt;double&gt; &amp; ) { cout &lt;&lt; &quot;derived::f(complex)&quot; &lt;&lt; endl; }
+    void g( int i ) { cout &lt;&lt; &quot;derived::g() &quot; &lt;&lt; i &lt;&lt; endl; }
+    void g( )  { g(20); }
+};
+
+int main() {
+    base    b;
+    derived d;
+    auto &amp; rb = d;
+ 
+    b.f(1.0);       //base::f(double)
+    d.f(1.0);       //base::f(double)
+    rb.f(1.0);      //base::f(double)
+ 
+    b.g();          //10
+    d.g();          //derived::g() 20
+    rb.g();         //derived::g() 20
+
+    return 0;
+}
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Pavel Davydov				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/#comment-10295</link>
+		<dc:creator><![CDATA[Pavel Davydov]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 21:06:38 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1960#comment-10295</guid>
+					<description><![CDATA[1. override means that this function should override some virtual function from the parent class. final means that this function should not be overridden in some child class.
+2. a) my version of improved code would be (I skipped some code that wasn&#039;t modified):
+[code]
+class base {
+	public:
+		virtual void f( int ) final; //if function is not meant to be overridden, it should be final
+		virtual void f( double ) final;
+		virtual void g( int i ); //avoid using default values in virtual functions, they are chosen statically
+		virtual void g( ); //use separate virtual function without arguments instead
+		virtual ~base() {}
+};
+
+void base::g( ) {
+	g(10);
+}
+
+class derived: public base {
+	public:
+		using base::f; //to make f functions from base visible here
+	        void f( complex&#060;double&#062; );
+		void g( int i ) override; //override makes the compiler check if this function really override something
+		void g( ) override;
+};
+
+void derived::g( ) {
+	g(20);
+}
+[/code]
+2. b) the actual result of execution is:
+[code]
+	b.f(1.0); //base::f
+	d.f(1.0); //derived::f( complex&#060;double&#062; ), expected base::f( double )
+	pb-&#062;f(1.0); //base::f
+
+	b.g(); //10
+	d.g(); //20
+	pb-&#062;g(); //10 cause defaults are chosen statically, expected 20
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>1. override means that this function should override some virtual function from the parent class. final means that this function should not be overridden in some child class.<br />
+2. a) my version of improved code would be (I skipped some code that wasn&#8217;t modified):</p>
+<pre class="brush: plain; title: ; notranslate">
+class base {
+	public:
+		virtual void f( int ) final; //if function is not meant to be overridden, it should be final
+		virtual void f( double ) final;
+		virtual void g( int i ); //avoid using default values in virtual functions, they are chosen statically
+		virtual void g( ); //use separate virtual function without arguments instead
+		virtual ~base() {}
+};
+
+void base::g( ) {
+	g(10);
+}
+
+class derived: public base {
+	public:
+		using base::f; //to make f functions from base visible here
+	        void f( complex&lt;double&gt; );
+		void g( int i ) override; //override makes the compiler check if this function really override something
+		void g( ) override;
+};
+
+void derived::g( ) {
+	g(20);
+}
+</pre>
+<p>2. b) the actual result of execution is:</p>
+<pre class="brush: plain; title: ; notranslate">
+	b.f(1.0); //base::f
+	d.f(1.0); //derived::f( complex&lt;double&gt; ), expected base::f( double )
+	pb-&gt;f(1.0); //base::f
+
+	b.g(); //10
+	d.g(); //20
+	pb-&gt;g(); //10 cause defaults are chosen statically, expected 20
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mikhail Belyaev				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/#comment-10288</link>
+		<dc:creator><![CDATA[Mikhail Belyaev]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 17:48:29 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1960#comment-10288</guid>
+					<description><![CDATA[@Barry
+Defaults are not inherited. Neither they are stored in virtual tables. So you can not override them, but you can kinda change them in derived classes (and face the judgement). It is a compile-time issue, so it is based on static types.
+So afaik d.g() really calls derived::g(20) and pb-&#062;g() really calls derived::g(10).
+I may be wrong though, don&#039;t have a ready-to-use c++11 compiler now.]]></description>
+		<content:encoded><![CDATA[<p>@Barry<br />
+Defaults are not inherited. Neither they are stored in virtual tables. So you can not override them, but you can kinda change them in derived classes (and face the judgement). It is a compile-time issue, so it is based on static types.<br />
+So afaik d.g() really calls derived::g(20) and pb-&gt;g() really calls derived::g(10).<br />
+I may be wrong though, don&#8217;t have a ready-to-use c++11 compiler now.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: muxecoid				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/#comment-10284</link>
+		<dc:creator><![CDATA[muxecoid]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 14:11:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1960#comment-10284</guid>
+					<description><![CDATA[Previous comments already say that &quot;You should avoid overriding and overloading functions at the same time if you don’t REALLY need that. It leads to errors almost every time&quot;.
+The easy way to remember this rule is to think of every virtual function as interface definition. And if you have an interface you want it to be well (strictly) defined. It means for every function you know what exactly it accepts, without maybes.]]></description>
+		<content:encoded><![CDATA[<p>Previous comments already say that &#8220;You should avoid overriding and overloading functions at the same time if you don’t REALLY need that. It leads to errors almost every time&#8221;.<br />
+The easy way to remember this rule is to think of every virtual function as interface definition. And if you have an interface you want it to be well (strictly) defined. It means for every function you know what exactly it accepts, without maybes.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Barry				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/#comment-10282</link>
+		<dc:creator><![CDATA[Barry]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 13:35:58 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1960#comment-10282</guid>
+					<description><![CDATA[@Mikhael, isn&#039;t d.g() supposed to call derived::g(10), not derived::g(20)? Can&#039;t override default values.]]></description>
+		<content:encoded><![CDATA[<p>@Mikhael, isn&#8217;t d.g() supposed to call derived::g(10), not derived::g(20)? Can&#8217;t override default values.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: @lb				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/#comment-10274</link>
+		<dc:creator><![CDATA[@lb]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 08:57:43 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1960#comment-10274</guid>
+					<description><![CDATA[Hello,
+
+I really long for a &#039;real-life&#039; example of &#039;final&#039; use. Though I fully understand how it works, I still don&#039;t manage to see where, in a design point of view, it can be relevant or even judicious. 
+
+Of course, I do not consider &#039;value-classes&#039; since, as mentioned in previous gotw, the final keyword may enforce this semantic (though we could still wonder why avoiding private inheritance which can be considered as an alternative (and debatable) way of composition). 
+
+For the references classes, apart for compiler optimisation help, once a class has been designed to be refined, I fail to see a valid reason why stopping this behavior beeing a good design choice (or inheritance was not the most appropriate variation pattern).
+
+Thank&#039;s in advance.
+
+Best regards.]]></description>
+		<content:encoded><![CDATA[<p>Hello,</p>
+<p>I really long for a &#8216;real-life&#8217; example of &#8216;final&#8217; use. Though I fully understand how it works, I still don&#8217;t manage to see where, in a design point of view, it can be relevant or even judicious. </p>
+<p>Of course, I do not consider &#8216;value-classes&#8217; since, as mentioned in previous gotw, the final keyword may enforce this semantic (though we could still wonder why avoiding private inheritance which can be considered as an alternative (and debatable) way of composition). </p>
+<p>For the references classes, apart for compiler optimisation help, once a class has been designed to be refined, I fail to see a valid reason why stopping this behavior beeing a good design choice (or inheritance was not the most appropriate variation pattern).</p>
+<p>Thank&#8217;s in advance.</p>
+<p>Best regards.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mttpd				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/#comment-10266</link>
+		<dc:creator><![CDATA[mttpd]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 22:43:09 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1960#comment-10266</guid>
+					<description><![CDATA[Ad 1: I feel this has been adequately addressed in the previous comments :-)
+Perhaps I could just add that &quot;final&quot; has two uses: member-function-wide and class-wide. However, &quot;preventing overriding&quot; is a good general summary of its intent in both cases (inheritance being necessary to enable overriding anyway).
+
+Ad 2: Also agree with the already-made comments.
+
+To expand, and to perhaps somewhat enliven the discussion, I&#039;ll just make some (possibly unorthodox) extra points [mostly concerning part (a)]:
+
+0. For improved modularity &#038; re-usability (and, perhaps less importantly for this case, to also improve compile times), let&#039;s move the class definitions to a separate header file. To help in accomplishing that without issues, I&#039;d preemptively get rid of the using-directive &quot;using namespace std;&quot; and wrap the classes in a distinct namespace.
+
+1.I won&#039;t suggest replacing [code]base*[/code] with a smart pointer (like, say, [code]std::unique_ptr&#060;base&#062;[/code]), and I won&#039;t suggest replacing [code]new[/code] with the relevant smart pointer factory (say, [code]make_unique&#060;derived&#062;[/code], assuming C++14 or access to the well-known piece of code :]) to remove [code]delete[/code].
+
+Instead, I&#039;d suggest getting rid of the free store allocation entirely! :-)
+
+After all, it&#039;s completely unnecessary for dynamic (run-time) polymorphism -- and references work perfectly fine here.
+
+// This point was aptly made and discussed by Bryan St. Amour in his &quot;Need polymorphism? Consider using references&quot; post, although I&#039;m only able to find a reddit reference to it: http://www.reddit.com/r/cpp/comments/vo2zc/need_polymorphism_consider_using_references/
+
+In other words, let&#039;s get rid of this:
+[code]base*   pb = new derived;[/code]
+and use this instead:
+[code]derived base &#038; rb = d;[/code]
+so we can get rid of having to do this:
+[code]delete pb;[/code]
+
+(Make sure to change [code]pb-&#062;[/code] to [code]rb.[/code], too).
+
+In this case we even have an extra gain of not having to create another, duplicate object.
+In case this was actually necessary, we can just do:
+[code]derived another_d;[/code]
+[code]derived base &#038; rb = another_d;[/code]
+
+Note that we get the automatic / scope-based life-time for free, without having to use std::unique_ptr.
+
+2. Since the alternative interface designs are discussed (e.g., NVI) -- how about using CRTP and static (compile-time) polymorphism instead?
+
+See:
+http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Curiously_Recurring_Template_Pattern
+
+I can&#039;t see anything that warrants dynamic (run-time) polymorphism here and IMO it brings an extra, unnecessary (and thus unwanted) complexity: I&#039;d take even a potentially long-winded compiler diagnostic any day over debugging code with (avoidable!) run-time pointer chasing and worrying about dangling references/pointers.
+
+It&#039;s true that historically most books/references were presenting pointers and virtuals first, and templates last (or in a footnote, or not at all). This may (incorrectly) lead some to assume that dynamic (run-time) polymorphism is somewhat &quot;easier&quot; or &quot;simpler&quot;. Given that it&#039;s actually more flexible and offers more features (due to late / run-time binding, ordinarily not available via CRTP), one can argue it&#039;s exactly the opposite. While templates (and, by extension, CRTP), may sometimes generate somewhat long-winded diagnostics (however, note that this is much less of a concern with C++11, type-traits, static_assert, and, as a last resort, enable_if; it will hopefully become even less of a concern with concepts lite in C++14), at least we have a higher degree of confidence that a compiled program is correct (with the associated debugging and reasoning about the program sematics becoming simplified as well).
+
+Given the aforementioned advances, shouldn&#039;t the static (compile-time) polymorphism (and CRTP) be *the* default polymorphism in this day and age?]]></description>
+		<content:encoded><![CDATA[<p>Ad 1: I feel this has been adequately addressed in the previous comments :-)<br />
+Perhaps I could just add that &#8220;final&#8221; has two uses: member-function-wide and class-wide. However, &#8220;preventing overriding&#8221; is a good general summary of its intent in both cases (inheritance being necessary to enable overriding anyway).</p>
+<p>Ad 2: Also agree with the already-made comments.</p>
+<p>To expand, and to perhaps somewhat enliven the discussion, I&#8217;ll just make some (possibly unorthodox) extra points [mostly concerning part (a)]:</p>
+<p>0. For improved modularity &amp; re-usability (and, perhaps less importantly for this case, to also improve compile times), let&#8217;s move the class definitions to a separate header file. To help in accomplishing that without issues, I&#8217;d preemptively get rid of the using-directive &#8220;using namespace std;&#8221; and wrap the classes in a distinct namespace.</p>
+<p>1.I won&#8217;t suggest replacing </p>
+<pre class="brush: plain; title: ; notranslate">base*</pre>
+<p> with a smart pointer (like, say, </p>
+<pre class="brush: plain; title: ; notranslate">std::unique_ptr&lt;base&gt;</pre>
+<p>), and I won&#8217;t suggest replacing </p>
+<pre class="brush: plain; title: ; notranslate">new</pre>
+<p> with the relevant smart pointer factory (say, </p>
+<pre class="brush: plain; title: ; notranslate">make_unique&lt;derived&gt;</pre>
+<p>, assuming C++14 or access to the well-known piece of code :]) to remove </p>
+<pre class="brush: plain; title: ; notranslate">delete</pre>
+<p>.</p>
+<p>Instead, I&#8217;d suggest getting rid of the free store allocation entirely! :-)</p>
+<p>After all, it&#8217;s completely unnecessary for dynamic (run-time) polymorphism &#8212; and references work perfectly fine here.</p>
+<p>// This point was aptly made and discussed by Bryan St. Amour in his &#8220;Need polymorphism? Consider using references&#8221; post, although I&#8217;m only able to find a reddit reference to it: <a href="http://www.reddit.com/r/cpp/comments/vo2zc/need_polymorphism_consider_using_references/" rel="nofollow">http://www.reddit.com/r/cpp/comments/vo2zc/need_polymorphism_consider_using_references/</a></p>
+<p>In other words, let&#8217;s get rid of this:</p>
+<pre class="brush: plain; title: ; notranslate">base*   pb = new derived;</pre>
+<p>and use this instead:</p>
+<pre class="brush: plain; title: ; notranslate">derived base &amp; rb = d;</pre>
+<p>so we can get rid of having to do this:</p>
+<pre class="brush: plain; title: ; notranslate">delete pb;</pre>
+<p>(Make sure to change </p>
+<pre class="brush: plain; title: ; notranslate">pb-&gt;</pre>
+<p> to </p>
+<pre class="brush: plain; title: ; notranslate">rb.</pre>
+<p>, too).</p>
+<p>In this case we even have an extra gain of not having to create another, duplicate object.<br />
+In case this was actually necessary, we can just do:</p>
+<pre class="brush: plain; title: ; notranslate">derived another_d;</pre>
+<pre class="brush: plain; title: ; notranslate">derived base &amp; rb = another_d;</pre>
+<p>Note that we get the automatic / scope-based life-time for free, without having to use std::unique_ptr.</p>
+<p>2. Since the alternative interface designs are discussed (e.g., NVI) &#8212; how about using CRTP and static (compile-time) polymorphism instead?</p>
+<p>See:<br />
+<a href="http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Curiously_Recurring_Template_Pattern" rel="nofollow">http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Curiously_Recurring_Template_Pattern</a></p>
+<p>I can&#8217;t see anything that warrants dynamic (run-time) polymorphism here and IMO it brings an extra, unnecessary (and thus unwanted) complexity: I&#8217;d take even a potentially long-winded compiler diagnostic any day over debugging code with (avoidable!) run-time pointer chasing and worrying about dangling references/pointers.</p>
+<p>It&#8217;s true that historically most books/references were presenting pointers and virtuals first, and templates last (or in a footnote, or not at all). This may (incorrectly) lead some to assume that dynamic (run-time) polymorphism is somewhat &#8220;easier&#8221; or &#8220;simpler&#8221;. Given that it&#8217;s actually more flexible and offers more features (due to late / run-time binding, ordinarily not available via CRTP), one can argue it&#8217;s exactly the opposite. While templates (and, by extension, CRTP), may sometimes generate somewhat long-winded diagnostics (however, note that this is much less of a concern with C++11, type-traits, static_assert, and, as a last resort, enable_if; it will hopefully become even less of a concern with concepts lite in C++14), at least we have a higher degree of confidence that a compiled program is correct (with the associated debugging and reasoning about the program sematics becoming simplified as well).</p>
+<p>Given the aforementioned advances, shouldn&#8217;t the static (compile-time) polymorphism (and CRTP) be *the* default polymorphism in this day and age?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: litb1				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/#comment-10264</link>
+		<dc:creator><![CDATA[litb1]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 20:30:03 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1960#comment-10264</guid>
+					<description><![CDATA[I think this is an excellent example where the NVI (non-virtual interface) pattern can be applied. Have the function with the default argument be public and non-virtual, and call a private or protected &quot;doG(int i);&quot;-style function that is virtual and overridden by derived classes. For the overloaded function, each could call a `doF (complex )&quot;-style virtual protected/private function.]]></description>
+		<content:encoded><![CDATA[<p>I think this is an excellent example where the NVI (non-virtual interface) pattern can be applied. Have the function with the default argument be public and non-virtual, and call a private or protected &#8220;doG(int i);&#8221;-style function that is virtual and overridden by derived classes. For the overloaded function, each could call a `doF (complex )&#8221;-style virtual protected/private function.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mikhail Belyaev				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/#comment-10263</link>
+		<dc:creator><![CDATA[Mikhail Belyaev]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 20:07:30 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1960#comment-10263</guid>
+					<description><![CDATA[Somehow lost a part of my code, the derived class should be like:
+[code]
+class derived: public base {
+public:
+    using base::f; // this is essential if you mean overloading across class hierarchies
+    void f( const complex&#060;double&#062;&#038; );
+    void g( int i = 20 );
+};
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>Somehow lost a part of my code, the derived class should be like:</p>
+<pre class="brush: plain; title: ; notranslate">
+class derived: public base {
+public:
+    using base::f; // this is essential if you mean overloading across class hierarchies
+    void f( const complex&lt;double&gt;&amp; );
+    void g( int i = 20 );
+};
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mikhail Belyaev				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-5-overriding-virtual-functions/#comment-10262</link>
+		<dc:creator><![CDATA[Mikhail Belyaev]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 20:03:06 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1960#comment-10262</guid>
+					<description><![CDATA[1. What do the override and final keywords do? Why are they useful? 
+
+These keywords are useful for signaling to the compiler that we actually tried to override something or that something is not a subject for override. The override keyword is significantly useful to avoid errors like &quot;overload instead of override&quot; that tend to happen often in big class hierarchies spread across developers and are very difficult to spot otherwise. The final keyword is useful in an opposite situation -- when you don&#039;t want to override (or to be overridden) and you really mean it.
+
+2. This is an example of the abovementioned &quot;overloading instead of overriding&quot; situation.
+
+1) You should avoid overriding and overloading functions at the same time if you don&#039;t REALLY need that. It leads to errors almost every time.
+2) You should avoid giving default values to virtual functions&#039; parameters as this leads to a difference in behavior for normal and polymorphic invoking of these functions, which is a Bad Thing.
+3) The base class should have a virtual destr
+
+Taking that into account and assuming that we really need all this overload-override-default-parameter-stuff:
+
+[code]
+#include &#060;iostream&#062;
+#include &#060;complex&#062;
+using namespace std;
+
+class base {
+public:
+    virtual void f( int );
+    virtual void f( double );
+    virtual void g( int i = 10 );
+};
+
+void base::f( int ) {
+    cout &#060;&#060; &#034;base::f(int)&#034; &#060;&#060; endl;
+}
+
+void base::f( double ) {
+    cout &#060;&#060; &#034;base::f(double)&#034; &#060;&#060; endl;
+}
+
+void base::g( int i ) {
+    cout &#060;&#060; i &#060;&#060; endl;
+}
+
+class derived: public base {
+public:
+    void f( complex&#060;double&#062; );
+    void g( int i = 20 );
+};
+
+void derived::f( complex&#060;double&#062; ) {
+    cout &#060;&#060; &#034;derived::f(complex)&#034; &#060;&#060; endl;
+}
+
+void derived::g( int i ) {
+    cout &#060;&#060; &#034;derived::g() &#034; &#060;&#060; i &#060;&#060; endl;
+}
+
+int main() {
+    base    b;
+    derived d;
+    base*   pb = new derived;
+
+    b.f(1.0); // calls base::f(double)
+    d.f(1.0); // calls derived::f(std::complex) !!
+    pb-&#062;f(1.0); // calls base::f(double)
+
+    b.g(); // calls base::g(10)
+    d.g(); // calls derived::g(20)
+    pb-&#062;g(); // calls derived::g(10) !!
+
+    delete pb; // This one would be a memleak if we had any data in derived !!
+}
+
+[/code]
+
+Changed:
+[code]
+#include &#060;iostream&#062;
+#include &#060;complex&#062;
+using namespace std;
+
+class base {
+public:
+    virtual void f( int );
+    virtual void f( double );
+    virtual void g( int i); // do not provide a default;
+    inline void g() { g(10); } // provide a new def instead
+    virtual ~base() {}; // provide a virtual destructor
+};
+
+void base::f( int ) {
+    cout &#060;&#060; &#034;base::f(int)&#034; &#060;&#060; endl;
+}
+
+void base::f( double ) {
+    cout &#060;&#060; &#034;base::f(double)&#034; &#060;&#060; endl;
+}
+
+void base::g(int x) {
+  cout &#060;&#060; x &#060;&#060; endl;
+} 
+
+class derived: public base {
+public:
+    void f( const complex&#060;double&#062;&#038; );
+    void g( int i = 20 );
+};
+
+void derived::f( const complex&#060;double&#062;&#038; ) {
+    cout &#060;&#060; &#034;derived::f(complex)&#034; &#060;&#060; endl;
+}
+
+void derived::g( int i ) {
+    cout &#060;&#060; &#034;derived::g() &#034; &#060;&#060; i &#060;&#060; endl;
+}
+
+int main() {
+    base    b;
+    derived d;
+    base*   pb = new derived;
+
+    b.f(1.0); // calls base::f(double)
+    d.f(1.0); // calls base::f(double)
+    pb-&#062;f(1.0); // calls base::f(double)
+
+    b.g(); // calls base::g() (which calls base::g(10))
+    d.g(); // calls derived::g(20) 
+    pb-&#062;g(); // compiler error
+
+    delete pb; // This one is ok now
+}
+
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>1. What do the override and final keywords do? Why are they useful? </p>
+<p>These keywords are useful for signaling to the compiler that we actually tried to override something or that something is not a subject for override. The override keyword is significantly useful to avoid errors like &#8220;overload instead of override&#8221; that tend to happen often in big class hierarchies spread across developers and are very difficult to spot otherwise. The final keyword is useful in an opposite situation &#8212; when you don&#8217;t want to override (or to be overridden) and you really mean it.</p>
+<p>2. This is an example of the abovementioned &#8220;overloading instead of overriding&#8221; situation.</p>
+<p>1) You should avoid overriding and overloading functions at the same time if you don&#8217;t REALLY need that. It leads to errors almost every time.<br />
+2) You should avoid giving default values to virtual functions&#8217; parameters as this leads to a difference in behavior for normal and polymorphic invoking of these functions, which is a Bad Thing.<br />
+3) The base class should have a virtual destr</p>
+<p>Taking that into account and assuming that we really need all this overload-override-default-parameter-stuff:</p>
+<pre class="brush: plain; title: ; notranslate">
+#include &lt;iostream&gt;
+#include &lt;complex&gt;
+using namespace std;
+
+class base {
+public:
+    virtual void f( int );
+    virtual void f( double );
+    virtual void g( int i = 10 );
+};
+
+void base::f( int ) {
+    cout &lt;&lt; &quot;base::f(int)&quot; &lt;&lt; endl;
+}
+
+void base::f( double ) {
+    cout &lt;&lt; &quot;base::f(double)&quot; &lt;&lt; endl;
+}
+
+void base::g( int i ) {
+    cout &lt;&lt; i &lt;&lt; endl;
+}
+
+class derived: public base {
+public:
+    void f( complex&lt;double&gt; );
+    void g( int i = 20 );
+};
+
+void derived::f( complex&lt;double&gt; ) {
+    cout &lt;&lt; &quot;derived::f(complex)&quot; &lt;&lt; endl;
+}
+
+void derived::g( int i ) {
+    cout &lt;&lt; &quot;derived::g() &quot; &lt;&lt; i &lt;&lt; endl;
+}
+
+int main() {
+    base    b;
+    derived d;
+    base*   pb = new derived;
+
+    b.f(1.0); // calls base::f(double)
+    d.f(1.0); // calls derived::f(std::complex) !!
+    pb-&gt;f(1.0); // calls base::f(double)
+
+    b.g(); // calls base::g(10)
+    d.g(); // calls derived::g(20)
+    pb-&gt;g(); // calls derived::g(10) !!
+
+    delete pb; // This one would be a memleak if we had any data in derived !!
+}
+
+</pre>
+<p>Changed:</p>
+<pre class="brush: plain; title: ; notranslate">
+#include &lt;iostream&gt;
+#include &lt;complex&gt;
+using namespace std;
+
+class base {
+public:
+    virtual void f( int );
+    virtual void f( double );
+    virtual void g( int i); // do not provide a default;
+    inline void g() { g(10); } // provide a new def instead
+    virtual ~base() {}; // provide a virtual destructor
+};
+
+void base::f( int ) {
+    cout &lt;&lt; &quot;base::f(int)&quot; &lt;&lt; endl;
+}
+
+void base::f( double ) {
+    cout &lt;&lt; &quot;base::f(double)&quot; &lt;&lt; endl;
+}
+
+void base::g(int x) {
+  cout &lt;&lt; x &lt;&lt; endl;
+} 
+
+class derived: public base {
+public:
+    void f( const complex&lt;double&gt;&amp; );
+    void g( int i = 20 );
+};
+
+void derived::f( const complex&lt;double&gt;&amp; ) {
+    cout &lt;&lt; &quot;derived::f(complex)&quot; &lt;&lt; endl;
+}
+
+void derived::g( int i ) {
+    cout &lt;&lt; &quot;derived::g() &quot; &lt;&lt; i &lt;&lt; endl;
+}
+
+int main() {
+    base    b;
+    derived d;
+    base*   pb = new derived;
+
+    b.f(1.0); // calls base::f(double)
+    d.f(1.0); // calls base::f(double)
+    pb-&gt;f(1.0); // calls base::f(double)
+
+    b.g(); // calls base::g() (which calls base::g(10))
+    d.g(); // calls derived::g(20) 
+    pb-&gt;g(); // compiler error
+
+    delete pb; // This one is ok now
+}
+
+</pre>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

@@ -1,0 +1,1042 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #6b Solution: Const-Correctness, Part 2	</title>
+	<atom:link href="https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Simon				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-33415</link>
+		<dc:creator><![CDATA[Simon]]></dc:creator>
+		<pubDate>Mon, 08 Dec 2014 15:06:47 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-33415</guid>
+					<description><![CDATA[The move ctor is moving the points from the other-object and loading the area from the atomic member of the other object, but those two actions aren&#039;t performed in an atomic way. Couldn&#039;t the area change after the points got moved but before the area gets loaded concurrently? Wouldn&#039;t it be safer to either invalidate the area or am I missing a point?]]></description>
+		<content:encoded><![CDATA[<p>The move ctor is moving the points from the other-object and loading the area from the atomic member of the other object, but those two actions aren&#8217;t performed in an atomic way. Couldn&#8217;t the area change after the points got moved but before the area gets loaded concurrently? Wouldn&#8217;t it be safer to either invalidate the area or am I missing a point?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Tony Van Eerd				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-12169</link>
+		<dc:creator><![CDATA[Tony Van Eerd]]></dc:creator>
+		<pubDate>Tue, 13 Aug 2013 21:23:36 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-12169</guid>
+					<description><![CDATA[@Felipe - some people (ie John Lakos) would say you are talking about about the *salient attributes* of the object.  *You* (class author) decide which aspects of an object are salient and which aren&#039;t.
+
+This is typically the observable properties, but not always - eg capacity() is observable for vectors, but it is not considered part of its &#039;value&#039; and thus not part of its equality operator.
+
+You are definitely on the right track - mutable things are typically implementation details and typically not part of the object&#039;s _value_, and thus not part of its equality operator.
+
+I think calling GetArea() inside equality is fine, particularly if the implementor thinks (measures!) that&#039;s a good trade-off.]]></description>
+		<content:encoded><![CDATA[<p>@Felipe &#8211; some people (ie John Lakos) would say you are talking about about the *salient attributes* of the object.  *You* (class author) decide which aspects of an object are salient and which aren&#8217;t.</p>
+<p>This is typically the observable properties, but not always &#8211; eg capacity() is observable for vectors, but it is not considered part of its &#8216;value&#8217; and thus not part of its equality operator.</p>
+<p>You are definitely on the right track &#8211; mutable things are typically implementation details and typically not part of the object&#8217;s _value_, and thus not part of its equality operator.</p>
+<p>I think calling GetArea() inside equality is fine, particularly if the implementor thinks (measures!) that&#8217;s a good trade-off.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Felipe				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-12126</link>
+		<dc:creator><![CDATA[Felipe]]></dc:creator>
+		<pubDate>Sat, 10 Aug 2013 18:18:52 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-12126</guid>
+					<description><![CDATA[I guess I&#039;m going into a very different subject here, but the original version of this item got me thinking about the difference between the state of an object and equivalence between objects. I&#039;ve been looking for a good forum to put this out for discussion. What follows more or less reflects my train of thought.
+
+Consider the following client code, assuming Polygon provides {operator==} and {operator&#060;&#060;}:
+
+[code]
+    Polygon p1, p2;
+
+    p1.AddPoint( Point(0.0,0.0) );
+    p1.AddPoint( Point(1.0,0.0) );
+    p1.AddPoint( Point(1.0,1.0) );
+    p1.AddPoint( Point(0.0,1.0) );
+
+    p2.AddPoint( Point(0.0,0.0) );
+    p2.AddPoint( Point(1.0,0.0) );
+    p2.AddPoint( Point(1.0,1.0) );
+    p2.AddPoint( Point(0.0,1.0) );
+
+    std::cout &#060;&#060; &#034;The area of p1 is = &#034; &#060;&#060; p1.GetArea() &#060;&#060; std::endl;
+    std::cout &#060;&#060; &#034;Are they equal? &#034; &#060;&#060; ( (p1==p2)?&#034;Yes!&#034;:&#034;No :(&#034; ) &#060;&#060; std::endl;
+    std::cout &#060;&#060; &#034;What do they look like?\n&#034;;
+    std::cout &#060;&#060; &#034;p1: &#034; &#060;&#060; p1 &#060;&#060; std::endl;
+    std::cout &#060;&#060; &#034;p2: &#034; &#060;&#060; p2 &#060;&#060; std::endl;
+[/code]
+
+The objects p1 and p2 are certainly equivalent, i.e. they represent two identical polygons, but after the call to {p1.GetArea()} (which happens to be a const member function that alters a mutable private member variable) their state is different. My questions are:
+
+1. What should {operator==} test for? 
+2. What should {operator&#060;&#060;} print? 
+
+My own answers:
+
+1. {operator==} should test for equivalence, and thus never compare a mutable member variable (is that a good guideline?). However, should one call {GetArea()} in the body of {operator==} and thus possibly change the object&#039;s state?
+2. {operator&#060;&#060;} should print all the observable attributes of the object, not its state (i.e. printing the value of {GetArea()}, not the current value of the mutable variable that represents the area). One could, in fact, provide a separate method (perhaps called {serialize()}) that would print the state in case that&#039;s meaningful.
+
+So seems that my approach distinguishes between &#039;observable state&#039; and &#039;implementation state&#039;, and the two operators should reflect the former. I then wonder, why not make them always non-member (free), non-friend functions?
+
+A few other questions come up as a consequence of my own answers, but I&#039;ll leave it at that and hope for some comments from more illuminated folks.
+
+Disclaimer: The actual mechanics of comparing 2 polygons can get as complicated as one wishes, I&#039;m just taking a naive, intuitive approach and don&#039;t really care about the innards, mostly the interface. Also, apologies in advance if this rant is way off topic.]]></description>
+		<content:encoded><![CDATA[<p>I guess I&#8217;m going into a very different subject here, but the original version of this item got me thinking about the difference between the state of an object and equivalence between objects. I&#8217;ve been looking for a good forum to put this out for discussion. What follows more or less reflects my train of thought.</p>
+<p>Consider the following client code, assuming Polygon provides {operator==} and {operator&lt;&lt;}:</p>
+<pre class="brush: plain; title: ; notranslate">
+    Polygon p1, p2;
+
+    p1.AddPoint( Point(0.0,0.0) );
+    p1.AddPoint( Point(1.0,0.0) );
+    p1.AddPoint( Point(1.0,1.0) );
+    p1.AddPoint( Point(0.0,1.0) );
+
+    p2.AddPoint( Point(0.0,0.0) );
+    p2.AddPoint( Point(1.0,0.0) );
+    p2.AddPoint( Point(1.0,1.0) );
+    p2.AddPoint( Point(0.0,1.0) );
+
+    std::cout &lt;&lt; &quot;The area of p1 is = &quot; &lt;&lt; p1.GetArea() &lt;&lt; std::endl;
+    std::cout &lt;&lt; &quot;Are they equal? &quot; &lt;&lt; ( (p1==p2)?&quot;Yes!&quot;:&quot;No :(&quot; ) &lt;&lt; std::endl;
+    std::cout &lt;&lt; &quot;What do they look like?\n&quot;;
+    std::cout &lt;&lt; &quot;p1: &quot; &lt;&lt; p1 &lt;&lt; std::endl;
+    std::cout &lt;&lt; &quot;p2: &quot; &lt;&lt; p2 &lt;&lt; std::endl;
+</pre>
+<p>The objects p1 and p2 are certainly equivalent, i.e. they represent two identical polygons, but after the call to {p1.GetArea()} (which happens to be a const member function that alters a mutable private member variable) their state is different. My questions are:</p>
+<p>1. What should {operator==} test for?<br />
+2. What should {operator&lt;&lt;} print? </p>
+<p>My own answers:</p>
+<p>1. {operator==} should test for equivalence, and thus never compare a mutable member variable (is that a good guideline?). However, should one call {GetArea()} in the body of {operator==} and thus possibly change the object&#039;s state?<br />
+2. {operator&lt;&lt;} should print all the observable attributes of the object, not its state (i.e. printing the value of {GetArea()}, not the current value of the mutable variable that represents the area). One could, in fact, provide a separate method (perhaps called {serialize()}) that would print the state in case that&#039;s meaningful.</p>
+<p>So seems that my approach distinguishes between &#039;observable state&#039; and &#039;implementation state&#039;, and the two operators should reflect the former. I then wonder, why not make them always non-member (free), non-friend functions?</p>
+<p>A few other questions come up as a consequence of my own answers, but I&#039;ll leave it at that and hope for some comments from more illuminated folks.</p>
+<p>Disclaimer: The actual mechanics of comparing 2 polygons can get as complicated as one wishes, I&#039;m just taking a naive, intuitive approach and don&#039;t really care about the innards, mostly the interface. Also, apologies in advance if this rant is way off topic.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Tony Van Eerd				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-12124</link>
+		<dc:creator><![CDATA[Tony Van Eerd]]></dc:creator>
+		<pubDate>Thu, 08 Aug 2013 18:37:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-12124</guid>
+					<description><![CDATA[I don&#039;t understand why you are setting area in the move ops, but setting it to -1 in the copy ctor/assignment.
+
+I see it still works either way, but since the whole idea of caching and delaying the area calculation is for the sake of optimization, why not avoid it here as well?
+
+Also, I like the idea of using memory_order_relaxed for setting area on the non-const operations.  But then again, I&#039;m forced to wear atomic kevlar regularly, so I&#039;ve gotten use to it, and the rash has nearly cleared up...]]></description>
+		<content:encoded><![CDATA[<p>I don&#8217;t understand why you are setting area in the move ops, but setting it to -1 in the copy ctor/assignment.</p>
+<p>I see it still works either way, but since the whole idea of caching and delaying the area calculation is for the sake of optimization, why not avoid it here as well?</p>
+<p>Also, I like the idea of using memory_order_relaxed for setting area on the non-const operations.  But then again, I&#8217;m forced to wear atomic kevlar regularly, so I&#8217;ve gotten use to it, and the rash has nearly cleared up&#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-11027</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 06 Jun 2013 16:14:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-11027</guid>
+					<description><![CDATA[@Mathias: Excellent point, fixed. Thanks.]]></description>
+		<content:encoded><![CDATA[<p>@Mathias: Excellent point, fixed. Thanks.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mathias Stearn				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-11019</link>
+		<dc:creator><![CDATA[Mathias Stearn]]></dc:creator>
+		<pubDate>Thu, 06 Jun 2013 14:21:04 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-11019</guid>
+					<description><![CDATA[Wouldn&#039;t the move operations need to set other.area to -1 since a cached area would no longer apply to the now-empty points vector?]]></description>
+		<content:encoded><![CDATA[<p>Wouldn&#8217;t the move operations need to set other.area to -1 since a cached area would no longer apply to the now-empty points vector?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10734</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 20:37:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10734</guid>
+					<description><![CDATA[@Fernando: I just backed out that .load -- whether or not you transfer other&#039;s cached area is just an optimization. And by removing it from the code, it helps to answer your other question, because it emphasizes that you don&#039;t need to move the atomic for semantic correctness, and if you used a mutex you wouldn&#039;t need to move that either: Just as when you move you don&#039;t get a new atomic (it&#039;s still the same atomic for this instance) you also don&#039;t get a new mutex (it&#039;s still the same as before). The only thing you have to move is the logical state, which is the vector of points, and set the cached area to a valid value or -1, then you&#039;re consistent.
+
+So with a mutex, the move would look exactly the same as I&#039;ve now updated it to be above -- just move other.points and reset area:
+
+[code]
+class polygon {
+public:
+
+    /* ... all the other stuff ... */
+
+    polygon( polygon&#038;&#038; other ) 
+        : points{move(other.points)}, area{-1} { }
+
+    polygon&#038; operator=( polygon&#038;&#038; other ) {
+        { points = move(other.points); area = -1; return *this; }
+
+private:
+    vector&#060;point&#062; points;
+    mutable mutex mutables;
+    mutable double area;
+};
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>@Fernando: I just backed out that .load &#8212; whether or not you transfer other&#8217;s cached area is just an optimization. And by removing it from the code, it helps to answer your other question, because it emphasizes that you don&#8217;t need to move the atomic for semantic correctness, and if you used a mutex you wouldn&#8217;t need to move that either: Just as when you move you don&#8217;t get a new atomic (it&#8217;s still the same atomic for this instance) you also don&#8217;t get a new mutex (it&#8217;s still the same as before). The only thing you have to move is the logical state, which is the vector of points, and set the cached area to a valid value or -1, then you&#8217;re consistent.</p>
+<p>So with a mutex, the move would look exactly the same as I&#8217;ve now updated it to be above &#8212; just move other.points and reset area:</p>
+<pre class="brush: plain; title: ; notranslate">
+class polygon {
+public:
+
+    /* ... all the other stuff ... */
+
+    polygon( polygon&amp;&amp; other ) 
+        : points{move(other.points)}, area{-1} { }
+
+    polygon&amp; operator=( polygon&amp;&amp; other ) {
+        { points = move(other.points); area = -1; return *this; }
+
+private:
+    vector&lt;point&gt; points;
+    mutable mutex mutables;
+    mutable double area;
+};
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Fernando Pelliccioni				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10728</link>
+		<dc:creator><![CDATA[Fernando Pelliccioni]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 19:20:53 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10728</guid>
+					<description><![CDATA[Hi Herb. 
+GCC 4.8 and Clang ( svn version ) works as expected. :)
+I never thought the solution using .load(), great!
+Some time ago I had a similar problem, but using std::mutex. 
+The only solution that came to mind (to make my class movable) was using the Pimpl Idiom, but that involves allocation of memory in the free-storage :(
+Do you have any way to implement a similar solution but using std::mutex as a member?]]></description>
+		<content:encoded><![CDATA[<p>Hi Herb.<br />
+GCC 4.8 and Clang ( svn version ) works as expected. :)<br />
+I never thought the solution using .load(), great!<br />
+Some time ago I had a similar problem, but using std::mutex.<br />
+The only solution that came to mind (to make my class movable) was using the Pimpl Idiom, but that involves allocation of memory in the free-storage :(<br />
+Do you have any way to implement a similar solution but using std::mutex as a member?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10727</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 18:55:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10727</guid>
+					<description><![CDATA[@edflanders: Yes, because you then take by value + move(param) as Arne noted. The only case where that&#039;s not a good idea is when you have a type that&#039;s expensive to move, such as std::array. I currently plan to cover this in a new GotW on general parameter passing, probably sometime in June or July.
+
+@Elvis: That wouldn&#039;t allow area to be non-mutable. It&#039;s mutable because it can be written to in const operations, which is still true if you restructure the code the way you suggest. As long as there&#039;s a cached area that can be written to in const operations, it needs to be mutable, and synchronized as atomic or with an internal mutex.]]></description>
+		<content:encoded><![CDATA[<p>@edflanders: Yes, because you then take by value + move(param) as Arne noted. The only case where that&#8217;s not a good idea is when you have a type that&#8217;s expensive to move, such as std::array. I currently plan to cover this in a new GotW on general parameter passing, probably sometime in June or July.</p>
+<p>@Elvis: That wouldn&#8217;t allow area to be non-mutable. It&#8217;s mutable because it can be written to in const operations, which is still true if you restructure the code the way you suggest. As long as there&#8217;s a cached area that can be written to in const operations, it needs to be mutable, and synchronized as atomic or with an internal mutex.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10726</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 18:49:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10726</guid>
+					<description><![CDATA[@Leo: Aha, thanks for spotting that leftover text from the original GotW. In several original GotWs I used to recommend considering returning a const value, instead of a non-const value, on the basis that it would help callers by letting them know when they accidentally modify a returned rvalue. I no longer think that&#039;s good advice, especially since you want to move from rvalues which is a non-const operation, so I&#039;ve been rooting it out of the GotWs as I go through, and I got rid of most of the references to that in this one but missed that one. Thanks, fixed.]]></description>
+		<content:encoded><![CDATA[<p>@Leo: Aha, thanks for spotting that leftover text from the original GotW. In several original GotWs I used to recommend considering returning a const value, instead of a non-const value, on the basis that it would help callers by letting them know when they accidentally modify a returned rvalue. I no longer think that&#8217;s good advice, especially since you want to move from rvalues which is a non-const operation, so I&#8217;ve been rooting it out of the GotWs as I go through, and I got rid of most of the references to that in this one but missed that one. Thanks, fixed.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10725</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 18:32:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10725</guid>
+					<description><![CDATA[@Fernando: Sigh, you&#039;re right. You know, that was my reading too and I wrote them out, then noticed that GCC let me get away with =default for the move operations and didn&#039;t reread the standard. Since I had already written them out before switching to =default, the fix was as easy as hitting Ctrl-Y twice. :) Fixed mo betta.]]></description>
+		<content:encoded><![CDATA[<p>@Fernando: Sigh, you&#8217;re right. You know, that was my reading too and I wrote them out, then noticed that GCC let me get away with =default for the move operations and didn&#8217;t reread the standard. Since I had already written them out before switching to =default, the fix was as easy as hitting Ctrl-Y twice. :) Fixed mo betta.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: edflanders				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10713</link>
+		<dc:creator><![CDATA[edflanders]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 13:07:45 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10713</guid>
+					<description><![CDATA[@Arne Mertz:
+Thanks for the response. What about classes that don&#039;t benefit from move? I understand that, for a class like the one below, there will still be two copies despite of the use of std::move()?
+
+[code]
+struct Matrix3x3
+{
+  double m_[3][3];
+};
+typedef Matrix3x3 T;
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>@Arne Mertz:<br />
+Thanks for the response. What about classes that don&#8217;t benefit from move? I understand that, for a class like the one below, there will still be two copies despite of the use of std::move()?</p>
+<pre class="brush: plain; title: ; notranslate">
+struct Matrix3x3
+{
+  double m_[3][3];
+};
+typedef Matrix3x3 T;
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Elvis				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10703</link>
+		<dc:creator><![CDATA[Elvis]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 10:13:42 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10703</guid>
+					<description><![CDATA[[code]void calc_area() const[/code] in my opinion must be [code] double calc_area() const [/code] in this way we can avoid mutable area.]]></description>
+		<content:encoded><![CDATA[<pre class="brush: plain; title: ; notranslate">void calc_area() const</pre>
+<p> in my opinion must be </p>
+<pre class="brush: plain; title: ; notranslate"> double calc_area() const </pre>
+<p> in this way we can avoid mutable area.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Arne Mertz				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10700</link>
+		<dc:creator><![CDATA[Arne Mertz]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 09:02:30 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10700</guid>
+					<description><![CDATA[@edflanders: [code]struct S
+{
+  S(T t) : t_(std::move(t))) {}  // at most one copy, one or two moves
+  void SetT(T t) { t_ = std::move(t); }  //at most one copy, one or two moves
+  T t_;
+};[/code]
+
+It&#039;s in both cases one copy, one move, if the argument is an lvalue, and two moves, if it&#039;s an rvalue. In the setter, t is move-or-copy _constructed_, while t_ is move-assigned.]]></description>
+		<content:encoded><![CDATA[<p>@edflanders: </p>
+<pre class="brush: plain; title: ; notranslate">struct S
+{
+  S(T t) : t_(std::move(t))) {}  // at most one copy, one or two moves
+  void SetT(T t) { t_ = std::move(t); }  //at most one copy, one or two moves
+  T t_;
+};</pre>
+<p>It&#8217;s in both cases one copy, one move, if the argument is an lvalue, and two moves, if it&#8217;s an rvalue. In the setter, t is move-or-copy _constructed_, while t_ is move-assigned.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Sean Lin				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10687</link>
+		<dc:creator><![CDATA[Sean Lin]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 00:56:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10687</guid>
+					<description><![CDATA[In old GotW 6, there is a guideline said:
+&quot;Guideline: When using return-by-value for non-builtin return types, prefer returning a const value.&quot;
+
+no longer true? If it is still prefered, get_point should return const point, right ?
+
+[code]
+const point get_point( int i ) const { return points[i]; }
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>In old GotW 6, there is a guideline said:<br />
+&#8220;Guideline: When using return-by-value for non-builtin return types, prefer returning a const value.&#8221;</p>
+<p>no longer true? If it is still prefered, get_point should return const point, right ?</p>
+<pre class="brush: plain; title: ; notranslate">
+const point get_point( int i ) const { return points[i]; }
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: edflanders				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10684</link>
+		<dc:creator><![CDATA[edflanders]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 23:42:14 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10684</guid>
+					<description><![CDATA[Regarding the guideline &quot;Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway...&quot;:
+
+Does that apply to cases where need to copy to a specific location? E.g.:
+
+[code]
+struct S
+{
+  S(T t) : t_(t)) {}  // two copies?
+  void SetT(T t) { t_ = t; }  // two copies?
+  T t_;
+};
+[/code]
+
+Does the guideline hold, or should you still pass T const&#038; in these cases?]]></description>
+		<content:encoded><![CDATA[<p>Regarding the guideline &#8220;Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway&#8230;&#8221;:</p>
+<p>Does that apply to cases where need to copy to a specific location? E.g.:</p>
+<pre class="brush: plain; title: ; notranslate">
+struct S
+{
+  S(T t) : t_(t)) {}  // two copies?
+  void SetT(T t) { t_ = t; }  // two copies?
+  T t_;
+};
+</pre>
+<p>Does the guideline hold, or should you still pass T const&amp; in these cases?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Leo				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10680</link>
+		<dc:creator><![CDATA[Leo]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 23:15:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10680</guid>
+					<description><![CDATA[&quot;Incidentally, notice that once we make rhs a reference-to-const parameter as noted above, we see another reason why get_point should be a const member function, returning either a const value or a reference to const.&quot;
+
+Currently get_point returns neither.
+Is the idea behind a const value return type to prevent erroneous code like
+[code]
+int i ...
+poly.get_point(i) = ...
+poly.get_point(i) += ...
+[/code]
+from compiling? But when assigning to a variable the top level const would be ignored and the variable could be used without constraints?]]></description>
+		<content:encoded><![CDATA[<p>&#8220;Incidentally, notice that once we make rhs a reference-to-const parameter as noted above, we see another reason why get_point should be a const member function, returning either a const value or a reference to const.&#8221;</p>
+<p>Currently get_point returns neither.<br />
+Is the idea behind a const value return type to prevent erroneous code like</p>
+<pre class="brush: plain; title: ; notranslate">
+int i ...
+poly.get_point(i) = ...
+poly.get_point(i) += ...
+</pre>
+<p>from compiling? But when assigning to a variable the top level const would be ignored and the variable could be used without constraints?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Francisco Lopes (@pepper_chico)				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10679</link>
+		<dc:creator><![CDATA[Francisco Lopes (@pepper_chico)]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 23:11:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10679</guid>
+					<description><![CDATA[@Herb: You wrote: &quot;@Francisco: You wrote: “The answer contains good wisdom on const correctness, but got confused about the concurrency semantics meaning/correctness…” – could you elaborate on what you mean?&quot; – First, I meant: &quot;I got a little confused&quot;, not the article, and, it&#039;s nothing all special but just what one can derive from the general reaction to the article. The things related to internal/external synchronization, I think it may have not been explicit enough for the layperson, even more for the ones used to externally synchronized libraries. I wait for the synchronization wisdom from the mentioned GOTW to deal with this api contracts, etc.]]></description>
+		<content:encoded><![CDATA[<p>@Herb: You wrote: &#8220;@Francisco: You wrote: “The answer contains good wisdom on const correctness, but got confused about the concurrency semantics meaning/correctness…” – could you elaborate on what you mean?&#8221; – First, I meant: &#8220;I got a little confused&#8221;, not the article, and, it&#8217;s nothing all special but just what one can derive from the general reaction to the article. The things related to internal/external synchronization, I think it may have not been explicit enough for the layperson, even more for the ones used to externally synchronized libraries. I wait for the synchronization wisdom from the mentioned GOTW to deal with this api contracts, etc.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Fernando Pelliccioni				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10666</link>
+		<dc:creator><![CDATA[Fernando Pelliccioni]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 20:16:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10666</guid>
+					<description><![CDATA[Hi Herb,
+
+hummmm... I think that &quot;move-ctor = default&quot; is not going to help.
+
+I don&#039;t see anything abount std::atomic&#039;s move-ctor in the Standard ( n3691 - [atomics.types.generic] )
+
+If atomic copy-ctor is explicitly deleted, the, the move-ctor is deleted too ( implicitly ).
+Am I right?
+
+I expected to find something like ...
+
+[code]
+atomic(atomic&#038;&#038;) = default;
+[/code]
+
+ ... in the Standard, but I didn&#039;t find it.
+
+All this makes it very difficult to create classes with std::atomic or std::mutex as members.
+Is it worth another GotW? :)]]></description>
+		<content:encoded><![CDATA[<p>Hi Herb,</p>
+<p>hummmm&#8230; I think that &#8220;move-ctor = default&#8221; is not going to help.</p>
+<p>I don&#8217;t see anything abount std::atomic&#8217;s move-ctor in the Standard ( n3691 &#8211; [atomics.types.generic] )</p>
+<p>If atomic copy-ctor is explicitly deleted, the, the move-ctor is deleted too ( implicitly ).<br />
+Am I right?</p>
+<p>I expected to find something like &#8230;</p>
+<pre class="brush: plain; title: ; notranslate">
+atomic(atomic&amp;&amp;) = default;
+</pre>
+<p> &#8230; in the Standard, but I didn&#8217;t find it.</p>
+<p>All this makes it very difficult to create classes with std::atomic or std::mutex as members.<br />
+Is it worth another GotW? :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mttpd				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10661</link>
+		<dc:creator><![CDATA[mttpd]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 19:36:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10661</guid>
+					<description><![CDATA[@Herb: Fair enough. Out of curiosity, are you concerns similar to those in the SO link (interaction with uniform initialization) or are there some other reasons? // Huh, perhaps brainstorming on this could make an interesting (JG?) question on its own...]]></description>
+		<content:encoded><![CDATA[<p>@Herb: Fair enough. Out of curiosity, are you concerns similar to those in the SO link (interaction with uniform initialization) or are there some other reasons? // Huh, perhaps brainstorming on this could make an interesting (JG?) question on its own&#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10655</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 19:17:43 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10655</guid>
+					<description><![CDATA[@Fernando: You are correct, thanks. I&#039;ve now added the copy and move operations; fortunately I could use = default for the latter.]]></description>
+		<content:encoded><![CDATA[<p>@Fernando: You are correct, thanks. I&#8217;ve now added the copy and move operations; fortunately I could use = default for the latter.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Tomáš Šturm				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10653</link>
+		<dc:creator><![CDATA[Tomáš Šturm]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 19:00:02 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10653</guid>
+					<description><![CDATA[You wrote on operator+:
+&quot;If the caller passes a temporary polygon object (an rvalue), the compiler automatically move-constructs lhs from that, which probably makes no difference for a small type like polygon but can be considerably cheaper for many types.&quot;
+
+polygon may be a small type but it still contains std::vector as a member. And move-constructing that could make a significant difference in some use cases, couldn&#039;t it?]]></description>
+		<content:encoded><![CDATA[<p>You wrote on operator+:<br />
+&#8220;If the caller passes a temporary polygon object (an rvalue), the compiler automatically move-constructs lhs from that, which probably makes no difference for a small type like polygon but can be considerably cheaper for many types.&#8221;</p>
+<p>polygon may be a small type but it still contains std::vector as a member. And move-constructing that could make a significant difference in some use cases, couldn&#8217;t it?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10651</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 18:48:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10651</guid>
+					<description><![CDATA[@mttpd: I went back and forth on that one several times, and several drafts had emplace_back. I stuck with push_back only because I wasn&#039;t (yet) fully confident that emplace_back is a full replacement and should be used by default, but that may well be where we land and if so I&#039;ll take a pass to purge push_backs out of the GotW code.]]></description>
+		<content:encoded><![CDATA[<p>@mttpd: I went back and forth on that one several times, and several drafts had emplace_back. I stuck with push_back only because I wasn&#8217;t (yet) fully confident that emplace_back is a full replacement and should be used by default, but that may well be where we land and if so I&#8217;ll take a pass to purge push_backs out of the GotW code.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mttpd				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10650</link>
+		<dc:creator><![CDATA[mttpd]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 18:33:32 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10650</guid>
+					<description><![CDATA[A nitpick (and possibly very much in the &quot;drive-by improvement&quot; category ;]) -- I would suggest replacing all occurrences of &quot;push_back&quot; with &quot;emplace_back&quot; -- as of C++11 it may be a good idea to consider it the default choice.
+
+Perhaps it&#039;s even fair to say it&#039;s debatable whether &quot;push_back&quot; should be used at all anymore:
+http://stackoverflow.com/questions/10890653/why-would-i-ever-use-push-back-instead-of-emplace-back]]></description>
+		<content:encoded><![CDATA[<p>A nitpick (and possibly very much in the &#8220;drive-by improvement&#8221; category ;]) &#8212; I would suggest replacing all occurrences of &#8220;push_back&#8221; with &#8220;emplace_back&#8221; &#8212; as of C++11 it may be a good idea to consider it the default choice.</p>
+<p>Perhaps it&#8217;s even fair to say it&#8217;s debatable whether &#8220;push_back&#8221; should be used at all anymore:<br />
+<a href="http://stackoverflow.com/questions/10890653/why-would-i-ever-use-push-back-instead-of-emplace-back" rel="nofollow">http://stackoverflow.com/questions/10890653/why-would-i-ever-use-push-back-instead-of-emplace-back</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Vincent Lascaux				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10649</link>
+		<dc:creator><![CDATA[Vincent Lascaux]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 18:30:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10649</guid>
+					<description><![CDATA[@Herb: Isn&#039;t memory_order_relaxed still stronger than what we actually need here? We don&#039;t even need atomicity here, is that right?
+
+I&#039;m mostly trying to understand where the synchronizations are needed in the world of &quot;multiple reader/single writer&quot;.
+This convention shakes my world a little. Until now, I respected (some might say &quot;tried to respect&quot; :)) the rule that if a variable is synchronized through atomic/interlocked operations or through mutex in one part of the code, it should be synchronized everywhere.
+With your convention, non const methods generally don&#039;t need synchronization at all. If the rule is as simple as &quot;if you don&#039;t write const, you don&#039;t need atomic/mutex access&quot;, then I think wearing Kevlar glove while typing the non synchronized code might be overkilled. If the rule is that simple, what are you concerned about?]]></description>
+		<content:encoded><![CDATA[<p>@Herb: Isn&#8217;t memory_order_relaxed still stronger than what we actually need here? We don&#8217;t even need atomicity here, is that right?</p>
+<p>I&#8217;m mostly trying to understand where the synchronizations are needed in the world of &#8220;multiple reader/single writer&#8221;.<br />
+This convention shakes my world a little. Until now, I respected (some might say &#8220;tried to respect&#8221; :)) the rule that if a variable is synchronized through atomic/interlocked operations or through mutex in one part of the code, it should be synchronized everywhere.<br />
+With your convention, non const methods generally don&#8217;t need synchronization at all. If the rule is as simple as &#8220;if you don&#8217;t write const, you don&#8217;t need atomic/mutex access&#8221;, then I think wearing Kevlar glove while typing the non synchronized code might be overkilled. If the rule is that simple, what are you concerned about?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10648</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 18:16:56 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10648</guid>
+					<description><![CDATA[@Vincent: In that case, yes, you could probably get away with writing area.store(-1,memory_order_relaxed); but I&#039;ll tell you why you shouldn&#039;t. First, in general, you should ban explicit use of memory_order_* by default in your coding standards and permit it only on a case by case basis with rigorous performance data justification and correctness review by memory model experts. Second, it&#039;s unlikely you&#039;ll get performance data justification here because right after &quot;area = -1;&quot; comes &quot;points.push_back(pt);&quot; which is likely to dominate (possibly even if it doesn&#039;t do an allocation).
+
+When you see someone tempted to hold a lit firecracker or an explicit memory_order_* in their hand, really be highly suspicious and rigorously measure to see if it&#039;s a screaming problem that makes this necessary, and then most of the time make them put it down, and in rare cases approved by certified bomb squad experts allow it but make the person wear a Kevlar glove and maybe a little body armor.]]></description>
+		<content:encoded><![CDATA[<p>@Vincent: In that case, yes, you could probably get away with writing area.store(-1,memory_order_relaxed); but I&#8217;ll tell you why you shouldn&#8217;t. First, in general, you should ban explicit use of memory_order_* by default in your coding standards and permit it only on a case by case basis with rigorous performance data justification and correctness review by memory model experts. Second, it&#8217;s unlikely you&#8217;ll get performance data justification here because right after &#8220;area = -1;&#8221; comes &#8220;points.push_back(pt);&#8221; which is likely to dominate (possibly even if it doesn&#8217;t do an allocation).</p>
+<p>When you see someone tempted to hold a lit firecracker or an explicit memory_order_* in their hand, really be highly suspicious and rigorously measure to see if it&#8217;s a screaming problem that makes this necessary, and then most of the time make them put it down, and in rare cases approved by certified bomb squad experts allow it but make the person wear a Kevlar glove and maybe a little body armor.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Vincent Lascaux				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10643</link>
+		<dc:creator><![CDATA[Vincent Lascaux]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 16:44:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10643</guid>
+					<description><![CDATA[To follow up on my question on how much needs to be synchronized, the atomic solution (which most likely has the smallest overhead, at least in term of space) has the same implementation as the non synchronized version for add_point:
+[code] void add_point( const point pt ) { area = -1; points.push_back(pt); } [/code]
+
+This calls atomic::operator = (double) and can be rather expensive (hundreds of time more expensive than assigning -1 to a double?). Because add_point is non const, this is an unnecessary expense.
+When using the mutex solution, it&#039;s &quot;easy&quot; to remove the synchronization where it&#039;s unnecessary (just remove the lock_guard). Is there a way to remove the &quot;atomic&quot; here? to do a non synchronized store to area?]]></description>
+		<content:encoded><![CDATA[<p>To follow up on my question on how much needs to be synchronized, the atomic solution (which most likely has the smallest overhead, at least in term of space) has the same implementation as the non synchronized version for add_point:</p>
+<pre class="brush: plain; title: ; notranslate"> void add_point( const point pt ) { area = -1; points.push_back(pt); } </pre>
+<p>This calls atomic::operator = (double) and can be rather expensive (hundreds of time more expensive than assigning -1 to a double?). Because add_point is non const, this is an unnecessary expense.<br />
+When using the mutex solution, it&#8217;s &#8220;easy&#8221; to remove the synchronization where it&#8217;s unnecessary (just remove the lock_guard). Is there a way to remove the &#8220;atomic&#8221; here? to do a non synchronized store to area?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10640</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 16:24:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10640</guid>
+					<description><![CDATA[@Francisco: You wrote: “The answer contains good wisdom on const correctness, but got confused about the concurrency semantics meaning/correctness…” – could you elaborate on what you mean?
+
+@Vincent, Phil: My comment in Option 1 meant that other const functions that use area, even just to read it, also need to take the lock. Here, that is just get_area which as Phil wrote performs a read of area and so could see a torn read if not also synchronized; that’s why I wrote the note. However, I can and should say this all more simply here to avoid this confusion: Since in this case that’s the only other const function that uses area, and it calls get_area, for simplicity and completeness the easiest thing would be to move the lock there and then I can remove the note. Updated, thanks!
+
+@jlehrer: Well, it’s transitively correct, but yes that text would work better one paragraph later in calc_area. Done, thanks.
+
+@Motti: Thanks for pointing out I had two 6 points. Fixed. (However, the revised class at the end is perfectly conforming to normal thread safety and a model of how to do it, see above comment.)
+
+@several asking why I didn’t make various suggested improvements not related to const: Because the problem statement said not to do drive-by improvements, but focus on const issues. :)]]></description>
+		<content:encoded><![CDATA[<p>@Francisco: You wrote: “The answer contains good wisdom on const correctness, but got confused about the concurrency semantics meaning/correctness…” – could you elaborate on what you mean?</p>
+<p>@Vincent, Phil: My comment in Option 1 meant that other const functions that use area, even just to read it, also need to take the lock. Here, that is just get_area which as Phil wrote performs a read of area and so could see a torn read if not also synchronized; that’s why I wrote the note. However, I can and should say this all more simply here to avoid this confusion: Since in this case that’s the only other const function that uses area, and it calls get_area, for simplicity and completeness the easiest thing would be to move the lock there and then I can remove the note. Updated, thanks!</p>
+<p>@jlehrer: Well, it’s transitively correct, but yes that text would work better one paragraph later in calc_area. Done, thanks.</p>
+<p>@Motti: Thanks for pointing out I had two 6 points. Fixed. (However, the revised class at the end is perfectly conforming to normal thread safety and a model of how to do it, see above comment.)</p>
+<p>@several asking why I didn’t make various suggested improvements not related to const: Because the problem statement said not to do drive-by improvements, but focus on const issues. :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10639</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 16:23:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10639</guid>
+					<description><![CDATA[@Steve: There’s nothing “blindly” about it, it has to be quite eyes-wide-open and intentional. “Blindly” would be having a mutable member variable and not synchronizing it. :) The reason is that the caller, who must perform the usual correct external synchronization for non-const accesses if the variable is shared, cannot do the right thing for concurrent const accesses because he doesn’t know about the internal state shared among const accesses, therefore you need to do internal synchronization to get back up to the normal level of thread safety. (This is a general issues and one of the huge pitfalls of copy-on-write (COW) as I wrote about before.)
+
+As mentioned in GotW #6a, unless you can prove that no object of your type will ever be shared (generally impossible or infeasible), you have to choose the tradeoff you like best: Don’t have mutable variables that could be written to in const member functions and don’t add internal synchronization (at least not for this reason), or have mutable variables that could be written to in const member functions and add internal synchronization. If you’re going to have mutable state like this cache, that is an internal implementation detail not visible to the caller but that would perform writes in const member functions, you need to synchronize it as discussed in 6a and 6b.
+
+@Rick, Paul, Craig, Alb: As Rick’s and Arne’s and Erik’s followups noted (Erik summarized it particularly well), the revised polygon is fine and recommendable, it’s the caller who wrote a bug – he wrote a race by modifying the variable via .add_point on one thread and concurrently using it on another thread without external synchronization. The definition of a race condition is “two concurrent accesses and at least one is a writer” (i.e., non-const).
+
+All this is making me think that I should write an additional GotW I wasn’t planning on to discuss what “thread-safe” means, and discuss the difference between internal synchronization and external synchronization and when each is necessary. It’s a perennial question that’s actually mostly language-neutral but it seems there needs to be a treatment of it, including things like why constructors and destructors generally never need to perform internal synchronization (many people don’t realize this).
+
+@Martin: Yes, these are language-neutral concurrency questions. The only C++-specific details are the spelling of things like unique_lock, mutable, and const.]]></description>
+		<content:encoded><![CDATA[<p>@Steve: There’s nothing “blindly” about it, it has to be quite eyes-wide-open and intentional. “Blindly” would be having a mutable member variable and not synchronizing it. :) The reason is that the caller, who must perform the usual correct external synchronization for non-const accesses if the variable is shared, cannot do the right thing for concurrent const accesses because he doesn’t know about the internal state shared among const accesses, therefore you need to do internal synchronization to get back up to the normal level of thread safety. (This is a general issues and one of the huge pitfalls of copy-on-write (COW) as I wrote about before.)</p>
+<p>As mentioned in GotW #6a, unless you can prove that no object of your type will ever be shared (generally impossible or infeasible), you have to choose the tradeoff you like best: Don’t have mutable variables that could be written to in const member functions and don’t add internal synchronization (at least not for this reason), or have mutable variables that could be written to in const member functions and add internal synchronization. If you’re going to have mutable state like this cache, that is an internal implementation detail not visible to the caller but that would perform writes in const member functions, you need to synchronize it as discussed in 6a and 6b.</p>
+<p>@Rick, Paul, Craig, Alb: As Rick’s and Arne’s and Erik’s followups noted (Erik summarized it particularly well), the revised polygon is fine and recommendable, it’s the caller who wrote a bug – he wrote a race by modifying the variable via .add_point on one thread and concurrently using it on another thread without external synchronization. The definition of a race condition is “two concurrent accesses and at least one is a writer” (i.e., non-const).</p>
+<p>All this is making me think that I should write an additional GotW I wasn’t planning on to discuss what “thread-safe” means, and discuss the difference between internal synchronization and external synchronization and when each is necessary. It’s a perennial question that’s actually mostly language-neutral but it seems there needs to be a treatment of it, including things like why constructors and destructors generally never need to perform internal synchronization (many people don’t realize this).</p>
+<p>@Martin: Yes, these are language-neutral concurrency questions. The only C++-specific details are the spelling of things like unique_lock, mutable, and const.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adrian				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10637</link>
+		<dc:creator><![CDATA[Adrian]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 16:16:23 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10637</guid>
+					<description><![CDATA[I would have expected some advice here on the appropriate uses of const for the copy constructor, copy assignment, and move assignment operators, unless the fact that this class has mutables and/or atomics has no impact on how const is used for those methods..]]></description>
+		<content:encoded><![CDATA[<p>I would have expected some advice here on the appropriate uses of const for the copy constructor, copy assignment, and move assignment operators, unless the fact that this class has mutables and/or atomics has no impact on how const is used for those methods..</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adrian				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10636</link>
+		<dc:creator><![CDATA[Adrian]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 16:03:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10636</guid>
+					<description><![CDATA[@Phil Miller:  Read the text below the Option 1 example.  Herb points out that you would need to grab the mutex everywhere you access area.  So, although he didn&#039;t write it out, it&#039;s clear that you&#039;d need to modify get_area.]]></description>
+		<content:encoded><![CDATA[<p>@Phil Miller:  Read the text below the Option 1 example.  Herb points out that you would need to grab the mutex everywhere you access area.  So, although he didn&#8217;t write it out, it&#8217;s clear that you&#8217;d need to modify get_area.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Fernando Pelliccioni				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10635</link>
+		<dc:creator><![CDATA[Fernando Pelliccioni]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 15:34:14 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10635</guid>
+					<description><![CDATA[Herb,
+
+You need to provide a move-ctor or a copy-ctor to polygon because ...
+
+[code]
+atomic(const atomic&#038;) = delete;
+[/code]
+
+Same with std::mutex]]></description>
+		<content:encoded><![CDATA[<p>Herb,</p>
+<p>You need to provide a move-ctor or a copy-ctor to polygon because &#8230;</p>
+<pre class="brush: plain; title: ; notranslate">
+atomic(const atomic&amp;) = delete;
+</pre>
+<p>Same with std::mutex</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Phil Miller				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10629</link>
+		<dc:creator><![CDATA[Phil Miller]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 13:44:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10629</guid>
+					<description><![CDATA[I believe there&#039;s a bug in the described mutex version of calc_area() as it interacts with concurrent calls to get_area():
+[code]
+    void calc_area() const {
+        auto lock = unique_lock&#060;mutex&#062;{mutables};
+        area = 0.0;
+        for( auto&#038; pt : points )
+            area += /* some work using pt */;
+    }
+
+    double get_area() const {
+        if( area &#060; 0 )   // if not yet calculated and cached
+            calc_area();     // calculate now
+        return area;
+    }
+[/code]
+These are both const, so they should be callable completely concurrently. However, a second call to get_area() which a first one is running can return wrong results, because it will see intermediate non-negative values of area:
+[code]
+Thread 1:                                 &#124;  Thread 2:
+d1 = poly.get_area();                     &#124;
+&#062; cal_area() called                       &#124;
+auto lock = unique_lock&#060;mutex&#062;{mutables}; &#124;
+area = 0.0;                               &#124;
+// transient non-negative state of area   &#124; d2 = poly.get_area();
+for( auto&#038; pt : points )                  &#124; // check against 0, return
+  area += /* some work using pt */;       &#124; // any time here
+&#062; calls return, d1 is correct             &#124; // value in d2 is arbitrary
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>I believe there&#8217;s a bug in the described mutex version of calc_area() as it interacts with concurrent calls to get_area():</p>
+<pre class="brush: plain; title: ; notranslate">
+    void calc_area() const {
+        auto lock = unique_lock&lt;mutex&gt;{mutables};
+        area = 0.0;
+        for( auto&amp; pt : points )
+            area += /* some work using pt */;
+    }
+
+    double get_area() const {
+        if( area &lt; 0 )   // if not yet calculated and cached
+            calc_area();     // calculate now
+        return area;
+    }
+</pre>
+<p>These are both const, so they should be callable completely concurrently. However, a second call to get_area() which a first one is running can return wrong results, because it will see intermediate non-negative values of area:</p>
+<pre class="brush: plain; title: ; notranslate">
+Thread 1:                                 |  Thread 2:
+d1 = poly.get_area();                     |
+&gt; cal_area() called                       |
+auto lock = unique_lock&lt;mutex&gt;{mutables}; |
+area = 0.0;                               |
+// transient non-negative state of area   | d2 = poly.get_area();
+for( auto&amp; pt : points )                  | // check against 0, return
+  area += /* some work using pt */;       | // any time here
+&gt; calls return, d1 is correct             | // value in d2 is arbitrary
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alb				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10628</link>
+		<dc:creator><![CDATA[Alb]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 13:37:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10628</guid>
+					<description><![CDATA[Let &#039;s say that the fact is that I have been seeing code only protecting mutations locally without wondering of the entire thread safety inside the application. This local protection were often considered as to having done the job for taking into account the concurrent issues. That&#039;s why I think they give a false sense of confidence against these problems.
+
+I tend to think that if internaly the class protects its mutable states against concurrency issues then the class shall be &#039;externaly&#039; entirly immutable, i.e. all the public and protected functions shall be const and all members shall be either const (const vector points;) or mutable (such as mutable atomic area). Function add_point shall no exists as a member one but as an external function creating a new immutable polygon object.
+
+On the other hand, if the class enables mutability of its instance by their users, it is impossible to assume that this mutability won&#039;t concurrently happen while a const function is running. How can you ensure that the code of the working threads accessing the shared object only in a read-only way will still be modifiable when adding new threads that uses these objects in a non-const way ?]]></description>
+		<content:encoded><![CDATA[<p>Let &#8216;s say that the fact is that I have been seeing code only protecting mutations locally without wondering of the entire thread safety inside the application. This local protection were often considered as to having done the job for taking into account the concurrent issues. That&#8217;s why I think they give a false sense of confidence against these problems.</p>
+<p>I tend to think that if internaly the class protects its mutable states against concurrency issues then the class shall be &#8216;externaly&#8217; entirly immutable, i.e. all the public and protected functions shall be const and all members shall be either const (const vector points;) or mutable (such as mutable atomic area). Function add_point shall no exists as a member one but as an external function creating a new immutable polygon object.</p>
+<p>On the other hand, if the class enables mutability of its instance by their users, it is impossible to assume that this mutability won&#8217;t concurrently happen while a const function is running. How can you ensure that the code of the working threads accessing the shared object only in a read-only way will still be modifiable when adding new threads that uses these objects in a non-const way ?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Martin				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10620</link>
+		<dc:creator><![CDATA[Martin]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 11:44:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10620</guid>
+					<description><![CDATA[You know ... reading these examples always makes me (genuinely) wonder: Is it C++ that we &quot;have to&quot; think about all these subtleties, or could one also write such articles for other languages?
+
+In other words: Are there any good GotW&#039;s for C# (or Java)?]]></description>
+		<content:encoded><![CDATA[<p>You know &#8230; reading these examples always makes me (genuinely) wonder: Is it C++ that we &#8220;have to&#8221; think about all these subtleties, or could one also write such articles for other languages?</p>
+<p>In other words: Are there any good GotW&#8217;s for C# (or Java)?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Erik				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10614</link>
+		<dc:creator><![CDATA[Erik]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 08:29:12 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10614</guid>
+					<description><![CDATA[Wrt to the thread safety of add_points and calc_area, the idea is to provide a normal degree of thread safety, not a complete lock strategy for the class. Synchronizing for mutability is (as always) best done externally to the class.
+
+What Herb does is just satisfying the normal expectancy that const-only (ie, thought of as read only) access is concurrency-safe.
+
+An example: If I produce a polygon in a thread, and then make that visible (thread safely) to a bunch of workers doing const-only access, I&#039;ll not bother synchronizing access to the polygon in the workers. I&#039;m only reading it!
+Without the atomic, get_area will race on the first accesses.
+
+If I changed the design to having the workers mutate the polygon, then I&#039;d add a locking strategy for it. Probably a mutex that each worker must hold before even looking at the poly.
+
+The polygon class without the atomic will be a nasty surprise for me as a user, with the atomic it&#039;ll behave as expected and let me use my standard patters for concurrency without nasty surprises.]]></description>
+		<content:encoded><![CDATA[<p>Wrt to the thread safety of add_points and calc_area, the idea is to provide a normal degree of thread safety, not a complete lock strategy for the class. Synchronizing for mutability is (as always) best done externally to the class.</p>
+<p>What Herb does is just satisfying the normal expectancy that const-only (ie, thought of as read only) access is concurrency-safe.</p>
+<p>An example: If I produce a polygon in a thread, and then make that visible (thread safely) to a bunch of workers doing const-only access, I&#8217;ll not bother synchronizing access to the polygon in the workers. I&#8217;m only reading it!<br />
+Without the atomic, get_area will race on the first accesses.</p>
+<p>If I changed the design to having the workers mutate the polygon, then I&#8217;d add a locking strategy for it. Probably a mutex that each worker must hold before even looking at the poly.</p>
+<p>The polygon class without the atomic will be a nasty surprise for me as a user, with the atomic it&#8217;ll behave as expected and let me use my standard patters for concurrency without nasty surprises.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alb				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10613</link>
+		<dc:creator><![CDATA[Alb]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 08:07:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10613</guid>
+					<description><![CDATA[Hello,
+
+* What happen if add_point is called concurrently while executing the loop processing the area ? if I remember correctly, the push_back call may invalidate iterators.
+
+* What about the get_area returned if add_point is called concurrently just after &quot;area = tmp;&quot; statement in the calc_area function and before the return statement of the get_area function ? Don&#039;t it will return -1 ?
+
+Even if point is constant, shall not it be considered to be protected against concurrency since it is mutable in the class point of view ?
+
+Does not atomic (and mutexes and all this kind of local synchronisation patterns) give a false sense of confidence agains concurrent issues ?]]></description>
+		<content:encoded><![CDATA[<p>Hello,</p>
+<p>* What happen if add_point is called concurrently while executing the loop processing the area ? if I remember correctly, the push_back call may invalidate iterators.</p>
+<p>* What about the get_area returned if add_point is called concurrently just after &#8220;area = tmp;&#8221; statement in the calc_area function and before the return statement of the get_area function ? Don&#8217;t it will return -1 ?</p>
+<p>Even if point is constant, shall not it be considered to be protected against concurrency since it is mutable in the class point of view ?</p>
+<p>Does not atomic (and mutexes and all this kind of local synchronisation patterns) give a false sense of confidence agains concurrent issues ?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Craig Henderson (@cdmh)				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10611</link>
+		<dc:creator><![CDATA[Craig Henderson (@cdmh)]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 07:49:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10611</guid>
+					<description><![CDATA[calc_area() iterates over the points collection without protection. If execution of one thread is in this loop while another thread calls add_point() then calc_area will fail with undefined behavior as the collection is ripped out from under it.]]></description>
+		<content:encoded><![CDATA[<p>calc_area() iterates over the points collection without protection. If execution of one thread is in this loop while another thread calls add_point() then calc_area will fail with undefined behavior as the collection is ripped out from under it.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Motti Lanzkron				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10608</link>
+		<dc:creator><![CDATA[Motti Lanzkron]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 07:15:35 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10608</guid>
+					<description><![CDATA[As Rick Yorgason said this class is not thread safe. In my opinion it&#039;s even worse than what he points out.
+If a thread calls add_point while another thread is calculating the area the `points` vector may be reallocated thus invalidating all iterators. In which case `calc_area` causes undefined behaviour!
+
+In other news, you have two &quot;6&quot; points.]]></description>
+		<content:encoded><![CDATA[<p>As Rick Yorgason said this class is not thread safe. In my opinion it&#8217;s even worse than what he points out.<br />
+If a thread calls add_point while another thread is calculating the area the `points` vector may be reallocated thus invalidating all iterators. In which case `calc_area` causes undefined behaviour!</p>
+<p>In other news, you have two &#8220;6&#8221; points.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Thibaud				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10606</link>
+		<dc:creator><![CDATA[Thibaud]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 07:11:58 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10606</guid>
+					<description><![CDATA[What about std::call_once to compute area ?]]></description>
+		<content:encoded><![CDATA[<p>What about std::call_once to compute area ?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Arne Mertz				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10604</link>
+		<dc:creator><![CDATA[Arne Mertz]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 06:45:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10604</guid>
+					<description><![CDATA[@Rick (and Paul): right, the concurrent call of add_point is not threadsafe, as is any concurrent call of modifying (read: nonconst) functions on an object.
+
+@Steve: I am surely not an expert, but the only overhead I know of in std::atomic are the limitations on optimizations the compiler may do on write access. Since that write access is very seldom (once in calc_area, wich is called only after changing the shape), the overhead should be very close to negligible. Any policy based switching to non-atomics for non-concurrent usage would be overkill wrt the implementation, it would make the code a tiny bit less readable and it would introduce the danger of picking the wrong implementation in multithreaded environments or to simply forgetting to switch when changing from single threaded to multithreaded. And since almost every system is parallel these days you shoud just not code for singlethreaded environmets explicitly any more.]]></description>
+		<content:encoded><![CDATA[<p>@Rick (and Paul): right, the concurrent call of add_point is not threadsafe, as is any concurrent call of modifying (read: nonconst) functions on an object.</p>
+<p>@Steve: I am surely not an expert, but the only overhead I know of in std::atomic are the limitations on optimizations the compiler may do on write access. Since that write access is very seldom (once in calc_area, wich is called only after changing the shape), the overhead should be very close to negligible. Any policy based switching to non-atomics for non-concurrent usage would be overkill wrt the implementation, it would make the code a tiny bit less readable and it would introduce the danger of picking the wrong implementation in multithreaded environments or to simply forgetting to switch when changing from single threaded to multithreaded. And since almost every system is parallel these days you shoud just not code for singlethreaded environmets explicitly any more.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jens				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10601</link>
+		<dc:creator><![CDATA[Jens]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 05:50:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10601</guid>
+					<description><![CDATA[Why don&#039;t you use std::accumulate instead of the hand-crafted for-loop in point 5? I think it is more expressive than writing a for-loop:
+
+Combining all that, we get this simpler and const-correct code:
+
+&lt;code&gt;
+      for( auto&#038; pt : points )
+          area += /* some work using pt */;
+&lt;/code&gt;
+
+becomes
+&lt;code&gt;
+void calc_area() {
+        area = std::accumulate( std::cbegin(points), std::cend(points), 
+                                              0, 
+                                              [](double x, double y) {return /* ... */} );
+ }&lt;/code&gt;]]></description>
+		<content:encoded><![CDATA[<p>Why don&#8217;t you use std::accumulate instead of the hand-crafted for-loop in point 5? I think it is more expressive than writing a for-loop:</p>
+<p>Combining all that, we get this simpler and const-correct code:</p>
+<p><code><br />
+      for( auto&amp; pt : points )<br />
+          area += /* some work using pt */;<br />
+</code></p>
+<p>becomes<br />
+<code><br />
+void calc_area() {<br />
+        area = std::accumulate( std::cbegin(points), std::cend(points),<br />
+                                              0,<br />
+                                              [](double x, double y) {return /* ... */} );<br />
+ }</code></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: skebanga				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10598</link>
+		<dc:creator><![CDATA[skebanga]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 02:48:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10598</guid>
+					<description><![CDATA[@jlehrer - what about mixed use? We often have data structures which make sense in both single- and multi-threaded environments. Often both usages crop up in the same application; and as such, having to pay the multi-threaded penalty in the single-threaded domain doesn&#039;t make me feel nice! 
+
+Perhaps making polygon a class template would be deemed too cumbersome? Perhaps it is premature optimization? I don&#039;t know, but in any event a lock policy solves this.]]></description>
+		<content:encoded><![CDATA[<p>@jlehrer &#8211; what about mixed use? We often have data structures which make sense in both single- and multi-threaded environments. Often both usages crop up in the same application; and as such, having to pay the multi-threaded penalty in the single-threaded domain doesn&#8217;t make me feel nice! </p>
+<p>Perhaps making polygon a class template would be deemed too cumbersome? Perhaps it is premature optimization? I don&#8217;t know, but in any event a lock policy solves this.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: jlehrer				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10597</link>
+		<dc:creator><![CDATA[jlehrer]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 02:38:56 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10597</guid>
+					<description><![CDATA[In response to Steve Lorimer&#039;s comment about single threaded versions of the code - If I were designing a library for public use I would probably use a typedef for this atomic variable that switched between an atomic double and a plain old double.  I would allow the consumer to specify via macros if they wanted to compile in multi-threaded support or not.]]></description>
+		<content:encoded><![CDATA[<p>In response to Steve Lorimer&#8217;s comment about single threaded versions of the code &#8211; If I were designing a library for public use I would probably use a typedef for this atomic variable that switched between an atomic double and a plain old double.  I would allow the consumer to specify via macros if they wanted to compile in multi-threaded support or not.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: jlehrer				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10595</link>
+		<dc:creator><![CDATA[jlehrer]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 02:30:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10595</guid>
+					<description><![CDATA[You wrote:
+
+&quot;Once you make [get_area()] const, the compiler will tell you that you also need to do something about the member variable area&quot;
+
+No, it won&#039;t.  The compiler will only tell you that you are calling a non-const method from within a const method.  The member variable &quot;area&quot; is not modified in this function, only read.  I suspect that at one point you did not have the &quot;calc_area()&quot; method and did the work inline in &quot;get_area()&quot;.  When you extracted out the calculation and storage to get_area() you probably didn&#039;t update the explanation text.
+
+Or, you have a method called &quot;calculate_area_impl&quot; the was non-mutating and returned the calculated area that was then stored inside of calc_area().
+
+Either way, the body text of the solution, I believe, is incorrect.]]></description>
+		<content:encoded><![CDATA[<p>You wrote:</p>
+<p>&#8220;Once you make [get_area()] const, the compiler will tell you that you also need to do something about the member variable area&#8221;</p>
+<p>No, it won&#8217;t.  The compiler will only tell you that you are calling a non-const method from within a const method.  The member variable &#8220;area&#8221; is not modified in this function, only read.  I suspect that at one point you did not have the &#8220;calc_area()&#8221; method and did the work inline in &#8220;get_area()&#8221;.  When you extracted out the calculation and storage to get_area() you probably didn&#8217;t update the explanation text.</p>
+<p>Or, you have a method called &#8220;calculate_area_impl&#8221; the was non-mutating and returned the calculated area that was then stored inside of calc_area().</p>
+<p>Either way, the body text of the solution, I believe, is incorrect.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Paul Byrne				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10594</link>
+		<dc:creator><![CDATA[Paul Byrne]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 02:19:00 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10594</guid>
+					<description><![CDATA[I had more-or-less the same thought as Rick (post #4), but my concern was that thread 1 could be stepping through the collection of points at the same time as one or more points are being added to it, producing an indeterminate result, as the thread-safety is only introduced when the result is written to the member variable. I haven&#039;t given it a lot of thought, but it appears to me that the mutex approach provides a means to (partially) overcome this. OTOH, I think that this class is clearly not thread-safe, and I guess that the point of GOTW #6b is not to address the wider issue of thread-safety for this poorly designed class, but I feel that the example is a bit limited.]]></description>
+		<content:encoded><![CDATA[<p>I had more-or-less the same thought as Rick (post #4), but my concern was that thread 1 could be stepping through the collection of points at the same time as one or more points are being added to it, producing an indeterminate result, as the thread-safety is only introduced when the result is written to the member variable. I haven&#8217;t given it a lot of thought, but it appears to me that the mutex approach provides a means to (partially) overcome this. OTOH, I think that this class is clearly not thread-safe, and I guess that the point of GOTW #6b is not to address the wider issue of thread-safety for this poorly designed class, but I feel that the example is a bit limited.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Francisco Lopes (@pepper_chico)				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10593</link>
+		<dc:creator><![CDATA[Francisco Lopes (@pepper_chico)]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 02:12:04 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10593</guid>
+					<description><![CDATA[The answer contains good wisdom on const correctness, but got confused about the concurrency semantics meaning/correctness...]]></description>
+		<content:encoded><![CDATA[<p>The answer contains good wisdom on const correctness, but got confused about the concurrency semantics meaning/correctness&#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mttpd				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10592</link>
+		<dc:creator><![CDATA[mttpd]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 01:58:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10592</guid>
+					<description><![CDATA[@Herb: Yay! :-)
+
+To give credit, after verifying with GCC (http://ideone.com/KcGaII), I&#039;ve also checked this on SO: http://stackoverflow.com/a/3802028/
+
+True, there are &quot;some compilers [that] do not flag const references&quot;:
+https://www.securecoding.cert.org/confluence/display/cplusplus/DCL33-CPP.+Never+qualify+a+variable+of+reference+type+with+const+or+volatile
+
+To my understanding, however, justifying something like that would require a rather (too) liberal reading of the phrase with the conditional &quot;ignored&quot; allowance, treating it instead as a general (unconditional) escape valve: basically, ignoring (no pun intended) the &quot;typedef/template type argument/(new to C++11)decltype-specificer&quot; restriction.
+
+// On a side note, the conditional allowance for template type arguments might have been a necessary inconsistency:
+http://groups.google.com/group/comp.lang.c++/browse_thread/thread/8e82c3edb2a9a645/]]></description>
+		<content:encoded><![CDATA[<p>@Herb: Yay! :-)</p>
+<p>To give credit, after verifying with GCC (<a href="http://ideone.com/KcGaII" rel="nofollow">http://ideone.com/KcGaII</a>), I&#8217;ve also checked this on SO: <a href="http://stackoverflow.com/a/3802028/" rel="nofollow">http://stackoverflow.com/a/3802028/</a></p>
+<p>True, there are &#8220;some compilers [that] do not flag const references&#8221;:<br />
+<a href="https://www.securecoding.cert.org/confluence/display/cplusplus/DCL33-CPP.+Never+qualify+a+variable+of+reference+type+with+const+or+volatile" rel="nofollow">https://www.securecoding.cert.org/confluence/display/cplusplus/DCL33-CPP.+Never+qualify+a+variable+of+reference+type+with+const+or+volatile</a></p>
+<p>To my understanding, however, justifying something like that would require a rather (too) liberal reading of the phrase with the conditional &#8220;ignored&#8221; allowance, treating it instead as a general (unconditional) escape valve: basically, ignoring (no pun intended) the &#8220;typedef/template type argument/(new to C++11)decltype-specificer&#8221; restriction.</p>
+<p>// On a side note, the conditional allowance for template type arguments might have been a necessary inconsistency:<br />
+<a href="http://groups.google.com/group/comp.lang.c++/browse_thread/thread/8e82c3edb2a9a645/" rel="nofollow">http://groups.google.com/group/comp.lang.c++/browse_thread/thread/8e82c3edb2a9a645/</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Vincent Lascaux				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10589</link>
+		<dc:creator><![CDATA[Vincent Lascaux]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 01:10:30 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10589</guid>
+					<description><![CDATA[Herb, you mention &quot;// Option 1: Use a mutex (NB: Also lock in other funcs that use area)&quot;.
+Given that add_point is not const and hence is not thread safe (by design), why would a mutex be needed there? Couldn&#039;t the mutex be just skipped in that method (but kept in calc_area obviously)?]]></description>
+		<content:encoded><![CDATA[<p>Herb, you mention &#8220;// Option 1: Use a mutex (NB: Also lock in other funcs that use area)&#8221;.<br />
+Given that add_point is not const and hence is not thread safe (by design), why would a mutex be needed there? Couldn&#8217;t the mutex be just skipped in that method (but kept in calc_area obviously)?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Rick Yorgason				</title>
+				<link>https://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/#comment-10588</link>
+		<dc:creator><![CDATA[Rick Yorgason]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 00:52:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2023#comment-10588</guid>
+					<description><![CDATA[Actually, I guess the root of the problem is that add_point isn&#039;t thread safe, but since it&#039;s not const, you&#039;re not guaranteeing that it is.]]></description>
+		<content:encoded><![CDATA[<p>Actually, I guess the root of the problem is that add_point isn&#8217;t thread safe, but since it&#8217;s not const, you&#8217;re not guaranteeing that it is.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

@@ -1,0 +1,1160 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #93 Solution: Auto Variables, Part 2 | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965302&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F06%2F13%2Fgotw-93-solution-auto-variables-part-2%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #93 Solution: Auto Variables, Part&nbsp;2 Comments Feed" href="https://herbsutter.com/2013/06/13/gotw-93-solution-auto-variables-part-2/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #93: Auto Variables, Part&nbsp;2' href='https://herbsutter.com/2013/06/07/gotw-93-auto-variables-part-2/' />
+<link rel='next' title='GotW #94 Special Edition: AAA Style (Almost Always&nbsp;Auto)' href='https://herbsutter.com/2013/06/13/gotw-94-special-edition-aaa-style-almost-always-auto/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/06/13/gotw-93-solution-auto-variables-part-2/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-yB' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F06%2F13%2Fgotw-93-solution-auto-variables-part-2%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F06%2F13%2Fgotw-93-solution-auto-variables-part-2%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #93 Solution: Auto Variables, Part 2" />
+<meta property="og:url" content="https://herbsutter.com/2013/06/13/gotw-93-solution-auto-variables-part-2/" />
+<meta property="og:description" content="Why prefer declaring variables using auto? Let us count some of the reasons why… Problem JG Question 1. In the following code, what actual or potential pitfalls exist in each labeled piece of code?…" />
+<meta property="article:published_time" content="2013-06-14T00:10:19+00:00" />
+<meta property="article:modified_time" content="2014-01-06T15:03:30+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965302" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #93 Solution: Auto Variables, Part&nbsp;2" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Why prefer declaring variables using auto? Let us count some of the reasons why… Problem JG Question 1. In the following code, what actual or potential pitfalls exist in each labeled piece of code? Which of these pitfalls would using auto variable declarations fix, and why or why not? // (a) void traverser( const vector&lt;int&gt;&amp;&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/06/13/gotw-93-solution-auto-variables-part-2/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2145 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/06/07/gotw-93-auto-variables-part-2/" rel="prev">GotW #93: Auto Variables, Part&nbsp;2</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/06/13/gotw-94-special-edition-aaa-style-almost-always-auto/" rel="next">GotW #94 Special Edition: AAA Style (Almost Always&nbsp;Auto)</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2145 post type-post status-publish format-standard hentry category-gotw" id="post-2145">
+				<div class="posttitle">
+					<h2>GotW #93 Solution: Auto Variables, Part&nbsp;2</h2>
+					<p class="post-info">2013-06-13 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>Why prefer declaring variables using auto? Let us count some of the reasons why…<br />
+</em></span></p>
+<h1>Problem</h1>
+<h2>JG Question</h2>
+<p>1. In the following code, what actual or potential pitfalls exist in each labeled piece of code? Which of these pitfalls would using <span style="color:#2e74b5;">auto</span> variable declarations fix, and why or why not?</p>
+<pre><code>// (a)
+void traverser( const vector&lt;int&gt;&amp; v ) {
+    for( vector&lt;int&gt;::iterator i = begin(v); i != end(v); i += 2 )
+        // ...
+}
+
+// (b)
+vector&lt;int&gt; v1(5);
+vector&lt;int&gt; v2 = 5;
+
+// (c)
+gadget get_gadget();
+// ...
+widget w = get_gadget();
+
+// (d)
+function&lt;void(vector&lt;int&gt;)&gt; get_size
+    = [](const vector&lt;int&gt;&amp; x) { return x.size(); };
+</code></pre>
+<h2>Guru Question</h2>
+<p>2. Same question, subtler examples: In the following code, what actual or potential pitfalls exist in each labeled piece of code? Which of these pitfalls would using <span style="color:#2e74b5;">auto</span> variable declarations fix, and why or why not?</p>
+<pre><code>// (a)
+widget w;
+
+// (b)
+vector&lt;string&gt; v;
+int size = v.size();
+
+// (c) x and y are of some built-in integral type
+int total = x + y;
+
+// (d) x and y are of some built-in integral type
+int diff = x - y;
+if(diff &lt; 0) { /*...*/ }
+
+// (e)
+int i = f(1,2,3) * 42.0;
+</code></pre>
+<h1>Solution</h1>
+<p>As you worked through these cases, perhaps you noticed a pattern: The cases are mostly very different, but what they have in common is that they illustrate reason after reason motivating why (and how) to use <span style="color:#2e74b5;">auto</span> to declare variables. Let&#8217;s dig in and see.</p>
+<h2>1. In the following code, what actual or potential pitfalls exist, which would using auto variable declarations fix, and why or why not?</h2>
+<h3>(a) will not compile</h3>
+<pre><code>// (a)
+void traverser( const vector&lt;int&gt;&amp; v ) {
+    for( vector&lt;int&gt;::iterator i = begin(v); i != end(v); i += 2 )
+        // ...
+}
+</code></pre>
+<p>With (a), the most important pitfall is that the code doesn&#8217;t compile. Because <span style="color:#2e74b5;">v</span> is <span style="color:#2e74b5;">const</span>, you need a <span style="color:#2e74b5;">const_iterator</span>. The old-school way to fix this is to write <span style="color:#2e74b5;">const_iterator</span>:</p>
+<pre><code>vector&lt;int&gt;::const_iterator i = begin(v)     // ok + requires thinking
+</code></pre>
+<p>However, that requires thinking to remember, &#8220;ah, <span style="color:#2e74b5;">v</span> is a reference to <span style="color:#2e74b5;">const</span>, I better remember to write <span style="color:#2e74b5;">const_</span> in front of its iterator type… and take it off again if I ever change <span style="color:#2e74b5;">v</span> to be a reference to non-<span style="color:#2e74b5;">const</span>… and also change the &#8220;<span style="color:#2e74b5;">vector</span>&#8221; part of <span style="color:#2e74b5;">i</span>&#8216;s type if <span style="color:#2e74b5;">v</span> is some other container type…&#8221;</p>
+<p>Not that thinking is a bad thing, mind you, but this is really just a tax on your time when the simplest and clearest thing to write is <span style="color:#2e74b5;">auto</span>:</p>
+<pre><code><span style="background-color:yellow;">auto</span> i = begin(v)                           // ok, best
+</code></pre>
+<p>Using <span style="color:#2e74b5;">auto</span> is not only correct and clear and simpler, but it stays correct if we change the type of the parameter to be non-<span style="color:#2e74b5;">const</span> or pass some other type of container, such as if we make <span style="color:#2e74b5;">traverser</span> into a template in the future.</p>
+<blockquote><p><strong>Guideline:</strong> Prefer to declare local variables using <strong>auto x = expr;</strong> when you don&#8217;t need to explicitly commit to a type. It is simpler, guarantees that you will use the correct type, and guarantees that the type stays correct under maintenance.</p></blockquote>
+<p>Although our focus is on the variable declaration, there&#8217;s another independent bug in the code: The <span style="color:#2e74b5;">+= 2</span> increment can zoom you off the end of the container. When writing a strided loop, check your iterator increment against end on each increment (best to write it once as a <span style="color:#2e74b5;">checked_next(i,end)</span> helper that does it for you), or use an indexed loop something like <span style="color:#2e74b5;">for( auto i = 0L; i &lt; v.size(); i += 2 )</span> which is more natural to write correctly.</p>
+<h3>(b) and (c) rely on implicit conversions</h3>
+<pre><code>// (b)
+vector&lt;int&gt; v1(5);     // 1
+vector&lt;int&gt; v2 = 5;    // 2
+</code></pre>
+<p>Line 1 performs an explicit conversion and so can call <span style="color:#2e74b5;">vector</span>&#8216;s <span style="color:#2e74b5;">explicit</span> constructor that takes an initial size.</p>
+<p>Line 2 doesn&#8217;t compile because its syntax won&#8217;t call an <span style="color:#2e74b5;">explicit</span> constructor. As we saw in GotW #1, it really means &#8220;convert <span style="color:#2e74b5;">5</span> to a temporary <span style="color:#2e74b5;">vector&lt;int&gt;</span>, then move-construct <span style="color:#2e74b5;">v2</span> from that,&#8221; so line 2 only works for types where the conversion is not <span style="color:#2e74b5;">explicit</span>.</p>
+<p>Some people view the asymmetry between 1 and 2 as a pitfall, at least conceptually, for several reasons: First, the syntaxes are not quite the same and so learning when to use each can seem like finicky detail. Second, some people like line 2&#8217;s syntax better but have to switch to line 1 to get access to <span style="color:#2e74b5;">explicit</span> constructors. Finally, with this syntax, it&#8217;s easy to forget the <span style="color:#2e74b5;">(5)</span> or <span style="color:#2e74b5;">= 5</span> initializer, and then we&#8217;re into case 2(a), which we&#8217;ll get to in a moment.</p>
+<p>If we use <span style="color:#2e74b5;">auto</span>, we have a single syntax that is always obviously explicit:</p>
+<pre><code><span style="background-color:yellow;">auto</span> v2 = vector&lt;int&gt;(5);
+</code></pre>
+<p>Next, case (c) is similar to (b):</p>
+<pre><code>// (c)
+gadget get_gadget();
+// ...
+widget w = get_gadget();
+</code></pre>
+<p>This works, assuming that <span style="color:#2e74b5;">gadget</span> is implicitly convertible to <span style="color:#2e74b5;">widget</span>, but creates a temporary object. That&#8217;s a potential performance pitfall, as the creation of the temporary object is not at all obvious from reading the call site alone in a code review. If we can use a <span style="color:#2e74b5;">gadget</span> just as well as a <span style="color:#2e74b5;">widget</span> in this calling code and so don&#8217;t explicitly need to commit to the <span style="color:#2e74b5;">widget</span> type, we could write the following which guarantees there is no implicit conversion because <span style="color:#2e74b5;">auto</span> always deduces the basic type exactly:</p>
+<pre><code>// better, if you don't need an explicit type
+<span style="background-color:yellow;">auto</span> w = get_gadget();
+</code></pre>
+<blockquote><p><strong>Guideline:</strong> Prefer to declare local variables using <strong>auto x = expr;</strong> when you don&#8217;t need to explicitly commit to a type. It is efficient by default and guarantees that no implicit conversions or temporary objects will occur.</p></blockquote>
+<p>By the way, if you&#8217;ve been wondering whether that &#8220;<span style="color:#2e74b5;">=</span>&#8221; in <span style="color:#2e74b5;">auto x = expr;</span> causes a temporary object plus a move or copy, wonder no longer: No, it constructs <span style="color:#2e74b5;">x</span> directly. (See GotW #1.)</p>
+<p>Now, what if we said <span style="color:#2e74b5;">widget</span> here because we know about the conversion and really do want to deal with a <span style="color:#2e74b5;">widget</span>? Then writing <span style="color:#2e74b5;">auto</span> is still more self-documenting:</p>
+<pre><code>// better, if you do need to commit to an explicit type
+<span style="background-color:yellow;">auto</span> w = <span style="background-color:yellow;">widget</span>{ get_gadget() };
+</code></pre>
+<blockquote><p><strong>Guideline:</strong> Consider declaring local variables <strong>auto x = type{ expr };</strong> when you do want to explicitly commit to a type. It is self-documenting to show that the code is explicitly requesting a conversion.</p></blockquote>
+<p>Note that this last version technically requires a move operation, but compilers are explicitly allowed to elide that and construct <span style="color:#2e74b5;">w</span> directly—and compilers routinely do that, so there is no performance penalty in practice.</p>
+<h3>(d) creates an indirection, and commits to a single type</h3>
+<pre><code>// (d)
+function&lt;void(vector&lt;int&gt;)&gt; get_size
+    = [](const vector&lt;int&gt;&amp; x) { return x.size(); };
+</code></pre>
+<p>Case (d) has two problems, and <span style="color:#2e74b5;">auto</span> can help with both of them. (Bonus points if you noticed that a form of &#8220;auto&#8221; is actually already helping in a third way.)</p>
+<p>First, the lambda object is converted to a <span style="color:#2e74b5;">function&lt;&gt;</span>. That can be appropriate when passing or returning the lambda to a function, but it costs an indirection because <span style="color:#2e74b5;">function&lt;&gt;</span> has to erase the actual type and create a wrapper around its target to hold it and invoke it. In this case, we appear to be using the lambda locally, and so the correct default way to capture it is using <span style="color:#2e74b5;">auto</span>, which binds to the exact (compiler-generated and otherwise-unutterable-by-you) type of the lambda and so doesn&#8217;t incur an indirection:</p>
+<pre><code>// partly improved
+<span style="background-color:yellow;">auto</span> get_size = [](const vector&lt;int&gt;&amp; x) { return x.size(); };
+</code></pre>
+<blockquote><p><strong>Guideline:</strong> Prefer to use <strong>auto name = </strong>to name a lambda function object. Use <strong>std::function&lt;/*…*/&gt; name =</strong> only when you need to rebind it to another target or pass it to another function that needs a <strong>std::function&lt;&gt;</strong>.</p></blockquote>
+<p>Second, the lambda commits to a specific argument type—it only works with <span style="color:#2e74b5;">vector&lt;int&gt;</span>, and not with <span style="color:#2e74b5;">vector&lt;double&gt;</span> or <span style="color:#2e74b5;">set&lt;string&gt;</span> or anything else that is also able to report a <span style="color:#2e74b5;">.size()</span>. The way to fix that is to write another <span style="color:#2e74b5;">auto</span>:</p>
+<pre><code>// best
+<span style="background-color:yellow;">auto</span> get_size = [](const <span style="background-color:yellow;">auto</span>&amp; x) { return x.size(); };
+
+// yes, you could use this "too cute" variation for slightly less typing
+//              [](auto&amp;&amp; x) { return x.size(); };
+// but you'll also get less const-enforcement and that isn't a good deal
+</code></pre>
+<p>This still creates just a single object, but with a templated function call operator so that it can be invoked with different types of arguments, and so will work with any type of container that supports calling <span style="color:#2e74b5;">.size()</span>…</p>
+<blockquote><p><strong>Guideline:</strong> Prefer to use <strong>auto</strong> lambda parameter types. They are just as efficient as explicit parameter types, and allow you to call the same lambda with different argument types.</p></blockquote>
+<p>… and did you notice the &#8220;third auto&#8221; that was there all along? Even in the original example, we&#8217;ve been implicitly using automatic type deduction in a third place by allowing the lambda to deduce its return type, and so now with the fully generic &#8220;best&#8221; version of the code that return type will always be exactly whatever <span style="color:#2e74b5;">.size()</span> returns for whatever kind of object we&#8217;re calling <span style="color:#2e74b5;">.size()</span> on, which can be different for different argument types. All in all, that&#8217;s pretty nifty.</p>
+<blockquote><p><strong>Guideline:</strong> Prefer to use implicit return type deduction for lambda functions.</p></blockquote>
+<h2>2. Same question, subtler examples: In the following code, what actual or potential pitfalls exist, which would using auto variable declarations fix, and why or why not?</h2>
+<h3>(a) might leave the variable uninitialized.</h3>
+<pre><code>// (a)
+widget w;
+</code></pre>
+<p>This creates an object of type <span style="color:#2e74b5;">widget</span>. However, we can&#8217;t tell just looking at this line whether it&#8217;s initialized or contains garbage values. As noted in GotW #1, if <span style="color:#2e74b5;">widget</span> is a built-in type or aggregate type, its members won&#8217;t get initialized. Uninitialized variables should be avoided by default, and only used deliberately in cases where you really want to start with an uninitialized memory region for performance reasons—notably when you have a large object, such as an array, that is expensive to zero-initialize and is immediately going to be overwritten anyway, such as if it&#8217;s being used as an &#8220;out&#8221; parameter.</p>
+<blockquote><p><strong>Guideline:</strong> Always initialize variables, except only when you can prove garbage values are okay, typically because you will immediately overwrite the contents.</p></blockquote>
+<p>Would <span style="color:#2e74b5;">auto</span> help here? Indeed it would:</p>
+<pre><code><span style="background-color:yellow;">auto</span> w = widget{};    // guaranteed to be initialized
+</code></pre>
+<p>One of the key benefits of declaring a local variable using <span style="color:#2e74b5;">auto</span> is that the &#8220;<span style="color:#2e74b5;">=</span>&#8221; is required—there&#8217;s no way to declare the variable without setting an initial value. Further, this is explicit and clear just from reading the above variable declaration on its own during a code review, without having to go inquire in the type&#8217;s header about the exact details of the type and poll the neighborhood for character references who will swear it&#8217;s not now, and is even under maintenance never likely to become, an aggregate.</p>
+<blockquote><p><strong>Guideline:</strong> Prefer to declare local variables using <strong>auto</strong>. It guarantees that you cannot accidentally leave the variable uninitialized.</p></blockquote>
+<h3>(b) might perform a silent narrowing conversion.</h3>
+<pre><code>// (b)
+vector&lt;string&gt; v;
+int size = v.size();
+</code></pre>
+<p>This will compile, run, and sometimes lose information because it uses an implicit narrowing conversion. Not the safest route to a happy weekend when the bug report from the field comes in on Friday night—normally from a large and important customer, because the bug will be exercised only with larger data sizes.</p>
+<p>Here&#8217;s why: The return type of <span style="color:#2e74b5;">vector&lt;string&gt;::size()</span> is <span style="color:#2e74b5;">vector&lt;string&gt;::size_type</span>, but what&#8217;s that? It depends on your implementation, because the standard leaves it implementation-defined. But one thing I guarantee you is that &#8220;it ain&#8217;t no <span style="color:#2e74b5;">int</span>&#8220;—for at least two reasons, which lead to at least two ways this can lose information by silent narrowing:</p>
+<ul>
+<li><em>Sign:</em><br />
+<span style="color:#2e74b5;">size_type</span> is required to be an unsigned integer value, so this code is asking to convert it to a signed value. That&#8217;s bad enough even if <span style="color:#2e74b5;">sizeof(size_type) == sizeof(int)</span> and it throws away the high bit—and with it the upper half of the representable values—to make room for the sign bit. It&#8217;s worse than that if <span style="color:#2e74b5;">sizeof(size_type) &gt; sizeof(int)</span>, which brings us to the second problem, because that&#8217;s actually likely…</li>
+<li><em>Size:</em><br />
+<span style="color:#2e74b5;">size_type</span> basically needs to be the same size as a pointer, since it may have to represent any offset in a <span style="color:#2e74b5;">vector&lt;char&gt;</span> that is larger than half the machine&#8217;s address space. In 64-bit code, 64-bit pointers mean 64-bit <span style="color:#2e74b5;">size_type</span>s. However, if on the same system an <span style="color:#2e74b5;">int</span> is still 32 bits for compatibility (and this is common), then <span style="color:#2e74b5;">size_type</span> is bigger than <span style="color:#2e74b5;">int</span>, and converting to <span style="color:#2e74b5;">int</span> throws away not just the high-order bit, but over half of the bits and the vast majority of the representable values.</li>
+</ul>
+<p>Of course, you won&#8217;t notice on small <span style="color:#2e74b5;">vector</span>s as long as <span style="color:#2e74b5;">.size()</span> &lt; 2<sup>(CHAR_BITS*sizeof(int)-1)</sup>. That doesn&#8217;t mean it&#8217;s not a bug; it just means it&#8217;s a latent bug.</p>
+<p>Does <span style="color:#2e74b5;">auto</span> help? Yes indeed:</p>
+<pre><code><span style="background-color:yellow;">auto</span> size = v.size();    // exact type, guaranteed no narrowing
+</code></pre>
+<blockquote><p><strong>Guideline:</strong> Prefer to declare local variables using <strong>auto</strong>. It guarantees that you get the exact type and cannot accidentally get narrowing conversions.</p></blockquote>
+<h3>(c), (d), and (e) have potential narrowing and signedness issues.</h3>
+<pre><code>// (c) x and y are of some built-in integral type
+int total = x + y;
+</code></pre>
+<p>In case (c), we might also have a narrowing conversion. The simplest way to see this is that if either <span style="color:#2e74b5;">x</span> or <span style="color:#2e74b5;">y</span> is larger than <span style="color:#2e74b5;">int</span>, which is what we&#8217;re trying to store the result into, then we&#8217;ve definitely got a silent narrowing conversion here, with the same issues as already described in (b). And even if <span style="color:#2e74b5;">x</span> and <span style="color:#2e74b5;">y</span> are <span style="color:#2e74b5;">int</span>s today, if under maintenance the type of one later changes to something like <span style="color:#2e74b5;">long</span> or <span style="color:#2e74b5;">size_t</span>, the code silently becomes lossy—and possibly only on some platforms, if it changes to <span style="color:#2e74b5;">long</span> and that&#8217;s the same size as <span style="color:#2e74b5;">int</span> on some platforms you target but larger than <span style="color:#2e74b5;">int</span> on others.</p>
+<p>Note that, even if you know the exact types of <span style="color:#2e74b5;">x</span> and <span style="color:#2e74b5;">y</span>, you will get different types for <span style="color:#2e74b5;">x+y</span> on different platforms, particularly if one is signed and one is unsigned. If both <span style="color:#2e74b5;">x</span> and <span style="color:#2e74b5;">y</span> are signed, or both are unsigned, and one&#8217;s type has more bits than the other, that&#8217;s the type of the result. If one is signed and the other is unsigned then other rules kick in, and the size and signedness of the result can vary on different platforms depending on the relative actual sizes and the signedness of <span style="color:#2e74b5;">x</span> and <span style="color:#2e74b5;">y</span> on that platform. (This is one of the consequences of C and C++ not standardizing the sizes of the built-in types; for example, we know a <span style="color:#2e74b5;">long</span> is guaranteed to be at least as big as an <span style="color:#2e74b5;">int</span>, but we don&#8217;t know how many bits each is, and the answer varies by compiler and platform.)</p>
+<p>Does <span style="color:#2e74b5;">auto</span> help here? Almost always &#8220;yes,&#8221; but in one case &#8220;yes with a little help you really want to reach for anyway.&#8221;</p>
+<p>By default, write for correctness, clarity, and portability first: To avoid lossy narrowing conversions, <span style="color:#2e74b5;">auto</span> is your portability pal and you should use it by default. Writing <span style="color:#2e74b5;">auto</span> is much better than writing it out by hand as <span style="color:#2e74b5;">std::common_type&lt; decltype(x), decltype(y) &gt;</span>.</p>
+<pre><code><span style="background-color:yellow;">auto</span> total = x + y;    // exact type, guaranteed no narrowing
+</code></pre>
+<blockquote><p><strong>Guideline:</strong> Prefer to declare local variables using <strong>auto</strong>. It guarantees that you get the exact type and so is the simplest way to portably spell the implementation-specific type of arithmetic operations on built-in types, which vary by platform, and ensure that you cannot accidentally get narrowing conversions when storing the result.</p></blockquote>
+<p>However, what if in rare cases this code may be in a tight loop where performance matters, and <span style="color:#2e74b5;">auto</span> may select a wider type than you know you need to store all possible values? For example, in some cases performing arithmetic using <span style="color:#2e74b5;">uint64_t</span> instead of <span style="color:#2e74b5;">uint32_t</span> could be twice as slow. If you first prove that this actually matters using hard profiler data, and then further prove by performing other validation that you won&#8217;t (or won&#8217;t care if you do) encounter results that would lose value by narrowing, then go ahead and commit to an explicit type—but prefer to do it using the following style:</p>
+<pre><code>// rare cases: use auto + &lt;cstdint&gt; type
+<span style="background-color:yellow;">auto</span> total = <span style="background-color:yellow;">uint_fast64_t</span>{ x+y };  // total is an unsigned 64-bit value
+             // ^ see note [1]
+
+// or use auto + size-preserving signed/unsigned helper [2]
+<span style="background-color:yellow;">auto</span> total = <span style="background-color:yellow;">as_unsigned</span>( x+y );    // total is unsigned and size of x+y
+</code></pre>
+<ul>
+<li>Still use <span style="color:#2e74b5;">auto</span> to naturally make this more self-documenting and make the code review easy, because <span style="color:#2e74b5;">auto</span> syntax makes it explicit that you&#8217;re performing a conversion.</li>
+<li>
+<div>Use a portable sized type name from the standard <span style="color:#2e74b5;">&lt;cstdint&gt;</span> header, because you almost certainly care about size and this makes the size portable.[1]</div>
+<blockquote><p><strong>Guideline:</strong> Prefer using the <strong>&lt;cstdint&gt;</strong> type aliases in code that cares about the size of your numeric variables. Avoid relying on what your current platform(s) happen to do.</p></blockquote>
+<blockquote><p><strong>Guideline:</strong> Consider declaring local variables <strong>auto x = type{ expr };</strong> when you do want to explicitly commit to a type. It is self-documenting to show that the code is explicitly requesting a conversion, and won&#8217;t allow an accidental implicit narrowing conversion. Only when you do want explicit narrowing, use <strong>( )</strong> instead of <strong>{ }</strong>.</p></blockquote>
+</li>
+</ul>
+<p>Case (d) is similar:</p>
+<pre><code>// (d) x and y are of some built-in integral type
+int diff = x - y;
+if(diff &lt; 0) { /*...*/ }
+</code></pre>
+<p>This time, we&#8217;re doing a subtraction. No matter whether <span style="color:#2e74b5;">x</span> and <span style="color:#2e74b5;">y</span> are signed or not, putting the answer in a signed variable like this is the right thing to do—the result could be negative, after all.</p>
+<p>However, we have two issues. The first, again, is that <span style="color:#2e74b5;">int</span> may not be big enough to avoid truncating the result, so we might lose information if <span style="color:#2e74b5;">x &#8211; y</span> produces something larger than an <span style="color:#2e74b5;">int</span>. Using <span style="color:#2e74b5;">auto</span> can help with that.</p>
+<p>The second is that <span style="color:#2e74b5;">x &#8211; y</span> might give a strange answer, which isn&#8217;t the programmer&#8217;s fault but is something you want to remember about arithmetic in C and C++. Consider this code:</p>
+<pre><code>unsigned long x    = 42;
+signed short  y    = 43;
+<span style="color:#c00000;">auto          diff = x - y;   // one actual result: 18446744073709551615
+if(diff &lt; 0) { /*...*/ }      // um, oops – branch won't be taken
+</span></code></pre>
+<p>&#8220;Wait, what?&#8221; you ask. On nearly all platforms, an <span style="color:#2e74b5;">unsigned long</span> is bigger than a <span style="color:#2e74b5;">signed short</span>, and because of the promotion rules the type of <span style="color:#2e74b5;">s &#8211; u</span>, and therefore of <span style="color:#2e74b5;">result</span>, will be… <span style="color:#2e74b5;">unsigned long</span>. Which is, well, not very signed. So depending on the types of <span style="color:#2e74b5;">x</span> and <span style="color:#2e74b5;">y</span>, and depending on your actual platform, it may be that the branch won&#8217;t be taken, which clearly isn&#8217;t the same as the original code.</p>
+<blockquote><p><strong>Guideline:</strong> Combine signed and unsigned arithmetic carefully.</p></blockquote>
+<p>Before you say, &#8220;then I always want signed!&#8221; remember that if you overflow then unsigned arithmetic wraps, which can be valid for your use, whereas signed arithmetic has undefined behavior, which is quite unlikely to be useful. Sometimes you really need signed, and sometimes you really need unsigned, even though often you won&#8217;t care.</p>
+<p>From observing <span style="color:#2e74b5;">auto</span>&#8216;s effect in case (d), it might seem like <span style="color:#2e74b5;">auto</span> has helped one problem… but was it at the expense of creating another?</p>
+<p>Yes, on the one hand, <span style="color:#2e74b5;">auto</span> did indeed help us: Using <span style="color:#2e74b5;">auto</span> ensured we could write portable and correct code where the result wasn&#8217;t needlessly narrowed. If we didn&#8217;t care about signedness, which is often true, that&#8217;s quite sufficient.</p>
+<p>On the other hand, using <span style="color:#2e74b5;">auto</span> might not preserve signedness in a computation like <span style="color:#2e74b5;">x &#8211; y</span> that&#8217;s supposed to return something with a sign, or it might not preserve unsignedness when that&#8217;s desirable. But this isn&#8217;t so much an issue with <span style="color:#2e74b5;">auto</span> itself as that we have to be careful when combining signed and unsigned arithmetic, and by binding to an exact type <span style="color:#2e74b5;">auto</span> is exposing this issue with some code that might potentially be already nonportable, or have corner cases the developer wasn&#8217;t aware of when he wrote it.</p>
+<p>So what&#8217;s a good answer? Consider using <span style="color:#2e74b5;">auto</span> together with the <span style="color:#2e74b5;">as_signed</span> or <span style="color:#2e74b5;">as_unsigned</span> conversion helper we saw before, which is used in lieu of a cast to a specific type; the helper is written out more fully in the endnotes. [2] Then we get the best of both worlds—we don&#8217;t commit to an explicit type, but we ensure the basic size and signedness in portable code that will work as intended on many different compilers and platforms.</p>
+<blockquote><p><strong>Guideline:</strong> Prefer to use <strong>auto x = as_signed(integer_expr);</strong> or <strong>auto x = as_unsigned(integer_expr);</strong> to store the result of an integer computation that should be signed or unsigned. Using <strong>auto</strong> together with <strong>as_signed</strong> or <strong>as_unsigned</strong> makes code more portable: the variable will both be large enough and preserve the required signedness on all platforms. (Signed/unsigned conversions within <strong>integer_expr</strong> may still occur.)</p></blockquote>
+<p>Finally, case (e) brings floating point into the picture:</p>
+<pre><code>// (e)
+int i = f(1,2,3) * 42.0;
+</code></pre>
+<p>Here we have our by-now-yawnworthy-typical narrowing—and an easy case because it isn&#8217;t even hiding, it&#8217;s saying <span style="color:#2e74b5;">int</span> and <span style="color:#2e74b5;">42.0</span> right there in the same breath, which is narrowing almost regardless of what type <span style="color:#2e74b5;">f</span> returns.</p>
+<p>Does <span style="color:#2e74b5;">auto</span> help? Yes, in making our code self-documenting and more reviewable, as we noted before. If we follow the <span style="color:#2e74b5;">auto x = type{expr};</span> declaration style, we would be (happily) forced to write the conversion explicitly, and when we initially use <span style="color:#2e74b5;">{ }</span> we get an error that in fact it&#8217;s a narrowing conversion, which we acknowledge (again explicitly) by switching to <span style="color:#2e74b5;">( )</span>:</p>
+<pre><code><span style="background-color:yellow;">auto</span> i = int( f(1,2,3) * 42.0 );
+</code></pre>
+<p>This code is now free of implicit conversions, including implicit narrowing conversions. If our team&#8217;s coding style says to use <span style="color:#2e74b5;">auto x = expr;</span> or <span style="color:#2e74b5;">auto x = type{expr};</span> wherever possible, then in a code review just seeing the <span style="color:#2e74b5;">( )</span> parens can immediately connote explicit narrowing; adding a comment doesn&#8217;t hurt either.</p>
+<p>But for floating point calculations, can using <span style="color:#2e74b5;">auto</span> by itself hurt? Consider this example, contributed by Andrei Alexandrescu:</p>
+<pre><code>float f1 = /*...*/, f2 = /*...*/;
+
+<span style="background-color:yellow;">auto</span>   f3 = f1 + f2;   // correct, but on some compilers/platforms...
+<span style="background-color:yellow;">double</span> f4 = f1 + f2;   // ... this might keep more bits of precision
+</code></pre>
+<p>As Alexandrescu notes: &#8220;Machines are free to do intermediate calculations in a larger precision than the target, and in many cases (and traditionally in C) calculations are done in double precision. So for <span style="color:#2e74b5;">f3</span> we have a sum done in double precision, which is then <em>truncated</em> down to <span style="color:#2e74b5;">float</span>. For <span style="color:#2e74b5;">f4</span>, the sum is preserved at full precision.&#8221;</p>
+<p>Does this mean using <span style="color:#2e74b5;">auto</span> creates a potential flaw here? Not really. In the language, the type of <span style="color:#2e74b5;">f1 + f2</span> is still <span style="color:#2e74b5;">float</span>, and the naked <span style="color:#2e74b5;">auto</span> maintains that exact type for us. However, if we do want to follow the pattern of switching to <span style="color:#2e74b5;">double</span> early in a complex computation, we can and should say so:</p>
+<pre><code>float f1 = /*...*/, f2 = /*...*/;
+
+<span style="background-color:yellow;">auto</span> f5 = <span style="background-color:yellow;">double</span>{f1} + f2;
+</code></pre>
+<h2>Summary</h2>
+<p>We&#8217;ve seen a number of reasons to prefer to declare variables using <span style="color:#2e74b5;">auto</span>, optionally with an explicit type if you do want to commit to a specific type.</p>
+<p>If you&#8217;re observed a pattern in this GotW&#8217;s Guidelines, you&#8217;ll already have a sense of what&#8217;s coming in GotW #94… a Special Edition on, you guessed it, <span style="color:#2e74b5;">auto</span> style.</p>
+<h2>Notes</h2>
+<p>[1] Another reason to prefer using the <span style="color:#2e74b5;">&lt;cstdint&gt;</span> typedef names is because, due to a quirk in the C++ language grammar, only a single-word type is allowed where <span style="color:#2e74b5;">uint64_t</span> appears in this example. That&#8217;s fine nearly always because it&#8217;s all you need for class types and all <span style="color:#2e74b5;">typedef</span> and <span style="color:#2e74b5;">using</span> alias names and most built-in types, but you can&#8217;t directly name arrays or the multi-word built-in types like <span style="color:#2e74b5;">unsigned int</span> or <span style="color:#2e74b5;">long long</span> in that position; for the latter, use the <span style="color:#2e74b5;">uintNN_t</span>-style typedef names instead. The exact ones, such as <span style="color:#2e74b5;">uint64_t</span>, are &#8220;optional&#8221; in the standard, but they are in the standard and expected to be widely implemented so I used them. The &#8220;least&#8221; and &#8220;fast&#8221; ones are required, so if you don&#8217;t have <span style="color:#2e74b5;">uint64_t</span> you can use <span style="color:#2e74b5;">uint_least64_t</span> or <span style="color:#2e74b5;">uint_fast64_t</span>.</p>
+<p>[2] The helpers preserve the size of the type while changing only the signedness. Thanks to Andrei Alexandrescu for this basic idea; any errors are mine, not his. The C++98 way is to provide a set of overloads for each type, but a modern version might look something like the following which uses the C++11 <span style="color:#2e74b5;">std::make_signed</span>/<span style="color:#2e74b5;">make_unsigned</span> facilities.</p>
+<pre><code>// C++11 version
+//
+template&lt;class T&gt;
+typename make_signed&lt;T&gt;::type as_signed(T t)
+    { return make_signed&lt;T&gt;::type(t); }
+
+template&lt;class T&gt;
+typename make_unsigned&lt;T&gt;::type as_unsigned(T t)
+    { return make_unsigned&lt;T&gt;::type(t); }
+</code></pre>
+<p>Note that with C++14 this gets even sweeter, using <span style="color:#2e74b5;">auto</span> return type deduction to eliminate <span style="color:#2e74b5;">typename</span> and repetition, and the <span style="color:#2e74b5;">_t</span> alias to replace <span style="color:#2e74b5;">::type</span>:</p>
+<pre><code>// C++14 version, option 1
+//
+template&lt;class T&gt; auto as_signed  (T t){ return make_signed_t  &lt;T&gt;(t); }
+template&lt;class T&gt; auto as_unsigned(T t){ return make_unsigned_t&lt;T&gt;(t); }
+</code></pre>
+<p>or you can equivalently write these function templates as named lambdas:</p>
+<pre><code>// C++14 version, option 2
+//
+auto as_signed   =[](auto x){ return make_signed_t  &lt;decltype(x)&gt;(x); };
+auto as_unsigned =[](auto x){ return make_unsigned_t&lt;decltype(x)&gt;(x); };
+</code></pre>
+<p>Sweet, isn&#8217;t it? Once you have a compiler that supports these features, pick whichever suits your fancy.</p>
+<h2>Acknowledgments</h2>
+<p>Thanks in particular to Scott Meyers and Andrei Alexandrescu for their time and insights in reviewing and discussing drafts of this material. Thanks also to the following for their feedback to improve this article: mttpd, Jim Park, Yuri Khan, Arne, rhalbersma, Tom, Martin Ba, John, Frederic Dumont, Sebastian.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											42 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">42 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="pingback even thread-even depth-1 highlander-comment" id="comment-28838">
+		<div id="div-comment-28838">
+		<div class="cmtinfo"><em> on <a href="#comment-28838" title="">2014-10-01 at 6:54 am</a></em>  <cite><a href='http://mariusbancila.ro/blog/2014/10/01/the-cpp-ten-commandments/' rel='external nofollow' class='url'>The C++ Ten Commandments | Marius Bancila&#039;s Blog</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_28838"></div><p>[&#8230;] is a large and complex subject and I recommend some additional readings: Auto Variables, Part 1, Auto Variables, Part 2, AAA Style (Almost Always [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14283">
+		<div id="div-comment-14283">
+		<div class="cmtinfo"><em> on <a href="#comment-14283" title="">2014-01-31 at 8:25 am</a></em>  <cite><a href='http://pkisensee.wordpress.com/2014/01/31/auto-pilot/' rel='external nofollow' class='url'>Auto Pilot | LightSleeper</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14283"></div><p>[&#8230;] For even more recommendations on why auto is a good idea (efficiency, guaranteed initialization, and correctness), see Herb&#8217;s GotW #93. [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-14115">
+		<div id="div-comment-14115">
+		<div class="cmtinfo"><em> on <a href="#comment-14115" title="">2014-01-14 at 9:20 am</a></em>  <cite><a href='http://blog.jobbole.com/55063/' rel='external nofollow' class='url'>C++11语言扩展：常规特性 - 博客 - 伯乐在线</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14115"></div><p>[&#8230;] Herb Sutter: GotW #93: Auto Variables, Part 2 [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14041">
+		<div id="div-comment-14041">
+		<div class="cmtinfo"><em> on <a href="#comment-14041" title="">2014-01-06 at 7:19 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14041"></div><p>@PP: Fixed, thanks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14040">
+		<div id="div-comment-14040">
+		<div class="cmtinfo"><em> on <a href="#comment-14040" title="">2014-01-06 at 5:49 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/69eaef0841780259e5e00ba6cc128ba8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>PP</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14040"></div><p>Not sure where to send this, so feel free to remove this comment! There is a typo in: CHAR_BITS*izeof(int)-1</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13970">
+		<div id="div-comment-13970">
+		<div class="cmtinfo"><em> on <a href="#comment-13970" title="">2013-12-31 at 5:57 am</a></em>  <cite><a href='http://feherenfekete.wordpress.com/2013/12/31/declaration-and-initialization-with-auto/' rel='external nofollow' class='url'>Declaration and initialization with auto | Feheren Fekete</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13970"></div><p>[&#8230;] <a href="https://herbsutter.com/2013/06/13/gotw-93-solution-auto-variables-part-2/" rel="nofollow">https://herbsutter.com/2013/06/13/gotw-93-solution-auto-variables-part-2/</a> [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-13577">
+		<div id="div-comment-13577">
+		<div class="cmtinfo"><em> on <a href="#comment-13577" title="">2013-11-30 at 11:56 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/ec99692fd9664c4f4558a6d0d020a058?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Seungbeom Kim</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13577"></div><p>&gt; The first, again, is that <code>int</code> may not be big enough to avoid truncating the result, so we might lose information if <code>x – y</code> produces something larger than an <code>int</code>. Using <code>auto</code> can help with that.</p>
+<p>My understanding is that, if <code>x</code> and <code>y</code> are <code>int</code>, then <code>x - y</code> is <code>int</code> and is not converted automatically to a bigger type if the result does not fit in an <code>int</code>, so overflow happens inside the expression <code>x - y</code> and <code>auto</code> doesn&#8217;t help here. For example, with <code>int x = INT_MAX, y = INT_MIN;</code>, <code>auto diff = x - y;</code> will be the same as <code>int diff = x - y;</code> and will overflow despite the <code>auto</code>; you should have promoted an operand (or both) to a bigger type before the subtraction operation. Is my understanding correct?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11865">
+		<div id="div-comment-11865">
+		<div class="cmtinfo"><em> on <a href="#comment-11865" title="">2013-07-06 at 8:12 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/21f707f19f0310b7094e7142f52a6107?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Anders Dalvander</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11865"></div><p>It would be cute to be able to write:</p>
+<pre class="brush: plain; title: ; notranslate" title="">for (auto s = v.size(), i = {}; i &lt; s; i += 2)</pre>
+<p>But `auto` doesn&#8217;t like {}, which is understandable in the simple case </p>
+<pre class="brush: plain; title: ; notranslate" title="">auto i = {};</pre>
+<p>, but here the type can be implied by `s`.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11619">
+		<div id="div-comment-11619">
+		<div class="cmtinfo"><em> on <a href="#comment-11619" title="">2013-06-23 at 10:32 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/84f8321680c16c6dcf8203a54be03930?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://erdani.com' rel='external nofollow' class='url'>Andrei Alexandrescu</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11619"></div><p>Thanks Herb for bringing this to my attention. Replies @Sebastian within.</p>
+<p>&gt;This doesn’t help much. The unexpected type conversion happens as part of integer_expr; all the “helper” does is afterwards cast it back. Yes, the behavior of unsigned to signed when not in range isn’t undefined, just implementation-defined, but that’s enough to make the code non-portable.</p>
+<p>This seems to be a misunderstanding of the intent. You use as_xxx in lieu of a cast, and eliminates committal to the width of the type without eliminating committal to the consequences of changing signedness.</p>
+<p>&gt;&gt; double f4 = f1 + f2; // … this might keep more bits of precision</p>
+<p>&gt;This is incredibly obscure and would definitely not pass code review from me. If you want higher precision, cast the inputs to double. If you don’t want higher resolution, assign the result to a float. Everything else is just a maintenance nightmare.</p>
+<p>Makes sense (especially for +, which would use ADDSS thus operating in single precision). My point here is that a common pattern in math code is:</p>
+<p>* use float for input due to store size restrictions</p>
+<p>* do intermediate computation in double because it costs just a little more for a big win in accuracy</p>
+<p>* get back to float when writing results to the store</p>
+<p>Due to this pattern, you want to actively cast to double early in the computation chain, sometimes as simple as</p>
+<p>double x = array[k];</p>
+<p>If auto were used, x and computations derived from it would be float. That&#8217;s what I&#8217;m saying.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11590">
+		<div id="div-comment-11590">
+		<div class="cmtinfo"><em> on <a href="#comment-11590" title="">2013-06-21 at 11:48 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/ca391c038b300a739462dae91c5e8cbc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Adrian</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11590"></div><p>@Jon:  Yes, I&#8217;m familiar with Bjarne&#8217;s &#8220;too pedantic&#8221; comment, but I watched one of his presentations from 2012, and the examples in his slides used vector::size_type.</p>
+<p>Having spent many blissful years with the compiler warning on reliably catching real bugs, and then a few years at another company with &#8220;int i&#8221; for loop (and therefore the warning disabled), I conclude that there&#8217;s nothing pedantic about it.  Signed/unsigned bugs are insidious and hard to find.  I&#8217;m not really worried about the for-loop indexes, but what we miss because those indexes force us to disable the warnings.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11519">
+		<div id="div-comment-11519">
+		<div class="cmtinfo"><em> on <a href="#comment-11519" title="">2013-06-19 at 7:29 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9c922fc32844c3be4b6b87d9579a0fa6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/phalpernnh' rel='external nofollow' class='url'>Pablo Halpern</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11519"></div><p>In 1(d), the original version creates a function which, when invoked, returns void.  The alternative versions return size_type.  I think you meant something like </p>
+<pre class="brush: plain; title: ; notranslate" title="">function&lt;size_t(vector&lt;int&gt;)&gt;</pre>
+<p>Nice overview of the benefits of auto.  It contained some things I had not thought of.  Note that there is at least one situation in which auto is [b]extremely[/b] dangerous: expressions that return proxy types.  Consider this problem: </p>
+<pre class="brush: plain; title: ; notranslate" title="">
+vector&lt;bool&gt; v = { ... };
+auto b = v.back();   // Oops! b is of type vector&lt;bool&gt;::reference, which is NOT a bool
+v.pop_back();
+bool a = b;  // Oops! b has been invalidated!
+</pre>
+<p>Some members of the standards committee have suggested ways to fix this in the language, but I am not familiar with specific proposals.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11509">
+		<div id="div-comment-11509">
+		<div class="cmtinfo"><em> on <a href="#comment-11509" title="">2013-06-19 at 4:36 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/4b177a2cb931b1996fc3572a5ee70d6c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ralph Tandetzky</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11509"></div><p>I just asked a question on StackOverflow about what the differences between template functions and name lambdas with auto parameters is. Some good answers are coming in. See <a href="http://stackoverflow.com/questions/17188485/template-functions-versus-named-lambdas-with-auto-parameters" rel="nofollow">http://stackoverflow.com/questions/17188485/template-functions-versus-named-lambdas-with-auto-parameters</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11507">
+		<div id="div-comment-11507">
+		<div class="cmtinfo"><em> on <a href="#comment-11507" title="">2013-06-19 at 1:29 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/4b177a2cb931b1996fc3572a5ee70d6c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ralph Tandetzky</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11507"></div><p>Just for your information: These named lambdas with auto parameters have a very interesting use-case which makes them more flexible than the template function alternative. For instance, if you have a template function</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+template &lt;typename T&gt;
+void func( T t  ) { /*...*/ }
+</pre>
+<p>and a generic template function</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+template &lt;typename F, typename T&gt;
+void call( F f, T &amp;&amp; t ) { f(forward&lt;T&gt;(t)); }
+</pre>
+<p>then the following code will not work</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+call( func, 42 );
+</pre>
+<p>since I would have to write func instead of func here. However this code should work, because func(42) is a valid expression. I actually had this problem in real world code in a physics simulation software I wrote. I can fix it by manually inserting the  but with C++14 lambda with auto parameters it&#8217;s much easier and even less code. I just have to replace the definition of the func template function by </p>
+<pre class="brush: plain; title: ; notranslate" title="">
+static const auto func = []( auto T) { /*...*/ }
+</pre>
+<p>This is even less typing. It makes the code more flexibly usable. I also wondered, if it might be generally a good idea to write named lambdas with auto parameters instead of template functions where possible. This might be food for another GotW. ;) By the way, I posted this stuff on Stackoverflow: <a href="http://stackoverflow.com/questions/17169498/why-do-i-need-to-specify-the-template-argument-type-of-a-templated-function-here" rel="nofollow">http://stackoverflow.com/questions/17169498/why-do-i-need-to-specify-the-template-argument-type-of-a-templated-function-here</a></p>
+<p>It is possible to write this code in old C++ also, but it&#8217;s a bit more verbose. It&#8217;s gonna work with</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+struct { template &lt;typename T&gt; void operator()(T t) { /* ... */ } } func;
+</pre>
+<p>This is what I&#8217;m going to do for my code until C++14 is implemented.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11504">
+		<div id="div-comment-11504">
+		<div class="cmtinfo"><em> on <a href="#comment-11504" title="">2013-06-18 at 6:38 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/78b03ab78af3dd9bdd2f767d2efa97bf?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Amali</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11504"></div><pre class="brush: plain; title: ; notranslate" title="">
+// best
+auto get_size = [](const auto&amp; x) { return x.size(); };
+</pre>
+<p>This code for auto lambda parameter types gives compiler error messages in gcc 4.8.0. Is there a compiler where it will work?<br />
+Thanks,<br />
+Amali.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11472">
+		<div id="div-comment-11472">
+		<div class="cmtinfo"><em> on <a href="#comment-11472" title="">2013-06-17 at 6:11 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/2f91e7ffad34f35c3d035838acf156ac?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jon</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11472"></div><p>@Adrian: I&#8217;ve debugged far too many bugs caused by incorrect use of unsigned variables, and far fewer bugs related to using a signed int with a collection with more elements than MAX_INT. So my experience differs from yours, and I belong to the &#8220;size_type should have been unsigned&#8221; camp. </p>
+<p>I completely agree with you that mixing signed and unsigned is broken. So, perhaps casting the vector&#8217;s size to a signed variable (with an exception if it would overflow) is a solution. This limits the size by half, but avoids mixing signed/unsigned and avoids unsigned-related bugs.</p>
+<p>Note that Bjarne himself doesn&#8217;t seem too fussed using a signed variable. See <a href="http://www.stroustrup.com/bs_faq2.html#simple-program" rel="nofollow">http://www.stroustrup.com/bs_faq2.html#simple-program</a>: &#8220;Yes, I know that I could declare i to be a vector::size_type rather than plain int to quiet warnings from some hyper-suspicious compilers, but in this case,I consider that too pedantic and distracting.&#8221;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11467">
+		<div id="div-comment-11467">
+		<div class="cmtinfo"><em> on <a href="#comment-11467" title="">2013-06-17 at 12:01 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/ca391c038b300a739462dae91c5e8cbc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Adrian</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11467"></div><p>@Herb:  C++ isn&#8217;t just used on modern machines with 64-bit address spaces.  It&#8217;s also used on 16-bit embedded processors, where it&#8217;s reasonable to have containers with sizes that might peak in the 32K to 64K-element range.  I&#8217;ve debugged far too many crashes in my career caused by someone using a signed 16-bit int instead of an unsigned one.  Even on 32-bit machines, there are too many programs that can&#8217;t handle a 4GB file.</p>
+<p>Regardless of whether vector::size_type _should_ have been unsigned, the fact that it _is_ unsigned.  Mixing signed and unsigned forces you to disable compiler warnings that can help catch hard-to-reproduce bugs in other parts of the code (including some of the ones where you should have used signed arithmetic instead of unsigned).  I&#8217;ve also debugged far too many crashes caused by comparing an unsigned 32-bit millisecond counter to a signed timeout value.  Style guidelines that require disabling useful compiler warnings are broken.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-11457">
+		<div id="div-comment-11457">
+		<div class="cmtinfo"><em> on <a href="#comment-11457" title="">2013-06-17 at 8:53 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11457"></div><p>@Frederic, @Sebastian: I stomped on the similar sentence in GotW #2 when Ville pointed it out, but it resurfaced. Stomped again, thanks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11453">
+		<div id="div-comment-11453">
+		<div class="cmtinfo"><em> on <a href="#comment-11453" title="">2013-06-17 at 8:40 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f1634a09333f7b391db92e1d2bea6253?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sebastian Redl</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11453"></div><p>&gt; Second, some people like line 2′s syntax better but have to switch to line 1 to get access to explicit constructors.</p>
+<p>If the constructor is explicit, chances are that the = syntax is horribly misleading. Do you really think there&#8217;s a programmer who would like &#8220;vector v = 5;&#8221; to create a 5-element vector? I don&#8217;t.</p>
+<p>&gt; By the way, if you’ve been wondering whether auto x { value }; would be more efficient than auto x = expr;, wonder no longer: They have identical semantics.</p>
+<p>Watch out, it&#8217;s the dreaded initializer_list deduction! In other words, they&#8217;re completely different things. Also, you might want to use expr *or* value, not mix them.</p>
+<p>&gt; Prefer to use auto x = as_signed(integer_expr); or auto x = as_unsigned(integer_expr); to store the result of an integer computation that should be signed or unsigned.</p>
+<p>This doesn&#8217;t help much. The unexpected type conversion happens as part of integer_expr; all the &#8220;helper&#8221; does is afterwards cast it back. Yes, the behavior of unsigned to signed when not in range isn&#8217;t undefined, just implementation-defined, but that&#8217;s enough to make the code non-portable.</p>
+<p>&gt; double f4 = f1 + f2;   // &#8230; this might keep more bits of precision</p>
+<p>This is incredibly obscure and would definitely not pass code review from me. If you want higher precision, cast the inputs to double. If you don&#8217;t want higher resolution, assign the result to a float. Everything else is just a maintenance nightmare.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11419">
+		<div id="div-comment-11419">
+		<div class="cmtinfo"><em> on <a href="#comment-11419" title="">2013-06-17 at 12:47 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7902e54050ad7c00ed744dacef47318f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Frederic Dumont</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11419"></div><p>But Gotw 92 question 4 states the opposite. In auto a { val }; auto b = { val }; both a and b are said to have the same type initializer_list.</p>
+<p>The two compilers I have tried with (gcc 4.8 and clang 3.2) confirm this.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11417">
+		<div id="div-comment-11417">
+		<div class="cmtinfo"><em> on <a href="#comment-11417" title="">2013-06-16 at 11:21 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/88857afb6b5614e2b05f4ca5c8ae75d7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Neil</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11417"></div><p>Re auto i = 0, how about a zero() non-member function akin to std::begin and std::end, like this:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+template &lt;typename C&gt;
+typename C::size_type zero(const C&amp; c)
+{
+	return 0;
+}
+
+for (auto i = zero(v); i &lt; v.size(); ++i) {}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11416">
+		<div id="div-comment-11416">
+		<div class="cmtinfo"><em> on <a href="#comment-11416" title="">2013-06-16 at 10:35 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f6eaf3173d03147c5ad1e0fb7d85f102?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Arne Mertz</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11416"></div><p>@Frederic no, they are not identical. x{value} is just an initialization of x. x would be an initializer_list, if you wrote auto x = {value}; note that here you have both = and {}.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11412">
+		<div id="div-comment-11412">
+		<div class="cmtinfo"><em> on <a href="#comment-11412" title="">2013-06-16 at 6:01 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/7902e54050ad7c00ed744dacef47318f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Frederic Dumont</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11412"></div><p>About auto x { value } vs auto x = expr: in what sense are they semantically identical? The types are different (std::initializer_list vs type), so they cannot be interchangeable, can they?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11410">
+		<div id="div-comment-11410">
+		<div class="cmtinfo"><em> on <a href="#comment-11410" title="">2013-06-16 at 4:44 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/dcecf27c8e0710a761de1b8add0afb70?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>ahbishop</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11410"></div><p>@khurshid: What compiler are you using? That code compiles and executes without issue using Clang 3.2.1 on 64-bit Linux.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11403">
+		<div id="div-comment-11403">
+		<div class="cmtinfo"><em> on <a href="#comment-11403" title="">2013-06-16 at 7:29 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/2d039d25f4b02b7ed314d399a2494a16?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>khurshid</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11403"></div><p>auto x  = widget{}; // doesn&#8217;t  compiled with non-copyable  classes.</p>
+<p>example:<br />
+struct widget{<br />
+    widget( const widget&amp; ) = delete;<br />
+    widget&amp; operator = (const widget&amp; ) = delete;<br />
+    widget() = default;<br />
+~widget() = default;<br />
+};</p>
+<p>widget w; // compiled OK;<br />
+auto w = widget{}; // compile ERROR!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-11362">
+		<div id="div-comment-11362">
+		<div class="cmtinfo"><em> on <a href="#comment-11362" title="">2013-06-14 at 2:19 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11362"></div><p>@Tom, @Martin: Yup, I just realized I accidentally wrote ( ) instead of { } &#8212; that should address at least the narrowing issues. My fingers mostly have the habit of writing { } committed to muscle memory now, but that one slipped by. Fixed, thanks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11361">
+		<div id="div-comment-11361">
+		<div class="cmtinfo"><em> on <a href="#comment-11361" title="">2013-06-14 at 2:12 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11361"></div><p>@Adrian: There are problems if you use an unsigned loop variable, and different problems if you use a signed one. This is one of those cases that&#8217;s just problematic. </p>
+<p>Because of these issues, I once asked Bjarne if he felt that container.size() should have returned signed values, and IIRC he agreed. Of course, that wouldn&#8217;t be consequence-free either &#8212; you couldn&#8217;t have a container of chars bigger than half the address space, but that doesn&#8217;t matter on 64 bits today and might never matter, depending on whether we ever get a machine with RAM greater than 2^63 bytes &#8212; wasn&#8217;t there an urban legend that Bill Gates said 9.2 billion GB should be enough for anyone?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-11360">
+		<div id="div-comment-11360">
+		<div class="cmtinfo"><em> on <a href="#comment-11360" title="">2013-06-14 at 2:03 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11360"></div><p>@Juraj: IIUC it&#8217;s implementation-defined, not undefined. From 4.7/2-3 [conv.integral]:</p>
+<p>2 If the destination type is unsigned, the resulting value is the least unsigned integer congruent to the source<br />
+integer (modulo 2^n where n is the number of bits used to represent the unsigned type). [ Note: In a two’s<br />
+complement representation, this conversion is conceptual and there is no change in the bit pattern (if there<br />
+is no truncation). —end note ]<br />
+3 If the destination type is signed, the value is unchanged if it can be represented in the destination type (and<br />
+bit-field width); otherwise, the value is implementation-defined.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11352">
+		<div id="div-comment-11352">
+		<div class="cmtinfo"><em> on <a href="#comment-11352" title="">2013-06-14 at 11:56 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/256c9d534302a138d5d1fe3ed833e217?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/bilbothegravatar' rel='external nofollow' class='url'>Martin Ba</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11352"></div><p>Following up on @Tom &#8220;c-style cast vs. static_cast&#8221; and @Herb&#8217;s answer &#8220;Actually those are function-style casts, and for a non-aggregate type will call a constructor etc&#8221; &#8212; this really deserves some more info.</p>
+<p>I believe &#8230; = int(expr); is 100% exactly the same as &#8230; = (int)expr; so this is a c-style cast, meaning potential unsafe casting, or doesn&#8217;t it?</p>
+<p>That is:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+	int ans = 42;
+	int* p = &amp;ans;
+	auto val1 = int(p); // compiles, loosing data if sizeof(ptr) GRT sizeof(int) - which may or may not be what we want
+	auto val2 = static_cast&lt;int&gt;(p); // doesn't compile, conversion not allowed via static_cast 
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11351">
+		<div id="div-comment-11351">
+		<div class="cmtinfo"><em> on <a href="#comment-11351" title="">2013-06-14 at 11:41 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/ca391c038b300a739462dae91c5e8cbc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Adrian</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11351"></div><pre class="brush: plain; title: ; notranslate" title="">for( auto i = 0L; i &lt; v.size(); i += 2 )</pre>
+<p>Noooo!  Now you&#8217;re comparing a signed type to an unsigned type.  Worse, on an LLP64 system, i will be 32 bits and v.size() will be 64 bits.  This forces you to disable useful compiler warnings.</p>
+<p>This is one of those cases you shouldn&#8217;t use auto.  Just use std::size_t.  It&#8217;s clear and correct and it won&#8217;t force you to disable compiler warnings that might be useful in other parts of your code.</p>
+<p>If there&#8217;s a chance v will grow so large that i += 2 could overflow, then you have to deal with that explicitly.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jlehrer odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11349">
+		<div id="div-comment-11349">
+		<div class="cmtinfo"><em> on <a href="#comment-11349" title="">2013-06-14 at 11:04 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6ad1c1c64ff7192f4dac3c4c3eb1c0f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.lehrerfamily.com/' rel='external nofollow' class='url'>jlehrer</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11349"></div><p>@JohnSmith &#8211; pet peeve, it is not true that &#8220;on 64-bit Windows long is still 32-bit&#8221;.  It may be that on some compiler that you are using that is true, but that is not a requirement of Windows.  As long as they follow the standard, different compilers on the same OS may have different type sizes.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11339">
+		<div id="div-comment-11339">
+		<div class="cmtinfo"><em> on <a href="#comment-11339" title="">2013-06-14 at 8:21 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/61a8676bee969d1e3ec42937885ed0f6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>John Smith</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11339"></div><p>Using 0L is an improvement, but still does not quite fix it. For example, on 64-bit Windows long is still 32-bit, while void* and size_t is 64. The obvious solution would be to say &#8220;use 0ULL everywhere&#8221;, which would always be correct. However, this comes as a performance cost for tight loops, where index updates may now have to be done with a fairly high-latency add-with-carry. One solution which always works, but is *very* ugly, is</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+for(auto i = v.size()*0; i &lt; v.size(); i += 2)
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11336">
+		<div id="div-comment-11336">
+		<div class="cmtinfo"><em> on <a href="#comment-11336" title="">2013-06-14 at 8:14 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/8bcbc5519492da9cafc3a8162c830427?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mcmcc</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11336"></div><p>Re: auto f5 = double{f1 + f2};</p>
+<p>Is that statement identical to:  </p>
+<pre class="brush: plain; title: ; notranslate" title="">auto f5 = double{f1} + f2</pre>
+<p>?</p>
+<p>I.e. in the second version, f2 must be promoted to higher precision before the add operation.  In the first version, it seems the compiler might be compelled (allowed) to only do the promotion to double *after* the add, rendering the double promotion somewhat pointless.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-11335">
+		<div id="div-comment-11335">
+		<div class="cmtinfo"><em> on <a href="#comment-11335" title="">2013-06-14 at 7:45 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11335"></div><p>@Yuri: I agree. Updated, thanks.</p>
+<p>@John: Good point, quick fix: 1L. :)</p>
+<p>@Arne: Argh, that one gets me all the time. Fixed, thanks.</p>
+<p>@Tom: Actually those are function-style casts, and for a non-aggregate type will call a constructor etc.</p>
+<p>@rhalbersma: Yes, uint64_t and a few others are optional but they’re in the standard and expected to be widely implemented so I used them. The “least” and “fast” ones are not optional, so if you don’t have uint64_t you can use uint_least64_t or uint_fast64_t. … Okay, you’ve now convinced me to mention it. :) Added, mostly to note [1].</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11319">
+		<div id="div-comment-11319">
+		<div class="cmtinfo"><em> on <a href="#comment-11319" title="">2013-06-14 at 5:16 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/4924cae6916de5be8678bebab6fc90fd?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>FJW</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11319"></div><p>@Tom: exactly my thought. The knowledge of how these unpredictable “compiler, shut up!”-monsters are working is frightening.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11308">
+		<div id="div-comment-11308">
+		<div class="cmtinfo"><em> on <a href="#comment-11308" title="">2013-06-14 at 12:18 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c1d8cb07e879e73849d78880f86f0591?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Juraj Blaho</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11308"></div><p>Does the cast in as_signed not exhibit signed overflow? I thought that code like the following exhibits signed overflow which would be UB:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+unsigned u = -1;// A large value not representable by signed int
+auto i = int(u);// &lt;-- UB?
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11306">
+		<div id="div-comment-11306">
+		<div class="cmtinfo"><em> on <a href="#comment-11306" title="">2013-06-13 at 10:45 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/dc5f7c3937e6844cb776d2004b903578?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/strandmark' rel='external nofollow' class='url'>Petter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11306"></div><p>John and Anders: that was my thought as well.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11305">
+		<div id="div-comment-11305">
+		<div class="cmtinfo"><em> on <a href="#comment-11305" title="">2013-06-13 at 10:22 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/21f707f19f0310b7094e7142f52a6107?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Anders Dalvander</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11305"></div><p>You mention </p>
+<pre class="brush: plain; title: ; notranslate" title="">for( auto i = 0; i &lt; v.size(); i += 2 )</pre>
+<p> as a potential solution for 1 when you mention the silent narrowing conversion in 2b. Perhaps we should have a `std::vector::size_type std::vector::zero() const` member function?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11304">
+		<div id="div-comment-11304">
+		<div class="cmtinfo"><em> on <a href="#comment-11304" title="">2013-06-13 at 10:21 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d51a7cc9d8eb6aebd1f1fc6133111b8f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/rhalbersma' rel='external nofollow' class='url'>rhalbersma</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11304"></div><p>Last time I checked the Standard section 18.4.1, the fixed-size integer types from  were optional. Are there any proposals that make it mandatory to provide intN_t and uintN_t for platforms that compile for N-bits architectures?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11303">
+		<div id="div-comment-11303">
+		<div class="cmtinfo"><em> on <a href="#comment-11303" title="">2013-06-13 at 10:19 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/311ab27e9a49d403e205eb713dd8e4f8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Tom</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11303"></div><p>How come we&#8217;re back to using c-style casts?<br />
+   auto x = uint64_t(x + y);</p>
+<p>Why not<br />
+   auto x = static_cast(x + y);</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11302">
+		<div id="div-comment-11302">
+		<div class="cmtinfo"><em> on <a href="#comment-11302" title="">2013-06-13 at 10:16 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f6eaf3173d03147c5ad1e0fb7d85f102?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Arne Mertz</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11302"></div><p>In the last lines of 2(b) you write about vector sizes &lt; 2^(sizeof(int)-1). It should be 2^(CHAR_BIT*sizeof(int)-1). I ran into that pitfall some time ago ;-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-11300">
+		<div id="div-comment-11300">
+		<div class="cmtinfo"><em> on <a href="#comment-11300" title="">2013-06-13 at 8:27 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/61a8676bee969d1e3ec42937885ed0f6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>John Smith</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11300"></div><p>Doesn&#8217;t the indexed version for(auto i = 0; i &lt; v.size(); i += 2) set i to be of type int? If v.size() is (say) 64 bits while int is 32 the loop will never end, will it not?</p>
+<p>The C++11 version of as_(un)signed is using make_signed_t, which is really C++14. It should be using typename make_(un)signed::type instead.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-11298">
+		<div id="div-comment-11298">
+		<div class="cmtinfo"><em> on <a href="#comment-11298" title="">2013-06-13 at 7:39 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/79cc4274a1325d07ec30a551e9764302?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Yuri Khan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11298"></div><p>In Solution 1a, you suggest checking the iterator increment against distance(i, end) when writing strided loops. While this will work correctly (as opposed to just i += 2), it introduces a potential performance bug: It will compile even if the iterator does not provide random access. In this case, the loop becomes O(n^2).</p>
+<p>I think the cleanest way to write a generic strided loop would be to write a helper template to use instead of the unchecked increment:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+template &lt;typename Iter&gt;
+void advance_up_to(Iter&amp; it, ptrdiff_t n, Iter&amp;&amp; end)
+{
+    while (n --&gt; 0 &amp;&amp; it != end) ++it;
+}
+</pre>
+<p>(suitably specialized for various iterator categories to handle negative counts and take advantage of random access where available).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/06/13/gotw-93-solution-auto-variables-part-2/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-69eaef0841780259e5e00ba6cc128ba8">
+	</div>
+	<div class="grofile-hash-map-ec99692fd9664c4f4558a6d0d020a058">
+	</div>
+	<div class="grofile-hash-map-21f707f19f0310b7094e7142f52a6107">
+	</div>
+	<div class="grofile-hash-map-84f8321680c16c6dcf8203a54be03930">
+	</div>
+	<div class="grofile-hash-map-ca391c038b300a739462dae91c5e8cbc">
+	</div>
+	<div class="grofile-hash-map-9c922fc32844c3be4b6b87d9579a0fa6">
+	</div>
+	<div class="grofile-hash-map-4b177a2cb931b1996fc3572a5ee70d6c">
+	</div>
+	<div class="grofile-hash-map-78b03ab78af3dd9bdd2f767d2efa97bf">
+	</div>
+	<div class="grofile-hash-map-2f91e7ffad34f35c3d035838acf156ac">
+	</div>
+	<div class="grofile-hash-map-f1634a09333f7b391db92e1d2bea6253">
+	</div>
+	<div class="grofile-hash-map-7902e54050ad7c00ed744dacef47318f">
+	</div>
+	<div class="grofile-hash-map-88857afb6b5614e2b05f4ca5c8ae75d7">
+	</div>
+	<div class="grofile-hash-map-f6eaf3173d03147c5ad1e0fb7d85f102">
+	</div>
+	<div class="grofile-hash-map-dcecf27c8e0710a761de1b8add0afb70">
+	</div>
+	<div class="grofile-hash-map-2d039d25f4b02b7ed314d399a2494a16">
+	</div>
+	<div class="grofile-hash-map-256c9d534302a138d5d1fe3ed833e217">
+	</div>
+	<div class="grofile-hash-map-c6ad1c1c64ff7192f4dac3c4c3eb1c0f">
+	</div>
+	<div class="grofile-hash-map-61a8676bee969d1e3ec42937885ed0f6">
+	</div>
+	<div class="grofile-hash-map-8bcbc5519492da9cafc3a8162c830427">
+	</div>
+	<div class="grofile-hash-map-4924cae6916de5be8678bebab6fc90fd">
+	</div>
+	<div class="grofile-hash-map-c1d8cb07e879e73849d78880f86f0591">
+	</div>
+	<div class="grofile-hash-map-dc5f7c3937e6844cb776d2004b903578">
+	</div>
+	<div class="grofile-hash-map-d51a7cc9d8eb6aebd1f1fc6133111b8f">
+	</div>
+	<div class="grofile-hash-map-311ab27e9a49d403e205eb713dd8e4f8">
+	</div>
+	<div class="grofile-hash-map-79cc4274a1325d07ec30a551e9764302">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_28838={"id":468178,"unique_id":"wp-comment-28838","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20is%20a%20large%20and%20complex%20subject%20and%20I%20recommend%20some%20additional%20readings%3A%20Auto%20Variables%2C%20Part%201%2C%20Auto%20Variables%2C%20Part%202%2C%20AAA%20Style%20%28Almost%20Always%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-28838","item_id":"_comm_28838"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_28838 == 'undefined' ){PDRTJS_468178_comm_28838 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_28838 );}}PDRTJS_settings_468178_comm_14283={"id":468178,"unique_id":"wp-comment-14283","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20For%20even%20more%20recommendations%20on%20why%20auto%20is%20a%20good%20idea%20%28efficiency%2C%20guaranteed%20initialization%2C%20and%20correctness%29%2C%20see%20Herb%26%238217%3Bs%20GotW%20%2393.%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-14283","item_id":"_comm_14283"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14283 == 'undefined' ){PDRTJS_468178_comm_14283 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14283 );}}PDRTJS_settings_468178_comm_14115={"id":468178,"unique_id":"wp-comment-14115","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20Herb%20Sutter%3AGotW%20%2393%3A%20Auto%20Variables%2C%20Part%202%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-14115","item_id":"_comm_14115"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14115 == 'undefined' ){PDRTJS_468178_comm_14115 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14115 );}}PDRTJS_settings_468178_comm_14041={"id":468178,"unique_id":"wp-comment-14041","title":"%40PP%3A%20Fixed%2C%20thanks....","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-14041","item_id":"_comm_14041"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14041 == 'undefined' ){PDRTJS_468178_comm_14041 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14041 );}}PDRTJS_settings_468178_comm_14040={"id":468178,"unique_id":"wp-comment-14040","title":"Not%20sure%20where%20to%20send%20this%2C%20so%20feel%20free%20to%20remove%20this%20comment%21%20There%20is%20a%20typo%20in%3A%20CHAR_BITS%2Aizeof%28int%29-1...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-14040","item_id":"_comm_14040"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14040 == 'undefined' ){PDRTJS_468178_comm_14040 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14040 );}}PDRTJS_settings_468178_comm_13970={"id":468178,"unique_id":"wp-comment-13970","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20http%3A%2F%2Fherbsutter.com%2F2013%2F06%2F13%2Fgotw-93-solution-auto-variables-part-2%2F%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-13970","item_id":"_comm_13970"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13970 == 'undefined' ){PDRTJS_468178_comm_13970 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13970 );}}PDRTJS_settings_468178_comm_13577={"id":468178,"unique_id":"wp-comment-13577","title":"%26gt%3B%20The%20first%2C%20again%2C%20is%20that%20%26lt%3Bcode%26gt%3Bint%26lt%3B%2Fcode%26gt%3B%20may%20not%20be%20big%20enough%20to%20avoid%20truncating%20the%20result%2C%20so%20we%20might%20lose%20information%20if%20%26lt%3Bcode%26gt%3Bx%20%20y%26lt%3B%2Fcode%26gt%3B%20produces%20something%20larger%20than%20an%20%26lt%3Bcode%26gt%3Bint...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-13577","item_id":"_comm_13577"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13577 == 'undefined' ){PDRTJS_468178_comm_13577 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13577 );}}PDRTJS_settings_468178_comm_11865={"id":468178,"unique_id":"wp-comment-11865","title":"It%20would%20be%20cute%20to%20be%20able%20to%20write%3A%26%23091%3Bcode%26%23093%3Bfor%20%28auto%20s%20%3D%20v.size%28%29%2C%20i%20%3D%20%7B%7D%3B%20i%20%26lt%3B%20s%3B%20i%20%2B%3D%202%29%26%23091%3B%2Fcode%26%23093%3BBut%20%60auto%60%20doesn%26%23039%3Bt%20like%20%7B%7D%2C%20which%20is%20understandable%20in%20the%20simple%20case%20%26%23091%3Bcode%26%23093%3Bauto%20i%20%3D%20%7B%7D%3B%26%23091%3B%2Fcode%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11865","item_id":"_comm_11865"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11865 == 'undefined' ){PDRTJS_468178_comm_11865 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11865 );}}PDRTJS_settings_468178_comm_11619={"id":468178,"unique_id":"wp-comment-11619","title":"Thanks%20Herb%20for%20bringing%20this%20to%20my%20attention.%20Replies%20%40Sebastian%20within.%26gt%3BThis%20doesnt%20help%20much.%20The%20unexpected%20type%20conversion%20happens%20as%20part%20of%20integer_expr%3B%20all%20the%20helper%20does%20is%20afterwar...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11619","item_id":"_comm_11619"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11619 == 'undefined' ){PDRTJS_468178_comm_11619 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11619 );}}PDRTJS_settings_468178_comm_11590={"id":468178,"unique_id":"wp-comment-11590","title":"%40Jon%3A%20%20Yes%2C%20I%26%23039%3Bm%20familiar%20with%20Bjarne%26%23039%3Bs%20%26quot%3Btoo%20pedantic%26quot%3B%20comment%2C%20but%20I%20watched%20one%20of%20his%20presentations%20from%202012%2C%20and%20the%20examples%20in%20his%20slides%20used%20vector%3A%3Asize_type.Having%20spent%20many%20blissful%20y...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11590","item_id":"_comm_11590"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11590 == 'undefined' ){PDRTJS_468178_comm_11590 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11590 );}}PDRTJS_settings_468178_comm_11519={"id":468178,"unique_id":"wp-comment-11519","title":"In%201%28d%29%2C%20the%20original%20version%20creates%20a%20function%20which%2C%20when%20invoked%2C%20returns%20void.%20%20The%20alternative%20versions%20return%20size_type.%20%20I%20think%20you%20meant%20something%20like%20%26%23091%3Bcode%26%23093%3Bfunction%26lt%3Bsize_t%28vector%26amp%3Bl...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11519","item_id":"_comm_11519"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11519 == 'undefined' ){PDRTJS_468178_comm_11519 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11519 );}}PDRTJS_settings_468178_comm_11509={"id":468178,"unique_id":"wp-comment-11509","title":"I%20just%20asked%20a%20question%20on%20StackOverflow%20about%20what%20the%20differences%20between%20template%20functions%20and%20name%20lambdas%20with%20auto%20parameters%20is.%20Some%20good%20answers%20are%20coming%20in.%20See%20http%3A%2F%2Fstackoverflow....","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11509","item_id":"_comm_11509"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11509 == 'undefined' ){PDRTJS_468178_comm_11509 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11509 );}}PDRTJS_settings_468178_comm_11507={"id":468178,"unique_id":"wp-comment-11507","title":"Just%20for%20your%20information%3A%20These%20named%20lambdas%20with%20auto%20parameters%20have%20a%20very%20interesting%20use-case%20which%20makes%20them%20more%20flexible%20than%20the%20template%20function%20alternative.%20For%20instance%2C%20if%20you%20ha...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11507","item_id":"_comm_11507"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11507 == 'undefined' ){PDRTJS_468178_comm_11507 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11507 );}}PDRTJS_settings_468178_comm_11504={"id":468178,"unique_id":"wp-comment-11504","title":"%26%23091%3Bcode%26%23093%3B%2F%2F%20bestauto%20get_size%20%3D%20%26%23091%3B%26%23093%3B%28const%20auto%26amp%3B%20x%29%20%7B%20return%20x.size%28%29%3B%20%7D%3B%26%23091%3B%2Fcode%26%23093%3BThis%20code%20for%20auto%20lambda%20parameter%20types%20gives%20compiler%20error%20messages%20in%20gcc%204.8.0.%20Is%20there%20a%20compiler%20where%20it%20w...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11504","item_id":"_comm_11504"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11504 == 'undefined' ){PDRTJS_468178_comm_11504 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11504 );}}PDRTJS_settings_468178_comm_11472={"id":468178,"unique_id":"wp-comment-11472","title":"%40Adrian%3A%20I%26%23039%3Bve%20debugged%20far%20too%20many%20bugs%20caused%20by%20incorrect%20use%20of%20unsigned%20variables%2C%20and%20far%20fewer%20bugs%20related%20to%20using%20a%20signed%20int%20with%20a%20collection%20with%20more%20elements%20than%20MAX_INT.%20So%20my%20e...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11472","item_id":"_comm_11472"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11472 == 'undefined' ){PDRTJS_468178_comm_11472 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11472 );}}PDRTJS_settings_468178_comm_11467={"id":468178,"unique_id":"wp-comment-11467","title":"%40Herb%3A%20%20C%2B%2B%20isn%26%23039%3Bt%20just%20used%20on%20modern%20machines%20with%2064-bit%20address%20spaces.%20%20It%26%23039%3Bs%20also%20used%20on%2016-bit%20embedded%20processors%2C%20where%20it%26%23039%3Bs%20reasonable%20to%20have%20containers%20with%20sizes%20that%20might%20peak%20in%20th...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11467","item_id":"_comm_11467"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11467 == 'undefined' ){PDRTJS_468178_comm_11467 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11467 );}}PDRTJS_settings_468178_comm_11457={"id":468178,"unique_id":"wp-comment-11457","title":"%40Frederic%2C%20%40Sebastian%3A%20I%20stomped%20on%20the%20similar%20sentence%20in%20GotW%20%232%20when%20Ville%20pointed%20it%20out%2C%20but%20it%20resurfaced.%20Stomped%20again%2C%20thanks....","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11457","item_id":"_comm_11457"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11457 == 'undefined' ){PDRTJS_468178_comm_11457 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11457 );}}PDRTJS_settings_468178_comm_11453={"id":468178,"unique_id":"wp-comment-11453","title":"%26gt%3B%20Second%2C%20some%20people%20like%20line%202s%20syntax%20better%20but%20have%20to%20switch%20to%20line%201%20to%20get%20access%20to%20explicit%20constructors.If%20the%20constructor%20is%20explicit%2C%20chances%20are%20that%20the%20%3D%20syntax%20is%20horribly%20m...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11453","item_id":"_comm_11453"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11453 == 'undefined' ){PDRTJS_468178_comm_11453 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11453 );}}PDRTJS_settings_468178_comm_11419={"id":468178,"unique_id":"wp-comment-11419","title":"But%20Gotw%2092%20question%204%20states%20the%20opposite.%20In%20auto%20a%20%7B%20val%20%7D%3B%20auto%20b%20%3D%20%7B%20val%20%7D%3B%20both%20a%20and%20b%20are%20said%20to%20have%20the%20same%20type%20initializer_list.The%20two%20compilers%20I%20have%20tried%20with%20%28gcc%204.8%20and%20clan...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11419","item_id":"_comm_11419"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11419 == 'undefined' ){PDRTJS_468178_comm_11419 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11419 );}}PDRTJS_settings_468178_comm_11417={"id":468178,"unique_id":"wp-comment-11417","title":"Re%20auto%20i%20%3D%200%2C%20how%20about%20a%20zero%28%29%20non-member%20function%20akin%20to%20std%3A%3Abegin%20and%20std%3A%3Aend%2C%20like%20this%3A%26%23091%3Bcode%26%23093%3Btemplate%20%26lt%3Btypename%20C%26gt%3Btypename%20C%3A%3Asize_type%20zero%28const%20C%26amp%3B%20c%29%7Breturn%200%3B%7Dfor%20%28auto%20i%20...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11417","item_id":"_comm_11417"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11417 == 'undefined' ){PDRTJS_468178_comm_11417 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11417 );}}PDRTJS_settings_468178_comm_11416={"id":468178,"unique_id":"wp-comment-11416","title":"%40Frederic%20no%2C%20they%20are%20not%20identical.%20x%7Bvalue%7D%20is%20just%20an%20initialization%20of%20x.%20x%20would%20be%20an%20initializer_list%2C%20if%20you%20wrote%20auto%20x%20%3D%20%7Bvalue%7D%3B%20note%20that%20here%20you%20have%20both%20%3D%20and%20%7B%7D....","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11416","item_id":"_comm_11416"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11416 == 'undefined' ){PDRTJS_468178_comm_11416 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11416 );}}PDRTJS_settings_468178_comm_11412={"id":468178,"unique_id":"wp-comment-11412","title":"About%20auto%20x%20%7B%20value%20%7D%20vs%20auto%20x%20%3D%20expr%3A%20in%20what%20sense%20are%20they%20semantically%20identical%3F%20The%20types%20are%20different%20%28std%3A%3Ainitializer_list%20vs%20type%29%2C%20so%20they%20cannot%20be%20interchangeable%2C%20can%20they%3F...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11412","item_id":"_comm_11412"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11412 == 'undefined' ){PDRTJS_468178_comm_11412 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11412 );}}PDRTJS_settings_468178_comm_11410={"id":468178,"unique_id":"wp-comment-11410","title":"%40khurshid%3A%20What%20compiler%20are%20you%20using%3F%20That%20code%20compiles%20and%20executes%20without%20issue%20using%20Clang%203.2.1%20on%2064-bit%20Linux....","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11410","item_id":"_comm_11410"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11410 == 'undefined' ){PDRTJS_468178_comm_11410 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11410 );}}PDRTJS_settings_468178_comm_11403={"id":468178,"unique_id":"wp-comment-11403","title":"auto%20x%20%20%3D%20widget%7B%7D%3B%20%2F%2F%20doesn%26%23039%3Bt%20%20compiled%20with%20non-copyable%20%20classes.example%3Astruct%20widget%7B%20%20%20%20widget%28%20const%20widget%26amp%3B%20%29%20%3D%20delete%3B%20%20%20%20widget%26amp%3B%20operator%20%3D%20%28const%20widget%26amp%3B%20%29%20%3D%20delete%3B%20%20%20%20wid...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11403","item_id":"_comm_11403"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11403 == 'undefined' ){PDRTJS_468178_comm_11403 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11403 );}}PDRTJS_settings_468178_comm_11362={"id":468178,"unique_id":"wp-comment-11362","title":"%40Tom%2C%20%40Martin%3A%20Yup%2C%20I%20just%20realized%20I%20accidentally%20wrote%20%28%20%29%20instead%20of%20%7B%20%7D%20--%20that%20should%20address%20at%20least%20the%20narrowing%20issues.%20My%20fingers%20mostly%20have%20the%20habit%20of%20writing%20%7B%20%7D%20committed%20to%20musc...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11362","item_id":"_comm_11362"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11362 == 'undefined' ){PDRTJS_468178_comm_11362 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11362 );}}PDRTJS_settings_468178_comm_11361={"id":468178,"unique_id":"wp-comment-11361","title":"%40Adrian%3A%20There%20are%20problems%20if%20you%20use%20an%20unsigned%20loop%20variable%2C%20and%20different%20problems%20if%20you%20use%20a%20signed%20one.%20This%20is%20one%20of%20those%20cases%20that%26%23039%3Bs%20just%20problematic.%20Because%20of%20these%20issues%2C%20I%20on...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11361","item_id":"_comm_11361"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11361 == 'undefined' ){PDRTJS_468178_comm_11361 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11361 );}}PDRTJS_settings_468178_comm_11360={"id":468178,"unique_id":"wp-comment-11360","title":"%40Juraj%3A%20IIUC%20it%26%23039%3Bs%20implementation-defined%2C%20not%20undefined.%20From%204.7%2F2-3%20%26%23091%3Bconv.integral%26%23093%3B%3A2%20If%20the%20destination%20type%20is%20unsigned%2C%20the%20resulting%20value%20is%20the%20least%20unsigned%20integer%20congruent%20to%20the%20sou...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11360","item_id":"_comm_11360"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11360 == 'undefined' ){PDRTJS_468178_comm_11360 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11360 );}}PDRTJS_settings_468178_comm_11352={"id":468178,"unique_id":"wp-comment-11352","title":"Following%20up%20on%20%40Tom%20%26quot%3Bc-style%20cast%20vs.%20static_cast%26quot%3B%20and%20%40Herb%26%23039%3Bs%20answer%20%26quot%3BActually%20those%20are%20function-style%20casts%2C%20and%20for%20a%20non-aggregate%20type%20will%20call%20a%20constructor%20etc%26quot%3B%20--%20this%20really%20deserves%20...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11352","item_id":"_comm_11352"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11352 == 'undefined' ){PDRTJS_468178_comm_11352 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11352 );}}PDRTJS_settings_468178_comm_11351={"id":468178,"unique_id":"wp-comment-11351","title":"%26%23091%3Bcode%26%23093%3Bfor%28%20auto%20i%20%3D%200L%3B%20i%20%26lt%3B%20v.size%28%29%3B%20i%20%2B%3D%202%20%29%26%23091%3B%2Fcode%26%23093%3BNoooo%21%20%20Now%20you%26%23039%3Bre%20comparing%20a%20signed%20type%20to%20an%20unsigned%20type.%20%20Worse%2C%20on%20an%20LLP64%20system%2C%20i%20will%20be%2032%20bits%20and%20v.size%28%29%20will%20be%2064%20bits....","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11351","item_id":"_comm_11351"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11351 == 'undefined' ){PDRTJS_468178_comm_11351 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11351 );}}PDRTJS_settings_468178_comm_11349={"id":468178,"unique_id":"wp-comment-11349","title":"%40JohnSmith%20-%20pet%20peeve%2C%20it%20is%20not%20true%20that%20%26quot%3Bon%2064-bit%20Windows%20long%20is%20still%2032-bit%26quot%3B.%20%20It%20may%20be%20that%20on%20some%20compiler%20that%20you%20are%20using%20that%20is%20true%2C%20but%20that%20is%20not%20a%20requirement%20of%20Windows.%20%20...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11349","item_id":"_comm_11349"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11349 == 'undefined' ){PDRTJS_468178_comm_11349 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11349 );}}PDRTJS_settings_468178_comm_11339={"id":468178,"unique_id":"wp-comment-11339","title":"Using%200L%20is%20an%20improvement%2C%20but%20still%20does%20not%20quite%20fix%20it.%20For%20example%2C%20on%2064-bit%20Windows%20long%20is%20still%2032-bit%2C%20while%20void%2A%20and%20size_t%20is%2064.%20The%20obvious%20solution%20would%20be%20to%20say%20%26quot%3Buse%200ULL%20ever...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11339","item_id":"_comm_11339"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11339 == 'undefined' ){PDRTJS_468178_comm_11339 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11339 );}}PDRTJS_settings_468178_comm_11336={"id":468178,"unique_id":"wp-comment-11336","title":"Re%3A%20auto%20f5%20%3D%20double%7Bf1%20%2B%20f2%7D%3BIs%20that%20statement%20identical%20to%3A%20%20%26%23091%3Bcode%26%23093%3Bauto%20f5%20%3D%20double%7Bf1%7D%20%2B%20f2%26%23091%3B%2Fcode%26%23093%3B%3FI.e.%20in%20the%20second%20version%2C%20f2%20must%20be%20promoted%20to%20higher%20precision%20before%20the%20add%20operation....","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11336","item_id":"_comm_11336"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11336 == 'undefined' ){PDRTJS_468178_comm_11336 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11336 );}}PDRTJS_settings_468178_comm_11335={"id":468178,"unique_id":"wp-comment-11335","title":"%40Yuri%3A%20I%20agree.%20Updated%2C%20thanks.%40John%3A%20Good%20point%2C%20quick%20fix%3A%201L.%20%3A%29%40Arne%3A%20Argh%2C%20that%20one%20gets%20me%20all%20the%20time.%20Fixed%2C%20thanks.%40Tom%3A%20Actually%20those%20are%20function-style%20casts%2C%20and%20for%20a%20non-aggregat...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11335","item_id":"_comm_11335"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11335 == 'undefined' ){PDRTJS_468178_comm_11335 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11335 );}}PDRTJS_settings_468178_comm_11319={"id":468178,"unique_id":"wp-comment-11319","title":"%40Tom%3A%20exactly%20my%20thought.%20The%20knowledge%20of%20how%20these%20unpredictable%20compiler%2C%20shut%20up%21-monsters%20are%20working%20is%20frightening....","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11319","item_id":"_comm_11319"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11319 == 'undefined' ){PDRTJS_468178_comm_11319 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11319 );}}PDRTJS_settings_468178_comm_11308={"id":468178,"unique_id":"wp-comment-11308","title":"Does%20the%20cast%20in%20as_signed%20not%20exhibit%20signed%20overflow%3F%20I%20thought%20that%20code%20like%20the%20following%20exhibits%20signed%20overflow%20which%20would%20be%20UB%3A%26%23091%3Bcode%26%23093%3Bunsigned%20u%20%3D%20-1%3B%2F%2F%20A%20large%20value%20not%20representable%20...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11308","item_id":"_comm_11308"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11308 == 'undefined' ){PDRTJS_468178_comm_11308 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11308 );}}PDRTJS_settings_468178_comm_11306={"id":468178,"unique_id":"wp-comment-11306","title":"John%20and%20Anders%3A%20that%20was%20my%20thought%20as%20well....","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11306","item_id":"_comm_11306"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11306 == 'undefined' ){PDRTJS_468178_comm_11306 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11306 );}}PDRTJS_settings_468178_comm_11305={"id":468178,"unique_id":"wp-comment-11305","title":"You%20mention%20%26%23091%3Bcode%26%23093%3Bfor%28%20auto%20i%20%3D%200%3B%20i%20%26lt%3B%20v.size%28%29%3B%20i%20%2B%3D%202%20%29%26%23091%3B%2Fcode%26%23093%3B%20as%20a%20potential%20solution%20for%201%20when%20you%20mention%20the%20silent%20narrowing%20conversion%20in%202b.%20Perhaps%20we%20should%20have%20a%20%60std%3A%3Avector%3A%3Asi...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11305","item_id":"_comm_11305"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11305 == 'undefined' ){PDRTJS_468178_comm_11305 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11305 );}}PDRTJS_settings_468178_comm_11304={"id":468178,"unique_id":"wp-comment-11304","title":"Last%20time%20I%20checked%20the%20Standard%20section%2018.4.1%2C%20the%20fixed-size%20integer%20types%20from%20%20were%20optional.%20Are%20there%20any%20proposals%20that%20make%20it%20mandatory%20to%20provide%20intN_t%20and%20uintN_t%20for%20platforms%20that%20...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11304","item_id":"_comm_11304"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11304 == 'undefined' ){PDRTJS_468178_comm_11304 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11304 );}}PDRTJS_settings_468178_comm_11303={"id":468178,"unique_id":"wp-comment-11303","title":"How%20come%20we%26%23039%3Bre%20back%20to%20using%20c-style%20casts%3F%20%20%20auto%20x%20%3D%20uint64_t%28x%20%2B%20y%29%3BWhy%20not%20%20%20auto%20x%20%3D%20static_cast%28x%20%2B%20y%29%3B...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11303","item_id":"_comm_11303"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11303 == 'undefined' ){PDRTJS_468178_comm_11303 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11303 );}}PDRTJS_settings_468178_comm_11302={"id":468178,"unique_id":"wp-comment-11302","title":"In%20the%20last%20lines%20of%202%28b%29%20you%20write%20about%20vector%20sizes%20%26lt%3B%202%5E%28sizeof%28int%29-1%29.%20It%20should%20be%202%5E%28CHAR_BIT%2Asizeof%28int%29-1%29.%20I%20ran%20into%20that%20pitfall%20some%20time%20ago%20%3B-%29...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11302","item_id":"_comm_11302"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11302 == 'undefined' ){PDRTJS_468178_comm_11302 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11302 );}}PDRTJS_settings_468178_comm_11300={"id":468178,"unique_id":"wp-comment-11300","title":"Doesn%26%23039%3Bt%20the%20indexed%20version%20for%28auto%20i%20%3D%200%3B%20i%20%26lt%3B%20v.size%28%29%3B%20i%20%2B%3D%202%29%20set%20i%20to%20be%20of%20type%20int%3F%20If%20v.size%28%29%20is%20%28say%29%2064%20bits%20while%20int%20is%2032%20the%20loop%20will%20never%20end%2C%20will%20it%20not%3FThe%20C%2B%2B11%20version%20o...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11300","item_id":"_comm_11300"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11300 == 'undefined' ){PDRTJS_468178_comm_11300 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11300 );}}PDRTJS_settings_468178_comm_11298={"id":468178,"unique_id":"wp-comment-11298","title":"In%20Solution%201a%2C%20you%20suggest%20checking%20the%20iterator%20increment%20against%20distance%28i%2C%20end%29%20when%20writing%20strided%20loops.%20While%20this%20will%20work%20correctly%20%28as%20opposed%20to%20just%20i%20%2B%3D%202%29%2C%20it%20introduces%20a%20potent...","permalink":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/#comment-11298","item_id":"_comm_11298"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11298 == 'undefined' ){PDRTJS_468178_comm_11298 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11298 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F06%2F13%2Fgotw-93-solution-auto-variables-part-2%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F06%2F13%2Fgotw-93-solution-auto-variables-part-2%2F","postID":"2145","shortlink":"https:\/\/wp.me\/peb5Y-yB","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2145","statsLink":"https:\/\/wordpress.com\/stats\/post\/2145\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F06%2F13%2Fgotw-93-solution-auto-variables-part-2%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2145','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sQk9OMlEtR1Rrd1FdY2hyVXFoUHxWOFQ3OTcuNTZsQV9ob0czQ2d1bW9WT2NkdHFlU2dHVmJRTGtMTG0lPURZNFE/bDBLbmcvPVpuLzAsaDFqfEdbRU5MMT05Vz9VJi5rY2JWUGNDczhUSDBLRTVUZ0NNLC4yTi9dOTVLK0tHNk4vN1hXMndpbUZLcGdheG5XLmFxOThOP0VXaGc0U1BQZFgvNVpTcixyLlczRHFwXTUtVX5lUXVtdnxHJjdITGk3RDRhPW4mXw=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2145' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

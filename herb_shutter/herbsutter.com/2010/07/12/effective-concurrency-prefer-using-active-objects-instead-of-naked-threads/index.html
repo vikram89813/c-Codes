@@ -1,0 +1,577 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Effective Concurrency: Prefer Using Active Objects Instead of Naked Threads | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965692&amp;back=https%3A%2F%2Fherbsutter.com%2F2010%2F07%2F12%2Feffective-concurrency-prefer-using-active-objects-instead-of-naked-threads%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Effective Concurrency: Prefer Using Active Objects Instead of Naked&nbsp;Threads Comments Feed" href="https://herbsutter.com/2010/07/12/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Effective Concurrency Course: June and (Not)&nbsp;October' href='https://herbsutter.com/2010/06/10/effective-concurrency-course-june-and-october/' />
+<link rel='next' title='Effective Concurrency: Prefer Using Futures or Callbacks to Communicate Asynchronous&nbsp;Results' href='https://herbsutter.com/2010/08/27/effective-concurrency-prefer-using-futures-or-callbacks-to-communicate-asynchronous-results/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2010/07/12/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-6Y' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2010%2F07%2F12%2Feffective-concurrency-prefer-using-active-objects-instead-of-naked-threads%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2010%2F07%2F12%2Feffective-concurrency-prefer-using-active-objects-instead-of-naked-threads%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Effective Concurrency: Prefer Using Active Objects Instead of Naked Threads" />
+<meta property="og:url" content="https://herbsutter.com/2010/07/12/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads/" />
+<meta property="og:description" content="This month’s Effective Concurrency column, “Prefer Using Active Objects Instead of Naked Threads,” is now live on DDJ’s website. From the article: … Active objects dramatically improve our ability …" />
+<meta property="article:published_time" content="2010-07-12T20:22:50+00:00" />
+<meta property="article:modified_time" content="2010-07-12T20:22:50+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965692" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Effective Concurrency: Prefer Using Active Objects Instead of Naked&nbsp;Threads" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="This month’s Effective Concurrency column, “Prefer Using Active Objects Instead of Naked Threads,” is now live on DDJ’s website. From the article: … Active objects dramatically improve our ability to reason about our thread&#039;s code and operation by giving us higher-level abstractions and idioms that raise the semantic level of our program and let us&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2010/07/12/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-432 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2010/06/10/effective-concurrency-course-june-and-october/" rel="prev">Effective Concurrency Course: June and (Not)&nbsp;October</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2010/08/27/effective-concurrency-prefer-using-futures-or-callbacks-to-communicate-asynchronous-results/" rel="next">Effective Concurrency: Prefer Using Futures or Callbacks to Communicate Asynchronous&nbsp;Results</a> &raquo;</div>
+			</div>
+			
+			<div class="post-432 post type-post status-publish format-standard hentry category-c-net category-c category-concurrency category-software-development" id="post-432">
+				<div class="posttitle">
+					<h2>Effective Concurrency: Prefer Using Active Objects Instead of Naked&nbsp;Threads</h2>
+					<p class="post-info">2010-07-12 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>This month’s <strong>Effective Concurrency</strong> column, “<a href="http://www.drdobbs.com/go-parallel/article/showArticle.jhtml;jsessionid=JM3XD1KM22SCRQE1GHPSKH4ATMY32JVN?articleID=225700095">Prefer Using Active Objects Instead of Naked Threads</a>,” is now live on DDJ’s website.</p>
+<p>From the article:</p>
+<blockquote>
+<p>… Active objects dramatically improve our ability to reason about our thread&#8217;s code and operation by giving us higher-level abstractions and idioms that raise the semantic level of our program and let us express our intent more directly. As with all good patterns, we also get better vocabulary to talk about our design. Note that active objects aren&#8217;t a novelty: UML and various libraries have provided support for active classes. Some actor-based languages already have variations of this pattern baked into the language itself; but fortunately, we aren&#8217;t limited to using only such languages to get the benefits of active objects. </p>
+<p>This article will show how to implement the pattern, including a reusable helper to automate the common parts, in any of the popular mainstream languages and threading environments, including C++, C#/.NET, Java, and C/Pthreads.</p>
+</p>
+</blockquote>
+<p>I hope you enjoy it. Finally, here are links to previous Effective Concurrency columns:</p>
+<blockquote>
+<p>1 <a href="http://www.ddj.com/hpc-high-performance-computing/200001985">The Pillars of Concurrency</a> (Aug 2007) </p>
+<p>2 <a href="http://www.ddj.com/hpc-high-performance-computing/201202924">How Much Scalability Do You Have or Need?</a> (Sep 2007) </p>
+<p>3 <a href="http://ddj.com/cpp/201804238">Use Critical Sections (Preferably Locks) to Eliminate Races</a> (Oct 2007) </p>
+<p>4 <a href="http://www.ddj.com/hpc-high-performance-computing/202401098">Apply Critical Sections Consistently</a> (Nov 2007) </p>
+<p>5 <a href="http://ddj.com/architect/202802983">Avoid Calling Unknown Code While Inside a Critical Section</a> (Dec 2007) </p>
+<p>6 <a href="http://www.ddj.com/hpc-high-performance-computing/204801163">Use Lock Hierarchies to Avoid Deadlock</a> (Jan 2008) </p>
+<p>7 <a href="http://www.ddj.com/cpp/205900309">Break Amdahl’s Law!</a> (Feb 2008) </p>
+<p>8 <a href="http://www.ddj.com/hpc-high-performance-computing/206100542">Going Superlinear</a> (Mar 2008) </p>
+<p>9 <a href="http://www.ddj.com/hpc-high-performance-computing/206903306">Super Linearity and the Bigger Machine</a> (Apr 2008) </p>
+<p>10 <a href="http://ddj.com/architect/207100682">Interrupt Politely</a> (May 2008) </p>
+<p>11 <a href="http://ddj.com/architect/208200273">Maximize Locality, Minimize Contention</a> (Jun 2008) </p>
+<p>12 <a href="http://www.ddj.com/hpc-high-performance-computing/208801371">Choose Concurrency-Friendly Data Structures</a> (Jul 2008) </p>
+<p>13 <a href="http://www.ddj.com/hpc-high-performance-computing/209900973">The Many Faces of Deadlock</a> (Aug 2008) </p>
+<p>14 <a href="http://www.ddj.com/cpp/210600279">Lock-Free Code: A False Sense of Security</a> (Sep 2008) </p>
+<p>15 <a href="http://www.ddj.com/hpc-high-performance-computing/210604448">Writing Lock-Free Code: A Corrected Queue</a> (Oct 2008) </p>
+<p>16 <a href="http://www.ddj.com/cpp/211601363">Writing a Generalized Concurrent Queue</a> (Nov 2008) </p>
+<p>17 <a href="http://www.ddj.com/cpp/211800538">Understanding Parallel Performance</a> (Dec 2008)</p>
+<p>18 <a href="http://www.ddj.com/hpc-high-performance-computing/212201163">Measuring Parallel Performance: Optimizing a Concurrent Queue</a> (Jan 2009)</p>
+<p>19 <a href="http://www.ddj.com/hpc-high-performance-computing/212701484">volatile vs. volatile</a> (Feb 2009)</p>
+<p>20 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=214100002">Sharing Is the Root of All Contention</a> (Mar 2009)</p>
+<p>21 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=215900465">Use Threads Correctly = Isolation + Asynchronous Messages</a> (Apr 2009)</p>
+<p>22 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=216500409">Use Thread Pools Correctly: Keep Tasks Short and Nonblocking</a> (Apr 2009)</p>
+<p>23 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=217500206">Eliminate False Sharing</a> (May 2009)</p>
+<p>24 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=217801299">Break Up and Interleave Work to Keep Threads Responsive</a> (Jun 2009)</p>
+<p>25 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=218401447">The Power of “In Progress”</a> (Jul 2009)</p>
+<p>26 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=219200099">Design for Manycore Systems</a> (Aug 2009)</p>
+<p>27 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=220600388">Avoid Exposing Concurrency – Hide It Inside Synchronous Methods</a> (Oct 2009)</p>
+<p>28 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=221601309">Prefer structured lifetimes – local, nested, bounded, deterministic</a> (Nov 2009)</p>
+<p>29 <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=222301165">Prefer Futures to Baked-In “Async APIs”</a> (Jan 2010)</p>
+<p>30 <a href="http://www.drdobbs.com/go-parallel/article/showArticle.jhtml?articleID=224701827">Associate Mutexes with Data to Prevent Races</a> (May 2010)</p>
+<p>31 <a href="http://www.drdobbs.com/go-parallel/article/showArticle.jhtml;jsessionid=JM3XD1KM22SCRQE1GHPSKH4ATMY32JVN?articleID=225700095">Prefer Using Active Objects Instead of Naked Threads</a> (June 2010)</p>
+</blockquote>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c-net/" rel="category tag">C# / .NET</a>, <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a> | 											8 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">8 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-3001">
+		<div id="div-comment-3001">
+		<div class="cmtinfo"><em> on <a href="#comment-3001" title="">2011-05-18 at 9:19 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7047106c0acf9dc7802a7c07c7f854e5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.russian-dolls.ru' rel='external nofollow' class='url'>Sponsers</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_3001"></div><p>Состоятельный человек ищет себе девушку<br />
+ для   настоящих<br />
+отношений, параметры параметры: от 18 до 20 лет рост<br />
+до 175 см. волосы светлые, модельное телосложение. личный помощник   т.79262036777 Руслан<br />
+теги:<br />
+объявления знакомства<br />
+ знакомства через интернет</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2279">
+		<div id="div-comment-2279">
+		<div class="cmtinfo"><em> on <a href="#comment-2279" title="">2010-09-11 at 4:32 am</a></em>  <cite><a href='http://kjellkod.wordpress.com/2010/09/11/lets-try-the-new-c0x-type-of-active-object/' rel='external nofollow' class='url'>Let&#8217;s try the new C++0x type of Active Object | Kjellkod&#039;s Blog</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2279"></div><p>[&#8230;] by kjellkod   When Herb Sutter wrote about Active Objects in this Effective Concurrency blog series Prefer Using Active Objects Instead of Naked Threads I was thrilled since I was waiting for that since his Effective Concurrency seminar in Kista, [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-2216">
+		<div id="div-comment-2216">
+		<div class="cmtinfo"><em> on <a href="#comment-2216" title="">2010-08-12 at 11:10 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0ba3dff2713f82030e7f0fcbd719325a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.kjellkod.cc' rel='external nofollow' class='url'>Kjell Hedström</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2216"></div><p>Thanks for yet another great article Herb. </p>
+<p>I think that instead of using Message objects (for pre C++0x developers) it could be benificial to follow the idiom of generic function callbacks ( your Gotw: 83 et.al ).</p>
+<p>This way you can easily make the Active object and Backgrounder without message objects focus on the core with cleaner code as a result. </p>
+<p>Inspired by your Effective Concurrency Europe 2009 seminar I ended up with something like this :) </p>
+<p>I.e. : (cut-down &amp; pseudo-ish version)<br />
+Class Active {<br />
+  private:<br />
+   &#8230;.<br />
+   void run() {<br />
+      while(!done){<br />
+        smart_ptr msg= mq.pop();<br />
+        msg(); // executes msg<br />
+       }<br />
+     }</p>
+<p>  public:<br />
+    &#8230;.<br />
+     ~Active() {<br />
+       send(bind(this, &amp;Active::DoDone));<br />
+       thd-&gt;join();<br />
+    }<br />
+   &#8230;.<br />
+};</p>
+<p>class Background {<br />
+&#8230;<br />
+public:<br />
+   void Save(smart_ptr data) {<br />
+      active-&gt;send(bind(this, &amp;Background::DoSave, data);<br />
+  }<br />
+&#8230;<br />
+};</p>
+<p>Standard pre C++0x but still with the clean look thanks to some template touch :)</p>
+<p>Cheers</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2171">
+		<div id="div-comment-2171">
+		<div class="cmtinfo"><em> on <a href="#comment-2171" title="">2010-07-28 at 11:22 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2171"></div><p>@Thomas: Yes, function follows the rule of all function objects &#8212; they are intended to be cheap to copy. So if you want to avoid copying state, hold it by pointer/shared_ptr.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-2162">
+		<div id="div-comment-2162">
+		<div class="cmtinfo"><em> on <a href="#comment-2162" title="">2010-07-23 at 2:04 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/ae85c6c1c18be71c87b0ca237ed30170?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Thomas Petit</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2162"></div><p>Very nice and detailed article. So nice, that I went head ahead and try to use it in one my program.<br />
+From this experience, I get some concern about the C++0X way. While I really like the terseness of it, it seems to be a bit more error-prone and can become inefficient if you don&#8217;t pay close attention.</p>
+<p>In my case I wanted to pass a Medium-sized data to an active object. By medium-sized I mean a piece of data big enough that you can afford to copy it one time for the purpose of thread isolation, but NOT many times. (for example a buffer of char[4096])</p>
+<p>It worked very easily with OO style message.<br />
+struct MMediumSized<br />
+{<br />
+   MediumSizedData data;<br />
+   MMediumSized(const MediumSizedData&amp; data):data(data){}<br />
+   void Execute(){&#8230;}<br />
+}</p>
+<p>void foo(const MediumSizedData&amp; data)<br />
+{<br />
+   a.Send(std::unique_ptr(new MMediumSized(data)));<br />
+}</p>
+<p>The Send() function forced me to do the right thing, thanks to taking an unique_ptr as parameter. The MediumSizedData is copied *once* into the message (in the constructor of MMediumSized) and then the unique_ptr to the message is moved into the message queue, then moved out, get executed and then get automatically destroyed.</p>
+<p>I hit way more problems when moving to lambda and std::function. My first impulse was to do :</p>
+<p>void foo(const MediumSizedData&amp; data)<br />
+{<br />
+   a.Send( [&amp;data](){ &#8230;} );<br />
+}<br />
+I didn&#8217;t pay enough attention that the data was captured by reference, so there is no copy at all which cause data race in the program.<br />
+Then I changed to :</p>
+<p>void foo(const MediumSizedData&amp; data)<br />
+{<br />
+a.Send( [data]() {&#8230;} );<br />
+}</p>
+<p>The program was correct, but way slower than the OO version. I put some traces into MediumSizedData copy constructor and realized that every time I called foo() and the message was executed, MediumSizedData get in fact copied 5 times !! It seems that&#8217;s because std::function really love to make copy. I cannot figure out what happen exactly in the internals of std::function but is seems that my lambda get copied a LOT inside.</p>
+<p>So I finally realize that you have to use a shared_ptr to get the right semantics :<br />
+void foo(const MediumSizedData&amp; data)<br />
+{<br />
+   std::shared_ptr data_copy(new MediumSizedData(data));<br />
+   a.Send( [data_copy]() {&#8230;} );<br />
+}<br />
+I would prefer an unique_ptr but unfortunately it seems that std::function make always a copy of its internals and never a move.</p>
+<p>TL:DR :<br />
+It&#8217;s very clear in the OO style that you dynamically allocate a message and then only manipulate and pass a *pointer* around whereas the std::function way looks more mysterious. What really happen when I construct a std::function from a lambda ? What really happen when I a push a std::function into the message queue ?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2149">
+		<div id="div-comment-2149">
+		<div class="cmtinfo"><em> on <a href="#comment-2149" title="">2010-07-13 at 11:04 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1f64f9b0a9296bafcc7d3bb0012cffe4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Bill</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2149"></div><p>I&#8217;ve been hoping for some focus on actor-model type concurrency and more focus on futures/messages, etc.<br />
+Thanks Herb =)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-2146">
+		<div id="div-comment-2146">
+		<div class="cmtinfo"><em> on <a href="#comment-2146" title="">2010-07-13 at 8:35 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2146"></div><p>Yes, no specific ETA but not before next year. In the meantime, they are all freely available via the links above.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2144">
+		<div id="div-comment-2144">
+		<div class="cmtinfo"><em> on <a href="#comment-2144" title="">2010-07-12 at 10:50 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d072494b6c5754ebd9e67f4e939c03db?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Manish</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2144"></div><p>Hi,</p>
+<p>Excellent read.<br />
+Are you planning to compile all the column in the book?</p>
+<p>Thanks</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2010/07/12/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-7047106c0acf9dc7802a7c07c7f854e5">
+	</div>
+	<div class="grofile-hash-map-0ba3dff2713f82030e7f0fcbd719325a">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-ae85c6c1c18be71c87b0ca237ed30170">
+	</div>
+	<div class="grofile-hash-map-1f64f9b0a9296bafcc7d3bb0012cffe4">
+	</div>
+	<div class="grofile-hash-map-d072494b6c5754ebd9e67f4e939c03db">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_3001={"id":468178,"unique_id":"wp-comment-3001","title":"%2C%20%20%3A%20%2018%20%2020%20%20%20%20%20175%20.%20%20%2C%20%20.%20%20%20%20%20.79262036777%20%20%3A%20%20%20%20%20%20%20...","permalink":"https:\/\/herbsutter.com\/2010\/07\/12\/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads\/#comment-3001","item_id":"_comm_3001"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_3001 == 'undefined' ){PDRTJS_468178_comm_3001 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_3001 );}}PDRTJS_settings_468178_comm_2279={"id":468178,"unique_id":"wp-comment-2279","title":"%26%23091%3B...%26%23093%3B%20by%20kjellkod%20%20%20When%20Herb%20Sutter%20wrote%20about%20Active%20Objects%20in%20this%20Effective%20Concurrency%20blog%20series%20Prefer%20Using%20Active%20Objects%20Instead%20of%20Naked%20Threads%20I%20was%20thrilled%20since%20I%20was%20waiting%20f...","permalink":"https:\/\/herbsutter.com\/2010\/07\/12\/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads\/#comment-2279","item_id":"_comm_2279"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2279 == 'undefined' ){PDRTJS_468178_comm_2279 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2279 );}}PDRTJS_settings_468178_comm_2216={"id":468178,"unique_id":"wp-comment-2216","title":"Thanks%20for%20yet%20another%20great%20article%20Herb.%20I%20think%20that%20instead%20of%20using%20Message%20objects%20%28for%20pre%20C%2B%2B0x%20developers%29%20it%20could%20be%20benificial%20to%20follow%20the%20idiom%20of%20generic%20function%20callbacks%20%28%20your...","permalink":"https:\/\/herbsutter.com\/2010\/07\/12\/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads\/#comment-2216","item_id":"_comm_2216"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2216 == 'undefined' ){PDRTJS_468178_comm_2216 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2216 );}}PDRTJS_settings_468178_comm_2171={"id":468178,"unique_id":"wp-comment-2171","title":"%40Thomas%3A%20Yes%2C%20function%20follows%20the%20rule%20of%20all%20function%20objects%20--%20they%20are%20intended%20to%20be%20cheap%20to%20copy.%20So%20if%20you%20want%20to%20avoid%20copying%20state%2C%20hold%20it%20by%20pointer%2Fshared_ptr....","permalink":"https:\/\/herbsutter.com\/2010\/07\/12\/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads\/#comment-2171","item_id":"_comm_2171"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2171 == 'undefined' ){PDRTJS_468178_comm_2171 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2171 );}}PDRTJS_settings_468178_comm_2162={"id":468178,"unique_id":"wp-comment-2162","title":"Very%20nice%20and%20detailed%20article.%20So%20nice%2C%20that%20I%20went%20head%20ahead%20and%20try%20to%20use%20it%20in%20one%20my%20program.%20From%20this%20experience%2C%20I%20get%20some%20concern%20about%20the%20C%2B%2B0X%20way.%20While%20I%20really%20like%20the%20tersenes...","permalink":"https:\/\/herbsutter.com\/2010\/07\/12\/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads\/#comment-2162","item_id":"_comm_2162"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2162 == 'undefined' ){PDRTJS_468178_comm_2162 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2162 );}}PDRTJS_settings_468178_comm_2149={"id":468178,"unique_id":"wp-comment-2149","title":"I%26%23039%3Bve%20been%20hoping%20for%20some%20focus%20on%20actor-model%20type%20concurrency%20and%20more%20focus%20on%20futures%2Fmessages%2C%20etc.Thanks%20Herb%20%3D%29...","permalink":"https:\/\/herbsutter.com\/2010\/07\/12\/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads\/#comment-2149","item_id":"_comm_2149"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2149 == 'undefined' ){PDRTJS_468178_comm_2149 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2149 );}}PDRTJS_settings_468178_comm_2146={"id":468178,"unique_id":"wp-comment-2146","title":"Yes%2C%20no%20specific%20ETA%20but%20not%20before%20next%20year.%20In%20the%20meantime%2C%20they%20are%20all%20freely%20available%20via%20the%20links%20above....","permalink":"https:\/\/herbsutter.com\/2010\/07\/12\/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads\/#comment-2146","item_id":"_comm_2146"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2146 == 'undefined' ){PDRTJS_468178_comm_2146 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2146 );}}PDRTJS_settings_468178_comm_2144={"id":468178,"unique_id":"wp-comment-2144","title":"Hi%2CExcellent%20read.%20Are%20you%20planning%20to%20compile%20all%20the%20column%20in%20the%20book%3FThanks...","permalink":"https:\/\/herbsutter.com\/2010\/07\/12\/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads\/#comment-2144","item_id":"_comm_2144"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2144 == 'undefined' ){PDRTJS_468178_comm_2144 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2144 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2010%2F07%2F12%2Feffective-concurrency-prefer-using-active-objects-instead-of-naked-threads%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2010\/07\/12\/effective-concurrency-prefer-using-active-objects-instead-of-naked-threads\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2010%2F07%2F12%2Feffective-concurrency-prefer-using-active-objects-instead-of-naked-threads%2F","postID":"432","shortlink":"https:\/\/wp.me\/peb5Y-6Y","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/432","statsLink":"https:\/\/wordpress.com\/stats\/post\/432\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2010%2F07%2F12%2Feffective-concurrency-prefer-using-active-objects-instead-of-naked-threads%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'432','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLmtGZl12Yl0wTFovZTZBcXklWXkteG1EQk1jbkE/Zkt+aXF4TnRjVlpvSmpYYV9QVkpLUVVCd3dmMFMyNjlXLFpDQ2hVdFk5MFFwbzgza3lhYj9Bbj9yfEFpT0d6VVBBUGxdSldkUzBEanh6SHUrZXk5W3Q4Q0IvN3BVbUl5MnpdOTFlMzI5WlBsWUoucldZZUpkLSV8cXVQNEVyVi41bCY5alFRNnJMV25BVl9uRHBacTNIb1c5aXFDSU1laz0yMz1wWURhbw=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '432' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

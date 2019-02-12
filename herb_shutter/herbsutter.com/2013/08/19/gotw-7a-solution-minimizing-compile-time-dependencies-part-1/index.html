@@ -1,0 +1,754 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #7a Solution: Minimizing Compile-Time Dependencies, Part 1 | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965310&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F08%2F19%2Fgotw-7a-solution-minimizing-compile-time-dependencies-part-1%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #7a Solution: Minimizing Compile-Time Dependencies, Part&nbsp;1 Comments Feed" href="https://herbsutter.com/2013/08/19/gotw-7a-solution-minimizing-compile-time-dependencies-part-1/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Comment delays and&nbsp;spam' href='https://herbsutter.com/2013/08/13/comment-delays-and-spam/' />
+<link rel='next' title='GotW #7b: Minimizing Compile-Time Dependencies, Part&nbsp;2' href='https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/08/19/gotw-7a-solution-minimizing-compile-time-dependencies-part-1/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-AY' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F08%2F19%2Fgotw-7a-solution-minimizing-compile-time-dependencies-part-1%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F08%2F19%2Fgotw-7a-solution-minimizing-compile-time-dependencies-part-1%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #7a Solution: Minimizing Compile-Time Dependencies, Part 1" />
+<meta property="og:url" content="https://herbsutter.com/2013/08/19/gotw-7a-solution-minimizing-compile-time-dependencies-part-1/" />
+<meta property="og:description" content="Managing dependencies well is an essential part of writing solid code. C++ supports two powerful methods of abstraction: object-oriented programming and generic programming. Both of these are funda…" />
+<meta property="article:published_time" content="2013-08-19T10:31:39+00:00" />
+<meta property="article:modified_time" content="2013-10-31T23:19:39+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965310" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #7a Solution: Minimizing Compile-Time Dependencies, Part&nbsp;1" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Managing dependencies well is an essential part of writing solid code. C++ supports two powerful methods of abstraction: object-oriented programming and generic programming. Both of these are fundamentally tools to help manage dependencies, and therefore manage complexity. It&#039;s telling that all of the common OO/generic buzzwords—including encapsulation, polymorphism, and type independence—along with most design patterns,&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/08/19/gotw-7a-solution-minimizing-compile-time-dependencies-part-1/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2292 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/08/13/comment-delays-and-spam/" rel="prev">Comment delays and&nbsp;spam</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/08/19/gotw-7b-minimizing-compile-time-dependencies-part-2/" rel="next">GotW #7b: Minimizing Compile-Time Dependencies, Part&nbsp;2</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2292 post type-post status-publish format-standard hentry category-gotw" id="post-2292">
+				<div class="posttitle">
+					<h2>GotW #7a Solution: Minimizing Compile-Time Dependencies, Part&nbsp;1</h2>
+					<p class="post-info">2013-08-19 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>Managing dependencies well is an essential part of writing solid code. C++ supports two powerful methods of abstraction: object-oriented programming and generic programming. Both of these are fundamentally tools to help manage dependencies, and therefore manage complexity. It&#8217;s telling that all of the common OO/generic buzzwords—including encapsulation, polymorphism, and type independence—along with most design patterns, are really about describing ways to manage complexity within a software system by managing the code&#8217;s interdependencies.<br />
+</em></span></p>
+<p><span style="color:#5a5a5a;"><em>When we talk about dependencies, we usually think of run-time dependencies like class interactions. In this Item, we will focus instead on how to analyze and manage compile-time dependencies. As a first step, try to identify (and root out) unnecessary headers.</em></span></p>
+<h1>Problem</h1>
+<h2>JG Question</h2>
+<p>1. For a function or a class, what is the difference between a forward declaration and a definition?</p>
+<h2>Guru Question</h2>
+<p>2. Many programmers habitually <span style="color:#2e74b5;">#include</span> many more headers than necessary. Unfortunately, doing so can seriously degrade build times, especially when a popular header file includes too many other headers.</p>
+<p>In the following header file, what <span style="color:#2e74b5;">#include</span> directives could be immediately removed without ill effect? You may not make any changes other than removing or rewriting (including replacing) <span style="color:#2e74b5;">#include</span> directives. Note that the comments are important.</p>
+<pre><code>//  x.h: original header
+//
+#include &lt;iostream&gt;
+#include &lt;ostream&gt;
+#include &lt;list&gt;
+
+// None of A, B, C, D or E are templates.
+// Only A and C have virtual functions.
+#include "a.h"  // class A
+#include "b.h"  // class B
+#include "c.h"  // class C
+#include "d.h"  // class D
+#include "e.h"  // class E
+
+class X : public A, private B {
+public:
+       X( const C&amp; );
+    B  f( int, char* );
+    C  f( int, C );
+    C&amp; g( B );
+    E  h( E );
+    virtual std::ostream&amp; print( std::ostream&amp; ) const;
+
+  private:
+    std::list&lt;C&gt; clist;
+    D            d_;
+  };
+
+std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, const X&amp; x ) {
+    return x.print(os);
+}
+</code></pre>
+<h1>Solution</h1>
+<h2>1. For a function or class, what is the difference between a forward declaration and a definition?</h2>
+<p>A forward declaration of a (possibly templated) function or class simply introduces a name. For example:</p>
+<pre><code>class widget;  // "widget" names a class 
+
+widget* p;     // ok: allocates sizeof(*) space typed as widget*
+
+widget  w;     // error: wait, what? how big is that? does it have a
+               //        default constructor?
+</code></pre>
+<p>Again, a forward declaration only <em>introduces a name</em>. It lets you do things that require only the name, such as declaring a pointer to it—all pointers to objects are the same size and have the same set of operations you can perform on them, and ditto for pointers to nonmember functions, so the name is all you need to make a strongly-typed and fully-usable variable that&#8217;s a pointer to class or pointer to function.</p>
+<p>What a class forward declaration does <em>not</em> do is tell you anything about what you can do with the type itself, such as what constructors or member functions it has or how big it is if you want to allocate space for one. If you try to create a <span style="color:#2e74b5;">widget w;</span> with only the above code, you&#8217;ll get a compile-time error because <span style="color:#2e74b5;">widget</span> has no definition yet and so the compiler can&#8217;t know how much space to allocate or what functions the type has (including whether it has a default constructor).</p>
+<p>A class definition has a body and lets you know the class&#8217;s size and know the names and types of its members:</p>
+<pre><code>class widget { // "{" means definition
+    widget();
+    // ...
+};
+
+widget* p;     // ok: allocs sizeof(ptr) space typed as widget*
+
+widget  w;     // ok: allocs sizeof(widget) space typed as widget
+               //     and calls default constructor
+</code></pre>
+<h2>2. In the following header file, what #include directives could be immediately removed without ill effect?</h2>
+<p>Of the first two standard headers mentioned in <span style="color:#2e74b5;">x.h</span>, one can be immediately removed because it&#8217;s not needed at all, and the second can be replaced with a smaller header:</p>
+<h3>1. Remove iostream.</h3>
+<pre><code>#include &lt;iostream&gt;
+</code></pre>
+<p>Many programmers <span style="color:#2e74b5;">#include &lt;iostream&gt;</span> purely out of habit as soon as they see anything resembling a stream nearby. Class <span style="color:#2e74b5;">X</span> does make use of streams, that&#8217;s true; but it doesn&#8217;t mention anything specifically from <span style="color:#2e74b5;">iostream</span>, which mainly declares the standard stream objects like <span style="color:#2e74b5;">cout</span>. At the most, <span style="color:#2e74b5;">X</span> needs <span style="color:#2e74b5;">ostream</span> alone for its <span style="color:#2e74b5;">basic_ostream</span> type, and even that can be whittled down as we will see.</p>
+<blockquote><p><strong>Guideline:</strong> Never <strong>#include</strong> unnecessary header files.</p></blockquote>
+<h3>2. Replace ostream with iosfwd.</h3>
+<pre><code>#include &lt;ostream&gt;
+</code></pre>
+<p>Parameter and return types only need to be forward-declared, so instead of the full definition of <span style="color:#2e74b5;">ostream</span> we really only need its forward declaration.</p>
+<p>However, you can&#8217;t write the forward declaration yourself using something like <span style="color:#2e74b5;">class ostream;</span>. First, <span style="color:#2e74b5;">ostream</span> lives in namespace <span style="color:#2e74b5;">std</span> in which you can&#8217;t redeclare existing standard types and objects. Second, <span style="color:#2e74b5;">ostream</span> is an alias for <span style="color:#2e74b5;">basic_ostream&lt;char&gt;</span> which you couldn&#8217;t reliably forward-declare even if you were allowed to because library implementations are allowed to do things like add their own extra template parameters beyond those required by the standard that of course your code wouldn&#8217;t know about—which is one of the primary reasons for the rule that programmers aren&#8217;t allowed to write their own declarations for things in namespace <span style="color:#2e74b5;">std</span>.</p>
+<p>All is not lost, though: The standard library helpfully provides the header <span style="color:#2e74b5;">iosfwd</span>, which contains forward declarations for all of the stream templates and their standard aliases, including <span style="color:#2e74b5;">basic_ostream </span>and <span style="color:#2e74b5;">ostream</span>. So all we need to do is replace <span style="color:#2e74b5;">#include &lt;ostream&gt;</span> with <span style="color:#2e74b5;">#include &lt;iosfwd&gt;</span>.</p>
+<blockquote><p><strong>Guideline:</strong> Prefer to <strong>#include &lt;iosfwd&gt;</strong> when a forward declaration of a stream will suffice.</p></blockquote>
+<p>Incidentally, once you see <span style="color:#2e74b5;">iosfwd</span>, one might think that the same trick would work for other standard library templates like <span style="color:#2e74b5;">string</span> and <span style="color:#2e74b5;">list</span>. There are, however, no comparable &#8220;stringfwd&#8221; or &#8220;listfwd&#8221; standard headers. The <span style="color:#2e74b5;">iosfwd</span> header was created to give streams special treatment for backwards compatibility, to avoid breaking code written in years past for the &#8220;old&#8221; non-templated version of the iostreams subsystem. It is hoped that a real solution will come in a future version of C++ that supports <em>modules</em>, but that&#8217;s a topic for a later time.</p>
+<p>There, that was easy. We can now move on to…</p>
+<p>… what? &#8220;Not so fast!&#8221; I hear some of you say. &#8220;This header does a lot more with <span style="color:#2e74b5;">ostream</span> than just mention it as a parameter or return type. The inlined <span style="color:#2e74b5;">operator&lt;&lt;</span> actually uses an <span style="color:#2e74b5;">ostream</span> object! So it must need <span style="color:#2e74b5;">ostream</span>&#8216;s definition, right?&#8221;</p>
+<p>That&#8217;s a reasonable question. Happily, the answer is: No, it doesn&#8217;t. Consider again the function in question:</p>
+<pre><code>std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, const X&amp; x ) {
+    return x.print(os);
+}
+</code></pre>
+<p>This function mentions an <span style="color:#2e74b5;">ostream&amp;</span> as both a parameter and a return type, which most people know doesn&#8217;t require a definition. And it passes its <span style="color:#2e74b5;">ostream&amp;</span> parameter in turn as a parameter to another function, which many people <em>don&#8217;t</em> know doesn&#8217;t require a definition either—it&#8217;s the same as if it were a pointer, <span style="color:#2e74b5;">ostream*</span>, discussed above. As long as that&#8217;s all we&#8217;re doing with the <span style="color:#2e74b5;">ostream&amp;</span>, there&#8217;s no need for a full <span style="color:#2e74b5;">ostream</span> definition—we&#8217;re not really using an <span style="color:#2e74b5;">ostream</span> itself at all, such as by calling functions on it, we&#8217;re only using a reference to type for which we only need to know the name. Of course, we would need the full definition if we tried to call any member functions, for example, but we&#8217;re not doing anything like that here.</p>
+<p>So, as I was saying, we can now move on to get rid of one of the other headers, but only one just yet:</p>
+<h3>3. Replace e.h with a forward declaration.</h3>
+<pre><code>#include "e.h"  // class E
+</code></pre>
+<p>Class <span style="color:#2e74b5;">E</span> is just being mentioned as a parameter and as a return type in function <span style="color:#2e74b5;">E h(E)</span>, so no definition is required and <span style="color:#2e74b5;">x.h</span> shouldn&#8217;t be pulling in <span style="color:#2e74b5;">e.h</span> in the first place because the caller couldn&#8217;t even be calling this function if he didn&#8217;t have the definition of <span style="color:#2e74b5;">E</span> already, so there&#8217;s no point in including it again. (Note this would not be true if <span style="color:#2e74b5;">E</span> were only a return type, such as if the signature were <span style="color:#2e74b5;">E h();</span>, because in that case it’s good style to include <span style="color:#2e74b5;">E</span>’s definition for the caller’s convenience so he can easily write code like <span style="color:#2e74b5;">auto val = x.h();</span>.) All we need to do is replace <span style="color:#2e74b5;">#include &#8220;e.h&#8221;</span> with <span style="color:#2e74b5;">class E;</span>.</p>
+<blockquote><p><strong>Guideline: </strong>Never <strong>#include</strong> a header when a forward declaration will suffice.</p></blockquote>
+<p>That’s it.</p>
+<p>You may be wondering why we can’t get rid of the other headers yet. It’s because to define class <span style="color:#2e74b5;">X</span> means you need to know its size in order to know how much space to allocate for an <span style="color:#2e74b5;">X</span> object, and to know <span style="color:#2e74b5;">X</span>’s size you need to know at least the size of every base class and data member. So we need the definitions of <span style="color:#2e74b5;">A</span> and <span style="color:#2e74b5;">B</span> because they are base classes, and we need the header definitions of <span style="color:#2e74b5;">list</span>, <span style="color:#2e74b5;">C</span>, and <span style="color:#2e74b5;">D</span> because they are used to define the data members. How we can begin to address some of these is the subject of Part 2&#8230;</p>
+<p>&nbsp;</p>
+<h2>Acknowledgments</h2>
+<p>Thanks to the following for their feedback to improve this article: Gennaro, Sebastien Redl, Emmanuel Thivierge.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											16 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">16 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="pingback even thread-even depth-1 highlander-comment" id="comment-14055">
+		<div id="div-comment-14055">
+		<div class="cmtinfo"><em> on <a href="#comment-14055" title="">2014-01-06 at 9:20 am</a></em>  <cite><a href='http://guillaumebelz.wordpress.com/2014/01/06/guru-of-the-week-7/' rel='external nofollow' class='url'>Guru of the week 7 | C++, Qt, OpenGL, CUDA</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14055"></div><p>[&#8230;] GotW #7a Solution: Minimizing Compile-Time Dependencies, Part 1 [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13049">
+		<div id="div-comment-13049">
+		<div class="cmtinfo"><em> on <a href="#comment-13049" title="">2013-10-31 at 3:20 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13049"></div><p>Catching up&#8230;</p>
+<p>@Sebastian: I cover those in the other parts, but you&#8217;re right it would be easier to add a short note here. Done.</p>
+<p>@bcs: The point, which I&#8217;ve now clarified, is that the caller can&#8217;t even invoke E h(E) unless he already has an E object &#8212; so he already has its definition.</p>
+<p>@Emmanuel: As above, I&#8217;ve improved the text to distinguish between parameter and return types.</p>
+<p>Thanks for the comments.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-daramarak even thread-even depth-1 highlander-comment" id="comment-12294">
+		<div id="div-comment-12294">
+		<div class="cmtinfo"><em> on <a href="#comment-12294" title="">2013-08-23 at 1:13 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/ea14b457343ab84376a0b1d60e026081?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://daramarak.wordpress.com' rel='external nofollow' class='url'>daramarak</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12294"></div><p>Sebastians comment is truly excellent, Sutter should definitely consider incorporating these explanations into the solution.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jonkalb odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12288">
+		<div id="div-comment-12288">
+		<div class="cmtinfo"><em> on <a href="#comment-12288" title="">2013-08-22 at 11:43 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e87b41d867be80e3e53096dfe0756230?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>JonKalb</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12288"></div><p>Excellent comment Sebastian.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12279">
+		<div id="div-comment-12279">
+		<div class="cmtinfo"><em> on <a href="#comment-12279" title="">2013-08-21 at 1:36 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/233ccd6e23d5d64d480ac70fd4c09afa?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Christopher</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12279"></div><p>For solution 1, you might want to write </p>
+<pre class="brush: plain; title: ; notranslate" title="">
+class widget { // &quot;{&quot; means definition
+public:
+    widget();
+    // ...
+};
+
+widget* p;     // ok: allocs sizeof(ptr) space typed as widget*
+
+widget  w;     // ok: allocs sizeof(widget) space typed as widget
+               //     and calls default constructor
+</pre>
+<p>Otherwise, trying to compile this code will complain about the <code>widge w</code> line. (The linker ends up complaining anyway, later on&#8230;)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12277">
+		<div id="div-comment-12277">
+		<div class="cmtinfo"><em> on <a href="#comment-12277" title="">2013-08-21 at 10:01 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f80eb98f480f76f5101cac3164474502?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/monamimani' rel='external nofollow' class='url'>Emmanuel Thivierge</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12277"></div><p>To me to have public member function that return incomplete type is actually a bad style and a bad habit. Because you will have to include the header for the return type anyway. It makes dependencies explicit where it doesn&#8217;t need to be and it doesn&#8217;t help compile time because you need to include it anyway at the point of use. I find it really frustrating to include a file and to get compile errors because i need to include more file because of incomplete type. Those dependencies have no really good ways to be documented either and it would not be the good solution.</p>
+<p>I think the good solution is to just include those header for public member and non members functions. Your collegue will thanks you and it should impact the build time anyway.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12276">
+		<div id="div-comment-12276">
+		<div class="cmtinfo"><em> on <a href="#comment-12276" title="">2013-08-21 at 6:07 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f2d485d809e88339a6f78e584ce760b3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bcs</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12276"></div><p>Yes technically you can replace &#8220;e.h&#8221; with &#8220;class E;&#8221; but that leads to the rather obnoxious situation where I&#8217;ve included &#8220;x.h&#8221; and then go try to use X::h and have to go track down which header E is defined in and include it as well.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12271">
+		<div id="div-comment-12271">
+		<div class="cmtinfo"><em> on <a href="#comment-12271" title="">2013-08-21 at 2:52 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f1634a09333f7b391db92e1d2bea6253?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sebastian Redl</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12271"></div><p>Given the boatload of wrong answers when you originally posted this question, and the lingering confusion now, it would have been a good idea to go through every use in more detail and document why it does or does not need the full definition. I&#8217;ll give it a try here.</p>
+<p>class X : public A, private B {</p>
+<p>This uses A and B as base classes and thus requires the full definition. This is independent of the access specifier on the inheritance.</p>
+<p>    X( const C&amp; );</p>
+<p>Reference to C, doesn&#8217;t need the full definition. References and pointers never need the full definition until you actually do something interesting with them, and just copying them around doesn&#8217;t count.</p>
+<p>    B  f( int, char* );</p>
+<p>B as a return type. A return type need not be complete until the function is actually called.</p>
+<p>    C  f( int, C );</p>
+<p>C as a return type and argument type. Argument types need not be complete either until the function is actually called. However, the overloading here might create a situation where the lack of a complete type leads to very unintuitive behavior. I&#8217;ll get to that later.</p>
+<p>    C&amp; g( B );</p>
+<p>Reference to C as return type, B as argument type. Nothing new here. However, if g was virtual, it would be interesting, because of covariant overriding. Another thing for later.</p>
+<p>    E  h( E );</p>
+<p>E as return type and argument type. Yawn.</p>
+<p>    virtual std::ostream&amp; print( std::ostream&amp; ) const;</p>
+<p>Reference to std::ostream as argument and return type. Not special here either, and print being virtual doesn&#8217;t really change that. As I mentioned, derived classes might have to worry about establishing covariance.</p>
+<p>    std::list&amp;lt:C&gt; clist;</p>
+<p>Formally, all standard containers require their member type to be complete when their definition is instantiated, so C must be complete here. Most implementations of std::list let you get away with not doing that, but I wouldn&#8217;t rely on it. So C needs to be complete.</p>
+<p>    D            d_;</p>
+<p>Data member of type D, requires a complete type.</p>
+<p>  };</p>
+<p>At this point, the class ends, but some special members are not here. The compiler will add declarations for them:<br />
+X(const X&amp;); // copy ctor<br />
+X(X&amp;&amp;); // move ctor<br />
+X&amp; operator =(const X&amp;); // copy assignment<br />
+X&amp; operator =(X&amp;&amp;); // move assignment<br />
+~X(); // destructor</p>
+<p>Note that the compiler does not actually *define* these (and thus trigger instantiation of std::list&#8217;s corresponding<br />
+member functions, which would *definitely* require the definition of C) until they are actually used. In other words, it doesn&#8217;t bite you here in the header, it bites the user of the class.</p>
+<p>std::ostream&amp; operator&lt;&lt;( std::ostream&amp; os, const X&amp; x ) {<br />
+    return x.print(os);<br />
+}</p>
+<p>As mentioned, this function needs to be inline to avoid ODR violations. Other than that, it only copies around references, so it doesn&#039;t need a full definition of ostream. Note that this would be different if any hierarchy conversions were going on.</p>
+<p>And this brings me to the two points I delayed.</p>
+<p>1) Covariance. If you have a virtual function that returns a reference or pointer to a class T, a derived class&#039;s override of the function can return a reference or pointer to a class S : public T instead. However, the compiler needs to actually know the classes are related. So in the above example, let&#039;s assume that g is virtual, and C only has a forward declaration (the list member is gone). Then I define a class Y:</p>
+<pre class="brush: plain; title: ; notranslate" title="">#include &quot;x.h&quot;
+
+class F; // derives from C
+
+class Y : public X {
+public:
+  F&amp; g(B) override; // error: compiler cannot establish relation between C and F
+};</pre>
+<p>If the code instead includes the header for F (which in turn has to include the header for C, because F derives from it), then the code is fine.</p>
+<p>2) Overloading. There are two versions of f, both taking an int as the first argument. The second argument is char* for one and C for the other. Now imagine C is incomplete. Then I have a class S, which has an implicit conversion to char*, and I call x.f(0, S()). Which version will it call? Well, obviously the char* version, because S can be converted to that, and there is no relationship between C and S &#8230;<br />
+&#8230; or is there? What if C, if it were fully defined, had a converting constructor from S? Then the second overload would be just as good as the first &#8211; and with just a small code modification (make f take a const char*), it could even be better!</p>
+<p>Unfortunately, I just scoured the standard for any indication on whether this is defined or undefined behavior, and as far as I can see, it&#039;s perfectly defined: if C is incomplete, the first overload will be called; if it is complete, the second. Only if the call is inside a template, not dependent and the completeness of C changes between the definition and instantiation of the template is the behavior undefined.</p>
+<p>The lesson here is: avoiding redundant includes is a good thing, but in some cases, you might want to include the header for a class even though your own header strictly doesn&#039;t need it, simply to avoid nasty surprises for the users of your class.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12268">
+		<div id="div-comment-12268">
+		<div class="cmtinfo"><em> on <a href="#comment-12268" title="">2013-08-20 at 11:37 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/01776284b7d24ba518a3811876e7fcd5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Bartosz Bielecki</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12268"></div><p>It&#8217;s unnecessary as it&#8217;s only used as a parameter and/or return value. Compiler doesn&#8217;t need to know their size. Only class members that are of type </p>
+<pre class="brush: plain; title: ; notranslate" title="">E</pre>
+<p> are required to be known, as their size is required to calculate the total size of the class.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12266">
+		<div id="div-comment-12266">
+		<div class="cmtinfo"><em> on <a href="#comment-12266" title="">2013-08-20 at 11:31 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/01776284b7d24ba518a3811876e7fcd5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Bartosz Bielecki</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12266"></div><p>It&#8217;s unecessary as it&#8217;s only used as a parameter and/or return value. Compiler doesn&#8217;t need to know their size. Only class members that are of type E are required to be known, as their size is required to calculate the total size of the class.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12263">
+		<div id="div-comment-12263">
+		<div class="cmtinfo"><em> on <a href="#comment-12263" title="">2013-08-20 at 7:57 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/2d039d25f4b02b7ed314d399a2494a16?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>khurshid</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12263"></div><p>I didn&#8217;t understand, why &#8220;e.h&#8221;  is unnecessary?<br />
+class X{   &#8230;..<br />
+E  h(E ) ; // here  definition of `E` needed or not ?  If not , why?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12258">
+		<div id="div-comment-12258">
+		<div class="cmtinfo"><em> on <a href="#comment-12258" title="">2013-08-20 at 12:24 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c1d8cb07e879e73849d78880f86f0591?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Juraj Blaho</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12258"></div><p>Is it worth avoiding inclusion of standard library headers (ostream in this case) when I can have them all in a precompiled header?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-12256">
+		<div id="div-comment-12256">
+		<div class="cmtinfo"><em> on <a href="#comment-12256" title="">2013-08-20 at 10:14 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/01776284b7d24ba518a3811876e7fcd5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Bartosz Bielecki</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12256"></div><p>Everything is fine but that doesn&#8217;t work that well for typedefs and templates (thankfully enum classes can be now forward declared). From my side I would add that it&#8217;s useful to create &#8220;x_fwd.hpp&#8221; files with all required typedefs. It requires some more work and keeping both files in sync, but it&#8217;s feasible. Templates can be nicely divided into two files, where one is a strict declaration, while the other file is the implementation. Impl. part you obviously want to use only in .cpp file.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12254">
+		<div id="div-comment-12254">
+		<div class="cmtinfo"><em> on <a href="#comment-12254" title="">2013-08-20 at 7:10 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/3d1378fea402c38478aded1efb3b5755?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>thokra</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12254"></div><p>BC: From where did X suddenly get a member function <code>to_string()</code>? Also, you cannot get completely rid of everything. At the very minimum you need the forward decl to let the compiler know that there actually is a type std::ostream &#8211; which is just a typedef:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+typedef basic_ostream&lt;char&gt; ostream;
+</pre>
+<p>The problem is the virtual function <code>X::print( std::ostream&amp; )</code>. If you could make a template member function out of that, it&#8217;d be fine &#8211; but you can&#8217;t because it&#8217;s virtual. Merely throwing the virtual function out is a crude design alteration and if there are classes that inhereit from x and override it, you&#8217;ll have completely unwanted side-effects. It&#8217;s not the case that base classes of X declare the virtual function, because <code></code> would have already been included in A.h.</p>
+<p>If it compiles anyway, it&#8217;s likely because the symbol is pulled from somewhere else &#8211; or because you simply thew out <code>X::print( std::ostream&amp; )</code>.</p>
+<p>Also, if you have a function that spits out a string representation of the class, why would you need a overload for operator&lt;&lt; ? You can feed the string to any ostream already.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-beanchung even thread-even depth-1 highlander-comment" id="comment-12248">
+		<div id="div-comment-12248">
+		<div class="cmtinfo"><em> on <a href="#comment-12248" title="">2013-08-19 at 11:49 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6e4a5f8b699fe85ef40485e69ec9296d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://beanchung.wordpress.com/' rel='external nofollow' class='url'>BC</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12248"></div><p>I have a trick to avoid both #include and forward declaration for the operator &lt;&lt;, but I am not sure whether it is good thing to do. Could you give some opinion?</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+template&lt;class OS&gt;
+OS&amp; operator&lt;&lt; (OS&amp; os, const X&amp; x)
+{
+	return ( os &lt;&lt; x.to_string() );
+}
+</pre>
+<p>By letting the compiler deduce the output stream type, both #include and forward declaration are avoided, and the operator is now more generic. I am not sure whether it is a good practice but it works for me anyway.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12235">
+		<div id="div-comment-12235">
+		<div class="cmtinfo"><em> on <a href="#comment-12235" title="">2013-08-19 at 4:17 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/3d1378fea402c38478aded1efb3b5755?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>thokra</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12235"></div><p>I&#8217;m aware that this isn&#8217;t the topic of this GotW, but one minor detail: shouldn&#8217;t <code>X(const C&amp;)</code> be declared explicit, since there is no obvious indication that, by design, C should be implicitly convertible to X? Doesn&#8217;t that go against the general coding guideline in C++ Coding Standards (Item 40)?</p>
+<p>More in regards to coding conventions, is there any reason why <code>clist</code> doesn&#8217;t have a trailing underscore?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/08/19/gotw-7a-solution-minimizing-compile-time-dependencies-part-1/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-ea14b457343ab84376a0b1d60e026081">
+	</div>
+	<div class="grofile-hash-map-e87b41d867be80e3e53096dfe0756230">
+	</div>
+	<div class="grofile-hash-map-233ccd6e23d5d64d480ac70fd4c09afa">
+	</div>
+	<div class="grofile-hash-map-f80eb98f480f76f5101cac3164474502">
+	</div>
+	<div class="grofile-hash-map-f2d485d809e88339a6f78e584ce760b3">
+	</div>
+	<div class="grofile-hash-map-f1634a09333f7b391db92e1d2bea6253">
+	</div>
+	<div class="grofile-hash-map-01776284b7d24ba518a3811876e7fcd5">
+	</div>
+	<div class="grofile-hash-map-2d039d25f4b02b7ed314d399a2494a16">
+	</div>
+	<div class="grofile-hash-map-c1d8cb07e879e73849d78880f86f0591">
+	</div>
+	<div class="grofile-hash-map-3d1378fea402c38478aded1efb3b5755">
+	</div>
+	<div class="grofile-hash-map-6e4a5f8b699fe85ef40485e69ec9296d">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_14055={"id":468178,"unique_id":"wp-comment-14055","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20GotW%20%237a%20Solution%3A%20Minimizing%20Compile-Time%20Dependencies%2C%20Part%201%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-14055","item_id":"_comm_14055"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14055 == 'undefined' ){PDRTJS_468178_comm_14055 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14055 );}}PDRTJS_settings_468178_comm_13049={"id":468178,"unique_id":"wp-comment-13049","title":"Catching%20up...%40Sebastian%3A%20I%20cover%20those%20in%20the%20other%20parts%2C%20but%20you%26%23039%3Bre%20right%20it%20would%20be%20easier%20to%20add%20a%20short%20note%20here.%20Done.%40bcs%3A%20The%20point%2C%20which%20I%26%23039%3Bve%20now%20clarified%2C%20is%20that%20the%20caller%20can%26%23039%3Bt%20...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-13049","item_id":"_comm_13049"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13049 == 'undefined' ){PDRTJS_468178_comm_13049 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13049 );}}PDRTJS_settings_468178_comm_12294={"id":468178,"unique_id":"wp-comment-12294","title":"Sebastians%20comment%20is%20truly%20excellent%2C%20Sutter%20should%20definitely%20consider%20incorporating%20these%20explanations%20into%20the%20solution....","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12294","item_id":"_comm_12294"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12294 == 'undefined' ){PDRTJS_468178_comm_12294 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12294 );}}PDRTJS_settings_468178_comm_12288={"id":468178,"unique_id":"wp-comment-12288","title":"Excellent%20comment%20Sebastian....","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12288","item_id":"_comm_12288"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12288 == 'undefined' ){PDRTJS_468178_comm_12288 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12288 );}}PDRTJS_settings_468178_comm_12279={"id":468178,"unique_id":"wp-comment-12279","title":"For%20solution%201%2C%20you%20might%20want%20to%20write%20%26%23091%3Bcode%26%23093%3Bclass%20widget%20%7B%20%2F%2F%20%26quot%3B%7B%26quot%3B%20means%20definitionpublic%3A%20%20%20%20widget%28%29%3B%20%20%20%20%2F%2F%20...%7D%3Bwidget%2A%20p%3B%20%20%20%20%20%2F%2F%20ok%3A%20allocs%20sizeof%28ptr%29%20space%20typed%20as%20widget%2Awidget...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12279","item_id":"_comm_12279"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12279 == 'undefined' ){PDRTJS_468178_comm_12279 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12279 );}}PDRTJS_settings_468178_comm_12277={"id":468178,"unique_id":"wp-comment-12277","title":"To%20me%20to%20have%20public%20member%20function%20that%20return%20incomplete%20type%20is%20actually%20a%20bad%20style%20and%20a%20bad%20habit.%20Because%20you%20will%20have%20to%20include%20the%20header%20for%20the%20return%20type%20anyway.%20It%20makes%20dependen...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12277","item_id":"_comm_12277"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12277 == 'undefined' ){PDRTJS_468178_comm_12277 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12277 );}}PDRTJS_settings_468178_comm_12276={"id":468178,"unique_id":"wp-comment-12276","title":"Yes%20technically%20you%20can%20replace%20%26quot%3Be.h%26quot%3B%20with%20%26quot%3Bclass%20E%3B%26quot%3B%20but%20that%20leads%20to%20the%20rather%20obnoxious%20situation%20where%20I%26%23039%3Bve%20included%20%26quot%3Bx.h%26quot%3B%20and%20then%20go%20try%20to%20use%20X%3A%3Ah%20and%20have%20to%20go%20track%20down%20which%20header...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12276","item_id":"_comm_12276"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12276 == 'undefined' ){PDRTJS_468178_comm_12276 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12276 );}}PDRTJS_settings_468178_comm_12271={"id":468178,"unique_id":"wp-comment-12271","title":"Given%20the%20boatload%20of%20wrong%20answers%20when%20you%20originally%20posted%20this%20question%2C%20and%20the%20lingering%20confusion%20now%2C%20it%20would%20have%20been%20a%20good%20idea%20to%20go%20through%20every%20use%20in%20more%20detail%20and%20document%20w...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12271","item_id":"_comm_12271"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12271 == 'undefined' ){PDRTJS_468178_comm_12271 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12271 );}}PDRTJS_settings_468178_comm_12268={"id":468178,"unique_id":"wp-comment-12268","title":"It%26%23039%3Bs%20unnecessary%20as%20it%26%23039%3Bs%20only%20used%20as%20a%20parameter%20and%2For%20return%20value.%20Compiler%20doesn%26%23039%3Bt%20need%20to%20know%20their%20size.%20Only%20class%20members%20that%20are%20of%20type%20%26%23091%3Bcode%26%23093%3BE%26%23091%3B%2Fcode%26%23093%3B%20are%20required%20to%20be%20known%2C%20as%20th...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12268","item_id":"_comm_12268"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12268 == 'undefined' ){PDRTJS_468178_comm_12268 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12268 );}}PDRTJS_settings_468178_comm_12266={"id":468178,"unique_id":"wp-comment-12266","title":"It%26%23039%3Bs%20unecessary%20as%20it%26%23039%3Bs%20only%20used%20as%20a%20parameter%20and%2For%20return%20value.%20Compiler%20doesn%26%23039%3Bt%20need%20to%20know%20their%20size.%20Only%20class%20members%20that%20are%20of%20type%20E%20are%20required%20to%20be%20known%2C%20as%20their%20size%20is%20re...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12266","item_id":"_comm_12266"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12266 == 'undefined' ){PDRTJS_468178_comm_12266 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12266 );}}PDRTJS_settings_468178_comm_12263={"id":468178,"unique_id":"wp-comment-12263","title":"I%20didn%26%23039%3Bt%20understand%2C%20why%20%26quot%3Be.h%26quot%3B%20%20is%20unnecessary%3F%20%20class%20X%7B%20%20%20.....%20%20%20%20E%20%20h%28E%20%29%20%3B%20%2F%2F%20here%20%20definition%20of%20%60E%60%20needed%20or%20not%20%3F%20%20If%20not%20%2C%20why%3F...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12263","item_id":"_comm_12263"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12263 == 'undefined' ){PDRTJS_468178_comm_12263 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12263 );}}PDRTJS_settings_468178_comm_12258={"id":468178,"unique_id":"wp-comment-12258","title":"Is%20it%20worth%20avoiding%20inclusion%20of%20standard%20library%20headers%20%28ostream%20in%20this%20case%29%20when%20I%20can%20have%20them%20all%20in%20a%20precompiled%20header%3F...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12258","item_id":"_comm_12258"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12258 == 'undefined' ){PDRTJS_468178_comm_12258 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12258 );}}PDRTJS_settings_468178_comm_12256={"id":468178,"unique_id":"wp-comment-12256","title":"Everything%20is%20fine%20but%20that%20doesn%26%23039%3Bt%20work%20that%20well%20for%20typedefs%20and%20templates%20%28thankfully%20enum%20classes%20can%20be%20now%20forward%20declared%29.%20From%20my%20side%20I%20would%20add%20that%20it%26%23039%3Bs%20useful%20to%20create%20%26quot%3Bx_fwd.hpp...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12256","item_id":"_comm_12256"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12256 == 'undefined' ){PDRTJS_468178_comm_12256 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12256 );}}PDRTJS_settings_468178_comm_12254={"id":468178,"unique_id":"wp-comment-12254","title":"BC%3A%20From%20where%20did%20X%20suddenly%20get%20a%20member%20function%20%26lt%3Bcode%26gt%3Bto_string%28%29%26lt%3B%2Fcode%26gt%3B%3F%20Also%2C%20you%20cannot%20get%20completely%20rid%20of%20everything.%20At%20the%20very%20minimum%20you%20need%20the%20forward%20decl%20to%20let%20the%20compiler%20...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12254","item_id":"_comm_12254"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12254 == 'undefined' ){PDRTJS_468178_comm_12254 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12254 );}}PDRTJS_settings_468178_comm_12248={"id":468178,"unique_id":"wp-comment-12248","title":"I%20have%20a%20trick%20to%20avoid%20both%20%23include%20and%20forward%20declaration%20for%20the%20operator%20%26lt%3B%26lt%3B%2C%20but%20I%20am%20not%20sure%20whether%20it%20is%20good%20thing%20to%20do.%20Could%20you%20give%20some%20opinion%3F%26%23091%3Bcode%26%23093%3Btemplate%26lt%3Bclass%20OS%26amp%3Bg...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12248","item_id":"_comm_12248"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12248 == 'undefined' ){PDRTJS_468178_comm_12248 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12248 );}}PDRTJS_settings_468178_comm_12235={"id":468178,"unique_id":"wp-comment-12235","title":"I%26%23039%3Bm%20aware%20that%20this%20isn%26%23039%3Bt%20the%20topic%20of%20this%20GotW%2C%20but%20one%20minor%20detail%3A%20shouldn%26%23039%3Bt%20%26lt%3Bcode%26gt%3BX%28const%20C%26amp%3B%29%26lt%3B%2Fcode%26gt%3B%20be%20declared%20explicit%2C%20since%20there%20is%20no%20obvious%20indication%20that%2C%20by%20design%2C%20C%20should...","permalink":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/#comment-12235","item_id":"_comm_12235"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12235 == 'undefined' ){PDRTJS_468178_comm_12235 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12235 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F08%2F19%2Fgotw-7a-solution-minimizing-compile-time-dependencies-part-1%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/08\/19\/gotw-7a-solution-minimizing-compile-time-dependencies-part-1\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F08%2F19%2Fgotw-7a-solution-minimizing-compile-time-dependencies-part-1%2F","postID":"2292","shortlink":"https:\/\/wp.me\/peb5Y-AY","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2292","statsLink":"https:\/\/wordpress.com\/stats\/post\/2292\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F08%2F19%2Fgotw-7a-solution-minimizing-compile-time-dependencies-part-1%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2292','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sN1VONE9GczNGJkhCfGxfSzIsTTFVZWlnc0ZuY2gxOWx5cjdVaF0/TFA5c0pUeHpGYS9pL1BFeTE1al1hcFZyLFM9JXNjM24tais1N1MlejRVRHl2X3lkbVQ9JVRibFdtQmJNN214clV3Qm0sN0xoazM/R1BPcyx8bU1oWzdGZCxSeVVDV1YlY2p4W1NiblZNdVssUXp4TGRTUjlwX1IzazguckpJSm5UflAuVkFsem1iUj1pOVkudEpCLUJIRH5bWHgzdDRT'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2292' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

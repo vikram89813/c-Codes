@@ -1,0 +1,1009 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #1 Solution: Variable Initialization – or Is It?	</title>
+	<atom:link href="https://herbsutter.com/2013/05/09/gotw-1-solution/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/05/09/gotw-1-solution/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: jonh				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-30645</link>
+		<dc:creator><![CDATA[jonh]]></dc:creator>
+		<pubDate>Fri, 24 Oct 2014 21:44:31 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-30645</guid>
+					<description><![CDATA[I believe I may have uncovered an uncomfortable interaction between the new C++11 uniform initialization syntax, and everybody&#039;s old friend, the preprocessor. When the preprocessor breaks down a macro argument list into individual argument tokens, it has special handling for commas which are embedded in parenthesis (so an entire function call is considered to be a single macro argument), whereas it doesn&#039;t do the same thing for braces. So a new-style initialization expression which takes more than one argument (i.e. has a comma in it) would appear to the preprocessor as multiple arguments to a macro.
+
+This listing demonstrates the problem (if you can ignore its many, many issues). I tested it MinGW/gcc -std=c++11 and with VS2013 cl.exe:
+
+[code]
+#include &#060;vector&#062;
+#include &#060;stdio.h&#062;
+
+
+// Show the first value of a std::vector&#060;int&#062;
+#define SHOW_VALUE(X_) \
+    SHOW_VALUE_(__FILE__, __LINE__, X_)
+
+#define SHOW_VALUE_(F_, L_, X_) \
+    (::printf( F_ &#034;:%u: &#034; #X_ &#034; = %u\n&#034;, L_, ((X_)[0]) ))
+
+
+int main() {
+    auto oldv = std::vector&#060;int&#062;(1, 2);
+    auto newv = std::vector&#060;int&#062;{1, 2};
+
+    SHOW_VALUE(oldv);
+    SHOW_VALUE(newv);
+    SHOW_VALUE(std::vector&#060;int&#062;(3, 4));
+//    SHOW_VALUE(std::vector&#060;int&#062;{3, 4}); //Oops: SHOW_VALUE() sees 2 arguments
+    SHOW_VALUE((std::vector&#060;int&#062;{3, 4})); //Clunky workaround for line above
+
+    return 0;
+}
+[/code]
+
+So in the commented out line, SHOW_VALUE() sees arguments of &#039;std::vector&#060;int&#038;gt{3&#039; and &#039;4}&#039;.
+
+&quot;Don&#039;t use macros&quot; aside, this example is pretty contrived, and nobody is likely to need to dump the value of an object literal in this manner. It&#039;s also possible to work around it by wrapping the literal in parentheses, so it&#039;s not world-ending. (It&#039;s also possible to build macro machinery to detect and remove parentheses from macro arguments with the C99 preprocessor, if necessary.)
+
+(Going off on a tangent, I find myself wandering if the best way to get a &#039;fix&#039; for this might be a proposal for the next C standard for the preprocessor to handle {,} in the same way it currently handles (,) -- that would allow you to pass multiple C array literals into a single macro for example, and would seem to be a strict extension to the current behaviour, as only variadic macros can process an array literal currently.)]]></description>
+		<content:encoded><![CDATA[<p>I believe I may have uncovered an uncomfortable interaction between the new C++11 uniform initialization syntax, and everybody&#8217;s old friend, the preprocessor. When the preprocessor breaks down a macro argument list into individual argument tokens, it has special handling for commas which are embedded in parenthesis (so an entire function call is considered to be a single macro argument), whereas it doesn&#8217;t do the same thing for braces. So a new-style initialization expression which takes more than one argument (i.e. has a comma in it) would appear to the preprocessor as multiple arguments to a macro.</p>
+<p>This listing demonstrates the problem (if you can ignore its many, many issues). I tested it MinGW/gcc -std=c++11 and with VS2013 cl.exe:</p>
+<pre class="brush: plain; title: ; notranslate">
+#include &lt;vector&gt;
+#include &lt;stdio.h&gt;
+
+
+// Show the first value of a std::vector&lt;int&gt;
+#define SHOW_VALUE(X_) \
+    SHOW_VALUE_(__FILE__, __LINE__, X_)
+
+#define SHOW_VALUE_(F_, L_, X_) \
+    (::printf( F_ &quot;:%u: &quot; #X_ &quot; = %u\n&quot;, L_, ((X_)[0]) ))
+
+
+int main() {
+    auto oldv = std::vector&lt;int&gt;(1, 2);
+    auto newv = std::vector&lt;int&gt;{1, 2};
+
+    SHOW_VALUE(oldv);
+    SHOW_VALUE(newv);
+    SHOW_VALUE(std::vector&lt;int&gt;(3, 4));
+//    SHOW_VALUE(std::vector&lt;int&gt;{3, 4}); //Oops: SHOW_VALUE() sees 2 arguments
+    SHOW_VALUE((std::vector&lt;int&gt;{3, 4})); //Clunky workaround for line above
+
+    return 0;
+}
+</pre>
+<p>So in the commented out line, SHOW_VALUE() sees arguments of &#8216;std::vector&lt;int&amp;gt{3&#8217; and &#8216;4}&#8217;.</p>
+<p>&#8220;Don&#8217;t use macros&#8221; aside, this example is pretty contrived, and nobody is likely to need to dump the value of an object literal in this manner. It&#8217;s also possible to work around it by wrapping the literal in parentheses, so it&#8217;s not world-ending. (It&#8217;s also possible to build macro machinery to detect and remove parentheses from macro arguments with the C99 preprocessor, if necessary.)</p>
+<p>(Going off on a tangent, I find myself wandering if the best way to get a &#8216;fix&#8217; for this might be a proposal for the next C standard for the preprocessor to handle {,} in the same way it currently handles (,) &#8212; that would allow you to pass multiple C array literals into a single macro for example, and would seem to be a strict extension to the current behaviour, as only variadic macros can process an array literal currently.)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mike Fotta				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-24884</link>
+		<dc:creator><![CDATA[Mike Fotta]]></dc:creator>
+		<pubDate>Wed, 20 Aug 2014 18:45:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-24884</guid>
+					<description><![CDATA[in a) &quot;Note that w is not initialized and contains garbage values if widget happens to be a built-in type like int&quot;...
+
+Depends on where w is declared (for example, what if it is global).  Not trying to be picky, but if someone does not already know the answer to a, then they probably also do not know the rules of initialized vs uninitialized for those cases.]]></description>
+		<content:encoded><![CDATA[<p>in a) &#8220;Note that w is not initialized and contains garbage values if widget happens to be a built-in type like int&#8221;&#8230;</p>
+<p>Depends on where w is declared (for example, what if it is global).  Not trying to be picky, but if someone does not already know the answer to a, then they probably also do not know the rules of initialized vs uninitialized for those cases.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Uniform initialization ain&#8217;t so uniform &#124; Colourful++				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-14594</link>
+		<dc:creator><![CDATA[Uniform initialization ain&#8217;t so uniform &#124; Colourful++]]></dc:creator>
+		<pubDate>Thu, 06 Feb 2014 04:45:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-14594</guid>
+					<description><![CDATA[[&#8230;] GotW #1 Solution: Variable Initialization – or Is It? &#124; Sutter’s Mill [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] GotW #1 Solution: Variable Initialization – or Is It? | Sutter’s Mill [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Kirill Prazdnikov				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-13394</link>
+		<dc:creator><![CDATA[Kirill Prazdnikov]]></dc:creator>
+		<pubDate>Sun, 24 Nov 2013 19:18:07 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-13394</guid>
+					<description><![CDATA[Hi, I`m trying to understand this:
+ widget w = x;               // (f)
+You have commented that:  
+ &#062;&#062; If x is of some other type, .... Assuming that an implicit conversion is available, (f) means the same as widget w( widget(x) );. 
+I do not understand why ? I wrote a test using VS 2013 and found that it invokes only one constructor (and it`s this pointed to the x) :
+
+struct widget {
+  widget(int) {
+    cout &#060;&#060; &#034;widget(int)\n&#034;;
+  }
+
+  widget(const widget &#038;) {
+    cout &#060;&#060; &#034;widget(int)\n&#034;;
+  }
+};
+
+widget x = 5;
+
+What am I doing wrong ? 
+
+ Thanks]]></description>
+		<content:encoded><![CDATA[<p>Hi, I`m trying to understand this:<br />
+ widget w = x;               // (f)<br />
+You have commented that:<br />
+ &gt;&gt; If x is of some other type, &#8230;. Assuming that an implicit conversion is available, (f) means the same as widget w( widget(x) );.<br />
+I do not understand why ? I wrote a test using VS 2013 and found that it invokes only one constructor (and it`s this pointed to the x) :</p>
+<p>struct widget {<br />
+  widget(int) {<br />
+    cout &lt;&lt; &quot;widget(int)\n&quot;;<br />
+  }</p>
+<p>  widget(const widget &amp;) {<br />
+    cout &lt;&lt; &quot;widget(int)\n&quot;;<br />
+  }<br />
+};</p>
+<p>widget x = 5;</p>
+<p>What am I doing wrong ? </p>
+<p> Thanks</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mald				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-12764</link>
+		<dc:creator><![CDATA[Mald]]></dc:creator>
+		<pubDate>Thu, 26 Sep 2013 01:21:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-12764</guid>
+					<description><![CDATA[Just want to thank you Herb for your GotW articles. Your explanations by example has really helped me. I have a question that is related to Copy Constructors and c++11. I was making a class recently and I was writing the copy constructor for it. I realized that it was basically a duplicate of the explicit normal constructor that I just wrote. Fortunately c++11 allows constructors to call peer constructors using delegation. So could I just have my copy constructor call my explicit normal constructor? Is this acceptable?]]></description>
+		<content:encoded><![CDATA[<p>Just want to thank you Herb for your GotW articles. Your explanations by example has really helped me. I have a question that is related to Copy Constructors and c++11. I was making a class recently and I was writing the copy constructor for it. I realized that it was basically a duplicate of the explicit normal constructor that I just wrote. Fortunately c++11 allows constructors to call peer constructors using delegation. So could I just have my copy constructor call my explicit normal constructor? Is this acceptable?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-12067</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sun, 28 Jul 2013 16:53:55 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-12067</guid>
+					<description><![CDATA[@Anubhav: Yes, the first bullet does apply, but the invoked constructor may be trivial. References to N3690 (current draft): 8.5/12: &quot;If no initializer is specified for an object, the object is default-initialized...&quot;. Which takes us to: 8.5/7: &quot;if T is a (possibly cv-qualified) class type... the default constructor (12.1) for T is called...&quot;. If widget is a class type, which can still be trivial or int-like, this takes us to: 12.1/4 which says that &quot;... the default constructor is trivial&quot; if the list I mentioned in 1(a) is satisfied. So yes, a constructor is called, but it may be trivial and have no effect. When construction is trivial, the language also allows you to access members before the constructor runs, goto past a local variable&#039;s initialization, and such.]]></description>
+		<content:encoded><![CDATA[<p>@Anubhav: Yes, the first bullet does apply, but the invoked constructor may be trivial. References to N3690 (current draft): 8.5/12: &#8220;If no initializer is specified for an object, the object is default-initialized&#8230;&#8221;. Which takes us to: 8.5/7: &#8220;if T is a (possibly cv-qualified) class type&#8230; the default constructor (12.1) for T is called&#8230;&#8221;. If widget is a class type, which can still be trivial or int-like, this takes us to: 12.1/4 which says that &#8220;&#8230; the default constructor is trivial&#8221; if the list I mentioned in 1(a) is satisfied. So yes, a constructor is called, but it may be trivial and have no effect. When construction is trivial, the language also allows you to access members before the constructor runs, goto past a local variable&#8217;s initialization, and such.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Anubhav				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-12063</link>
+		<dc:creator><![CDATA[Anubhav]]></dc:creator>
+		<pubDate>Sun, 28 Jul 2013 05:57:00 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-12063</guid>
+					<description><![CDATA[In 1 (a), is it totally correct to say &#039;Note that w is not initialized...&#039; for the case of a trivial class? $8.5/6 third bullet does not apply to this case  (the first bullet applies) and hence I think that initialization is performed.]]></description>
+		<content:encoded><![CDATA[<p>In 1 (a), is it totally correct to say &#8216;Note that w is not initialized&#8230;&#8217; for the case of a trivial class? $8.5/6 third bullet does not apply to this case  (the first bullet applies) and hence I think that initialization is performed.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Anubhav				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-12062</link>
+		<dc:creator><![CDATA[Anubhav]]></dc:creator>
+		<pubDate>Sun, 28 Jul 2013 05:53:43 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-12062</guid>
+					<description><![CDATA[In 1 (a) default initialization, is it correct to say &#039;Note that w is not initialized...&#039;. when the type involved in a trivial class type? $8.5/6 third bullet does not apply to this case, and hence it appears that &#039;..is not initialized&#039; is not totally correct.]]></description>
+		<content:encoded><![CDATA[<p>In 1 (a) default initialization, is it correct to say &#8216;Note that w is not initialized&#8230;&#8217;. when the type involved in a trivial class type? $8.5/6 third bullet does not apply to this case, and hence it appears that &#8216;..is not initialized&#8217; is not totally correct.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: dengos (@Cheng_Wer)				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-11016</link>
+		<dc:creator><![CDATA[dengos (@Cheng_Wer)]]></dc:creator>
+		<pubDate>Thu, 06 Jun 2013 13:15:43 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-11016</guid>
+					<description><![CDATA[@Seungbum Woo  @Herb Sutter
+Just for curious, i check Seungbum&#039;s code under archlinux_64, g++4.8.1
+&lt;code&gt;
+F(const vector &#038;vv) : v{vv} { ... }   // #1
+...
+
+main()
+{
+    ...
+    F f{a};   // #2
+    f.test();  // #3
+}
+
+&lt;/code&gt;
+by initialization v in {} way(#1), the output will be:
+
+2
+[1]    8742 segmentation fault (core dumped)  ./a.out
+
+gdb a.out turn out that, after execution of #2, the f object in memory look like this:
+
+(gdb) p f
+$1 = {v = std::vector of length 2, capacity 2 = {0, 0}}
+
+but still can&#039;t figure out why the segmentation fault.]]></description>
+		<content:encoded><![CDATA[<p>@Seungbum Woo  @Herb Sutter<br />
+Just for curious, i check Seungbum&#8217;s code under archlinux_64, g++4.8.1<br />
+<code><br />
+F(const vector &amp;vv) : v{vv} { ... }   // #1<br />
+...</p>
+<p>main()<br />
+{<br />
+    ...<br />
+    F f{a};   // #2<br />
+    f.test();  // #3<br />
+}</p>
+<p></code><br />
+by initialization v in {} way(#1), the output will be:</p>
+<p>2<br />
+[1]    8742 segmentation fault (core dumped)  ./a.out</p>
+<p>gdb a.out turn out that, after execution of #2, the f object in memory look like this:</p>
+<p>(gdb) p f<br />
+$1 = {v = std::vector of length 2, capacity 2 = {0, 0}}</p>
+<p>but still can&#8217;t figure out why the segmentation fault.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10922</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Wed, 05 Jun 2013 13:24:23 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10922</guid>
+					<description><![CDATA[@Laurent: Consider T{x} -- that&#039;s the same as T(x) except that the former doesn&#039;t allow narrowing and does prefer initializer_lists if any, so T(x) and T{x} are both semantically a function-style cast to T, if x is not of type T or derived from T.]]></description>
+		<content:encoded><![CDATA[<p>@Laurent: Consider T{x} &#8212; that&#8217;s the same as T(x) except that the former doesn&#8217;t allow narrowing and does prefer initializer_lists if any, so T(x) and T{x} are both semantically a function-style cast to T, if x is not of type T or derived from T.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Laurent L.				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10903</link>
+		<dc:creator><![CDATA[Laurent L.]]></dc:creator>
+		<pubDate>Wed, 05 Jun 2013 05:20:38 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10903</guid>
+					<description><![CDATA[Herb,
+
+I looked a bit into N3651 (variable templates, revision 1) and something shocked me when I read the first example - template definition of the pi constant. The first thing I thought about was &quot;Hey! This must be an old paper, they&#039;re not using {}-initialization.&quot; But then, I thought again, and saw that it was on purpose. And I thought about this a little more, and exclaimed &quot;Hey! For any type T, the single-parametered syntax T(x) now uniformly means something different than it used to, doesn&#039;t it?&quot;
+
+Since you&#039;re saying that {} should be preferred in nearly all cases, I think C++11 now has two syntaxes for two different concepts:
+- T{x, y, z, ....} uniformly means initialization.
+- T(x) uniformly means &quot;convert x to T&quot;.
+
+Am I wrong? Any thoughts?]]></description>
+		<content:encoded><![CDATA[<p>Herb,</p>
+<p>I looked a bit into N3651 (variable templates, revision 1) and something shocked me when I read the first example &#8211; template definition of the pi constant. The first thing I thought about was &#8220;Hey! This must be an old paper, they&#8217;re not using {}-initialization.&#8221; But then, I thought again, and saw that it was on purpose. And I thought about this a little more, and exclaimed &#8220;Hey! For any type T, the single-parametered syntax T(x) now uniformly means something different than it used to, doesn&#8217;t it?&#8221;</p>
+<p>Since you&#8217;re saying that {} should be preferred in nearly all cases, I think C++11 now has two syntaxes for two different concepts:<br />
+&#8211; T{x, y, z, &#8230;.} uniformly means initialization.<br />
+&#8211; T(x) uniformly means &#8220;convert x to T&#8221;.</p>
+<p>Am I wrong? Any thoughts?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Seungbum Woo				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10199</link>
+		<dc:creator><![CDATA[Seungbum Woo]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 21:14:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10199</guid>
+					<description><![CDATA[I am using GCC 4.8.1 under Windows7 ( using MinGW-w64 )   I am using an experimental version of MinGW-w64 for its std::thread support.  I should try MinGW-w64&#039;s released version.
+
+I confirmed that VC++ 2012 Nov CTP works fine with v{vv}.
+
+Thank you for your answer.]]></description>
+		<content:encoded><![CDATA[<p>I am using GCC 4.8.1 under Windows7 ( using MinGW-w64 )   I am using an experimental version of MinGW-w64 for its std::thread support.  I should try MinGW-w64&#8217;s released version.</p>
+<p>I confirmed that VC++ 2012 Nov CTP works fine with v{vv}.</p>
+<p>Thank you for your answer.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10196</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Fri, 17 May 2013 20:33:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10196</guid>
+					<description><![CDATA[@Seungbum Woo: Looks like a compiler bug. What compiler and environment are you using?
+
+I just tried:
+
+- GCC 4.8 and VC++ 2012 Nov CTP which both like it;
+
+- GCC 4.7.2 which thinks F f{a}; is illegal; and
+
+- Intel ICC 13.0.1 which thinks v{vv} is illegal.
+
+I believe GCC 4.8 and VC++ 2012 Nov CTP have it right.]]></description>
+		<content:encoded><![CDATA[<p>@Seungbum Woo: Looks like a compiler bug. What compiler and environment are you using?</p>
+<p>I just tried:</p>
+<p>&#8211; GCC 4.8 and VC++ 2012 Nov CTP which both like it;</p>
+<p>&#8211; GCC 4.7.2 which thinks F f{a}; is illegal; and</p>
+<p>&#8211; Intel ICC 13.0.1 which thinks v{vv} is illegal.</p>
+<p>I believe GCC 4.8 and VC++ 2012 Nov CTP have it right.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Seungbum Woo				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10153</link>
+		<dc:creator><![CDATA[Seungbum Woo]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 22:33:08 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10153</guid>
+					<description><![CDATA[[code]
+#include &#060;iostream&#062;
+#include &#060;vector&#062;
+using namespace std;
+
+class F {
+public:
+    F(const vector&#060;int&#062;&#038; vv) :v{vv} { cout &#060;&#060; v[0] &#060;&#060; endl; }
+    void test() { cout &#060;&#060; v[0] &#060;&#060; endl; }
+private:
+    const vector&#060;int&#062;&#038; v;
+};
+
+int main()
+{
+    vector&#060;int&#062; a {2,3};
+    F f {a};
+    f.test();
+}
+[/code]
+
+The output of this is
+2 
+garbage
+
+if I change the F constructor to
+[code]
+     F(const vector&#060;int&#062;&#038; vv) :v(vv) { cout &#060;&#060; v[0] &#060;&#060; endl; }
+[/code]
+
+The output is correct as expected :
+2
+2
+
+Why does the first one with {} not work as expected?   Thanks!]]></description>
+		<content:encoded><![CDATA[<pre class="brush: plain; title: ; notranslate">
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+class F {
+public:
+    F(const vector&lt;int&gt;&amp; vv) :v{vv} { cout &lt;&lt; v[0] &lt;&lt; endl; }
+    void test() { cout &lt;&lt; v[0] &lt;&lt; endl; }
+private:
+    const vector&lt;int&gt;&amp; v;
+};
+
+int main()
+{
+    vector&lt;int&gt; a {2,3};
+    F f {a};
+    f.test();
+}
+</pre>
+<p>The output of this is<br />
+2<br />
+garbage</p>
+<p>if I change the F constructor to</p>
+<pre class="brush: plain; title: ; notranslate">
+     F(const vector&lt;int&gt;&amp; vv) :v(vv) { cout &lt;&lt; v[0] &lt;&lt; endl; }
+</pre>
+<p>The output is correct as expected :<br />
+2<br />
+2</p>
+<p>Why does the first one with {} not work as expected?   Thanks!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: C++&#039;s most vexing parse again &#124; BlogoSfera				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10150</link>
+		<dc:creator><![CDATA[C++&#039;s most vexing parse again &#124; BlogoSfera]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 22:02:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10150</guid>
+					<description><![CDATA[[&#8230;] Taken directly from https://herbsutter.com/2013/05/09/gotw-1-solution/ [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Taken directly from <a href="https://herbsutter.com/2013/05/09/gotw-1-solution/" rel="nofollow">https://herbsutter.com/2013/05/09/gotw-1-solution/</a> [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10115</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 14:14:07 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10115</guid>
+					<description><![CDATA[@Alexey, @Daryle: I was trying to talk about just normal class types and avoid getting into types with trivial default constructors (and terms like &quot;defaulted default constructor&quot; that appear in the standard), but since there have been several comments about that you&#039;ve convinced me that I should. I&#039;ve updated the descriptions of (a) and (c) to talk about that. (I think the actual wording wanted in this context is not that it&#039;s a &quot;trivial type&quot; but rather that it&#039;s a &quot;type with a trivial default constructor&quot; -- the two are basically the same thing except &quot;trivial type&quot; additionally means trivially copyable, or bit-copyable, and all that applies here is the trivial default constructibility.)]]></description>
+		<content:encoded><![CDATA[<p>@Alexey, @Daryle: I was trying to talk about just normal class types and avoid getting into types with trivial default constructors (and terms like &#8220;defaulted default constructor&#8221; that appear in the standard), but since there have been several comments about that you&#8217;ve convinced me that I should. I&#8217;ve updated the descriptions of (a) and (c) to talk about that. (I think the actual wording wanted in this context is not that it&#8217;s a &#8220;trivial type&#8221; but rather that it&#8217;s a &#8220;type with a trivial default constructor&#8221; &#8212; the two are basically the same thing except &#8220;trivial type&#8221; additionally means trivially copyable, or bit-copyable, and all that applies here is the trivial default constructibility.)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: billbasher				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10113</link>
+		<dc:creator><![CDATA[billbasher]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 10:52:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10113</guid>
+					<description><![CDATA[Found it :)
+
+12.6.1 Explicit initialization
+
+At the end of the example it says explicitly:
+
+&quot; [ Note: overloading of the assignment operator (13.5.3) has no eﬀect on initialization. — end
+note ]&quot;]]></description>
+		<content:encoded><![CDATA[<p>Found it :)</p>
+<p>12.6.1 Explicit initialization</p>
+<p>At the end of the example it says explicitly:</p>
+<p>&#8221; [ Note: overloading of the assignment operator (13.5.3) has no eﬀect on initialization. — end<br />
+note ]&#8221;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Daryle Walker				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10108</link>
+		<dc:creator><![CDATA[Daryle Walker]]></dc:creator>
+		<pubDate>Thu, 16 May 2013 04:45:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10108</guid>
+					<description><![CDATA[Whoa, cases 1a and 1c are not exactly the same.  If the type is considered trivial, i.e. can have a code-less definition, then 1a will leave the object with random garbage bits.  If such types are used like 1c, then value-initialization happens and the object is set to zero (if scalar) or recursively value-initialized (if composite).  The format for 1a is called default-initialization.  If the type is a class-type with a code-ful default construction policy (i.e. not trivial), then default-initialization will secretly call value-initialization instead, and that&#039;s the only time where the two declarations are the same.]]></description>
+		<content:encoded><![CDATA[<p>Whoa, cases 1a and 1c are not exactly the same.  If the type is considered trivial, i.e. can have a code-less definition, then 1a will leave the object with random garbage bits.  If such types are used like 1c, then value-initialization happens and the object is set to zero (if scalar) or recursively value-initialized (if composite).  The format for 1a is called default-initialization.  If the type is a class-type with a code-ful default construction policy (i.e. not trivial), then default-initialization will secretly call value-initialization instead, and that&#8217;s the only time where the two declarations are the same.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: litb1				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10079</link>
+		<dc:creator><![CDATA[litb1]]></dc:creator>
+		<pubDate>Tue, 14 May 2013 21:51:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10079</guid>
+					<description><![CDATA[It should be mentioned at least in one of these comments that
+
+    widget w ();
+
+Is not a vexing parse. In the grammar it can only be a function declaration. Just to the human reader it might be ambiguous as to what it means (but so might some of the brace initialization scenarios aswell).]]></description>
+		<content:encoded><![CDATA[<p>It should be mentioned at least in one of these comments that</p>
+<p>    widget w ();</p>
+<p>Is not a vexing parse. In the grammar it can only be a function declaration. Just to the human reader it might be ambiguous as to what it means (but so might some of the brace initialization scenarios aswell).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: nosenseetal				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10073</link>
+		<dc:creator><![CDATA[nosenseetal]]></dc:creator>
+		<pubDate>Tue, 14 May 2013 16:26:06 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10073</guid>
+					<description><![CDATA[Herb in your auto GotW dont forget to mention that auto doesnt mean that type is the same as what function returns, aka
+const std::string&#038; MyClass::blah()
+auto s = mc.blah() // s is a string, not string ref]]></description>
+		<content:encoded><![CDATA[<p>Herb in your auto GotW dont forget to mention that auto doesnt mean that type is the same as what function returns, aka<br />
+const std::string&amp; MyClass::blah()<br />
+auto s = mc.blah() // s is a string, not string ref</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: litb1				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10068</link>
+		<dc:creator><![CDATA[litb1]]></dc:creator>
+		<pubDate>Tue, 14 May 2013 13:56:12 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10068</guid>
+					<description><![CDATA[There is also another form of initialization
+
+    widget w({x});
+
+Which is valid only for classes, and calls directly the constructors, with &quot;{x}&quot; as argument.]]></description>
+		<content:encoded><![CDATA[<p>There is also another form of initialization</p>
+<p>    widget w({x});</p>
+<p>Which is valid only for classes, and calls directly the constructors, with &#8220;{x}&#8221; as argument.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: billbasher				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10038</link>
+		<dc:creator><![CDATA[billbasher]]></dc:creator>
+		<pubDate>Mon, 13 May 2013 19:03:08 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10038</guid>
+					<description><![CDATA[Does anybody mind to quote the standard on why widget w = x; does not invoke the assignment operator?]]></description>
+		<content:encoded><![CDATA[<p>Does anybody mind to quote the standard on why widget w = x; does not invoke the assignment operator?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adrian				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10030</link>
+		<dc:creator><![CDATA[Adrian]]></dc:creator>
+		<pubDate>Mon, 13 May 2013 15:58:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10030</guid>
+					<description><![CDATA[Much better font.  Thank you.]]></description>
+		<content:encoded><![CDATA[<p>Much better font.  Thank you.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: litb1				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-10004</link>
+		<dc:creator><![CDATA[litb1]]></dc:creator>
+		<pubDate>Mon, 13 May 2013 09:05:12 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-10004</guid>
+					<description><![CDATA[It is remarkable that a difference between f and g is that copy list initialization does not prevent an explicit constructor to be selected. However if one is chosen, the program becomes illformed. This too was done as a safety feature, to prevent a less matching implicit constructor becoming selected.
+
+You have a vexing error where you are saying that the following is an initialization. It is actually a function declaration
+
+    widget w ( widget (x) );]]></description>
+		<content:encoded><![CDATA[<p>It is remarkable that a difference between f and g is that copy list initialization does not prevent an explicit constructor to be selected. However if one is chosen, the program becomes illformed. This too was done as a safety feature, to prevent a less matching implicit constructor becoming selected.</p>
+<p>You have a vexing error where you are saying that the following is an initialization. It is actually a function declaration</p>
+<p>    widget w ( widget (x) );</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9991</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sat, 11 May 2013 21:16:31 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9991</guid>
+					<description><![CDATA[Re fonts: OK, how&#039;s this one?]]></description>
+		<content:encoded><![CDATA[<p>Re fonts: OK, how&#8217;s this one?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: kerry				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9994</link>
+		<dc:creator><![CDATA[kerry]]></dc:creator>
+		<pubDate>Sat, 11 May 2013 20:23:04 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9994</guid>
+					<description><![CDATA[std::array has no constructor, so you need either double braces or = init syntax(c initialization).  atleast thats what i remember.]]></description>
+		<content:encoded><![CDATA[<p>std::array has no constructor, so you need either double braces or = init syntax(c initialization).  atleast thats what i remember.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9993</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sat, 11 May 2013 19:59:59 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9993</guid>
+					<description><![CDATA[@kerry: Why do you think std::array needs = init syntax?]]></description>
+		<content:encoded><![CDATA[<p>@kerry: Why do you think std::array needs = init syntax?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: kerry				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9992</link>
+		<dc:creator><![CDATA[kerry]]></dc:creator>
+		<pubDate>Sat, 11 May 2013 19:11:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9992</guid>
+					<description><![CDATA[I think you should also mention that std::array has to be initialized with &#039;=&#039; sign.]]></description>
+		<content:encoded><![CDATA[<p>I think you should also mention that std::array has to be initialized with &#8216;=&#8217; sign.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adrian				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9989</link>
+		<dc:creator><![CDATA[Adrian]]></dc:creator>
+		<pubDate>Sat, 11 May 2013 14:49:54 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9989</guid>
+					<description><![CDATA[Seriously, we need a different font on this blog so that it&#039;s _much_ easier to distinguish between () and {}.]]></description>
+		<content:encoded><![CDATA[<p>Seriously, we need a different font on this blog so that it&#8217;s _much_ easier to distinguish between () and {}.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Matt				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9979</link>
+		<dc:creator><![CDATA[Matt]]></dc:creator>
+		<pubDate>Sat, 11 May 2013 04:01:45 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9979</guid>
+					<description><![CDATA[I don&#039;t grok the standard&#039;s need for any ambiguity here.
+
+Perhaps someone can explain why something along the following lines was not adopted as standard?:
+ 
+// Try to match a constructor then try to promote to a constructor arg.
+vector v = { {a, b, c} }; // (1) Match a list constructor inside a vector constructor.
+vector v = { a, b, c}; // (2) No constructor, match an arg ( eg list ) constructor to then promote.
+
+// (3) Constructor match with arguments a, b, c only.
+vector v { a,b,c};
+
+// (4) Construct an arg ( ie list in this case) then a vector only.  
+vector v { {a,b,c} };
+
+To me it is more elegant, logical, uniform. (2) is not optimal, but the non-assign syntax suggested above gives you more explicit worry-free control. Can anyone enlighten me as to the reasoning?]]></description>
+		<content:encoded><![CDATA[<p>I don&#8217;t grok the standard&#8217;s need for any ambiguity here.</p>
+<p>Perhaps someone can explain why something along the following lines was not adopted as standard?:</p>
+<p>// Try to match a constructor then try to promote to a constructor arg.<br />
+vector v = { {a, b, c} }; // (1) Match a list constructor inside a vector constructor.<br />
+vector v = { a, b, c}; // (2) No constructor, match an arg ( eg list ) constructor to then promote.</p>
+<p>// (3) Constructor match with arguments a, b, c only.<br />
+vector v { a,b,c};</p>
+<p>// (4) Construct an arg ( ie list in this case) then a vector only.<br />
+vector v { {a,b,c} };</p>
+<p>To me it is more elegant, logical, uniform. (2) is not optimal, but the non-assign syntax suggested above gives you more explicit worry-free control. Can anyone enlighten me as to the reasoning?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9965</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Fri, 10 May 2013 16:39:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9965</guid>
+					<description><![CDATA[@Tomek: I don&#039;t know of a concrete proposal, though it&#039;s sometimes discussed. This overlaps with C99-style designated initializers somewhat.]]></description>
+		<content:encoded><![CDATA[<p>@Tomek: I don&#8217;t know of a concrete proposal, though it&#8217;s sometimes discussed. This overlaps with C99-style designated initializers somewhat.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9964</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Fri, 10 May 2013 16:27:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9964</guid>
+					<description><![CDATA[@praetorian20, @pepper_chico: You&#039;re right, I&#039;ve split out (g) to try to make this more accurate and clear. Thanks!]]></description>
+		<content:encoded><![CDATA[<p>@praetorian20, @pepper_chico: You&#8217;re right, I&#8217;ve split out (g) to try to make this more accurate and clear. Thanks!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michal Mocny				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9963</link>
+		<dc:creator><![CDATA[Michal Mocny]]></dc:creator>
+		<pubDate>Fri, 10 May 2013 15:59:45 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9963</guid>
+					<description><![CDATA[@Herb Regarding multiple returns using tuple, I&#039;ve tried to play with this before, but find dealing with tuples directly quite excruciating.  The new std::get() syntax may help a little, but I really only enjoy using tuple returns when combined with std::tie at the call site, and std::tie cannot currently be used with auto inferred types.
+
+How much chance for success is there for a proposal such as:
+
+auto a, b;
+std::tie(a,b) = foo();
+
+i.e. supporting *very* delayed type deduction?]]></description>
+		<content:encoded><![CDATA[<p>@Herb Regarding multiple returns using tuple, I&#8217;ve tried to play with this before, but find dealing with tuples directly quite excruciating.  The new std::get() syntax may help a little, but I really only enjoy using tuple returns when combined with std::tie at the call site, and std::tie cannot currently be used with auto inferred types.</p>
+<p>How much chance for success is there for a proposal such as:</p>
+<p>auto a, b;<br />
+std::tie(a,b) = foo();</p>
+<p>i.e. supporting *very* delayed type deduction?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michal Mocny				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9962</link>
+		<dc:creator><![CDATA[Michal Mocny]]></dc:creator>
+		<pubDate>Fri, 10 May 2013 15:53:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9962</guid>
+					<description><![CDATA[@Herb Thanks.  I really like that style, actually.  I&#039;m going to try to use it for a while and see where that takes me.
+
+However, I am already wishing auto could be used to declare multiple different deduced types per comma separated list of variable declarations, such as:
+
+auto v = vector{1,2,3}, l = list{1,2,3}, i = int{1}; // int{1} may be overkill
+
+This style of using c++ with auto feels yet closer to the comfort of using a dynamic language.  huzzah!]]></description>
+		<content:encoded><![CDATA[<p>@Herb Thanks.  I really like that style, actually.  I&#8217;m going to try to use it for a while and see where that takes me.</p>
+<p>However, I am already wishing auto could be used to declare multiple different deduced types per comma separated list of variable declarations, such as:</p>
+<p>auto v = vector{1,2,3}, l = list{1,2,3}, i = int{1}; // int{1} may be overkill</p>
+<p>This style of using c++ with auto feels yet closer to the comfort of using a dynamic language.  huzzah!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9961</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Fri, 10 May 2013 15:47:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9961</guid>
+					<description><![CDATA[@Jay, @tr3w: Thanks for the example. I&#039;ve added this to my notes to research further.
+
+@jd: Bingo, you&#039;ve discovered C++&#039;s new multiple return values feature: return a tuple. In Portland we said we intended to change tuple&#039;s constructor to not be explicit, which means that return { 1, 3.14, &quot;xyzzy&quot; }; would work, but I didn&#039;t I didn&#039;t check yet though whether that got moved and approved in Bristol.]]></description>
+		<content:encoded><![CDATA[<p>@Jay, @tr3w: Thanks for the example. I&#8217;ve added this to my notes to research further.</p>
+<p>@jd: Bingo, you&#8217;ve discovered C++&#8217;s new multiple return values feature: return a tuple. In Portland we said we intended to change tuple&#8217;s constructor to not be explicit, which means that return { 1, 3.14, &#8220;xyzzy&#8221; }; would work, but I didn&#8217;t I didn&#8217;t check yet though whether that got moved and approved in Bristol.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9959</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Fri, 10 May 2013 14:22:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9959</guid>
+					<description><![CDATA[@Michal: I didn&#039;t want to freak people out with too much pushing of the proposed new &quot;auto v = vector{ 1, 2, 3, 4 };&quot; style, in part because it&#039;s new and in part because I didn&#039;t thoroughly motivate it in this GotW -- that would have been a distraction and I plan to write another GotW that is all about auto. So in the (h) discussion I limited myself to encouraging readers to try it, and left it out of the final Guideline.
+
+But since you mention it, I&#039;ve now added the &quot;auto x =&quot; form along with the more-traditional variable declaration form to the Guideline. Let&#039;s see how many people freak out. :)]]></description>
+		<content:encoded><![CDATA[<p>@Michal: I didn&#8217;t want to freak people out with too much pushing of the proposed new &#8220;auto v = vector{ 1, 2, 3, 4 };&#8221; style, in part because it&#8217;s new and in part because I didn&#8217;t thoroughly motivate it in this GotW &#8212; that would have been a distraction and I plan to write another GotW that is all about auto. So in the (h) discussion I limited myself to encouraging readers to try it, and left it out of the final Guideline.</p>
+<p>But since you mention it, I&#8217;ve now added the &#8220;auto x =&#8221; form along with the more-traditional variable declaration form to the Guideline. Let&#8217;s see how many people freak out. :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: jd				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9954</link>
+		<dc:creator><![CDATA[jd]]></dc:creator>
+		<pubDate>Fri, 10 May 2013 11:07:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9954</guid>
+					<description><![CDATA[What was the rational behind making `std::tuple`s constructor explicit thus blocking your recommended return syntax, such as:
+
+    std::tuple t() { return { 6, 7 }; }
+
+Which increases with oddity when you consider that the syntax does work for a `std::pair`]]></description>
+		<content:encoded><![CDATA[<p>What was the rational behind making `std::tuple`s constructor explicit thus blocking your recommended return syntax, such as:</p>
+<p>    std::tuple t() { return { 6, 7 }; }</p>
+<p>Which increases with oddity when you consider that the syntax does work for a `std::pair`</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Tomek				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9950</link>
+		<dc:creator><![CDATA[Tomek]]></dc:creator>
+		<pubDate>Fri, 10 May 2013 06:48:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9950</guid>
+					<description><![CDATA[I wondering why C++14 don&#039;t have named arguments? It would resolve some ambiguity ex.
+
+vector s {1,2,3,4,5,6} #constructor with std::initializer_list
+vector s {size=10, 0} #creates vector with ten elements initialized to 0.
+
+#this would create identical vectors
+vector v {begin=s.begin(), end=s.end()};
+vector v {s.begin(), s.end()}; 
+
+It should behave like normal function overloading, but when using named arguments first it should try to figure out proper order of parameter based on function declaration(parameter name in declaration). 
+
+@Herb can say if there was such a proposal?]]></description>
+		<content:encoded><![CDATA[<p>I wondering why C++14 don&#8217;t have named arguments? It would resolve some ambiguity ex.</p>
+<p>vector s {1,2,3,4,5,6} #constructor with std::initializer_list<br />
+vector s {size=10, 0} #creates vector with ten elements initialized to 0.</p>
+<p>#this would create identical vectors<br />
+vector v {begin=s.begin(), end=s.end()};<br />
+vector v {s.begin(), s.end()}; </p>
+<p>It should behave like normal function overloading, but when using named arguments first it should try to figure out proper order of parameter based on function declaration(parameter name in declaration). </p>
+<p>@Herb can say if there was such a proposal?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: jmckesson				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9949</link>
+		<dc:creator><![CDATA[jmckesson]]></dc:creator>
+		<pubDate>Fri, 10 May 2013 04:50:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9949</guid>
+					<description><![CDATA[I want to make sure I understand something:
+
+&#062; When you design a class, avoid providing a constructor that ambiguously overloads with an initializer_list constructor, so your users are never forced to use ( ) to reach such a hidden constructor. (The standard library has such an overload only as a historical artifact retained for compatibility reasons, and should not be emulated in this detail.)
+
+If that’s true, why is it that Issue 2089 (http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2013/n3687.html#2089) doesn’t always use uniform initialization on types? Instead, the proposed resolution says to use some form of enable_if detection to see if something’s constructible with the parameters as constructor parameters. Only if it is *not* will it attempt to use a braced-init-list.
+
+That is trying to be a library solution for a LANGUAGE problem. That is the sort of thing that gave rise to `std::enable_if` and other such stupidity.
+
+We need a language solution for language problems.
+
+That “historical artifact” is not going to be going away. *Ever*. New containers like `dynarray` (http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2013/n3662.html#dynarray) have the *same* “historical artifacts”. So it’s not history: it’s the present day. It’s the future.
+
+It seems clear that the standards committee is really confused as to how to deal with this issue. Herb says it&#039;s a &quot;class design&quot; issue, yet we are seeing new containers and new container proposals that *completely ignore* this supposed &quot;class design&quot; issue. There are no proposals that improve *existing* classes to allow you to access those constructors.
+
+And quite frankly, telling everyone to design their classes to avoid conflicts like this is like taking away explicit casting, then telling everyone to design their function overloads so that there can’t be any ambiguity.
+
+There’s a reason why the C++ compiler fails on an ambiguous function overload. But it doesn’t fail on an ambiguous uniform initialization; it just picks one and hides the other completely. That’s *wrong*.]]></description>
+		<content:encoded><![CDATA[<p>I want to make sure I understand something:</p>
+<p>&gt; When you design a class, avoid providing a constructor that ambiguously overloads with an initializer_list constructor, so your users are never forced to use ( ) to reach such a hidden constructor. (The standard library has such an overload only as a historical artifact retained for compatibility reasons, and should not be emulated in this detail.)</p>
+<p>If that’s true, why is it that Issue 2089 (<a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2013/n3687.html#2089" rel="nofollow">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2013/n3687.html#2089</a>) doesn’t always use uniform initialization on types? Instead, the proposed resolution says to use some form of enable_if detection to see if something’s constructible with the parameters as constructor parameters. Only if it is *not* will it attempt to use a braced-init-list.</p>
+<p>That is trying to be a library solution for a LANGUAGE problem. That is the sort of thing that gave rise to `std::enable_if` and other such stupidity.</p>
+<p>We need a language solution for language problems.</p>
+<p>That “historical artifact” is not going to be going away. *Ever*. New containers like `dynarray` (<a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2013/n3662.html#dynarray" rel="nofollow">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2013/n3662.html#dynarray</a>) have the *same* “historical artifacts”. So it’s not history: it’s the present day. It’s the future.</p>
+<p>It seems clear that the standards committee is really confused as to how to deal with this issue. Herb says it&#8217;s a &#8220;class design&#8221; issue, yet we are seeing new containers and new container proposals that *completely ignore* this supposed &#8220;class design&#8221; issue. There are no proposals that improve *existing* classes to allow you to access those constructors.</p>
+<p>And quite frankly, telling everyone to design their classes to avoid conflicts like this is like taking away explicit casting, then telling everyone to design their function overloads so that there can’t be any ambiguity.</p>
+<p>There’s a reason why the C++ compiler fails on an ambiguous function overload. But it doesn’t fail on an ambiguous uniform initialization; it just picks one and hides the other completely. That’s *wrong*.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Neil				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9947</link>
+		<dc:creator><![CDATA[Neil]]></dc:creator>
+		<pubDate>Fri, 10 May 2013 03:45:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9947</guid>
+					<description><![CDATA[Thanks for the notes and guidelines, Herb.
+
+I think there&#039;s a new line missing in the first code listing under answer 3.
+
+// oops, vexing parse [New Line Missing] complex ...]]></description>
+		<content:encoded><![CDATA[<p>Thanks for the notes and guidelines, Herb.</p>
+<p>I think there&#8217;s a new line missing in the first code listing under answer 3.</p>
+<p>// oops, vexing parse [New Line Missing] complex &#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Francisco Lopes (@pepper_chico)				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9940</link>
+		<dc:creator><![CDATA[Francisco Lopes (@pepper_chico)]]></dc:creator>
+		<pubDate>Thu, 09 May 2013 22:31:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9940</guid>
+					<description><![CDATA[&quot;However, even when the compiler does this, the widget copy constructor must still be accessible, even if is not called — the copy constructor’s side effects may or may not happen, that’s all.&quot;
+
+http://stackoverflow.com/questions/13693871/copy-list-initialization-of-non-copyable-types
+
+Am I missing any tip on that?]]></description>
+		<content:encoded><![CDATA[<p>&#8220;However, even when the compiler does this, the widget copy constructor must still be accessible, even if is not called — the copy constructor’s side effects may or may not happen, that’s all.&#8221;</p>
+<p><a href="http://stackoverflow.com/questions/13693871/copy-list-initialization-of-non-copyable-types" rel="nofollow">http://stackoverflow.com/questions/13693871/copy-list-initialization-of-non-copyable-types</a></p>
+<p>Am I missing any tip on that?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: DS				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9937</link>
+		<dc:creator><![CDATA[DS]]></dc:creator>
+		<pubDate>Thu, 09 May 2013 21:32:09 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9937</guid>
+					<description><![CDATA[&#062; [...] the standard is explicit that an empty { } list means to call the default constructor if available.
+
+This seems counterintuitive to me, why should an empty list be any different than a non-empty one?]]></description>
+		<content:encoded><![CDATA[<p>&gt; [&#8230;] the standard is explicit that an empty { } list means to call the default constructor if available.</p>
+<p>This seems counterintuitive to me, why should an empty list be any different than a non-empty one?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Anders Sjögren (@AndersSjogren)				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9935</link>
+		<dc:creator><![CDATA[Anders Sjögren (@AndersSjogren)]]></dc:creator>
+		<pubDate>Thu, 09 May 2013 21:22:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9935</guid>
+					<description><![CDATA[@Jay: Try running the code in an online html encoder before posting it to avoid missing characters, e.g. http://www.opinionatedgeek.com/DotNet/Tools/HTMLEncode/encode.aspx .]]></description>
+		<content:encoded><![CDATA[<p>@Jay: Try running the code in an online html encoder before posting it to avoid missing characters, e.g. <a href="http://www.opinionatedgeek.com/DotNet/Tools/HTMLEncode/encode.aspx" rel="nofollow">http://www.opinionatedgeek.com/DotNet/Tools/HTMLEncode/encode.aspx</a> .</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mike				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9933</link>
+		<dc:creator><![CDATA[Mike]]></dc:creator>
+		<pubDate>Thu, 09 May 2013 20:26:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9933</guid>
+					<description><![CDATA[Honestly, this is extremely disappointing.  The committee has done little more than replace one vexing parse with another.  
+
+Wouldn&#039;t it have been less confusing to demand a syntax that distinguished between initializer lists and argument lists?  E.g.
+
+vector v = { a, b, c};  // initializer list always
+vector v    { a,b,c};    // constructor argument list always
+vector v    {{a,b,c}};  // constructor argument list consisting of a single initializer_list (always)]]></description>
+		<content:encoded><![CDATA[<p>Honestly, this is extremely disappointing.  The committee has done little more than replace one vexing parse with another.  </p>
+<p>Wouldn&#8217;t it have been less confusing to demand a syntax that distinguished between initializer lists and argument lists?  E.g.</p>
+<p>vector v = { a, b, c};  // initializer list always<br />
+vector v    { a,b,c};    // constructor argument list always<br />
+vector v    {{a,b,c}};  // constructor argument list consisting of a single initializer_list (always)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: red1939				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9932</link>
+		<dc:creator><![CDATA[red1939]]></dc:creator>
+		<pubDate>Thu, 09 May 2013 20:12:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9932</guid>
+					<description><![CDATA[What about template classes/functions that wish to use classes that include initializer list? It&#039;s quite cumbersome to remember about the initializer_list priority, which I also believe should be lower than the standard () overloads. Special exceptions in case of copy/default/(move?) just seem to exemplify the fact much more.]]></description>
+		<content:encoded><![CDATA[<p>What about template classes/functions that wish to use classes that include initializer list? It&#8217;s quite cumbersome to remember about the initializer_list priority, which I also believe should be lower than the standard () overloads. Special exceptions in case of copy/default/(move?) just seem to exemplify the fact much more.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adrian				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9930</link>
+		<dc:creator><![CDATA[Adrian]]></dc:creator>
+		<pubDate>Thu, 09 May 2013 19:56:53 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9930</guid>
+					<description><![CDATA[During the transition (which will take a while since certain compilers still don&#039;t support the initializer list syntax), we&#039;re going to need programming (and blogging!) fonts that make a much sharper distinction between braces {} and parentheses ().
+
+Back at the dawn of ANSI C, I was working in a code base that allowed both K&#038;R style functions and ANSI prototyped functions.  Our compiler used different calling conventions depending on which style you used.  That meant you had to be very careful about declaring ANSI-style prototypes for functions that took no parameters.  If you said &quot;int foo();&quot;, the compiler assumed you meant K&#038;R style.  You had to say &quot;int foo(void);&quot; to make it clear you wanted the ANSI style.  When I learned C++, I carried this habit along, as one of the texts I learned from said &quot;C++ requires ANSI-style prototypes.&quot;  Many years later, someone berated me for typing unnecessary &quot;void&quot;s, and I dropped the habit.  But it occurred to me at that time that if C++ had just _required_ the void in function declarations with no parameters, then it would have eliminated (most) of the most vexing parse problems.]]></description>
+		<content:encoded><![CDATA[<p>During the transition (which will take a while since certain compilers still don&#8217;t support the initializer list syntax), we&#8217;re going to need programming (and blogging!) fonts that make a much sharper distinction between braces {} and parentheses ().</p>
+<p>Back at the dawn of ANSI C, I was working in a code base that allowed both K&amp;R style functions and ANSI prototyped functions.  Our compiler used different calling conventions depending on which style you used.  That meant you had to be very careful about declaring ANSI-style prototypes for functions that took no parameters.  If you said &#8220;int foo();&#8221;, the compiler assumed you meant K&amp;R style.  You had to say &#8220;int foo(void);&#8221; to make it clear you wanted the ANSI style.  When I learned C++, I carried this habit along, as one of the texts I learned from said &#8220;C++ requires ANSI-style prototypes.&#8221;  Many years later, someone berated me for typing unnecessary &#8220;void&#8221;s, and I dropped the habit.  But it occurred to me at that time that if C++ had just _required_ the void in function declarations with no parameters, then it would have eliminated (most) of the most vexing parse problems.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: rhalbersma				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9920</link>
+		<dc:creator><![CDATA[rhalbersma]]></dc:creator>
+		<pubDate>Thu, 09 May 2013 18:22:59 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9920</guid>
+					<description><![CDATA[@praetorian20: C++14 (the language that Herb is targetting on this blog) will slightly modify brace-copy-initialization (see Stroustrup&#039;s slides on ACCU 2013, p.17 http://accu.org/content/conf2013/Bjarnes_Talk.pdf), wouldn&#039;t that change your example?]]></description>
+		<content:encoded><![CDATA[<p>@praetorian20: C++14 (the language that Herb is targetting on this blog) will slightly modify brace-copy-initialization (see Stroustrup&#8217;s slides on ACCU 2013, p.17 <a href="http://accu.org/content/conf2013/Bjarnes_Talk.pdf" rel="nofollow">http://accu.org/content/conf2013/Bjarnes_Talk.pdf</a>), wouldn&#8217;t that change your example?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: rhalbersma				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9918</link>
+		<dc:creator><![CDATA[rhalbersma]]></dc:creator>
+		<pubDate>Thu, 09 May 2013 18:08:45 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9918</guid>
+					<description><![CDATA[Thanks for a great revamp of the GotW series! 
+
+It&#039;s interesting that you recommend writing &quot;auto w = Widget{x, y, z};&quot; so that you don&#039;t get bitten by otherwise forbidden explicit conversions. Scott Meyers&#039; latest Overview of the New C++11 (p.51) recommends: &quot;Develop the habit of using brace initialization without “=“.&quot; , which would mean writing &quot;Widget w{x, y, z};&quot; in this context. 
+
+AFAICS, the only advantage of Scott&#039;s recommendation is that it would also work for types that have neither a move nor a copy constructor (corner case, admittedly). Or do you see any other issues for choosing between your and Scott&#039;s recommendation?]]></description>
+		<content:encoded><![CDATA[<p>Thanks for a great revamp of the GotW series! </p>
+<p>It&#8217;s interesting that you recommend writing &#8220;auto w = Widget{x, y, z};&#8221; so that you don&#8217;t get bitten by otherwise forbidden explicit conversions. Scott Meyers&#8217; latest Overview of the New C++11 (p.51) recommends: &#8220;Develop the habit of using brace initialization without “=“.&#8221; , which would mean writing &#8220;Widget w{x, y, z};&#8221; in this context. </p>
+<p>AFAICS, the only advantage of Scott&#8217;s recommendation is that it would also work for types that have neither a move nor a copy constructor (corner case, admittedly). Or do you see any other issues for choosing between your and Scott&#8217;s recommendation?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: praetorian20				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9917</link>
+		<dc:creator><![CDATA[praetorian20]]></dc:creator>
+		<pubDate>Thu, 09 May 2013 18:04:23 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9917</guid>
+					<description><![CDATA[Not sure if this is just an artifact of how it&#039;s written, but it seems like you&#039;re saying (g) requires an available copy-constructor, just like (f). While it&#039;s true the latter does require one, the former is &lt;i&gt;copy-list-initialization&lt;/i&gt; and it &lt;b&gt;does not&lt;/b&gt; require one.
+
+&lt;a href=&quot;https://ideone.com/tT5Af1&quot; rel=&quot;nofollow&quot;&gt;ideone example&lt;/a&gt;]]></description>
+		<content:encoded><![CDATA[<p>Not sure if this is just an artifact of how it&#8217;s written, but it seems like you&#8217;re saying (g) requires an available copy-constructor, just like (f). While it&#8217;s true the latter does require one, the former is <i>copy-list-initialization</i> and it <b>does not</b> require one.</p>
+<p><a href="https://ideone.com/tT5Af1" rel="nofollow">ideone example</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alexey				</title>
+				<link>https://herbsutter.com/2013/05/09/gotw-1-solution/#comment-9915</link>
+		<dc:creator><![CDATA[Alexey]]></dc:creator>
+		<pubDate>Thu, 09 May 2013 17:43:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1831#comment-9915</guid>
+					<description><![CDATA[Can you clarify about (a)? Was there change in the new standard regarding this?
+I&#039;m talking about the case of 
+
+struct widget
+{
+       int i;
+};
+
+now
+
+    widget w;
+
+was not the same as
+
+    widget w =  widget();
+
+(initialized vs. uninitialized member)]]></description>
+		<content:encoded><![CDATA[<p>Can you clarify about (a)? Was there change in the new standard regarding this?<br />
+I&#8217;m talking about the case of </p>
+<p>struct widget<br />
+{<br />
+       int i;<br />
+};</p>
+<p>now</p>
+<p>    widget w;</p>
+<p>was not the same as</p>
+<p>    widget w =  widget();</p>
+<p>(initialized vs. uninitialized member)</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

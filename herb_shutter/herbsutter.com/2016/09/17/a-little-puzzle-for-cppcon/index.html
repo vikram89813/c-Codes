@@ -1,0 +1,1060 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>A little puzzle for CppCon | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542966019&amp;back=https%3A%2F%2Fherbsutter.com%2F2016%2F09%2F17%2Fa-little-puzzle-for-cppcon%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; A little puzzle for&nbsp;CppCon Comments Feed" href="https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Trip report: Summer ISO C++ standards meeting&nbsp;(Oulu)' href='https://herbsutter.com/2016/06/30/trip-report-summer-iso-c-standards-meeting-oulu/' />
+<link rel='next' title='My talk tomorrow, and a little experimental&nbsp;library' href='https://herbsutter.com/2016/09/22/my-talk-tomorrow-and-a-little-experimental-library/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-I3' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2016%2F09%2F17%2Fa-little-puzzle-for-cppcon%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2016%2F09%2F17%2Fa-little-puzzle-for-cppcon%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="A little puzzle for CppCon" />
+<meta property="og:url" content="https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/" />
+<meta property="og:description" content="As CppCon begins, Stevens Capital Management is running an SCM Challenge quiz with questions provided by some CppCon speakers.(Creating a little login is required, in part so you can save progress,…" />
+<meta property="article:published_time" content="2016-09-18T00:22:10+00:00" />
+<meta property="article:modified_time" content="2016-09-18T00:22:10+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542966019" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="A little puzzle for&nbsp;CppCon" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="As CppCon begins, Stevens Capital Management is running an SCM Challenge quiz with questions provided by some CppCon speakers.(Creating a little login is required, in part so you can save progress, but they promise not to spam you.) I&#039;ve contributed a simple little question that&#039;s directly related to my CppCon closing plenary session on Friday. By &quot;simple little&quot; I mean that my&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2731 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2016/06/30/trip-report-summer-iso-c-standards-meeting-oulu/" rel="prev">Trip report: Summer ISO C++ standards meeting&nbsp;(Oulu)</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2016/09/22/my-talk-tomorrow-and-a-little-experimental-library/" rel="next">My talk tomorrow, and a little experimental&nbsp;library</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2731 post type-post status-publish format-standard hentry category-uncategorized" id="post-2731">
+				<div class="posttitle">
+					<h2>A little puzzle for&nbsp;CppCon</h2>
+					<p class="post-info">2016-09-17 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>As CppCon begins, Stevens Capital Management is running an <strong><a href="https://scmchallenge.com/#!/">SCM Challenge quiz</a></strong> with questions provided by some CppCon speakers.(Creating a little login is required, in part so you can save progress, but they promise not to spam you.)</p>
+<p>I&#8217;ve contributed a simple little question that&#8217;s directly related to my CppCon closing plenary session on Friday. By &#8220;simple little&#8221; I mean that my <em>question</em> itself is simple and can be illustrated well in a handful of short lines of code. Solving it with a valid <em>answer</em> is another matter, however. I wonder how many people will be able to give reasonable solutions[*] that pass the three short test cases&#8230;</p>
+<p>Take a look, think about the question, and see if you can come up with a solution that works. Feel free to use the comments below to collaborate with others to solve the puzzle; if you&#8217;re at CppCon, use the great face time with other attendees to share possible solutions. If you succeed in writing a solution that prints &#8220;true&#8221; three times, they&#8217;ll email it to me and I&#8217;ll review it.</p>
+<p>In my talk on Friday, I&#8217;ll present solutions to this and other lifetime problems. For those who aren&#8217;t here at CppCon in person, you&#8217;ll be able to catch the talk online on YouTube about a week later. (As always, all CppCon talks are being recorded and will be posted, but it will take a month or so to process and post all of the sessions &#8212; it takes a while to do professional-grade production for over 100 talks! Processing the plenary session videos is being expedited so that we can get those ones up quickly.)</p>
+<p>I hope you enjoy the puzzle!</p>
+<p>&nbsp;</p>
+<p>[*] No fair hardcoding a hack that artificially prints the right results for just these three cases. I know how to do that too, but that&#8217;s evading the problem, not solving it. :)</p>
+<p>&nbsp;</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/uncategorized/" rel="category tag">Uncategorized</a> | 											40 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">40 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-39448">
+		<div id="div-comment-39448">
+		<div class="cmtinfo"><em> on <a href="#comment-39448" title="">2016-10-11 at 11:40 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/b69fa813084d36607f9ddff2ce46e232?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alfonso</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39448"></div><p>will this be acceptable ?</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+class MyGraph {
+public:
+    class Node : public Counter {
+        vector&lt;shared_ptr&lt;Node&gt;&gt; children;
+        vector&lt;weak_ptr&lt;Node&gt;&gt; o_children;
+        unsigned int id;
+        static unsigned int acc; 
+    public:
+        Node() : id( acc++ ) {}
+        void AddChild(const shared_ptr&lt;Node&gt;&amp; node) {
+            if ( id &lt; node-&gt;id ) children.push_back(node);
+            else o_children.push_back( node );
+        }
+        void RemoveChild(const shared_ptr&lt;Node&gt;&amp; node) {
+            auto it = std::find( children.begin(), children.end(), node );
+            if ( it != children.end() ) children.erase( it );
+            o_children.erase(
+                std::remove_if( o_children.begin(), o_children.end(), 
+                [node](const weak_ptr&lt;Node&gt; &amp; i ){ 
+                    auto sp_i = i.lock();
+                    if ( !sp_i ) return true;
+                    return node.get() == sp_i.get();
+                    }),
+                o_children.end() );
+        }
+    };
+    void SetRoot(const shared_ptr&lt;Node&gt;&amp; node) {root = node;    }
+    void ShrinkToFit() {}
+    static auto MakeNode() { return make_shared&lt;MyGraph::Node&gt;(); }
+private:
+    shared_ptr&lt;Node&gt; root;
+};
+unsigned int MyGraph::Node::acc = 0;
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39409">
+		<div id="div-comment-39409">
+		<div class="cmtinfo"><em> on <a href="#comment-39409" title="">2016-09-23 at 1:24 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/ca391c038b300a739462dae91c5e8cbc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Adrian</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39409"></div><p>I agree with intvnut.  This API seems contrived to make a clean solution impossible (without introducing something with a program-global view, like a GC).  If I were building an API for cyclic directed graphs, I wouldn&#8217;t set it up this way.</p>
+<p>Making Add- and RemoveChild members of Node rather than MyGraph prevents any sort of graph-wide analysis at those steps.  They cannot even queue things up for the ShrinkToFit method.  Likewise, making MakeNode a static member of MyGraph (why not a static member of Node?).</p>
+<p>But graph-wide analysis is not enough, so why is ShrinkToFit a member of MyGraph rather than a global function (or static method)?  After all, a single MyGraph won&#8217;t have the visibility necessary to deal with things the current API allows, like splicing two distinct MyGraphs into one.</p>
+<p>The fact that you can change the root at any time also means you could disconnect a subtree (that you would then expect to go away), but then change the root to a node within that subtree and completely change the set of Nodes that need to be cleaned up.</p>
+<p>The proposed API has weird separation (and conflation) of concerns.  For example, creating a node is completely distinct from inserting one into the graph, yet removing one from the graph probably should be associated with the node&#8217;s destruction.</p>
+<p>Solutions that depend on arbitrarily deep stacks (for recursive cleanup) or ones that depend on a clean-up step that takes an unpredictable amount of time are both objectionable in any sort of real-time domain.</p>
+<p>It seems wisest to provide a single graph API (rather than graph + node + global static APIs).  With a single API, you can enforce the graph invariants at every step.  The current design requires sprinkling enforcement of the invariant across classes that don&#8217;t have the necessary visibility into each other to actually do that.</p>
+<p>For example, you might decide that an invariant for your graph should be that there is no more than one edge from node A to node B.  You might decide against splicing two distinct MyGraphs together.</p>
+<p>I&#8217;d propose a graph class that owns the nodes and hands back some sort of handle to them.  It can then offer methods to create and destroy (directed) edges between nodes.  This provides a useful, usable API, that has a clean separation of concerns, allows for a variety of implementations, and can prevent (or explicitly allow) strange operations like splicing together otherwise distinct graphs.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-39406">
+		<div id="div-comment-39406">
+		<div class="cmtinfo"><em> on <a href="#comment-39406" title="">2016-09-22 at 8:31 am</a></em> <img alt='' src='https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://herbsutter.com/2016/09/22/my-talk-tomorrow-and-a-little-experimental-library/' rel='external nofollow' class='url'>My talk tomorrow, and a little experimental library | Sutter’s Mill</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39406"></div><p>[&#8230;] &laquo; A little puzzle for&nbsp;CppCon [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-marcomagdy odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39405">
+		<div id="div-comment-39405">
+		<div class="cmtinfo"><em> on <a href="#comment-39405" title="">2016-09-19 at 11:06 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/69d7765491ded8ee7f4059ce5d504d11?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/marcomagdy' rel='external nofollow' class='url'>Marco Magdy</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39405"></div><p>duh, I see my wrong now. Thanks!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-intvnut even thread-even depth-1 highlander-comment" id="comment-39404">
+		<div id="div-comment-39404">
+		<div class="cmtinfo"><em> on <a href="#comment-39404" title="">2016-09-19 at 10:27 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c53d81245d85989dd6aa2018a2278fd5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>intvnut</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39404"></div><p>@Marco:  But, the graph is a -&gt; c -&gt; b, and so the count should remain 3.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-marcomagdy odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39403">
+		<div id="div-comment-39403">
+		<div class="cmtinfo"><em> on <a href="#comment-39403" title="">2016-09-19 at 10:11 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/69d7765491ded8ee7f4059ce5d504d11?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/marcomagdy' rel='external nofollow' class='url'>Marco Magdy</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39403"></div><p>@intvnut, adding a-&gt;RemoveChild(b) means that the remaining count should be 2 (a &amp; c). If you change return Counter::count() == 2 to return Counter::count() == 2 it passes.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-marcomagdy even thread-even depth-1 highlander-comment" id="comment-39402">
+		<div id="div-comment-39402">
+		<div class="cmtinfo"><em> on <a href="#comment-39402" title="">2016-09-19 at 10:07 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/69d7765491ded8ee7f4059ce5d504d11?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/marcomagdy' rel='external nofollow' class='url'>Marco Magdy</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39402"></div><p>@intvnut, when you do a-&gt;RemoveChild(b) you need to update the count check to be == 2 instead 3. It doesn&#8217;t fail for me.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-intvnut odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39401">
+		<div id="div-comment-39401">
+		<div class="cmtinfo"><em> on <a href="#comment-39401" title="">2016-09-19 at 10:03 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c53d81245d85989dd6aa2018a2278fd5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>intvnut</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39401"></div><p>Fundamentally, solutions involving shared_ptr and weak_ptr I think will be flawed without some sort of outside structure that has a view of the graph.</p>
+<p>Reachability of a given node from the root is a property of the graph as a whole, not a node and its immediate neighbors.  Sure, a node is reachable from the root if one of its parents is reachable from the root, but which parent(s) could change over time.  Likewise for whether your parent participated in a cycle involving you.</p>
+<p>Unless you have some sort of propagating update to upgrade/downgrade between shared_ptr/weak_ptr based on changes to the connectivity in the graph overall, I think you&#8217;re going to run into problems.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-intvnut even thread-even depth-1 highlander-comment" id="comment-39400">
+		<div id="div-comment-39400">
+		<div class="cmtinfo"><em> on <a href="#comment-39400" title="">2016-09-19 at 9:55 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c53d81245d85989dd6aa2018a2278fd5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>intvnut</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39400"></div><p>@Marco:  You&#8217;re missing a-&gt;RemoveChild(b).</p>
+<p>When I add that, it fails.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-marcomagdy odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39399">
+		<div id="div-comment-39399">
+		<div class="cmtinfo"><em> on <a href="#comment-39399" title="">2016-09-19 at 9:17 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/69d7765491ded8ee7f4059ce5d504d11?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/marcomagdy' rel='external nofollow' class='url'>Marco Magdy</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39399"></div><p>@intvnut, I just tried your test case and it works.</p>
+<p><a href="http://ideone.com/ROcgcz" rel="nofollow">http://ideone.com/ROcgcz</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-intvnut even thread-even depth-1 highlander-comment" id="comment-39398">
+		<div id="div-comment-39398">
+		<div class="cmtinfo"><em> on <a href="#comment-39398" title="">2016-09-19 at 8:57 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c53d81245d85989dd6aa2018a2278fd5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>intvnut</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39398"></div><p>@Marco:  Isn&#8217;t &#8216;parents&#8217; a bad name here?  They&#8217;re still children.  Maybe &#8216;weak_children&#8217;.</p>
+<p>Also, isn&#8217;t this sensitive to the order of operations?  Some orders of operations succeed, others fail.  Sure, Herb&#8217;s test might cases pass, but&#8230;  </p>
+<p>For example:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+{
+    auto a = MyGraph::MakeNode();
+    g.SetRoot(a);
+    auto b = MyGraph::MakeNode();
+    a-&gt;AddChild(b);
+    auto c = MyGraph::MakeNode();
+    a-&gt;AddChild(c);
+    b-&gt;AddChild(c);
+    c-&gt;AddChild(b);
+    a-&gt;RemoveChild(b);
+    b-&gt;RemoveChild(c);
+}
+</pre>
+<p>This sequence should result in a -&gt; c -&gt; b.  But, &#8216;a&#8217; will only hold a weak_ptr to &#8216;c&#8217;.</p>
+<p>Sure, you could do some careful shuffling to ensure you always have one shared_ptr in the vector&lt;shared_ptr&gt;, but I&#8217;m pretty sure that just means you need a slightly larger graph to show the problem.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-marcomagdy odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39397">
+		<div id="div-comment-39397">
+		<div class="cmtinfo"><em> on <a href="#comment-39397" title="">2016-09-18 at 11:07 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/69d7765491ded8ee7f4059ce5d504d11?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/marcomagdy' rel='external nofollow' class='url'>Marco Magdy</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39397"></div><pre class="brush: plain; title: ; notranslate" title="">
+class Node : public Counter {
+  vector&lt;shared_ptr&lt;Node&gt;&gt; children;
+  vector&lt;weak_ptr&lt;Node&gt;&gt; parents;
+  bool hasParent;
+  void 
+  // ...      
+void AddChild(const shared_ptr&lt;Node&gt;&amp; node) {
+   if(node-&gt;hasParent) {
+     parents.push_back(node);
+   } else {
+      node-&gt;hasParent = true;
+      children.push_back(node);
+   }
+}
+
+</pre>
+<p>Not sure if I&#8217;m missing a use case, but adding a flag to the Node class to determine if it&#8217;s been added before, and adding it to another collection of weak_ptrs solves the problem.</p>
+<p>You might still want to use ShrinkToFit to queue up the nodes for deletion to avoid overflowing the stack.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-tonko even thread-even depth-1 highlander-comment" id="comment-39396">
+		<div id="div-comment-39396">
+		<div class="cmtinfo"><em> on <a href="#comment-39396" title="">2016-09-18 at 7:49 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/38d8634182fee610a539c1c06927c819?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>tonko</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39396"></div><p>The solution was:<br />
+class MyGraph {<br />
+public:<br />
+    class Node : public Counter, public std::enable_shared_from_this {<br />
+        vector&lt;shared_ptr&gt; children;<br />
+        vector&lt;weak_ptr&gt; parents;<br />
+    public:<br />
+        void AddChild(const shared_ptr&amp; node) {<br />
+            children.push_back(node);<br />
+            std::weak_ptr wp = shared_from_this();<br />
+            node-&gt;AddParent(wp);<br />
+        }<br />
+        void RemoveChild(const shared_ptr&amp; node) {<br />
+            auto it(std::find(children.begin(), children.end(), node));</p>
+<p>            if(it != children.end())<br />
+            {<br />
+                node-&gt;RemoveParent(this);<br />
+                children.erase(it);<br />
+            }<br />
+            // child has only me as the parent or my only parent is my child<br />
+            if(!node-&gt;parents.size() || node-&gt;MyOnlyparentIsMyChild())<br />
+                node-&gt;RemoveAllChildren();<br />
+        }</p>
+<p>        void AddParent(const weak_ptr&amp; node) {<br />
+            parents.push_back(node);<br />
+        }</p>
+<p>        void RemoveParent(Node* node) {<br />
+            auto it = parents.begin();<br />
+            auto end = parents.end();</p>
+<p>            for(; it!=end;)<br />
+            {<br />
+                shared_ptr cur = it-&gt;lock();<br />
+                if(cur &amp;&amp; cur.get() == node)<br />
+                {<br />
+                    parents.erase(it);<br />
+                    break;<br />
+                }<br />
+                else<br />
+                    ++it;<br />
+            }<br />
+        }</p>
+<p>        void RemoveAllChildren() {<br />
+            auto tmpchildren = children;<br />
+            for(const auto&amp; child : tmpchildren)<br />
+            {<br />
+                RemoveChild(child);<br />
+            }<br />
+        }</p>
+<p>        bool MyOnlyparentIsMyChild()<br />
+        {<br />
+            if(parents.size()&gt;1)<br />
+                return false;<br />
+            auto parent = parents.begin()-&gt;lock();<br />
+            auto it(std::find(children.begin(), children.end(), parent));<br />
+            if(it != children.end())<br />
+                return true;<br />
+            return false;<br />
+        }<br />
+    };</p>
+<p>    void SetRoot(const shared_ptr&amp; node) {<br />
+        root = node;<br />
+    }</p>
+<p>    void ShrinkToFit() {<br />
+    }</p>
+<p>    static auto MakeNode() { return make_shared(); }</p>
+<p>private:<br />
+    shared_ptr root;<br />
+};</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39395">
+		<div id="div-comment-39395">
+		<div class="cmtinfo"><em> on <a href="#comment-39395" title="">2016-09-18 at 7:47 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/38d8634182fee610a539c1c06927c819?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/tonko' rel='external nofollow' class='url'>Tony</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39395"></div><p>Darn :) Before Motti proposed 4-th test case, I had a solution:</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-alteryxned even thread-even depth-1 highlander-comment" id="comment-39394">
+		<div id="div-comment-39394">
+		<div class="cmtinfo"><em> on <a href="#comment-39394" title="">2016-09-18 at 5:59 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6e091f3f82de0ff8377b0249f8bb4879?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://alteryxned.wordpress.com' rel='external nofollow' class='url'>alteryxned</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39394"></div><p>I was just hinting at using weak_ptrs and pulling the ownership out to another structure to resolve the circular references.  You don&#8217;t need a full garbage collector to pass the tests.  Someone using everything you can imagine out of those APIs might require it, but getting a quick and dirty solution just for the presented tests isn&#8217;t that hard.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39393">
+		<div id="div-comment-39393">
+		<div class="cmtinfo"><em> on <a href="#comment-39393" title="">2016-09-18 at 4:21 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/4e974a514f0764fdfe99a8915f192002?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.davidegrayson.com/' rel='external nofollow' class='url'>David Grayson</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39393"></div><p>Based on the problem description and alteryxned&#8217;s little hint, I think there must be some way to do this without implementing a mark and sweep garbage collector.  However, it depends on knowing some feature of the C++ standard library.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-intvnut even thread-even depth-1 highlander-comment" id="comment-39392">
+		<div id="div-comment-39392">
+		<div class="cmtinfo"><em> on <a href="#comment-39392" title="">2016-09-18 at 11:15 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c53d81245d85989dd6aa2018a2278fd5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>intvnut</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39392"></div><p>@Juan:  The circular reference is *the* problem.  It&#8217;s the piece not handled automagically by shared_ptr.</p>
+<p>If the graph were acyclic, the normal reference counting of shared_ptr takes care of garbage collecting nodes.  The moment you remove the last parent to a node, the node gets deleted.  If that node was the last parent of any of its children, those children get deleted, etc. recursively.  All this, with no additional code from you.  It&#8217;s all in shared_ptr&#8217;s reference counting.</p>
+<p>The moment you introduce a cycle, that breaks.</p>
+<p>The reference count in shared_ptr keeps track of how many parents a node has, but not whether any of those parents is reachable from the root without passing through the node itself.</p>
+<p>In some circular data structures, you can use a weak_ptr to break this cyclic dependence.  But you can&#8217;t really do that here easily.  Consider this graph:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+auto a = MyGraph::MakeNode();
+auto b = MyGraph::MakeNode();
+auto c = MyGraph::MakeNode();
+g.SetRoot(a);
+a-&gt;AddChild(b);
+a-&gt;AddChild(c);
+b-&gt;AddChild(c);
+c-&gt;AddChild(b);
+</pre>
+<p>You now have &#8216;b&#8217; and &#8216;c&#8217; both as children of &#8216;a&#8217;, and &#8216;b&#8217; and &#8216;c&#8217; form a cycle.  You might attempt to replace one of the shared_ptr between &#8216;b&#8217; and &#8216;c&#8217; with a weak_ptr instead.  (Note, I&#8217;m still referring just to child pointers; no parent pointers involved here.)</p>
+<p>Now remove &#8216;b&#8217; and &#8216;c&#8217; from &#8216;a&#8217; in an arbitrary order:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+if (rand() &amp; 1) {
+  a-&gt;RemoveChild(b);
+  a-&gt;RemoveChild(c);
+} else {
+  a-&gt;RemoveChild(c);
+  a-&gt;RemoveChild(b);
+}
+</pre>
+<p>If you had put the weak_ptr on c =&gt; b, but remove the link &#8216;a =&gt; b&#8217; first, you&#8217;re broken.  If you put the weak_ptr on b =&gt; c, but remove the link &#8216;a =&gt; c&#8217; first, you&#8217;re broken.</p>
+<p>Also, nothing in the API forces you to construct the graph in any particular order, including when you call SetRoot, or how many times you&#8217;re permitted to call SetRoot.</p>
+<p>To me, this all suggests a solution that uses some form of reachability analysis in ShrinkToFit() to figure things out.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39391">
+		<div id="div-comment-39391">
+		<div class="cmtinfo"><em> on <a href="#comment-39391" title="">2016-09-18 at 10:48 am</a></em> <img alt='' src='https://i2.wp.com/pbs.twimg.com/profile_images/2945481891/0ef27305a8a2d6773222b96288c0e829_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/ichramm' rel='external nofollow' class='url'>Juan (@ichramm)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39391"></div><p>@intvnut</p>
+<p>I get your point, there&#8217;s a circular reference there. The circle can be broken by removing C from B or B from C.</p>
+<p>Going further, the last line remove A from list of parents of B, leaving that list with only one element: C</p>
+<p>The list of parent elements of C also contains only B.</p>
+<p>Besides the circular reference I don&#8217;t see any problems. Of course this kind of issue must be treated with care but I still think the reference to the parent is needed in order to prevent from erasing all the childs of an element when it is being removed by its parent.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-39390">
+		<div id="div-comment-39390">
+		<div class="cmtinfo"><em> on <a href="#comment-39390" title="">2016-09-18 at 9:55 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/42ad77b6b45ab25f4009bf9878c31bed?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Bender</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39390"></div><p>@Motti I caught the same problem and I ragequit and went to sleep. :) My testcase is only a bit different.<br />
+		{<br />
+			auto a = MyGraph::MakeNode();<br />
+			g.SetRoot(a);<br />
+			auto b = MyGraph::MakeNode();<br />
+			a-&gt;AddChild(b);<br />
+			auto c = MyGraph::MakeNode();<br />
+			b-&gt;AddChild(c);<br />
+			auto d = MyGraph::MakeNode();<br />
+			b-&gt;AddChild(d);<br />
+			d-&gt;AddChild(b);<br />
+			b-&gt;RemoveChild(c);<br />
+		}</p>
+<p>But my code passes all the Herb&#8217;s tests. :P<br />
+My guess is that Herb will try to use my failure as excuse to propose gcnew for C++. :)<br />
+I know it was his pet peeve for long time, including I think some lock free algs being easy to do if you have gc.<br />
+But anyway here is how I passed Herb&#8217;s tests:</p>
+<p>SPOILER SPOILER SPOILER<br />
+Did you use weak_ptr to parrent like I did? It works oksih, but on destruction of Graph if you have shared_ptr cycle it can not be GCed.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-intvnut odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39389">
+		<div id="div-comment-39389">
+		<div class="cmtinfo"><em> on <a href="#comment-39389" title="">2016-09-18 at 8:27 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c53d81245d85989dd6aa2018a2278fd5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>intvnut</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39389"></div><p>@Juan:  A mental exercise:  What do the child and parent pointers look like for  &#8216;b&#8217; and &#8216;c&#8217; after this sequence?</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+        a-&gt;AddChild(b);
+        b-&gt;AddChild(c);
+        c-&gt;AddChild(b);
+        a-&gt;RemoveChild(b);
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-39388">
+		<div id="div-comment-39388">
+		<div class="cmtinfo"><em> on <a href="#comment-39388" title="">2016-09-18 at 8:21 am</a></em> <img alt='' src='https://i2.wp.com/pbs.twimg.com/profile_images/2945481891/0ef27305a8a2d6773222b96288c0e829_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/ichramm' rel='external nofollow' class='url'>Juan (@ichramm)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39388"></div><p>Hi there,</p>
+<p>I think each node should have a list of weak pointers to his parent node.</p>
+<p>When a child node is removed the parent is removed from that list too. If the list of parents is empty, the node is considered orphan and then cleared.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39387">
+		<div id="div-comment-39387">
+		<div class="cmtinfo"><em> on <a href="#comment-39387" title="">2016-09-18 at 7:56 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0b85893f86f1d3afd2d9cd7a48c9278c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Christian Vetter</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39387"></div><p>Having MakeNode as a static function, but ShrinkToFit not opens this up to a lot of problems:<br />
+&#8211; User can construct cycles without adding them to a graph causing leaks<br />
+&#8211; Nodes could belong to multiple graphs<br />
+&#8211; It&#8217;s much harder to optimize the graph by using identifiers/compact storage (avoiding allocation, etc)</p>
+<p>I would normally change all functions to be direct (non-static) member function of the graph, including AddChild/RemoveChild:<br />
+&#8211; That prevents the user from constructing cycles without a graph<br />
+&#8211; Makes it easy to optimize storage of nodes<br />
+&#8211; Makes it easier to keep track of cycles</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-39386">
+		<div id="div-comment-39386">
+		<div class="cmtinfo"><em> on <a href="#comment-39386" title="">2016-09-18 at 6:49 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e9c900d492d4ff94b18187b323389b1d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>ians</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39386"></div><p>I submitted a solution, but it&#8217;s not very satisfactory. I took the existence of the ShrinkToFit method to be a special garbage collection routine which the user is expected to trigger, and which will clean up all nodes which are not part of the final graph. Given the API, I think that makes sense; the user can make and connect nodes in an arbitrary order, and maybe only assign a root node at the end. Until the root node is assigned, we don&#8217;t know what&#8217;s garbage and what&#8217;s not.</p>
+<p>However, lots of aspects seem clunky to me. Firstly, the user can still generate memory leaks: they can wire up a cycle of nodes, and then not make any of them part of a MyGraph: ShrinkToFit has no knowledge of these nodes and can do nothing about them. The user can also break the system by assigning a node to more than instance of MyGraph. Also, the existence of a special graph class with a manual garbage collection routine seems unwieldy; it ought to be possible to do this without needing the user to trigger a special clean-up step.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39385">
+		<div id="div-comment-39385">
+		<div class="cmtinfo"><em> on <a href="#comment-39385" title="">2016-09-18 at 6:09 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/ac5b75f2ba59f84ac69e71018275702b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>-.-</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39385"></div><p>Why is the MakeNode function static? That seems a bit weird. Also, I guess we&#8217;re supposed to do the cleanup once in the ShrinkToFit function, and not after each RemoveChild call?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-alteryxned even thread-even depth-1 highlander-comment" id="comment-39384">
+		<div id="div-comment-39384">
+		<div class="cmtinfo"><em> on <a href="#comment-39384" title="">2016-09-18 at 5:10 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6e091f3f82de0ff8377b0249f8bb4879?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://alteryxned.wordpress.com' rel='external nofollow' class='url'>alteryxned</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39384"></div><p>The solutions here (so far) seem to all have in common that they delete too much.  All that really shows is that test driven development is very difficult and the tests are not a proxy for knowing that a bit of code is working correctly.  Integration testing often pick up additional issues.</p>
+<p>Motti Lanzkron&#8217;s test should be added.  That is clearly the intention of the problem.  Not giving too big a hint &#8211; fortunately C++ has exactly the feature that is needed to accomplish this task.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39383">
+		<div id="div-comment-39383">
+		<div class="cmtinfo"><em> on <a href="#comment-39383" title="">2016-09-18 at 3:44 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/efa75bb8aafe2daa6e7e85a9e5862915?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.martin-ueding.de/' rel='external nofollow' class='url'>Martin Ueding</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39383"></div><p>I have the same solution that Cooper posted, with the simplification that Motti Lanzkron mentioned. And my ShrinkToFit is also empty. It seems a bit strange that I did not need that. Perhaps I delete to much or so?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-lanzkron even thread-even depth-1 highlander-comment" id="comment-39382">
+		<div id="div-comment-39382">
+		<div class="cmtinfo"><em> on <a href="#comment-39382" title="">2016-09-18 at 3:00 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6183c6f9d621a125cd3aa0f7ae324285?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://lanzkron.wordpress.com' rel='external nofollow' class='url'>Motti Lanzkron</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39382"></div><p>Here&#8217;s a test case that I think should be added:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+bool TestCase4() {
+	MyGraph g;
+	{
+		auto a = MyGraph::MakeNode();
+		g.SetRoot(a);
+		auto b = MyGraph::MakeNode();
+		a-&gt;AddChild(b);
+		auto c = MyGraph::MakeNode();
+		b-&gt;AddChild(c);
+		auto d = MyGraph::MakeNode();
+		b-&gt;AddChild(d);
+		d-&gt;AddChild(b);
+		d-&gt;RemoveChild(b);
+	}
+	g.ShrinkToFit();
+	return Counter::count() == 4;
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-lanzkron odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39381">
+		<div id="div-comment-39381">
+		<div class="cmtinfo"><em> on <a href="#comment-39381" title="">2016-09-18 at 2:41 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6183c6f9d621a125cd3aa0f7ae324285?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://lanzkron.wordpress.com' rel='external nofollow' class='url'>Motti Lanzkron</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39381"></div><p>@Cooper your solution can be simplified to calling </p>
+<pre class="brush: plain; title: ; notranslate" title="">node-&gt;children.clear()</pre>
+<p> in </p>
+<pre class="brush: plain; title: ; notranslate" title="">RemoveChild</pre>
+<p>, this is what I initially wrote and it passes all the test cases but it&#8217;s too eager since it will clear a nodes children even if it has remaining parents.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-intvnut even thread-even depth-1 highlander-comment" id="comment-39380">
+		<div id="div-comment-39380">
+		<div class="cmtinfo"><em> on <a href="#comment-39380" title="">2016-09-18 at 2:11 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c53d81245d85989dd6aa2018a2278fd5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>intvnut</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39380"></div><p>@Jason Hise:  I figured that&#8217;s what Herb was getting at with his simple example, but I wanted to avoid spoiling the fun for folks who might be encountering it the first time.   I was immediately reminded of one of the MIT AI Hacker Koans when I saw it:</p>
+<p>&#8212;-</p>
+<p>One day a student came to Moon and said: “I understand how to make a better garbage collector. We must keep a reference count of the pointers to each cons.”</p>
+<p>Moon patiently told the student the following story:</p>
+<p>    “One day a student came to Moon and said: ‘I understand how to make a better garbage collector&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-intvnut odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39379">
+		<div id="div-comment-39379">
+		<div class="cmtinfo"><em> on <a href="#comment-39379" title="">2016-09-18 at 2:07 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c53d81245d85989dd6aa2018a2278fd5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>intvnut</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39379"></div><p>Yeah, it was either smaller stack footprint, or tail recursion elimination if I was [i]really[/i] lucky.</p>
+<p>It was an inverted tree structure (children point to parents) in a solver.  Whenever I killed a potential solution, it would automatically unwind to the branch-point in the tree.  IIRC, the parent link was the first member of the class, so it would also be the last thing destroyed.  I didn&#8217;t have a dtor of my own in that class either; just the compiler-generated dtor.</p>
+<p>I have no way to measure the code now.  It remains at my previous employer.</p>
+<p>And, since we were always chronically deprived for time and developer resource (part of the reason that&#8217;s my [i]previous[/i] employer), I didn&#8217;t work on solving the recursion problem.  I just raised the ulimit instead and moved on to solving some rather larger problems that remained.  :-P</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-39377">
+		<div id="div-comment-39377">
+		<div class="cmtinfo"><em> on <a href="#comment-39377" title="">2016-09-18 at 2:00 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/8c24871dd4ad1b9652ca2bd96f1a72b5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Norbert</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39377"></div><p>That sort of test driven development brought out the evil minimalist coder in me. The result is horrible and I know it, but it&#8217;s fun to apply the &#8220;Beyonce Rule&#8221; I just learned from Titus Winters in the last cppcast episode (&#8220;If you want to file an issue there should&#8217;ve been a test for it.&#8221;).</p>
+<p>Thanks for some fun on a bad weather Sunday.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jiridockal odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39376">
+		<div id="div-comment-39376">
+		<div class="cmtinfo"><em> on <a href="#comment-39376" title="">2016-09-18 at 12:53 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0bbdcdaf537e37c5c61b92da7d4c9f1b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Cooper</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39376"></div><p>What about this? The recursion in not what we want but it works. Still I think it&#8217;s not the solution we&#8217;re looking for because ShrinkToFit() is empty. I guess Herb wanted to help us with this call:)</p>
+<pre class="brush: plain; title: ; notranslate" title="">class MyGraph {
+public:
+    class Node : public Counter {
+        vector&lt;shared_ptr&lt;Node&gt;&gt; children;
+ 
+    public:
+        void AddChild(const shared_ptr&lt;Node&gt;&amp; node) {
+            children.push_back(node);
+        }
+        void RemoveChild(const shared_ptr&lt;Node&gt;&amp; node) {
+            auto it = std::find(cbegin(children), cend(children), node);
+            if(*it)
+            {
+                (*it)-&gt;RemoveAllChildren();
+            }
+            children.erase(it);
+        }
+    private:
+        void RemoveAllChildren()
+        {
+            for(auto&amp; child : children)
+                RemoveChild(child);
+        }
+    };
+ 
+    void SetRoot(const shared_ptr&lt;Node&gt;&amp; node) {
+        root = node;
+    }
+ 
+    void ShrinkToFit() {
+    }
+ 
+    static auto MakeNode() { return make_shared&lt;MyGraph::Node&gt;(); }
+ 
+private:
+    shared_ptr&lt;Node&gt; root;
+};</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-lanzkron even thread-even depth-1 highlander-comment" id="comment-39375">
+		<div id="div-comment-39375">
+		<div class="cmtinfo"><em> on <a href="#comment-39375" title="">2016-09-18 at 12:34 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6183c6f9d621a125cd3aa0f7ae324285?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://lanzkron.wordpress.com' rel='external nofollow' class='url'>Motti Lanzkron</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39375"></div><p>You should add a test case that detects overly destructive solutions. I cleared the children member of the removed node prior to removing it from its parent and this passed all the tests :(</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39374">
+		<div id="div-comment-39374">
+		<div class="cmtinfo"><em> on <a href="#comment-39374" title="">2016-09-17 at 11:26 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/a5a6f2c2be3d5c4394498aae38416326?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.entropygames.net' rel='external nofollow' class='url'>Jason Hise</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39374"></div><p>The problem posed here is equivalent to the problem of writing a general purpose garbage collector, capable of cleaning up islands of references as soon as they are no longer reachable from any variable on the stack.  Reference counting as a solution breaks down when ownership relationships can be circular; any algorithm that determines which nodes can be freed will require traversing the graph to identify the reachable objects.  If this operation has to happen immediately when the link is broken, the most efficient algorithm I can think of would have to traverse and tag everything downstream of the broken link.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-39373">
+		<div id="div-comment-39373">
+		<div class="cmtinfo"><em> on <a href="#comment-39373" title="">2016-09-17 at 9:24 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/42ad77b6b45ab25f4009bf9878c31bed?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Bender</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39373"></div><p>PSA: webpage is buggy(It caches the result of the run and you can not force it to rerun stuff even if you delete almost all the code) and it will not let you c/p the code so have fun debugging anything with this.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39372">
+		<div id="div-comment-39372">
+		<div class="cmtinfo"><em> on <a href="#comment-39372" title="">2016-09-17 at 7:15 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/42ad77b6b45ab25f4009bf9878c31bed?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Bender</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39372"></div><p>@ intvnut probably opt code had smaller stack usage. If you still have this code you can verify this by looking at the difference of the addresses between local variables at depth n and n+1 of recursion.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-39371">
+		<div id="div-comment-39371">
+		<div class="cmtinfo"><em> on <a href="#comment-39371" title="">2016-09-17 at 6:49 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/9fdfde82947baf080a81ef0db500f2a3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ben Craig</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39371"></div><p>My implementation is definitely a reflection of Greenspuns Tenth Rule Of Programming:<br />
+   Any sufficiently complicated C or Fortran program contains an ad-hoc, informally-specified, bug-ridden, slow implementation of half of CommonLisp.</p>
+<p>I would have liked my solution better had the Node factory function not been static.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-intvnut odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39370">
+		<div id="div-comment-39370">
+		<div class="cmtinfo"><em> on <a href="#comment-39370" title="">2016-09-17 at 5:32 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c53d81245d85989dd6aa2018a2278fd5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>intvnut</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39370"></div><p>I actually hit the case Bender describes in on program I wrote.  I hadn&#8217;t internalized the recursive nature of the destructors, but it was obvious in retrospect.  Interestingly, the program was fine with optimization enabled, and broke when compiling for debug.</p>
+<p>In any case, for this brain-teaser:  Can SetRoot be called at any time?  That can alter node reachability rather differently than just deleting an edge in a directed graph.  Not that any of the test cases do that&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-39368">
+		<div id="div-comment-39368">
+		<div class="cmtinfo"><em> on <a href="#comment-39368" title="">2016-09-17 at 5:24 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39368"></div><p>@Bender O:-) Yes, that&#8217;s an interesting point, isn&#8217;t it?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-39366">
+		<div id="div-comment-39366">
+		<div class="cmtinfo"><em> on <a href="#comment-39366" title="">2016-09-17 at 4:57 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/42ad77b6b45ab25f4009bf9878c31bed?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Bender</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_39366"></div><p>Herb I hate to be the one to tell you this, but your code is bad.<br />
+Any deep tree will stack overflow on destruction of root or any other node that has enough children for recursive dtor calls to cause stack overflow.<br />
+I know it is a borderline case to have tree this deep, but still I would not ever use library like this.<br />
+That aside off I go to try to solve the problem with shared ptr.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2016/09/17/a-little-puzzle-for-cppcon/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-b69fa813084d36607f9ddff2ce46e232">
+	</div>
+	<div class="grofile-hash-map-ca391c038b300a739462dae91c5e8cbc">
+	</div>
+	<div class="grofile-hash-map-69d7765491ded8ee7f4059ce5d504d11">
+	</div>
+	<div class="grofile-hash-map-c53d81245d85989dd6aa2018a2278fd5">
+	</div>
+	<div class="grofile-hash-map-38d8634182fee610a539c1c06927c819">
+	</div>
+	<div class="grofile-hash-map-38d8634182fee610a539c1c06927c819">
+	</div>
+	<div class="grofile-hash-map-6e091f3f82de0ff8377b0249f8bb4879">
+	</div>
+	<div class="grofile-hash-map-4e974a514f0764fdfe99a8915f192002">
+	</div>
+	<div class="grofile-hash-map-2e3f8a11623a068e82db9fc760bbbb24">
+	</div>
+	<div class="grofile-hash-map-42ad77b6b45ab25f4009bf9878c31bed">
+	</div>
+	<div class="grofile-hash-map-0b85893f86f1d3afd2d9cd7a48c9278c">
+	</div>
+	<div class="grofile-hash-map-e9c900d492d4ff94b18187b323389b1d">
+	</div>
+	<div class="grofile-hash-map-ac5b75f2ba59f84ac69e71018275702b">
+	</div>
+	<div class="grofile-hash-map-efa75bb8aafe2daa6e7e85a9e5862915">
+	</div>
+	<div class="grofile-hash-map-6183c6f9d621a125cd3aa0f7ae324285">
+	</div>
+	<div class="grofile-hash-map-8c24871dd4ad1b9652ca2bd96f1a72b5">
+	</div>
+	<div class="grofile-hash-map-0bbdcdaf537e37c5c61b92da7d4c9f1b">
+	</div>
+	<div class="grofile-hash-map-a5a6f2c2be3d5c4394498aae38416326">
+	</div>
+	<div class="grofile-hash-map-9fdfde82947baf080a81ef0db500f2a3">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_39448={"id":468178,"unique_id":"wp-comment-39448","title":"will%20this%20be%20acceptable%20%3F%26%23091%3Bcode%26%23093%3Bclass%20MyGraph%20%7Bpublic%3A%20%20%20%20class%20Node%20%3A%20public%20Counter%20%7B%20%20%20%20%20%20%20%20vector%26lt%3Bshared_ptr%26lt%3BNode%26gt%3B%26gt%3B%20children%3B%20%20%20%20%20%20%20%20vector%26lt%3Bweak_ptr%26lt%3BNode%26gt%3B%26gt%3B%20o_children%3B%20...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39448","item_id":"_comm_39448"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39448 == 'undefined' ){PDRTJS_468178_comm_39448 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39448 );}}PDRTJS_settings_468178_comm_39409={"id":468178,"unique_id":"wp-comment-39409","title":"I%20agree%20with%20intvnut.%20%20This%20API%20seems%20contrived%20to%20make%20a%20clean%20solution%20impossible%20%28without%20introducing%20something%20with%20a%20program-global%20view%2C%20like%20a%20GC%29.%20%20If%20I%20were%20building%20an%20API%20for%20cyclic%20di...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39409","item_id":"_comm_39409"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39409 == 'undefined' ){PDRTJS_468178_comm_39409 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39409 );}}PDRTJS_settings_468178_comm_39406={"id":468178,"unique_id":"wp-comment-39406","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20%26laquo%3B%20A%20little%20puzzle%20for%26nbsp%3BCppCon%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39406","item_id":"_comm_39406"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39406 == 'undefined' ){PDRTJS_468178_comm_39406 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39406 );}}PDRTJS_settings_468178_comm_39405={"id":468178,"unique_id":"wp-comment-39405","title":"duh%2C%20I%20see%20my%20wrong%20now.%20Thanks%21...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39405","item_id":"_comm_39405"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39405 == 'undefined' ){PDRTJS_468178_comm_39405 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39405 );}}PDRTJS_settings_468178_comm_39404={"id":468178,"unique_id":"wp-comment-39404","title":"%40Marco%3A%20%20But%2C%20the%20graph%20is%20a%20-%26gt%3B%20c%20-%26gt%3B%20b%2C%20and%20so%20the%20count%20should%20remain%203....","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39404","item_id":"_comm_39404"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39404 == 'undefined' ){PDRTJS_468178_comm_39404 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39404 );}}PDRTJS_settings_468178_comm_39403={"id":468178,"unique_id":"wp-comment-39403","title":"%40intvnut%2C%20adding%20a-%26gt%3BRemoveChild%28b%29%20means%20that%20the%20remaining%20count%20should%20be%202%20%28a%20%26amp%3B%20c%29.%20If%20you%20change%20return%20Counter%3A%3Acount%28%29%20%3D%3D%202%20to%20return%20Counter%3A%3Acount%28%29%20%3D%3D%202%20it%20passes....","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39403","item_id":"_comm_39403"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39403 == 'undefined' ){PDRTJS_468178_comm_39403 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39403 );}}PDRTJS_settings_468178_comm_39402={"id":468178,"unique_id":"wp-comment-39402","title":"%40intvnut%2C%20when%20you%20do%20a-%26gt%3BRemoveChild%28b%29%20you%20need%20to%20update%20the%20count%20check%20to%20be%20%3D%3D%202%20instead%203.%20It%20doesn%26%23039%3Bt%20fail%20for%20me....","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39402","item_id":"_comm_39402"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39402 == 'undefined' ){PDRTJS_468178_comm_39402 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39402 );}}PDRTJS_settings_468178_comm_39401={"id":468178,"unique_id":"wp-comment-39401","title":"Fundamentally%2C%20solutions%20involving%20shared_ptr%20and%20weak_ptr%20I%20think%20will%20be%20flawed%20without%20some%20sort%20of%20outside%20structure%20that%20has%20a%20view%20of%20the%20graph.Reachability%20of%20a%20given%20node%20from%20the%20root%20is...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39401","item_id":"_comm_39401"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39401 == 'undefined' ){PDRTJS_468178_comm_39401 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39401 );}}PDRTJS_settings_468178_comm_39400={"id":468178,"unique_id":"wp-comment-39400","title":"%40Marco%3A%20%20You%26%23039%3Bre%20missing%20a-%26gt%3BRemoveChild%28b%29.When%20I%20add%20that%2C%20it%20fails....","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39400","item_id":"_comm_39400"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39400 == 'undefined' ){PDRTJS_468178_comm_39400 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39400 );}}PDRTJS_settings_468178_comm_39399={"id":468178,"unique_id":"wp-comment-39399","title":"%40intvnut%2C%20I%20just%20tried%20your%20test%20case%20and%20it%20works.http%3A%2F%2Fideone.com%2FROcgcz...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39399","item_id":"_comm_39399"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39399 == 'undefined' ){PDRTJS_468178_comm_39399 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39399 );}}PDRTJS_settings_468178_comm_39398={"id":468178,"unique_id":"wp-comment-39398","title":"%40Marco%3A%20%20Isn%26%23039%3Bt%20%26%23039%3Bparents%26%23039%3B%20a%20bad%20name%20here%3F%20%20They%26%23039%3Bre%20still%20children.%20%20Maybe%20%26%23039%3Bweak_children%26%23039%3B.Also%2C%20isn%26%23039%3Bt%20this%20sensitive%20to%20the%20order%20of%20operations%3F%20%20Some%20orders%20of%20operations%20succeed%2C%20others%20fail.%20%20...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39398","item_id":"_comm_39398"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39398 == 'undefined' ){PDRTJS_468178_comm_39398 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39398 );}}PDRTJS_settings_468178_comm_39397={"id":468178,"unique_id":"wp-comment-39397","title":"%26%23091%3Bcode%26%23093%3Bclass%20Node%20%3A%20public%20Counter%20%7B%20%20vector%26lt%3Bshared_ptr%26lt%3BNode%26gt%3B%26gt%3B%20children%3B%20%20vector%26lt%3Bweak_ptr%26lt%3BNode%26gt%3B%26gt%3B%20parents%3B%20%20bool%20hasParent%3B%20%20void%20%20%20%2F%2F%20...%20%20%20%20%20%20void%20AddChild%28const%20shared_pt...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39397","item_id":"_comm_39397"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39397 == 'undefined' ){PDRTJS_468178_comm_39397 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39397 );}}PDRTJS_settings_468178_comm_39396={"id":468178,"unique_id":"wp-comment-39396","title":"The%20solution%20was%3Aclass%20MyGraph%20%7Bpublic%3A%20%20%20%20class%20Node%20%3A%20public%20Counter%2C%20public%20std%3A%3Aenable_shared_from_this%20%7B%20%20%20%20%20%20%20%20vector%26lt%3Bshared_ptr%26gt%3B%20children%3B%20%20%20%20%20%20%20%20vector%26lt%3Bweak_ptr%26gt%3B%20parents%3B%20%20%20%20p...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39396","item_id":"_comm_39396"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39396 == 'undefined' ){PDRTJS_468178_comm_39396 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39396 );}}PDRTJS_settings_468178_comm_39395={"id":468178,"unique_id":"wp-comment-39395","title":"Darn%20%3A%29%20Before%20Motti%20proposed%204-th%20test%20case%2C%20I%20had%20a%20solution%3A...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39395","item_id":"_comm_39395"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39395 == 'undefined' ){PDRTJS_468178_comm_39395 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39395 );}}PDRTJS_settings_468178_comm_39394={"id":468178,"unique_id":"wp-comment-39394","title":"I%20was%20just%20hinting%20at%20using%20weak_ptrs%20and%20pulling%20the%20ownership%20out%20to%20another%20structure%20to%20resolve%20the%20circular%20references.%20%20You%20don%26%23039%3Bt%20need%20a%20full%20garbage%20collector%20to%20pass%20the%20tests.%20%20Someone%20u...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39394","item_id":"_comm_39394"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39394 == 'undefined' ){PDRTJS_468178_comm_39394 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39394 );}}PDRTJS_settings_468178_comm_39393={"id":468178,"unique_id":"wp-comment-39393","title":"Based%20on%20the%20problem%20description%20and%20alteryxned%26%23039%3Bs%20little%20hint%2C%20I%20think%20there%20must%20be%20some%20way%20to%20do%20this%20without%20implementing%20a%20mark%20and%20sweep%20garbage%20collector.%20%20However%2C%20it%20depends%20on%20knowing%20s...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39393","item_id":"_comm_39393"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39393 == 'undefined' ){PDRTJS_468178_comm_39393 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39393 );}}PDRTJS_settings_468178_comm_39392={"id":468178,"unique_id":"wp-comment-39392","title":"%40Juan%3A%20%20The%20circular%20reference%20is%20%2Athe%2A%20problem.%20%20It%26%23039%3Bs%20the%20piece%20not%20handled%20automagically%20by%20shared_ptr.If%20the%20graph%20were%20acyclic%2C%20the%20normal%20reference%20counting%20of%20shared_ptr%20takes%20care%20of%20garba...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39392","item_id":"_comm_39392"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39392 == 'undefined' ){PDRTJS_468178_comm_39392 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39392 );}}PDRTJS_settings_468178_comm_39391={"id":468178,"unique_id":"wp-comment-39391","title":"%40intvnutI%20get%20your%20point%2C%20there%26%23039%3Bs%20a%20circular%20reference%20there.%20The%20circle%20can%20be%20broken%20by%20removing%20C%20from%20B%20or%20B%20from%20C.Going%20further%2C%20the%20last%20line%20remove%20A%20from%20list%20of%20parents%20of%20B%2C%20leaving%20th...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39391","item_id":"_comm_39391"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39391 == 'undefined' ){PDRTJS_468178_comm_39391 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39391 );}}PDRTJS_settings_468178_comm_39390={"id":468178,"unique_id":"wp-comment-39390","title":"%40Motti%20I%20caught%20the%20same%20problem%20and%20I%20ragequit%20and%20went%20to%20sleep.%20%3A%29%20My%20testcase%20is%20only%20a%20bit%20different.%20%7Bauto%20a%20%3D%20MyGraph%3A%3AMakeNode%28%29%3Bg.SetRoot%28a%29%3Bauto%20b%20%3D%20MyGraph%3A%3AMakeNode%28%29%3Ba-%26gt%3BAddChild%28b...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39390","item_id":"_comm_39390"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39390 == 'undefined' ){PDRTJS_468178_comm_39390 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39390 );}}PDRTJS_settings_468178_comm_39389={"id":468178,"unique_id":"wp-comment-39389","title":"%40Juan%3A%20%20A%20mental%20exercise%3A%20%20What%20do%20the%20child%20and%20parent%20pointers%20look%20like%20for%20%20%26%23039%3Bb%26%23039%3B%20and%20%26%23039%3Bc%26%23039%3B%20after%20this%20sequence%3F%26%23091%3Bcode%26%23093%3B%20%20%20%20%20%20%20%20a-%26gt%3BAddChild%28b%29%3B%20%20%20%20%20%20%20%20b-%26gt%3BAddChild%28c%29%3B%20%20%20%20%20%20%20%20c-%26gt%3BAddChild%28b...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39389","item_id":"_comm_39389"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39389 == 'undefined' ){PDRTJS_468178_comm_39389 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39389 );}}PDRTJS_settings_468178_comm_39388={"id":468178,"unique_id":"wp-comment-39388","title":"Hi%20there%2CI%20think%20each%20node%20should%20have%20a%20list%20of%20weak%20pointers%20to%20his%20parent%20node.When%20a%20child%20node%20is%20removed%20the%20parent%20is%20removed%20from%20that%20list%20too.%20If%20the%20list%20of%20parents%20is%20empty%2C%20the%20node%20...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39388","item_id":"_comm_39388"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39388 == 'undefined' ){PDRTJS_468178_comm_39388 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39388 );}}PDRTJS_settings_468178_comm_39387={"id":468178,"unique_id":"wp-comment-39387","title":"Having%20MakeNode%20as%20a%20static%20function%2C%20but%20ShrinkToFit%20not%20opens%20this%20up%20to%20a%20lot%20of%20problems%3A-%20User%20can%20construct%20cycles%20without%20adding%20them%20to%20a%20graph%20causing%20leaks-%20Nodes%20could%20belong%20to%20multip...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39387","item_id":"_comm_39387"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39387 == 'undefined' ){PDRTJS_468178_comm_39387 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39387 );}}PDRTJS_settings_468178_comm_39386={"id":468178,"unique_id":"wp-comment-39386","title":"I%20submitted%20a%20solution%2C%20but%20it%26%23039%3Bs%20not%20very%20satisfactory.%20I%20took%20the%20existence%20of%20the%20ShrinkToFit%20method%20to%20be%20a%20special%20garbage%20collection%20routine%20which%20the%20user%20is%20expected%20to%20trigger%2C%20and%20which%20...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39386","item_id":"_comm_39386"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39386 == 'undefined' ){PDRTJS_468178_comm_39386 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39386 );}}PDRTJS_settings_468178_comm_39385={"id":468178,"unique_id":"wp-comment-39385","title":"Why%20is%20the%20MakeNode%20function%20static%3F%20That%20seems%20a%20bit%20weird.%20Also%2C%20I%20guess%20we%26%23039%3Bre%20supposed%20to%20do%20the%20cleanup%20once%20in%20the%20ShrinkToFit%20function%2C%20and%20not%20after%20each%20RemoveChild%20call%3F...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39385","item_id":"_comm_39385"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39385 == 'undefined' ){PDRTJS_468178_comm_39385 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39385 );}}PDRTJS_settings_468178_comm_39384={"id":468178,"unique_id":"wp-comment-39384","title":"The%20solutions%20here%20%28so%20far%29%20seem%20to%20all%20have%20in%20common%20that%20they%20delete%20too%20much.%20%20All%20that%20really%20shows%20is%20that%20test%20driven%20development%20is%20very%20difficult%20and%20the%20tests%20are%20not%20a%20proxy%20for%20knowin...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39384","item_id":"_comm_39384"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39384 == 'undefined' ){PDRTJS_468178_comm_39384 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39384 );}}PDRTJS_settings_468178_comm_39383={"id":468178,"unique_id":"wp-comment-39383","title":"I%20have%20the%20same%20solution%20that%20Cooper%20posted%2C%20with%20the%20simplification%20that%20Motti%20Lanzkron%20mentioned.%20And%20my%20ShrinkToFit%20is%20also%20empty.%20It%20seems%20a%20bit%20strange%20that%20I%20did%20not%20need%20that.%20Perhaps%20I%20de...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39383","item_id":"_comm_39383"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39383 == 'undefined' ){PDRTJS_468178_comm_39383 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39383 );}}PDRTJS_settings_468178_comm_39382={"id":468178,"unique_id":"wp-comment-39382","title":"Here%26%23039%3Bs%20a%20test%20case%20that%20I%20think%20should%20be%20added%3A%26%23091%3Bcode%26%23093%3Bbool%20TestCase4%28%29%20%7BMyGraph%20g%3B%7Bauto%20a%20%3D%20MyGraph%3A%3AMakeNode%28%29%3Bg.SetRoot%28a%29%3Bauto%20b%20%3D%20MyGraph%3A%3AMakeNode%28%29%3Ba-%26gt%3BAddChild%28b%29%3Bauto%20c%20%3D%20MyGraph%3A%3AMakeN...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39382","item_id":"_comm_39382"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39382 == 'undefined' ){PDRTJS_468178_comm_39382 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39382 );}}PDRTJS_settings_468178_comm_39381={"id":468178,"unique_id":"wp-comment-39381","title":"%40Cooper%20your%20solution%20can%20be%20simplified%20to%20calling%20%26%23091%3Bcode%26%23093%3Bnode-%26gt%3Bchildren.clear%28%29%26%23091%3B%2Fcode%26%23093%3B%20in%20%26%23091%3Bcode%26%23093%3BRemoveChild%26%23091%3B%2Fcode%26%23093%3B%2C%20this%20is%20what%20I%20initially%20wrote%20and%20it%20passes%20all%20the%20test%20cases%20but%20it%26%23039%3Bs%20too...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39381","item_id":"_comm_39381"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39381 == 'undefined' ){PDRTJS_468178_comm_39381 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39381 );}}PDRTJS_settings_468178_comm_39380={"id":468178,"unique_id":"wp-comment-39380","title":"%40Jason%20Hise%3A%20%20I%20figured%20that%26%23039%3Bs%20what%20Herb%20was%20getting%20at%20with%20his%20simple%20example%2C%20but%20I%20wanted%20to%20avoid%20spoiling%20the%20fun%20for%20folks%20who%20might%20be%20encountering%20it%20the%20first%20time.%20%20%20I%20was%20immediately%20...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39380","item_id":"_comm_39380"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39380 == 'undefined' ){PDRTJS_468178_comm_39380 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39380 );}}PDRTJS_settings_468178_comm_39379={"id":468178,"unique_id":"wp-comment-39379","title":"Yeah%2C%20it%20was%20either%20smaller%20stack%20footprint%2C%20or%20tail%20recursion%20elimination%20if%20I%20was%20%26%23091%3Bi%26%23093%3Breally%26%23091%3B%2Fi%26%23093%3B%20lucky.It%20was%20an%20inverted%20tree%20structure%20%28children%20point%20to%20parents%29%20in%20a%20solver.%20%20Whenever%20I%20kill...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39379","item_id":"_comm_39379"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39379 == 'undefined' ){PDRTJS_468178_comm_39379 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39379 );}}PDRTJS_settings_468178_comm_39377={"id":468178,"unique_id":"wp-comment-39377","title":"That%20sort%20of%20test%20driven%20development%20brought%20out%20the%20evil%20minimalist%20coder%20in%20me.%20The%20result%20is%20horrible%20and%20I%20know%20it%2C%20but%20it%26%23039%3Bs%20fun%20to%20apply%20the%20%26quot%3BBeyonce%20Rule%26quot%3B%20I%20just%20learned%20from%20Titus%20Winters%20...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39377","item_id":"_comm_39377"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39377 == 'undefined' ){PDRTJS_468178_comm_39377 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39377 );}}PDRTJS_settings_468178_comm_39376={"id":468178,"unique_id":"wp-comment-39376","title":"What%20about%20this%3F%20The%20recursion%20in%20not%20what%20we%20want%20but%20it%20works.%20Still%20I%20think%20it%26%23039%3Bs%20not%20the%20solution%20we%26%23039%3Bre%20looking%20for%20because%20ShrinkToFit%28%29%20is%20empty.%20I%20guess%20Herb%20wanted%20to%20help%20us%20with%20this%20cal...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39376","item_id":"_comm_39376"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39376 == 'undefined' ){PDRTJS_468178_comm_39376 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39376 );}}PDRTJS_settings_468178_comm_39375={"id":468178,"unique_id":"wp-comment-39375","title":"You%20should%20add%20a%20test%20case%20that%20detects%20overly%20destructive%20solutions.%20I%20cleared%20the%20children%20member%20of%20the%20removed%20node%20prior%20to%20removing%20it%20from%20its%20parent%20and%20this%20passed%20all%20the%20tests%20%3A%28...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39375","item_id":"_comm_39375"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39375 == 'undefined' ){PDRTJS_468178_comm_39375 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39375 );}}PDRTJS_settings_468178_comm_39374={"id":468178,"unique_id":"wp-comment-39374","title":"The%20problem%20posed%20here%20is%20equivalent%20to%20the%20problem%20of%20writing%20a%20general%20purpose%20garbage%20collector%2C%20capable%20of%20cleaning%20up%20islands%20of%20references%20as%20soon%20as%20they%20are%20no%20longer%20reachable%20from%20any%20v...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39374","item_id":"_comm_39374"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39374 == 'undefined' ){PDRTJS_468178_comm_39374 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39374 );}}PDRTJS_settings_468178_comm_39373={"id":468178,"unique_id":"wp-comment-39373","title":"PSA%3A%20webpage%20is%20buggy%28It%20caches%20the%20result%20of%20the%20run%20and%20you%20can%20not%20force%20it%20to%20rerun%20stuff%20even%20if%20you%20delete%20almost%20all%20the%20code%29%20and%20it%20will%20not%20let%20you%20c%2Fp%20the%20code%20so%20have%20fun%20debugging%20an...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39373","item_id":"_comm_39373"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39373 == 'undefined' ){PDRTJS_468178_comm_39373 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39373 );}}PDRTJS_settings_468178_comm_39372={"id":468178,"unique_id":"wp-comment-39372","title":"%40%20intvnut%20probably%20opt%20code%20had%20smaller%20stack%20usage.%20If%20you%20still%20have%20this%20code%20you%20can%20verify%20this%20by%20looking%20at%20the%20difference%20of%20the%20addresses%20between%20local%20variables%20at%20depth%20n%20and%20n%2B1%20of%20re...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39372","item_id":"_comm_39372"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39372 == 'undefined' ){PDRTJS_468178_comm_39372 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39372 );}}PDRTJS_settings_468178_comm_39371={"id":468178,"unique_id":"wp-comment-39371","title":"My%20implementation%20is%20definitely%20a%20reflection%20of%20Greenspuns%20Tenth%20Rule%20Of%20Programming%3A%20%20%20Any%20sufficiently%20complicated%20C%20or%20Fortran%20program%20contains%20an%20ad-hoc%2C%20informally-specified%2C%20bug-ridden%2C%20slo...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39371","item_id":"_comm_39371"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39371 == 'undefined' ){PDRTJS_468178_comm_39371 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39371 );}}PDRTJS_settings_468178_comm_39370={"id":468178,"unique_id":"wp-comment-39370","title":"I%20actually%20hit%20the%20case%20Bender%20describes%20in%20on%20program%20I%20wrote.%20%20I%20hadn%26%23039%3Bt%20internalized%20the%20recursive%20nature%20of%20the%20destructors%2C%20but%20it%20was%20obvious%20in%20retrospect.%20%20Interestingly%2C%20the%20program%20was%20f...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39370","item_id":"_comm_39370"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39370 == 'undefined' ){PDRTJS_468178_comm_39370 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39370 );}}PDRTJS_settings_468178_comm_39368={"id":468178,"unique_id":"wp-comment-39368","title":"%40Bender%20O%3A-%29%20Yes%2C%20that%26%23039%3Bs%20an%20interesting%20point%2C%20isn%26%23039%3Bt%20it%3F...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39368","item_id":"_comm_39368"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39368 == 'undefined' ){PDRTJS_468178_comm_39368 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39368 );}}PDRTJS_settings_468178_comm_39366={"id":468178,"unique_id":"wp-comment-39366","title":"Herb%20I%20hate%20to%20be%20the%20one%20to%20tell%20you%20this%2C%20but%20your%20code%20is%20bad.%20Any%20deep%20tree%20will%20stack%20overflow%20on%20destruction%20of%20root%20or%20any%20other%20node%20that%20has%20enough%20children%20for%20recursive%20dtor%20calls%20to%20c...","permalink":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/#comment-39366","item_id":"_comm_39366"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_39366 == 'undefined' ){PDRTJS_468178_comm_39366 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_39366 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2016%2F09%2F17%2Fa-little-puzzle-for-cppcon%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2016\/09\/17\/a-little-puzzle-for-cppcon\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2016%2F09%2F17%2Fa-little-puzzle-for-cppcon%2F","postID":"2731","shortlink":"https:\/\/wp.me\/peb5Y-I3","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2731","statsLink":"https:\/\/wordpress.com\/stats\/post\/2731\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2016%2F09%2F17%2Fa-little-puzzle-for-cppcon%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2731','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLjdFLVYrZG9bWy1RSmZoX0t4ZXpza01NL2lZRnJxazFbLVI4P2VuL0RUWU9iRXpqVHVxWnxUZj1beCtbW1ZKci1SfHdJZ2E3aCtGKzJmd05uJklMUGI4SzB2SEtkP1d4Rkt2Z2V6Qn5Wbix8dEhtcFJza0Z4eXNRTUpJXWJsa19NREtuOEwtN0VkZ3VGZjVjam5sXUFkYmN1PWp4VGNuR0c3VysvTFt3Y3B3c3pjOUpdX2s1c2FTbTFOQ2ljMk4tUmtxd3ZNTQ=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2731' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>
+<!--
+	generated in 0.176 seconds
+	108124 bytes batcached for 300 seconds
+-->

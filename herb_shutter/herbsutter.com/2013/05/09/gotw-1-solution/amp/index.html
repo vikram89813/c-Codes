@@ -1,0 +1,563 @@
+<!doctype html>
+<html amp lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+	
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #1 Solution: Variable Initialization – or Is It?" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/09/gotw-1-solution/" />
+<meta property="og:description" content="This first problem highlights the importance of understanding what you write. Here we have a few simple lines of code—most of which mean something different from all the others, even though the syn…" />
+<meta property="article:published_time" content="2013-05-09T16:30:01+00:00" />
+<meta property="article:modified_time" content="2013-05-19T00:12:02+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965420" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #1 Solution: Variable Initialization – or Is It?" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+	<title>GotW #1 Solution: Variable Initialization – or Is It? &#8211; Sutter’s Mill</title>
+		<link rel="canonical" href="https://herbsutter.com/2013/05/09/gotw-1-solution/" />
+	<script src="https://cdn.ampproject.org/v0.js" async></script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic">	<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+		<script type="application/ld+json">{"@context":"http:\/\/schema.org","@type":"BlogPosting","mainEntityOfPage":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-1-solution\/","publisher":{"@type":"Organization","name":"Sutter\u2019s Mill","logo":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=60&d=https%3A%2F%2Fs0.wp.com%2Fi%2Ffavicons%2Fapple-touch-icon-60x60.png","width":60,"height":60}},"headline":"GotW #1 Solution: Variable Initialization \u2013 or Is It?","datePublished":"2013-05-09T08:30:01+00:00","dateModified":"2013-05-18T16:12:02+00:00","author":{"@type":"Person","name":"Herb Sutter"},"image":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=200","width":200,"height":200}}</script>
+	<meta name="generator" content="AMP Plugin v0.6.2" />	<style amp-custom>
+		/* Generic WP styling */
+
+.alignright {
+	float: right;
+}
+
+.alignleft {
+	float: left;
+}
+
+.aligncenter {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.amp-wp-enforced-sizes {
+	/** Our sizes fallback is 100vw, and we have a padding on the container; the max-width here prevents the element from overflowing. **/
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+.amp-wp-unknown-size img {
+	/** Worst case scenario when we can't figure out dimensions for an image. **/
+	/** Force the image into a box of fixed dimensions and use object-fit to scale. **/
+	object-fit: contain;
+}
+
+/* Template Styles */
+
+.amp-wp-content,
+.amp-wp-title-bar div {
+		margin: 0 auto;
+	max-width: 500px;
+	}
+
+html {
+	background: #0a89c0;
+}
+
+body {
+	background: #fff;
+	color: #353535;
+	font-family: 'Merriweather', 'Times New Roman', Times, Serif;
+	font-weight: 300;
+	line-height: 1.75em;
+}
+
+p,
+ol,
+ul,
+figure {
+	margin: 0 0 1em;
+	padding: 0;
+}
+
+a,
+a:visited {
+	color: #0a89c0;
+}
+
+a:hover,
+a:active,
+a:focus {
+	color: #353535;
+}
+
+/* Quotes */
+
+blockquote {
+	color: #353535;
+	background: rgba(127,127,127,.125);
+	border-left: 2px solid #0a89c0;
+	margin: 8px 0 24px 0;
+	padding: 16px;
+}
+
+blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+/* UI Fonts */
+
+.amp-wp-meta,
+.amp-wp-header div,
+.amp-wp-title,
+.wp-caption-text,
+.amp-wp-tax-category,
+.amp-wp-tax-tag,
+.amp-wp-comments-link,
+.amp-wp-footer p,
+.back-to-top {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen-Sans", "Ubuntu", "Cantarell", "Helvetica Neue", sans-serif;
+}
+
+/* Header */
+
+.amp-wp-header {
+	background-color: #0a89c0;
+}
+
+.amp-wp-header div {
+	color: #fff;
+	font-size: 1em;
+	font-weight: 400;
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: .875em 16px;
+	position: relative;
+}
+
+.amp-wp-header a {
+	color: #fff;
+	text-decoration: none;
+}
+
+/* Site Icon */
+
+.amp-wp-header .amp-wp-site-icon {
+	/** site icon is 32px **/
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 50%;
+	position: absolute;
+	right: 18px;
+	top: 10px;
+}
+
+/* Article */
+
+.amp-wp-article {
+	color: #353535;
+	font-weight: 400;
+	margin: 1.5em auto;
+	max-width: 840px;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+}
+
+/* Article Header */
+
+.amp-wp-article-header {
+	align-items: center;
+	align-content: stretch;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin: 1.5em 16px 0;
+}
+
+.amp-wp-title {
+	color: #353535;
+	display: block;
+	flex: 1 0 100%;
+	font-weight: 900;
+	margin: 0 0 .625em;
+	width: 100%;
+}
+
+/* Article Meta */
+
+.amp-wp-meta {
+	color: #696969;
+	display: inline-block;
+	flex: 2 1 50%;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0 0 1.5em;
+	padding: 0;
+}
+
+.amp-wp-article-header .amp-wp-meta:last-of-type {
+	text-align: right;
+}
+
+.amp-wp-article-header .amp-wp-meta:first-of-type {
+	text-align: left;
+}
+
+.amp-wp-byline amp-img,
+.amp-wp-byline .amp-wp-author {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.amp-wp-byline amp-img {
+	border: 1px solid #0a89c0;
+	border-radius: 50%;
+	position: relative;
+	margin-right: 6px;
+}
+
+.amp-wp-posted-on {
+	text-align: right;
+}
+
+/* Featured image */
+
+.amp-wp-article-featured-image {
+	margin: 0 0 1em;
+}
+.amp-wp-article-featured-image amp-img {
+	margin: 0 auto;
+}
+.amp-wp-article-featured-image.wp-caption .wp-caption-text {
+	margin: 0 18px;
+}
+
+/* Article Content */
+
+.amp-wp-article-content {
+	margin: 0 16px;
+}
+
+.amp-wp-article-content ul,
+.amp-wp-article-content ol {
+	margin-left: 1em;
+}
+
+.amp-wp-article-content amp-img {
+	margin: 0 auto;
+}
+
+.amp-wp-article-content amp-img.alignright {
+	margin: 0 0 1em 16px;
+}
+
+.amp-wp-article-content amp-img.alignleft {
+	margin: 0 16px 1em 0;
+}
+
+/* Captions */
+
+.wp-caption {
+	padding: 0;
+}
+
+.wp-caption.alignleft {
+	margin-right: 16px;
+}
+
+.wp-caption.alignright {
+	margin-left: 16px;
+}
+
+.wp-caption .wp-caption-text {
+	border-bottom: 1px solid #c2c2c2;
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0;
+	padding: .66em 10px .75em;
+}
+
+/* AMP Media */
+
+amp-carousel {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+amp-iframe,
+amp-youtube,
+amp-instagram,
+amp-vine {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+
+.amp-wp-article-content amp-carousel amp-img {
+	border: none;
+}
+
+amp-carousel > amp-img > img {
+	object-fit: contain;
+}
+
+.amp-wp-iframe-placeholder {
+	background: #c2c2c2 url( https://s2.wp.com/wp-content/plugins/amp/assets/images/placeholder-icon.png ) no-repeat center 40%;
+	background-size: 48px 48px;
+	min-height: 48px;
+}
+
+/* Article Footer Meta */
+
+.amp-wp-article-footer .amp-wp-meta {
+	display: block;
+}
+
+.amp-wp-tax-category,
+.amp-wp-tax-tag {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 1.5em 16px;
+}
+
+.amp-wp-comments-link {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	text-align: center;
+	margin: 2.25em 0 1.5em;
+}
+
+.amp-wp-comments-link a {
+	border-style: solid;
+	border-color: #c2c2c2;
+	border-width: 1px 1px 2px;
+	border-radius: 4px;
+	background-color: transparent;
+	color: #0a89c0;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 18px;
+	margin: 0 auto;
+	max-width: 200px;
+	padding: 11px 16px;
+	text-decoration: none;
+	width: 50%;
+	-webkit-transition: background-color 0.2s ease;
+			transition: background-color 0.2s ease;
+}
+
+/* AMP Footer */
+
+.amp-wp-footer {
+	border-top: 1px solid #c2c2c2;
+	margin: calc(1.5em - 1px) 0 0;
+}
+
+.amp-wp-footer div {
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: 1.25em 16px 1.25em;
+	position: relative;
+}
+
+.amp-wp-footer h2 {
+	font-size: 1em;
+	line-height: 1.375em;
+	margin: 0 0 .5em;
+}
+
+.amp-wp-footer p {
+	color: #696969;
+	font-size: .8em;
+	line-height: 1.5em;
+	margin: 0 85px 0 0;
+}
+
+.amp-wp-footer a {
+	text-decoration: none;
+}
+
+.back-to-top {
+	bottom: 1.275em;
+	font-size: .8em;
+	font-weight: 600;
+	line-height: 2em;
+	position: absolute;
+	right: 16px;
+}
+		/* Inline styles */
+.amp-wp-inline-d8fb976763dd645ebb9f2b5ebf2e380d{color:#5b9bd5;}.amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce{background-color:yellow;}.amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe{background:#ffffcc;margin-left:14pt;}.amp-wp-inline-113cd93428538c509a510c2339c242ff{color:#1f4e79;}.amp-wp-inline-cb08775e0ae4e830b87359c9f78462e6{color:#c00000;}.amp-wp-inline-093fd9b94d4a193806156aa45eed2d7f{color:#00b050;}.amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b{color:#5a5a5a;}	</style>
+</head>
+
+<body class="">
+
+<header id="top" class="amp-wp-header">
+	<div>
+		<a href="https://herbsutter.com">
+									<span class="amp-site-title">
+				Sutter’s Mill			</span>
+		</a>
+	</div>
+</header>
+
+<article class="amp-wp-article">
+	<header class="amp-wp-article-header">
+		<h1 class="amp-wp-title">GotW #1 Solution: Variable Initialization – or Is It?</h1>
+			<div class="amp-wp-meta amp-wp-byline">
+					<amp-img src="https://secure.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=24&#038;d=identicon&#038;r=g" width="24" height="24" layout="fixed"></amp-img>
+				<span class="amp-wp-author author vcard">Herb Sutter</span>
+	</div>
+<div class="amp-wp-meta amp-wp-posted-on">
+	<time datetime="2013-05-09T08:30:01+00:00">
+		6 years ago	</time>
+</div>
+	</header>
+
+	
+	<div class="amp-wp-article-content">
+		<p><span class="amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b"><em>This first problem highlights the importance of understanding what you write. Here we have a few simple lines of code—most of which mean something different from all the others, even though the syntax varies only slightly.<br/></em></span></p><p>
+ </p><h1>Problem<br/></h1><h2>JG Question<br/></h2><p>1. What is the difference, if any, among the following?
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>widget w;                   // (a)<br/><br/>widget w();                 // (b)<br/>widget w{};                 // (c)<br/><br/>widget w(x);                // (d)<br/>widget w{x};                // (e)<br/><br/>widget w = x;               // (f)<br/>widget w = {x};             // (g)<br/><br/>auto w = x;                 // (h)<br/>auto w = widget{x};         // (i)
+</code></pre><h2>Guru Questions<br/></h2><p>2. What do each of the following lines do?
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>vector&lt;int&gt; v1( 10, 20 );   // (a)<br/><br/>vector&lt;int&gt; v2{ 10, 20 };   // (b)
+</code></pre><p>3. Besides the cases above, what other benefits are there to using <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">{ }</span> to initialize objects?
+</p><p>4. When should you use <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">( )</span> vs. <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">{ }</span> syntax to initialize objects? Why?
+</p><p>
+ </p><h1>Solution<br/></h1><p>This puzzle demonstrates several things:
+</p><ul><li>The difference between default initialization, direct initialization, copy initialization, and list initialization.
+</li>
+<li>The difference between using <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">( )</span> and using <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">{ }</span> for initialization.
+</li>
+<li>A red herring that isn’t initialization at all, and which modern C++ entirely avoids.
+</li>
+</ul><p>But, most important of all: If you stick to two simple Guidelines, which we’ll cover in #4, you can ignore most of these cases and the rules are pretty simple and deliver efficient performance by default.
+</p><p>
+ </p><h2>1. What is the difference, if any, among the following?<br/></h2><p>Let’s consider the cases one by one.
+</p><h3>(a) is default initialization.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>widget w;                   // (a)
+</code></pre><p>This code declares a variable named <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">w</span>, of type <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span>. For most types, it is initialized using the default constructor <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget::widget()</span>.
+</p><p>Note that <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">w</span> is not initialized and contains garbage values if <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span> happens to be a built-in type like <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">int</span>, or a simple “<span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">int</span>-like” class type with what’s called a “trivial” default constructor—a type that relies on the compiler-generated default constructor, has no virtual functions or virtual base classes or data member initializers, and all its bases and members satisfy the same restrictions.
+</p><h3> (b) is a “vexing” red herring, now mostly a historical curiosity.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>widget w();                 // (b)
+</code></pre><p>This is a pre-modern C++ pitfall: At first glance, it may look like just another variable declaration calling a default constructor <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget::widget()</span>; in reality, thanks to a grammar ambiguity, it’s a function declaration for a function named <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">w</span> that takes no parameters and returns a <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span> object by value. (If you can’t see this at first, consider that the above code is no different from writing something like <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">int f();</span> which is clearly a function declaration.)
+</p><p>Lest you think “aw, but those <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">( )</span> parentheses are redundant, it’s the programmer’s own fault for not just writing <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget w;</span> there!”, note that the same problem arises in those occasional cases where you think you’re initializing a variable with temporary objects:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// same problem (gadget and doodad are types)<br/>//<br/>widget w( gadget(), doodad() );  // pitfall: not a variable declaration
+</code></pre><p>Scott Meyers long ago named this “C++’s most vexing parse,” because the standard resolves the parsing ambiguity by saying: “if it can be a function declaration, it is.”
+</p><p>The good news is that this is now mostly a historical curiosity, not something you should encounter in new code, because C++11 removed this pitfall. Note that C++11 does not change the meaning of the code—C++11 has great backward compatibility with C++98, including that this ambiguity still has the same meaning it always had. Rather, C++11 solves this by providing a syntax that supersedes case (b) in nearly all cases, so that we don’t need to ever fall into this pit anymore:
+</p><h3>(c) is non-vexing and clear.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>widget w{};                 // (c)
+</code></pre><p>Here we have the first reason to prefer <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">{ }</span> to <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">( )</span>: For any class type <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span>, line (c) does the “best parts” of (a) and (b)—it always initializes the variable, and is never ambiguous with a function declaration. No vex, no fuss, no muss.
+</p><p>“Aha, but wait, it’s not that simple!” someone might object. “What if <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span> has a constructor that takes a <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">std::initializer_list</span>? Those are greedy (preferred), so if <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span> has one of those wouldn’t this call that?”
+</p><p>The answer is no, this really is just as simple as it looks, because the standard is explicit that an empty <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">{ }</span> list means to call the default constructor if available. However, it’s good to be aware of <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">initializer_list</span>s, so let’s talk about those next.
+</p><h3>(d) and (e) are direct initialization.<br/></h3><p>Now let’s consider cases where we actually initialize <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">w</span> from some existing variable:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>widget w(x);                // (d)<br/>widget w{x};                // (e)
+</code></pre><p>Assuming <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">x</span> is not the name of a type, these are both direct initialization. That’s because the variable <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">w</span> is initialized “directly” from the value of <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">x</span> by calling <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget::widget(x)</span>. If <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">x</span> is also of type <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span>, this invokes the copy constructor. Otherwise, it invokes a converting constructor.
+</p><p>However, note that the syntax <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">{x}</span> creates an <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">initializer_list</span>. If <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span> has a constructor that takes an <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">initializer_list</span>, that constructor is preferred; otherwise, if <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span> has a constructor that takes whatever type <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">x</span> is (possibly with conversions), that constructor is used.
+</p><p>There are two major differences that make (e) superior to (d): First, like (c), syntax (e) is unambiguous and avoids the vexing parse. If <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">x</span> is a type name, then (d) is a function declaration even if there is also a variable named <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">x</span> in scope (see above), whereas (e) is never a function declaration.
+</p><p>Second, syntax (e) is safer because it does not allow narrowing (a.k.a. “lossy”) conversions that are otherwise allowed for some built-in types. Consider:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code><span class="amp-wp-inline-cb08775e0ae4e830b87359c9f78462e6">int i1( 12.345 );           // ok: toss .345, we didn't like it anyway<br/><span class="amp-wp-inline-093fd9b94d4a193806156aa45eed2d7f">int i2{ 12.345 };           // error: would be lossy implicit narrowing
+</span></span></code></pre><h3>(f) and (g) are copy initialization and copy list initialization.<br/></h3><p>This brings us to our final two non-<span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">auto</span> cases:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>widget w = x;               // (f)
+</code></pre><p>This is called “copy initialization.” Conceptually, the variable <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">w</span> is initialized using <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span>‘s move or copy constructor, possibly after calling another function to convert the argument implicitly (<span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">explicit</span> conversions won’t be invoked here).
+</p><blockquote>
+<p><strong>Common Mistake:</strong> This is always initialization; it is never assignment, and so it never calls <strong>T::operator=()</strong>. Yes, I know there’s an “<strong>=</strong>” character in there, but don’t let that throw you — that’s just a syntax holdover from C, not an assignment operation.
+</p>
+</blockquote><p>Here are the semantics:
+</p><ul><li>If <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">x</span> is of type <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span>, line (f) means the same as (d) <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget w(x);</span> except that <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">explicit</span> constructors cannot be used. It’s guaranteed that only a single constructor is called.
+</li>
+<li>If <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">x</span> is of some other type, <em>conceptually</em> the compiler first implicitly converts <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">x</span> to a temporary <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span> object, then move-constructs <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">w</span> from that temporary rvalue, using copy construction as “the slow way to move” as a backup if no better move constructor is available. Assuming that an implicit conversion is available, (f) means the same as <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget w( widget(x) );</span>.
+</li>
+</ul><p>Note that I said “conceptually” a few times above. That’s because <em>practically</em> compilers are allowed to, and routinely do, optimize away the temporary and, if an implicit conversion is available, convert (f) to (d), thus optimizing away the extra move operation. However, even when the compiler does this, the <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget</span> copy constructor must still be accessible, even if is not called—the copy constructor’s side effects may or may not happen, that’s all.
+</p><p>Now note the related syntax that adds “<span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">=</span>“:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>widget w = {x};             // (g)
+</code></pre><p>This is called “copy list initialization.” It means the same as <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget w{x};</span> except that <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">explicit</span> constructors cannot be used. It’s guaranteed that only a single constructor is called.
+</p><h3>(h) and (i) are also copy initialization, but simpler.<br/></h3><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>auto w = x;                 // (h)<br/>auto w = widget{x};         // (i)
+</code></pre><p>The semantics are just like (f) and (g), except simpler to teach, learn, and use because using <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">auto</span> guarantees the right-hand expression’s type will be deduced exactly. Note that the (i) syntax works fine for both implicit and <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">explicit</span> conversions.
+</p><p>Line (h) means the same as (d), <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff"><em>type_of_x</em> w(x);</span>. Only a single copy constructor is called. This is <em>guaranteed to stay true</em> as the program evolves: Because line (h) does not commit to an explicit type, it is guaranteed to be both maximally efficient because there can be no conversion involved, and maximally robust under maintenance as the type of <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">w</span> “auto”-matically tracks the type of <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">x</span> which may change as the program is maintained.
+</p><p>Line (i) is the most consistent spelling when you do want to commit to a specific type and explicitly request a conversion if needed, and once again the <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">{ }</span> syntax happily avoids lossy narrowing conversions. In practice on most compilers, only a single constructor is called—similarly to what we saw with (f) and (g), conceptually there are two constructor calls, a converting or copy constructor to create a temporary <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">widget{x}</span> followed by a move to move it to <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">w</span>, but compilers routinely elide the latter.
+</p><p>In general, I recommend that you try out these two forms, and increasingly prefer using them as you grow comfortable with them. I’m at the point where I’m now inclined to write virtually all of my local variable declarations this way. (I know some of you will be skeptical about this broad claim—more on “the <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">auto</span> question” in another GotW.)
+</p><p>
+ </p><h2>2. What do each of the following lines do?<br/></h2><p>In the Question 2 code, we’re creating a <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">vector&lt;int&gt;</span> and passing the arguments <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">10</span> and <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">20</span> to its constructor—in the first case as <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">( 10, 20 )</span> and in the second case as <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">{ 10, 20 }</span>.
+</p><p>Both will call a constructor, but which one(s)? Well, <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">vector&lt;int&gt;</span> has several constructors that can take two parameters, but only two could be correctly called with the parameters <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">10</span> and <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">20</span>. Ignoring defaulted optional allocator parameters for simplicity, the two constructors are:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>vector( size_t n, const int&amp; value );    // A: n copies of value<br/><br/>vector( initializer_list&lt;int&gt; values );  // B: copy of values
+</code></pre><p>There are two simple C++ rules that tell us which one will be called for the code in question:
+</p><ul><li>The syntax <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">{ /*…*/ }</span> used in an expression context gives you an <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">initializer_list</span>.
+</li>
+<li>Constructors that take an <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">initializer_list</span> are preferred over other constructors, and so can hide other constructors that might otherwise be viable.
+</li>
+</ul><p>Armed with those two tidbits, the answer is simple:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>vector&lt;int&gt; v1( 10, 20 );    // (a) calls A: 10 copies of the value 20<br/>assert( v1.size() == 10 );<br/><br/>vector&lt;int&gt; v2{ 10, 20 };    // (b) calls B: the values 10 and 20<br/>assert( v2.size() == 2 );
+</code></pre><p>
+ </p><h2>3. Besides the cases above, what other benefits are there to using { } to initialize objects?<br/></h2><p>For one thing, it’s called “uniform initialization” because it’s, well, uniform—the same for all types, including aggregate structs and arrays and <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">std::</span> containers, and without the “vexing parse” annoyance:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>struct mystruct { int x, y; };<br/><br/>// C++98 <br/>rectangle       w( origin(), extents() );       // oops, vexing parse <br/>complex&lt;double&gt; c( 2.71828, 3.14159 ); <br/>mystruct        m = { 1, 2 };<br/>int             a[] = { 1, 2, 3, 4 };<br/>vector&lt;int&gt;     v;                              // urk, need more code<br/>for( int i = 1; i &lt;= 4; ++i ) v.push_back(i);   //   to initialize this<br/><br/>// C++11 (note: "=" is mostly optional)<br/>rectangle       w   = { origin(), extents() }; <br/>complex&lt;double&gt; c   = { 2.71828, 3.14159 }; <br/>mystruct        m   = { 1, 2 }; <br/>int             a[] = { 1, 2, 3, 4 };<br/>vector&lt;int&gt;     v   = { 1, 2, 3, 4 };
+</code></pre><p>And note that this isn’t just an aesthetic issue. Consider writing generic code that should be able to initialize any type… and while we’re at it, let’s gratuitously use perfect forwarding as an example:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>template&lt;typename T, typename ...Args&gt;<br/>void forwarder( Args&amp;&amp;... args ) {<br/>    // ...<br/>    T local <span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">= {</span> std::forward&lt;Args&gt;(args)... <span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">}</span>;<br/>    // ...<br/>}<br/><br/>forwarder&lt;int&gt;            ( 42 );                  // ok<br/>forwarder&lt;rectangle&gt;      ( origin(), extents() ); // ok<br/>forwarder&lt;complex&lt;double&gt;&gt;( 2.71828, 3.14159 );    // ok<br/>forwarder&lt;mystruct&gt;       ( 1, 2 );                // ok because of {}<br/>forwarder&lt;int[]&gt;          ( 1, 2, 3, 4 );          // ok because of {}<br/>forwarder&lt;vector&lt;int&gt;&gt;    ( 1, 2, 3, 4 );          // ok because of {}
+</code></pre><p>The last three lines would not be legal if <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">forwarder</span> used <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">( )</span> initialization syntax internally.
+</p><p>The new <span class="amp-wp-inline-113cd93428538c509a510c2339c242ff">{ }</span> syntax works pretty much everywhere, including to initialize members:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>widget::widget( /*...*/ ) : mem1<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">{</span>init1<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">}</span>, mem2<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">{</span>init2, init3<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">}</span> { /*...*/ } 
+</code></pre><p>And, as icing on the take, it’s often just plain convenient to pass function arguments, or return a value, without a type-named temporary:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>void draw_rect( rectangle ); <br/><br/>draw_rect( rectangle(origin, selection) );         // C++98<br/>draw_rect(<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">{</span> origin, selection <span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">}</span>);                  // C++11<br/><br/>rectangle compute_rect() {<br/>   // ...<br/>   if(cpp98) return rectangle(origin, selection);  // C++98<br/>   else      return <span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">{</span>origin, selection<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">}</span>;           // C++11<br/>}
+</code></pre><p>
+ </p><h2>4. When should you use ( ) vs. { } syntax to initialize objects? Why?<br/></h2><p>Here’s the simple <span class="amp-wp-inline-d8fb976763dd645ebb9f2b5ebf2e380d">g</span>uideline:
+</p><blockquote>
+<p><strong>Guideline:</strong> Prefer to use initialization with <strong>{ }</strong>, such as <strong>vector&lt;int&gt; v = { 1, 2, 3, 4 };</strong> or <strong>auto v = vector&lt;int&gt;{ 1, 2, 3, 4 };</strong>, because it’s more consistent, more correct, and avoids having to know about old-style pitfalls at all. In single-argument cases where you prefer to see only the <strong>=</strong> sign, such as <strong>int i = 42;</strong> and <strong>auto x = anything</strong>; omitting the braces is fine. …
+</p>
+</blockquote><p>That covers the vast majority of cases. There is only one main exception:
+</p><blockquote>
+<p>… In rare cases, such as <strong>vector&lt;int&gt; v(10,20);</strong> or <strong>auto v = vector&lt;int&gt;(10,20);</strong>, use initialization with <strong>( )</strong> to explicitly call a constructor that is otherwise hidden by an <strong>initializer_list</strong> constructor.
+</p>
+</blockquote><p>However, the reason this should be generally “rare” is because default and copy construction are already special and work fine with <span class="amp-wp-inline-d8fb976763dd645ebb9f2b5ebf2e380d">{ }</span>, and good class design now mostly avoids the resort-to-<span class="amp-wp-inline-d8fb976763dd645ebb9f2b5ebf2e380d">( )</span> case for user-defined constructors because of this final design guideline:
+</p><blockquote>
+<p><strong>Guideline: </strong>When you design a class, avoid providing a constructor that ambiguously overloads with an <strong>initializer_list</strong> constructor, so that users won’t need to use <strong>( )</strong> to reach such a hidden constructor.
+</p>
+</blockquote><p>
+ </p><h2>Acknowledgments<br/></h2><p>Thanks in particular to the following for their feedback to improve this article: Michal Mocny, Jay Miller, “Alexey,” “praetorian20,” Francisco Lopes, “Neil,” Daryle Walker.</p>	</div>
+
+	<footer class="amp-wp-article-footer">
+			<div class="amp-wp-meta amp-wp-tax-category">
+		Categories: <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a>	</div>
+
+		<div class="amp-wp-meta amp-wp-comments-link">
+		<a href="https://herbsutter.com/2013/05/09/gotw-1-solution/#comments">
+			View Comments		</a>
+	</div>
+	</footer>
+</article>
+
+<footer class="amp-wp-footer">
+	<div>
+		<h2>Sutter’s Mill</h2>
+		<p>
+			<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a>
+		</p>
+		<a href="#top" class="back-to-top">Back to top</a>
+	</div>
+</footer>
+
+
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;host=herbsutter.com&#038;ref=DOCUMENT_REFERRER&#038;amp=1&#038;blog=3379246&#038;v=wpcom&#038;tz=-8&#038;user_id=0&#038;post=1831&#038;subd=herbsutter"></amp-pixel>
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;v=wpcom-no-pv&#038;crypt=UE40eW5QN0p8M2Y%2FRE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29%2BSmw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8%2FMkNtblkvY1d1TjBELytHc0k%2FMXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNjNNOWNlRGhKP0Z2P1JSbD1BU3w%2FSDd0RFdGNWt5L1J8JSsxfk1fNFl2RGptPSZhNS0tRE9henxPdFpKRVMzMzklaDlXa2E3RW1Pdl1SVi5RXXB0M1pBdUI%2FLEhMTDd4Zkt5"></amp-pixel>
+	
+</body>
+</html>

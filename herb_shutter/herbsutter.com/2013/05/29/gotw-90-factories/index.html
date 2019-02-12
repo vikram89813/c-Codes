@@ -1,0 +1,642 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #90: Factories | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965378&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F29%2Fgotw-90-factories%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #90: Factories Comments Feed" href="https://herbsutter.com/2013/05/29/gotw-90-factories/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #89 Solution: Smart&nbsp;Pointers' href='https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/' />
+<link rel='next' title='GotW #90 Solution:&nbsp;Factories' href='https://herbsutter.com/2013/05/30/gotw-90-solution-factories/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/05/29/gotw-90-factories/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-wU' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F29%2Fgotw-90-factories%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F29%2Fgotw-90-factories%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #90: Factories" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/29/gotw-90-factories/" />
+<meta property="og:description" content="NOTE: Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn&#8217;t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is…" />
+<meta property="article:published_time" content="2013-05-29T18:54:21+00:00" />
+<meta property="article:modified_time" content="2013-05-29T18:54:21+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965378" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #90: Factories" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="NOTE: Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn&#039;t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is the updated version of what was GotW #104.  What should factory functions return, and why?  Problem While spelunking through the&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/05/29/gotw-90-factories/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2040 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/" rel="prev">GotW #89 Solution: Smart&nbsp;Pointers</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/05/30/gotw-90-solution-factories/" rel="next">GotW #90 Solution:&nbsp;Factories</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2040 post type-post status-publish format-standard hentry category-gotw" id="post-2040">
+				<div class="posttitle">
+					<h2>GotW #90: Factories</h2>
+					<p class="post-info">2013-05-29 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<blockquote>
+<p><strong>NOTE:</strong> Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn&#8217;t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is the updated version of what was GotW #104.
+</p>
+</blockquote>
+<p>
+ </p>
+<p><span style="color:#5a5a5a;"><em>What should factory functions return, and why?<br />
+</em></span></p>
+<p>
+ </p>
+<h1>Problem<br />
+</h1>
+<p>While spelunking through the code of a new project you recently joined, you find the following factory function declaration:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>widget* load_widget( widget::id desired );
+</code></pre>
+</p>
+<h2>JG Question<br />
+</h2>
+<p>1. What&#8217;s wrong with this return type?
+</p>
+<h2>Guru Questions<br />
+</h2>
+<p>2. Assuming that <span style="color:#2e74b5;">widget</span> is a polymorphic type, what is the recommended return type? Explain your answer, including any tradeoffs.
+</p>
+<p>3. You&#8217;d like to actually change the return type to match the recommendation in #2, but at first you worry about breaking source compatibility with existing calling code; recompiling existing callers is fine, but having to go change them all is not. Then you have an &#8220;aha!&#8221; moment, realizing that this is a fairly new project and all of your calling code is written using modern C++ idioms, and you go ahead and change the return type without fear, knowing it will require few or no code changes to callers. What makes you so confident?
+</p>
+<p>4. If <span style="color:#2e74b5;">widget</span> is not a polymorphic type, what is the recommended return type? Explain.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											16 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">16 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-11152">
+		<div id="div-comment-11152">
+		<div class="cmtinfo"><em> on <a href="#comment-11152" title="">2013-06-09 at 12:13 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c64fc5fb52e564721135a98c0ceb455a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sebastian Zander</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_11152"></div><p>1. The problem is it&#8217;s a raw pointer. The pointer is, presumably, dynamically allocated and it is not clear who is responsible for its deletion.</p>
+<p>2. Because it&#8217;s a widget I would say std::shared_ptr is the best. This way we could pass it to other classes, functions, which we couldn&#8217;t do with std::unique_ptr. If we weren&#8217;t meant to pass it around std::unique_ptr would be preferable.</p>
+<p>3. Because the callers are all using </p>
+<pre class="brush: plain; title: ; notranslate" title="">auto w = load_widget(some_ID)</pre>
+<p>And because std::unique_ptr and std::shared_ptr both are written to be used like a pointer would it wouldn&#8217;t make a difference anywhere (except we couldn&#8217;t use delete on them!). </p>
+<p>4. Probably the recommended type would be a straight up object, and we could move it out of the function. We could make the load_widget be a template function over the type of widget we wish to create:</p>
+<pre class="brush: plain; title: ; notranslate" title="">template &lt;typename WidgetType&gt;
+WidgetType load_widget()</pre>
+<p>Because the type is not polymorphic there is no reason to bind it to a pointer to a base object.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10731">
+		<div id="div-comment-10731">
+		<div class="cmtinfo"><em> on <a href="#comment-10731" title="">2013-05-30 at 11:50 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/8328e2a775af97d904f274f4693ea582?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Barry</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10731"></div><p>Even though I brought it up earlier, why is using auto the preferred style in this situation? I prefer to stick with auto only when dealing with nested dependent typenames (in which cases writing out the type probably doesn&#8217;t add any clarity, if it&#8217;s even possible to do) and lambdas. </p>
+<p>Plus don&#8217;t you WANT to be made aware if somebody changed the underlying return type from a raw pointer to a smart pointer? Especially since (as other&#8217;s pointed out), you probably should have a delete somewhere&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10709">
+		<div id="div-comment-10709">
+		<div class="cmtinfo"><em> on <a href="#comment-10709" title="">2013-05-30 at 3:27 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6da5a603fd4dcea53e578bcfac0c178b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Laurent L.</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10709"></div><p>Pretty good answers sofar, regarding polymorphism and ownership. I would add a question :</p>
+<p>Does the absence of &#8220;noexcept&#8221; tell the caller that failure management is performed through throwing an exception? In that case, all &#8220;widget*&#8221; solutions should be turned into &#8220;widget&amp;&#8221; since the normal course of things guarantees that an object will be returned. And the smart pointers cannot be null, so they can be used safely without checking.</p>
+<p>IOW, any widget* solution should also say &#8220;noexcept&#8221;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10708">
+		<div id="div-comment-10708">
+		<div class="cmtinfo"><em> on <a href="#comment-10708" title="">2013-05-30 at 3:13 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f1634a09333f7b391db92e1d2bea6253?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sebastian Redl</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10708"></div><p>I think Ben Craig&#8217;s initial instinct was more right.<br />
+If callers currently use unique_ptr, code just keeps working.<br />
+If callers currently use auto, then the previous version would deduce a raw pointer for that, and callers would have an explicit delete somewhere, which doesn&#8217;t work on unique_ptr. So you&#8217;d still have to change ever caller.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10702">
+		<div id="div-comment-10702">
+		<div class="cmtinfo"><em> on <a href="#comment-10702" title="">2013-05-30 at 1:48 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/3bf7ddc1459f78ef1c649e07e21e31f6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Elvis</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10702"></div><p>I Agree with  Ben except for point 3.<br />
+#3. </p>
+<pre class="brush: plain; title: ; notranslate" title="">load_widtget</pre>
+<p> must return </p>
+<pre class="brush: plain; title: ; notranslate" title="">std::unique_ptr&lt;widget&gt;</pre>
+<p> where widget is an pure abstract class.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10698">
+		<div id="div-comment-10698">
+		<div class="cmtinfo"><em> on <a href="#comment-10698" title="">2013-05-29 at 10:48 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/36ddceab054b49f6e111a8ca8bafe993?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Thibaud</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10698"></div><p>For #3 if callers are using auto, they are using delete as well and you still have to remove them all.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10695">
+		<div id="div-comment-10695">
+		<div class="cmtinfo"><em> on <a href="#comment-10695" title="">2013-05-29 at 9:10 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/68f403eb5e6fef229e3c19a5d5f7fea6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mikhail Belyaev</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10695"></div><p>1. It. Returns. A pointer. Nothing here says if this pointer is to some internal data, or static variable, or a new-allocated structure or (even!) to a malloc-allocated structure. What are we supposed to do with it? We are supposed to read the source code. That breaks the entire encapsulation thing factories were originally ment to bring. And with all the variants I supposed, none of them really needs a pointer returned. </p>
+<p>Too bad LLVM exploits exactly this approach a lot.<br />
+2. If it is a pointer to some static, global or internal state (that is not really what a factory should do, but it happens), pass it by reference. It is the single unambigious way to do it without any tradeoffs. Use a reference to const if you don&#8217;t want users to change it.</p>
+<p>If it is a real newly-allocated polymorphic pointer, use std::unique_ptr. It has minimal tradeoffs (you just actually need the new-allocation) and fully expresses your intent. Even if some guy comes buy and calls release(), it&#8217;s not your fault. If someone needs to share it, he can always create a shared_ptr manually.</p>
+<p>If you need to share the pointer (for example, you keep track of all values elsewhere or your method is supposed to return an exact same pointer for a sequence of calls), use the shared_ptr. You can also consider using this if you are stuck with a need to create a uniform interface for both new-allocated, static and need-to-be-deleted-by-other-means values (that actually happened to me) and provide a dynamic deleter for each with a lambda. unique_ptr cannot do that as its deleter is statically-bounded.</p>
+<p>4. If it is not really a polymorphic type, just return it by value and let compiler handle the rest unless you know for sure that the type cannot be efficiently move-constructed. Then we are back at #3.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10694">
+		<div id="div-comment-10694">
+		<div class="cmtinfo"><em> on <a href="#comment-10694" title="">2013-05-29 at 8:30 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/88857afb6b5614e2b05f4ca5c8ae75d7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Neil</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10694"></div><p>Re #4, the recommendation of returning Widget by value assumes that (N)RVO will kick-in or Widget&#8217;s move semantics are more optimized than its copy semantics.  However, if Widget is composed of non-movable members (e.g. an aggregate/POD-type) then move will be no better than copy, so if RVO does not apply then the cost of copying Widget may be greater than new-ing up a Widget* and returning it via unique_ptr.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jlehrer even thread-even depth-1 highlander-comment" id="comment-10690">
+		<div id="div-comment-10690">
+		<div class="cmtinfo"><em> on <a href="#comment-10690" title="">2013-05-29 at 6:07 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6ad1c1c64ff7192f4dac3c4c3eb1c0f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.lehrerfamily.com/' rel='external nofollow' class='url'>jlehrer</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10690"></div><p>WRT #4, I have had plenty of cases where a type was not polymorphic but did have an inheritance tree.  The object factory returns a shared_ptr to the base for the reasons I described.</p>
+<p>If there is no sublcass of Widget, then, yes, I&#8217;d probably return a simple object.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10685">
+		<div id="div-comment-10685">
+		<div class="cmtinfo"><em> on <a href="#comment-10685" title="">2013-05-29 at 4:27 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/2564f5854ab0dcb57ea49558905f5624?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Joe Gottman</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10685"></div><p>For #4 you just return a Widget. If the class in non-polymorphic there is very little reason to go through the expense of a new and delete.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10681">
+		<div id="div-comment-10681">
+		<div class="cmtinfo"><em> on <a href="#comment-10681" title="">2013-05-29 at 3:20 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/9fdfde82947baf080a81ef0db500f2a3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ben Craig</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10681"></div><p>After reading other people&#8217;s comments, I&#8217;ll agree with what I said, except for (3) :).  Auto is the more likely answer, with unique_ptr being a runner up.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jlehrer odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10671">
+		<div id="div-comment-10671">
+		<div class="cmtinfo"><em> on <a href="#comment-10671" title="">2013-05-29 at 1:45 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6ad1c1c64ff7192f4dac3c4c3eb1c0f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.lehrerfamily.com/' rel='external nofollow' class='url'>jlehrer</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10671"></div><p>for #4 you return a shared_ptr.  This is because the shared_ptr holds a pointer to the destruction function which is determined at construction time.  So, if the code creates a WidgetSubclass, then when the shared_ptr reference count goes to 0, the destructor function is called, and that function is ~WidgetSubclass, even if widget* is not polymorphic.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10670">
+		<div id="div-comment-10670">
+		<div class="cmtinfo"><em> on <a href="#comment-10670" title="">2013-05-29 at 12:54 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/95699dd56dd40227b4ef4d1768a28a9f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>BK</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10670"></div><p>For a hierarchy of widget classes, the overridden load_widget function can return the specific widget type. The requirements for a return type by overridden functions is that they return covariant types (see n3242.pdf section 10.3 #7)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10663">
+		<div id="div-comment-10663">
+		<div class="cmtinfo"><em> on <a href="#comment-10663" title="">2013-05-29 at 11:44 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/ce09f7d092cbe5f4cdf3977c736eac81?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/sdfjs' rel='external nofollow' class='url'>Ahti Legonkov</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10663"></div><p>I agree with most what Ben Craig said, except with answer to 3.</p>
+<p>3. What makes me so confident is the fact that in most places callers use `auto` instead of explicit types.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10662">
+		<div id="div-comment-10662">
+		<div class="cmtinfo"><em> on <a href="#comment-10662" title="">2013-05-29 at 11:42 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/8328e2a775af97d904f274f4693ea582?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Barry</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10662"></div><p>I think Ben has it right, though I wonder if for (3) Herb meant that callers would be using:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+auto my_widget = load_widget(42);
+</pre>
+<p>And that&#8217;s why it wouldn&#8217;t matter.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10656">
+		<div id="div-comment-10656">
+		<div class="cmtinfo"><em> on <a href="#comment-10656" title="">2013-05-29 at 11:17 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9fdfde82947baf080a81ef0db500f2a3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ben Craig</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10656"></div><p>1. Using a raw pointer doesn&#8217;t express the ownership semantics of the widget resource.  Owning raw pointers should be avoided.</p>
+<p>2. If widget is polymorphic, then </p>
+<pre class="brush: plain; title: ; notranslate" title="">unique_ptr&lt;widget&gt;</pre>
+<p> is preferred.  unique_ptr is preferable to a raw pointer or raw reference because of the automatic cleanup, but you still need some kind of pointer-like type for virtual functions to work.</p>
+<p>3. If all callers were using unique_ptr already, then changing the return type from widget* to unique_ptr will not require source changes in client code.  The unique_ptr constructor can take a returned unique_ptr just fine thanks to the move constructor.</p>
+<p>4. If widget isn&#8217;t polymorphic, you should just return a widget value, and let move constructors do their thing.  This lets you avoid the heap.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/05/29/gotw-90-factories/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-c64fc5fb52e564721135a98c0ceb455a">
+	</div>
+	<div class="grofile-hash-map-8328e2a775af97d904f274f4693ea582">
+	</div>
+	<div class="grofile-hash-map-6da5a603fd4dcea53e578bcfac0c178b">
+	</div>
+	<div class="grofile-hash-map-f1634a09333f7b391db92e1d2bea6253">
+	</div>
+	<div class="grofile-hash-map-3bf7ddc1459f78ef1c649e07e21e31f6">
+	</div>
+	<div class="grofile-hash-map-36ddceab054b49f6e111a8ca8bafe993">
+	</div>
+	<div class="grofile-hash-map-68f403eb5e6fef229e3c19a5d5f7fea6">
+	</div>
+	<div class="grofile-hash-map-88857afb6b5614e2b05f4ca5c8ae75d7">
+	</div>
+	<div class="grofile-hash-map-c6ad1c1c64ff7192f4dac3c4c3eb1c0f">
+	</div>
+	<div class="grofile-hash-map-2564f5854ab0dcb57ea49558905f5624">
+	</div>
+	<div class="grofile-hash-map-9fdfde82947baf080a81ef0db500f2a3">
+	</div>
+	<div class="grofile-hash-map-95699dd56dd40227b4ef4d1768a28a9f">
+	</div>
+	<div class="grofile-hash-map-ce09f7d092cbe5f4cdf3977c736eac81">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_11152={"id":468178,"unique_id":"wp-comment-11152","title":"1.%20The%20problem%20is%20it%26%23039%3Bs%20a%20raw%20pointer.%20The%20pointer%20is%2C%20presumably%2C%20dynamically%20allocated%20and%20it%20is%20not%20clear%20who%20is%20responsible%20for%20its%20deletion.2.%20Because%20it%26%23039%3Bs%20a%20widget%20I%20would%20say%20std%3A%3Ashared_pt...","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-11152","item_id":"_comm_11152"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_11152 == 'undefined' ){PDRTJS_468178_comm_11152 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_11152 );}}PDRTJS_settings_468178_comm_10731={"id":468178,"unique_id":"wp-comment-10731","title":"Even%20though%20I%20brought%20it%20up%20earlier%2C%20why%20is%20using%20auto%20the%20preferred%20style%20in%20this%20situation%3F%20I%20prefer%20to%20stick%20with%20auto%20only%20when%20dealing%20with%20nested%20dependent%20typenames%20%28in%20which%20cases%20writing...","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10731","item_id":"_comm_10731"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10731 == 'undefined' ){PDRTJS_468178_comm_10731 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10731 );}}PDRTJS_settings_468178_comm_10709={"id":468178,"unique_id":"wp-comment-10709","title":"Pretty%20good%20answers%20sofar%2C%20regarding%20polymorphism%20and%20ownership.%20I%20would%20add%20a%20question%20%3ADoes%20the%20absence%20of%20%26quot%3Bnoexcept%26quot%3B%20tell%20the%20caller%20that%20failure%20management%20is%20performed%20through%20throwing%20an%20ex...","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10709","item_id":"_comm_10709"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10709 == 'undefined' ){PDRTJS_468178_comm_10709 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10709 );}}PDRTJS_settings_468178_comm_10708={"id":468178,"unique_id":"wp-comment-10708","title":"I%20think%20Ben%20Craig%26%23039%3Bs%20initial%20instinct%20was%20more%20right.If%20callers%20currently%20use%20unique_ptr%2C%20code%20just%20keeps%20working.If%20callers%20currently%20use%20auto%2C%20then%20the%20previous%20version%20would%20deduce%20a%20raw%20pointe...","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10708","item_id":"_comm_10708"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10708 == 'undefined' ){PDRTJS_468178_comm_10708 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10708 );}}PDRTJS_settings_468178_comm_10702={"id":468178,"unique_id":"wp-comment-10702","title":"I%20Agree%20with%20%20Ben%20except%20for%20point%203.%233.%20%26%23091%3Bcode%26%23093%3Bload_widtget%26%23091%3B%2Fcode%26%23093%3B%20must%20return%20%26%23091%3Bcode%26%23093%3Bstd%3A%3Aunique_ptr%26lt%3Bwidget%26gt%3B%26%23091%3B%2Fcode%26%23093%3B%20where%20widget%20is%20an%20pure%20abstract%20class....","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10702","item_id":"_comm_10702"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10702 == 'undefined' ){PDRTJS_468178_comm_10702 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10702 );}}PDRTJS_settings_468178_comm_10698={"id":468178,"unique_id":"wp-comment-10698","title":"For%20%233%20if%20callers%20are%20using%20auto%2C%20they%20are%20using%20delete%20as%20well%20and%20you%20still%20have%20to%20remove%20them%20all....","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10698","item_id":"_comm_10698"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10698 == 'undefined' ){PDRTJS_468178_comm_10698 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10698 );}}PDRTJS_settings_468178_comm_10695={"id":468178,"unique_id":"wp-comment-10695","title":"1.%20It.%20Returns.%20A%20pointer.%20Nothing%20here%20says%20if%20this%20pointer%20is%20to%20some%20internal%20data%2C%20or%20static%20variable%2C%20or%20a%20new-allocated%20structure%20or%20%28even%21%29%20to%20a%20malloc-allocated%20structure.%20What%20are%20we%20sup...","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10695","item_id":"_comm_10695"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10695 == 'undefined' ){PDRTJS_468178_comm_10695 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10695 );}}PDRTJS_settings_468178_comm_10694={"id":468178,"unique_id":"wp-comment-10694","title":"Re%20%234%2C%20the%20recommendation%20of%20returning%20Widget%20by%20value%20assumes%20that%20%28N%29RVO%20will%20kick-in%20or%20Widget%26%23039%3Bs%20move%20semantics%20are%20more%20optimized%20than%20its%20copy%20semantics.%20%20However%2C%20if%20Widget%20is%20composed%20of%20n...","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10694","item_id":"_comm_10694"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10694 == 'undefined' ){PDRTJS_468178_comm_10694 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10694 );}}PDRTJS_settings_468178_comm_10690={"id":468178,"unique_id":"wp-comment-10690","title":"WRT%20%234%2C%20I%20have%20had%20plenty%20of%20cases%20where%20a%20type%20was%20not%20polymorphic%20but%20did%20have%20an%20inheritance%20tree.%20%20The%20object%20factory%20returns%20a%20shared_ptr%20to%20the%20base%20for%20the%20reasons%20I%20described.If%20there%20is%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10690","item_id":"_comm_10690"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10690 == 'undefined' ){PDRTJS_468178_comm_10690 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10690 );}}PDRTJS_settings_468178_comm_10685={"id":468178,"unique_id":"wp-comment-10685","title":"For%20%234%20you%20just%20return%20a%20Widget.%20If%20the%20class%20in%20non-polymorphic%20there%20is%20very%20little%20reason%20to%20go%20through%20the%20expense%20of%20a%20new%20and%20delete....","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10685","item_id":"_comm_10685"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10685 == 'undefined' ){PDRTJS_468178_comm_10685 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10685 );}}PDRTJS_settings_468178_comm_10681={"id":468178,"unique_id":"wp-comment-10681","title":"After%20reading%20other%20people%26%23039%3Bs%20comments%2C%20I%26%23039%3Bll%20agree%20with%20what%20I%20said%2C%20except%20for%20%283%29%20%3A%29.%20%20Auto%20is%20the%20more%20likely%20answer%2C%20with%20unique_ptr%20being%20a%20runner%20up....","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10681","item_id":"_comm_10681"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10681 == 'undefined' ){PDRTJS_468178_comm_10681 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10681 );}}PDRTJS_settings_468178_comm_10671={"id":468178,"unique_id":"wp-comment-10671","title":"for%20%234%20you%20return%20a%20shared_ptr.%20%20This%20is%20because%20the%20shared_ptr%20holds%20a%20pointer%20to%20the%20destruction%20function%20which%20is%20determined%20at%20construction%20time.%20%20So%2C%20if%20the%20code%20creates%20a%20WidgetSubclass%2C%20th...","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10671","item_id":"_comm_10671"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10671 == 'undefined' ){PDRTJS_468178_comm_10671 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10671 );}}PDRTJS_settings_468178_comm_10670={"id":468178,"unique_id":"wp-comment-10670","title":"For%20a%20hierarchy%20of%20widget%20classes%2C%20the%20overridden%20load_widget%20function%20can%20return%20the%20specific%20widget%20type.%20The%20requirements%20for%20a%20return%20type%20by%20overridden%20functions%20is%20that%20they%20return%20covarian...","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10670","item_id":"_comm_10670"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10670 == 'undefined' ){PDRTJS_468178_comm_10670 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10670 );}}PDRTJS_settings_468178_comm_10663={"id":468178,"unique_id":"wp-comment-10663","title":"I%20agree%20with%20most%20what%20Ben%20Craig%20said%2C%20except%20with%20answer%20to%203.3.%20What%20makes%20me%20so%20confident%20is%20the%20fact%20that%20in%20most%20places%20callers%20use%20%60auto%60%20instead%20of%20explicit%20types....","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10663","item_id":"_comm_10663"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10663 == 'undefined' ){PDRTJS_468178_comm_10663 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10663 );}}PDRTJS_settings_468178_comm_10662={"id":468178,"unique_id":"wp-comment-10662","title":"I%20think%20Ben%20has%20it%20right%2C%20though%20I%20wonder%20if%20for%20%283%29%20Herb%20meant%20that%20callers%20would%20be%20using%3A%26%23091%3Bcode%26%23093%3Bauto%20my_widget%20%3D%20load_widget%2842%29%3B%26%23091%3B%2Fcode%26%23093%3BAnd%20that%26%23039%3Bs%20why%20it%20wouldn%26%23039%3Bt%20matter....","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10662","item_id":"_comm_10662"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10662 == 'undefined' ){PDRTJS_468178_comm_10662 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10662 );}}PDRTJS_settings_468178_comm_10656={"id":468178,"unique_id":"wp-comment-10656","title":"1.%20Using%20a%20raw%20pointer%20doesn%26%23039%3Bt%20express%20the%20ownership%20semantics%20of%20the%20widget%20resource.%20%20Owning%20raw%20pointers%20should%20be%20avoided.2.%20If%20widget%20is%20polymorphic%2C%20then%20%26%23091%3Bcode%26%23093%3Bunique_ptr%26lt%3Bwidget%26gt%3B%26%23091%3B%2Fcod...","permalink":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/#comment-10656","item_id":"_comm_10656"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10656 == 'undefined' ){PDRTJS_468178_comm_10656 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10656 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F29%2Fgotw-90-factories%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-90-factories\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F05%2F29%2Fgotw-90-factories%2F","postID":"2040","shortlink":"https:\/\/wp.me\/peb5Y-wU","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2040","statsLink":"https:\/\/wordpress.com\/stats\/post\/2040\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F29%2Fgotw-90-factories%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2040','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNGt3UXNRelNyMk1TVz1+MUlmblhEPSs5UURXWWZSNFgzc0syWDVwb3ZTdTV6Y04uaU9JQkMvOCx3JTk0ZlR1OE16R2Y/dUZ2QUQ1N0F+MGRIX2QyT3loWHhTZ3xDS2o9cFI3SEZVVHdpdDZYSmE5dD9acmEzZFRTb0Y/TVVVTHFpXV9KQTZvaU9xak91W08udWpLdixfTmp0cm4saWdPVXF2T0RdMHg2UGU0OU51N0Y5MWZhdkpRVlV8UkRGNmtyVyxDMTNqQQ=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2040' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>
+<!--
+	generated in 0.103 seconds
+	59682 bytes batcached for 300 seconds
+-->

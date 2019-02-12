@@ -1,0 +1,541 @@
+<!doctype html>
+<html amp lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+	
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #5 Solution: Overriding Virtual Functions" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/22/gotw-5-solution-overriding-virtual-functions/" />
+<meta property="og:description" content="Virtual functions are a pretty basic feature, but they occasionally harbor subtleties that trap the unwary. If you can answer questions like this one, then you know virtual functions cold, and you&amp;…" />
+<meta property="article:published_time" content="2013-05-22T19:06:19+00:00" />
+<meta property="article:modified_time" content="2013-05-23T14:26:31+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965404" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #5 Solution: Overriding Virtual Functions" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+	<title>GotW #5 Solution: Overriding Virtual Functions &#8211; Sutter’s Mill</title>
+		<link rel="canonical" href="https://herbsutter.com/2013/05/22/gotw-5-solution-overriding-virtual-functions/" />
+	<script src="https://cdn.ampproject.org/v0.js" async></script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic">	<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+		<script type="application/ld+json">{"@context":"http:\/\/schema.org","@type":"BlogPosting","mainEntityOfPage":"https:\/\/herbsutter.com\/2013\/05\/22\/gotw-5-solution-overriding-virtual-functions\/","publisher":{"@type":"Organization","name":"Sutter\u2019s Mill","logo":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=60&d=https%3A%2F%2Fs0.wp.com%2Fi%2Ffavicons%2Fapple-touch-icon-60x60.png","width":60,"height":60}},"headline":"GotW #5 Solution: Overriding Virtual Functions","datePublished":"2013-05-22T11:06:19+00:00","dateModified":"2013-05-23T06:26:31+00:00","author":{"@type":"Person","name":"Herb Sutter"},"image":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=200","width":200,"height":200}}</script>
+	<meta name="generator" content="AMP Plugin v0.6.2" />	<style amp-custom>
+		/* Generic WP styling */
+
+.alignright {
+	float: right;
+}
+
+.alignleft {
+	float: left;
+}
+
+.aligncenter {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.amp-wp-enforced-sizes {
+	/** Our sizes fallback is 100vw, and we have a padding on the container; the max-width here prevents the element from overflowing. **/
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+.amp-wp-unknown-size img {
+	/** Worst case scenario when we can't figure out dimensions for an image. **/
+	/** Force the image into a box of fixed dimensions and use object-fit to scale. **/
+	object-fit: contain;
+}
+
+/* Template Styles */
+
+.amp-wp-content,
+.amp-wp-title-bar div {
+		margin: 0 auto;
+	max-width: 500px;
+	}
+
+html {
+	background: #0a89c0;
+}
+
+body {
+	background: #fff;
+	color: #353535;
+	font-family: 'Merriweather', 'Times New Roman', Times, Serif;
+	font-weight: 300;
+	line-height: 1.75em;
+}
+
+p,
+ol,
+ul,
+figure {
+	margin: 0 0 1em;
+	padding: 0;
+}
+
+a,
+a:visited {
+	color: #0a89c0;
+}
+
+a:hover,
+a:active,
+a:focus {
+	color: #353535;
+}
+
+/* Quotes */
+
+blockquote {
+	color: #353535;
+	background: rgba(127,127,127,.125);
+	border-left: 2px solid #0a89c0;
+	margin: 8px 0 24px 0;
+	padding: 16px;
+}
+
+blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+/* UI Fonts */
+
+.amp-wp-meta,
+.amp-wp-header div,
+.amp-wp-title,
+.wp-caption-text,
+.amp-wp-tax-category,
+.amp-wp-tax-tag,
+.amp-wp-comments-link,
+.amp-wp-footer p,
+.back-to-top {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen-Sans", "Ubuntu", "Cantarell", "Helvetica Neue", sans-serif;
+}
+
+/* Header */
+
+.amp-wp-header {
+	background-color: #0a89c0;
+}
+
+.amp-wp-header div {
+	color: #fff;
+	font-size: 1em;
+	font-weight: 400;
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: .875em 16px;
+	position: relative;
+}
+
+.amp-wp-header a {
+	color: #fff;
+	text-decoration: none;
+}
+
+/* Site Icon */
+
+.amp-wp-header .amp-wp-site-icon {
+	/** site icon is 32px **/
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 50%;
+	position: absolute;
+	right: 18px;
+	top: 10px;
+}
+
+/* Article */
+
+.amp-wp-article {
+	color: #353535;
+	font-weight: 400;
+	margin: 1.5em auto;
+	max-width: 840px;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+}
+
+/* Article Header */
+
+.amp-wp-article-header {
+	align-items: center;
+	align-content: stretch;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin: 1.5em 16px 0;
+}
+
+.amp-wp-title {
+	color: #353535;
+	display: block;
+	flex: 1 0 100%;
+	font-weight: 900;
+	margin: 0 0 .625em;
+	width: 100%;
+}
+
+/* Article Meta */
+
+.amp-wp-meta {
+	color: #696969;
+	display: inline-block;
+	flex: 2 1 50%;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0 0 1.5em;
+	padding: 0;
+}
+
+.amp-wp-article-header .amp-wp-meta:last-of-type {
+	text-align: right;
+}
+
+.amp-wp-article-header .amp-wp-meta:first-of-type {
+	text-align: left;
+}
+
+.amp-wp-byline amp-img,
+.amp-wp-byline .amp-wp-author {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.amp-wp-byline amp-img {
+	border: 1px solid #0a89c0;
+	border-radius: 50%;
+	position: relative;
+	margin-right: 6px;
+}
+
+.amp-wp-posted-on {
+	text-align: right;
+}
+
+/* Featured image */
+
+.amp-wp-article-featured-image {
+	margin: 0 0 1em;
+}
+.amp-wp-article-featured-image amp-img {
+	margin: 0 auto;
+}
+.amp-wp-article-featured-image.wp-caption .wp-caption-text {
+	margin: 0 18px;
+}
+
+/* Article Content */
+
+.amp-wp-article-content {
+	margin: 0 16px;
+}
+
+.amp-wp-article-content ul,
+.amp-wp-article-content ol {
+	margin-left: 1em;
+}
+
+.amp-wp-article-content amp-img {
+	margin: 0 auto;
+}
+
+.amp-wp-article-content amp-img.alignright {
+	margin: 0 0 1em 16px;
+}
+
+.amp-wp-article-content amp-img.alignleft {
+	margin: 0 16px 1em 0;
+}
+
+/* Captions */
+
+.wp-caption {
+	padding: 0;
+}
+
+.wp-caption.alignleft {
+	margin-right: 16px;
+}
+
+.wp-caption.alignright {
+	margin-left: 16px;
+}
+
+.wp-caption .wp-caption-text {
+	border-bottom: 1px solid #c2c2c2;
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0;
+	padding: .66em 10px .75em;
+}
+
+/* AMP Media */
+
+amp-carousel {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+amp-iframe,
+amp-youtube,
+amp-instagram,
+amp-vine {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+
+.amp-wp-article-content amp-carousel amp-img {
+	border: none;
+}
+
+amp-carousel > amp-img > img {
+	object-fit: contain;
+}
+
+.amp-wp-iframe-placeholder {
+	background: #c2c2c2 url( https://s2.wp.com/wp-content/plugins/amp/assets/images/placeholder-icon.png ) no-repeat center 40%;
+	background-size: 48px 48px;
+	min-height: 48px;
+}
+
+/* Article Footer Meta */
+
+.amp-wp-article-footer .amp-wp-meta {
+	display: block;
+}
+
+.amp-wp-tax-category,
+.amp-wp-tax-tag {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 1.5em 16px;
+}
+
+.amp-wp-comments-link {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	text-align: center;
+	margin: 2.25em 0 1.5em;
+}
+
+.amp-wp-comments-link a {
+	border-style: solid;
+	border-color: #c2c2c2;
+	border-width: 1px 1px 2px;
+	border-radius: 4px;
+	background-color: transparent;
+	color: #0a89c0;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 18px;
+	margin: 0 auto;
+	max-width: 200px;
+	padding: 11px 16px;
+	text-decoration: none;
+	width: 50%;
+	-webkit-transition: background-color 0.2s ease;
+			transition: background-color 0.2s ease;
+}
+
+/* AMP Footer */
+
+.amp-wp-footer {
+	border-top: 1px solid #c2c2c2;
+	margin: calc(1.5em - 1px) 0 0;
+}
+
+.amp-wp-footer div {
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: 1.25em 16px 1.25em;
+	position: relative;
+}
+
+.amp-wp-footer h2 {
+	font-size: 1em;
+	line-height: 1.375em;
+	margin: 0 0 .5em;
+}
+
+.amp-wp-footer p {
+	color: #696969;
+	font-size: .8em;
+	line-height: 1.5em;
+	margin: 0 85px 0 0;
+}
+
+.amp-wp-footer a {
+	text-decoration: none;
+}
+
+.back-to-top {
+	bottom: 1.275em;
+	font-size: .8em;
+	font-weight: 600;
+	line-height: 2em;
+	position: absolute;
+	right: 16px;
+}
+		/* Inline styles */
+.amp-wp-inline-e118b89cb574341583297a20935ac54c{color:#2e74b5;}.amp-wp-inline-e8ad8513f27205293b96fd4230203293{margin-left:14pt;}.amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b{color:#5a5a5a;}	</style>
+</head>
+
+<body class="">
+
+<header id="top" class="amp-wp-header">
+	<div>
+		<a href="https://herbsutter.com">
+									<span class="amp-site-title">
+				Sutter’s Mill			</span>
+		</a>
+	</div>
+</header>
+
+<article class="amp-wp-article">
+	<header class="amp-wp-article-header">
+		<h1 class="amp-wp-title">GotW #5 Solution: Overriding Virtual Functions</h1>
+			<div class="amp-wp-meta amp-wp-byline">
+					<amp-img src="https://secure.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=24&#038;d=identicon&#038;r=g" width="24" height="24" layout="fixed"></amp-img>
+				<span class="amp-wp-author author vcard">Herb Sutter</span>
+	</div>
+<div class="amp-wp-meta amp-wp-posted-on">
+	<time datetime="2013-05-22T11:06:19+00:00">
+		6 years ago	</time>
+</div>
+	</header>
+
+	
+	<div class="amp-wp-article-content">
+		<p><span class="amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b"><em>Virtual functions are a pretty basic feature, but they occasionally harbor subtleties that trap the unwary. If you can answer questions like this one, then you know virtual functions cold, and you’re less likely to waste a lot of time debugging problems like the ones illustrated below.<br/></em></span></p><h1>Problem</h1><h2>JG Question</h2><p>1. What do the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">override</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">final</span> keywords do? Why are they useful?</p><h2>Guru Question</h2><p>2. In your travels through the dusty corners of your company’s code archives, you come across the following program fragment written by an unknown programmer. The programmer seems to have been experimenting to see how some C++ features worked.</p><p class="amp-wp-inline-e8ad8513f27205293b96fd4230203293">(a) What could be improved in the code’s correctness or style?</p><p class="amp-wp-inline-e8ad8513f27205293b96fd4230203293">(b) What did the programmer probably expect the program to print, but what is the actual result?</p><pre><code>class base {&#13;
+public:&#13;
+    virtual void f( int );&#13;
+    virtual void f( double );&#13;
+    virtual void g( int i = 10 );&#13;
+};&#13;
+&#13;
+void base::f( int ) {&#13;
+    cout &lt;&lt; "base::f(int)" &lt;&lt; endl;&#13;
+}&#13;
+&#13;
+void base::f( double ) {&#13;
+    cout &lt;&lt; "base::f(double)" &lt;&lt; endl;&#13;
+}&#13;
+&#13;
+void base::g( int i ) {&#13;
+    cout &lt;&lt; i &lt;&lt; endl;&#13;
+}&#13;
+&#13;
+class derived: public base {&#13;
+public:&#13;
+    void f( complex&lt;double&gt; );&#13;
+    void g( int i = 20 );&#13;
+};&#13;
+&#13;
+void derived::f( complex&lt;double&gt; ) {&#13;
+    cout &lt;&lt; "derived::f(complex)" &lt;&lt; endl;&#13;
+}&#13;
+&#13;
+void derived::g( int i ) {&#13;
+    cout &lt;&lt; "derived::g() " &lt;&lt; i &lt;&lt; endl;&#13;
+}&#13;
+&#13;
+int main() {&#13;
+    base    b;&#13;
+    derived d;&#13;
+    base*   pb = new derived;&#13;
+&#13;
+    b.f(1.0);&#13;
+    d.f(1.0);&#13;
+    pb-&gt;f(1.0);&#13;
+&#13;
+    b.g();&#13;
+    d.g();&#13;
+    pb-&gt;g();&#13;
+&#13;
+    delete pb;&#13;
+}&#13;
+</code></pre><h1>Solution</h1><h2>1. What do the override and final keywords do? Why are they useful?</h2><p>These keywords give explicit control over virtual function overriding. Writing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">override</span> declares the intent to override a base class virtual function. Writing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">final</span> makes a virtual function no longer overrideable in further-derived classes, or a class no longer permitted to have further-derived classes.</p><p>They are useful because they let the programmer explicitly declare intent in a way the language can enforce at compile time. If you write <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">override</span> but there is no matching base class function, or you write <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">final</span> and a further-derived class tries to implicitly or explicitly override the function anyway, you get a compile-time error.</p><p>Of the two, by far the more commonly useful is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">override</span>; uses for <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">final</span> are rarer.</p><h2>2. (a) What could be improved in the code’s correctness or style?</h2><p>First, let’s consider some style issues, and one real error:</p><h3>1. The code uses explicit new, delete, and an owning *.</h3><p>Avoid using owning raw pointers and explicit <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">delete</span> except in rare cases like when you’re writing the internal implementation details of a low-level data structure.</p><pre><code>{&#13;
+    base*   pb = new derived;&#13;
+&#13;
+    ...&#13;
+&#13;
+    delete pb;&#13;
+}&#13;
+</code></pre><p>Instead of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base*</span>, use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_unique</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr&lt;base&gt;</span>.</p><pre><code>{&#13;
+    auto pb = unique_ptr&lt;base&gt;{ make_unique&lt;derived&gt;() };&#13;
+&#13;
+    ...&#13;
+&#13;
+} // automatic delete here&#13;
+</code></pre><blockquote><p><strong>Guideline:</strong> Don’t use explicit <strong>new</strong>, <strong>delete</strong>, and owning <strong>*</strong> pointers, except in rare cases encapsulated inside the implementation of a low-level data structure.</p></blockquote><p>However, that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">delete</span> brings us to another issue unrelated to how we allocate and manage the lifetime of the object, namely:</p><h3>2. base’s destructor should be virtual or protected.</h3><pre><code>class base {&#13;
+public:&#13;
+    virtual void f( int );&#13;
+    virtual void f( double );&#13;
+    virtual void g( int i = 10 );&#13;
+};&#13;
+</code></pre><p>This looks innocuous, but the writer of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base</span> forgot to make the destructor either <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">virtual</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">protected</span>. As it is, deleting via a pointer-to-base without a virtual destructor is evil, pure and simple, and corruption is the best thing you can hope for because the wrong destructor will get called, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived</span> class members won’t be destroyed, and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">operator delete</span> will be invoked with the wrong object size.</p><blockquote><p><strong>Guideline: </strong>Make base class destructors public and virtual, or protected and nonvirtual.</p></blockquote><p>Exactly one of the following can be true for a polymorphic type:</p><ul><li>Either destruction via a pointer to base is allowed, in which case the function has to be <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">public</span> and had better be <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">virtual</span>;</li>
+<li>or else it isn’t, in which case the function has to be <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">protected</span> (<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">private</span> is not allowed because the derived destructor must be able to invoke the base destructor) and would naturally also be nonvirtual (when the derived destructor invokes the base destructor, it does so nonvirtually whether declared <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">virtual</span> or not).</li>
+</ul><h3>Interlude</h3><p>For the next few points, it’s important to differentiate three terms:</p><ul><li>To <strong>overload</strong> a function <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span> means to provide another function with the same name in the same scope but with different parameter types. When <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span> is actually called, the compiler will try to pick the best match based on the actual parameters that are supplied.</li>
+<li>To <strong>override</strong> a virtual function <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span> means to provide another function with the same name and the same parameter types in a derived class.</li>
+<li>To <strong>hide</strong> a function <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span> that exists in an enclosing scope (base class, outer class, or namespace) means to provide another function with the same name in an inner scope (derived class, nested class, or namespace), which will hide the same function name in an enclosing scope.</li>
+</ul><h3>3. derived::f is neither an override nor an overload.</h3><pre><code>    void derived::f( complex&lt;double&gt; )&#13;
+</code></pre><p><span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived</span> does not overload the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base::f</span> functions, it hides them. This distinction is very important, because it means that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base::f(int)</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base::f(double)</span> are not visible in the scope of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived</span>.</p><p>If the author of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived</span> intended to hide the base functions named <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span>, then this is all right. Usually, however, the hiding is inadvertent and surprising, and the correct way to bring the names into the scope of derived is to write the using-declaration <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">using base::f;</span> inside <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived</span>.</p><blockquote><p><strong>Guideline: </strong>When providing a non-overridden function with the same name as an inherited function, be sure to bring the inherited functions into scope with a <strong>using</strong>-declaration if you don’t want to hide them.</p></blockquote><h3>4. derived::g overrides base::g but doesn’t say “override.”</h3><pre><code>    void g( int i = 20 )  /* override */&#13;
+</code></pre><p>This function overrides the base function, so it should say <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">override</span> explicitly. This documents the intent, and lets the compiler tell you if you’re trying to override something that’s not virtual or you got the signature wrong by mistake.</p><blockquote><p><strong>Guideline: </strong>Always write<strong> override</strong> when you intend to override a virtual function.</p></blockquote><h3>5. derived::g overrides base::g but changes the default argument.</h3><pre><code>    void g( int i = 20 )&#13;
+</code></pre><p>Changing the default argument is decidedly user-unfriendly. Unless you’re really out to confuse people, don’t change the default arguments of the inherited functions you override. Yes, this is legal C++, and yes, the result is well-defined; and no, don’t do it. Further below, we’ll see just how confusing this can be.</p><blockquote><p><strong>Guideline: </strong>Never change the default arguments of overridden inherited functions.</p></blockquote><p>We could go one step further:</p><blockquote><p><strong>Guideline:</strong> Avoid default arguments on virtual functions in general.</p></blockquote><p>Finally, public virtual functions are great when a class is acting as a pure abstract base class (ABC) that only specifies the virtual interface without implementations, like a C# or Java <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">interface</span> does.</p><blockquote><p><strong>Guideline:</strong> Prefer to have a class contain only public virtual functions, or no public virtual functions (other than the destructor which is special).</p></blockquote><blockquote><p>A pure abstract base class should have only public virtual functions. …</p></blockquote><p>But when a class is both providing virtual functions and their implementations, consider the Non-Virtual Interface pattern (NVI) that makes the public interface and the virtual interface separate and distinct.</p><blockquote><p>… For any other base class, prefer making public member functions non-virtual, and virtual member functions non-public; the former should have any default arguments and can be implemented in terms of the latter.</p></blockquote><p>This cleanly separates the public interface from the derivation interface, lets each follow its natural form best suited for its distinct audience, and avoids having one function exist in tension from doing double duty with two responsibilities. Among other benefits, using NVI will often clarify your class’s design in important ways, including for example that the default arguments which matter to the caller therefore naturally belong on the public interface, not on the virtual interface. Following this pattern means that several classes of potential problems, including this one of virtuals with default arguments, just naturally don’t arise.</p><p>The C++ standard library follows NVI nearly universally, and other modern OO languages and environments have rediscovered this principle for their own library design guidelines, such as in the .NET <a href="http://www.amazon.com/Framework-Design-Guidelines-Conventions-Libraries/dp/0321545613"><em>Framework Design Guidelines</em></a>.</p><h2>2. (b) What did the programmer probably expect the program to print, but what is the actual result?</h2><p>Now that we have those issues out of the way, let’s look at the mainline and see whether it does that the programmer intended:</p><pre><code>int main() {&#13;
+    base    b;&#13;
+    derived d;&#13;
+    base*   pb = new derived;&#13;
+&#13;
+    b.f(1.0);&#13;
+</code></pre><p>No problem. This first call invokes <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base::f( double )</span>, as expected.</p><pre><code>    d.f(1.0);&#13;
+</code></pre><p>This calls <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived::f( complex&lt;double&gt; )</span>. Why? Well, remember that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived</span> doesn’t declare <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">using base::f;</span> to bring the base functions named <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span> into scope, and so clearly <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base::f( int )</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base::f( double )</span> can’t be called. They are not present in the same scope as <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived::f( complex&lt;double&gt; )</span> so as to participate in overloading.</p><p>The programmer may have expected this to call <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base::f( double )</span>, but in this case there won’t even be a compile error because fortunately(?) <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">complex&lt;double&gt;</span> provides an implicit conversion from <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">double</span>, and so the compiler interprets this call to mean <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived::f( complex&lt;double&gt;(1.0) )</span>.</p><pre><code>    pb-&gt;f(1.0);&#13;
+</code></pre><p>Interestingly, even though the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base* pb</span> is pointing to a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived</span> object, this calls <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base::f( double )</span> because overload resolution is done on the static type (here <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base</span>), not the dynamic type (here <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived</span>). You have a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base</span> pointer, you get the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base</span> interface.</p><p>For the same reason, the call <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">pb-&gt;f(complex&lt;double&gt;(1.0));</span> would not compile, because there is no satisfactory function in the base interface.</p><pre><code>    b.g();&#13;
+</code></pre><p>This prints <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">10</span>, because it simply invokes <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base::g( int )</span> whose parameter defaults to the value <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">10</span>. No sweat.</p><pre><code>    d.g();&#13;
+</code></pre><p>This prints <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived::g() 20</span>, because it simply invokes <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived::g( int )</span> whose parameter defaults to the value <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">20</span>. Also no sweat.</p><pre><code>    pb-&gt;g();&#13;
+</code></pre><p>This prints <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived::g() 10</span>.</p><p>“Wait a minute!” you might protest. “What’s going on here?” This result may temporarily lock your mental brakes and bring you to a screeching halt until you realize that what the compiler has done is quite proper. (Although, of course, the programmer of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived</span> ought to be taken out into the back parking lot and yelled at.) The thing to remember is that, like overloads, default parameters are taken from the static type (here <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base</span>) of the object, hence the default value of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">10</span> is taken. However, the function happens to be virtual, and so the function actually called is based on the dynamic type (here <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">derived</span>) of the object. Again, this can be avoided by avoiding default arguments on virtual functions, such as by following NVI and avoiding public virtual functions entirely.</p><pre><code>    delete pb;&#13;
+}&#13;
+</code></pre><p>Finally, as noted, this shouldn’t be needed because you should be using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span>s which do the cleanup for you, and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base</span> should have a virtual destructor so that destruction via any pointer to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">base</span> is correct.</p><h2>Acknowledgments</h2><p>Thanks in particular to the following for their feedback to improve this article: litb1, KrzaQ, mttpd.</p>	</div>
+
+	<footer class="amp-wp-article-footer">
+			<div class="amp-wp-meta amp-wp-tax-category">
+		Categories: <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a>	</div>
+
+		<div class="amp-wp-meta amp-wp-comments-link">
+		<a href="https://herbsutter.com/2013/05/22/gotw-5-solution-overriding-virtual-functions/#comments">
+			View Comments		</a>
+	</div>
+	</footer>
+</article>
+
+<footer class="amp-wp-footer">
+	<div>
+		<h2>Sutter’s Mill</h2>
+		<p>
+			<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a>
+		</p>
+		<a href="#top" class="back-to-top">Back to top</a>
+	</div>
+</footer>
+
+
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;host=herbsutter.com&#038;ref=DOCUMENT_REFERRER&#038;amp=1&#038;blog=3379246&#038;v=wpcom&#038;tz=-8&#038;user_id=0&#038;post=1984&#038;subd=herbsutter"></amp-pixel>
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;v=wpcom-no-pv&#038;crypt=UE40eW5QN0p8M2Y%2FRE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29%2BSmw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8%2FMkNtblkvY1d1TjBELytHc0k%2FMXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLmcsMHZUUnMzLF1CUHIySV89T0lpflZ2c11qSGgxTD93UT9rcUpILStaY0hDNWx0OVdkK3FTaCVyQXNBMEJua11JZDMxZUVEa29PdnhMZHNCVkk5eExSTEdTM2xJc3gtYkZrZg%3D%3D"></amp-pixel>
+	
+</body>
+</html>

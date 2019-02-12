@@ -1,0 +1,1027 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #3: Using the Standard Library (or, Temporaries Revisited) (3/10) | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965411&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F13%2Fgotw-3-using-the-standard-library-or-temporaries-revisited-310%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #3: Using the Standard Library (or, Temporaries Revisited)&nbsp;(3/10) Comments Feed" href="https://herbsutter.com/2013/05/13/gotw-3-using-the-standard-library-or-temporaries-revisited-310/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #2 Solution: Temporary&nbsp;Objects' href='https://herbsutter.com/2013/05/13/gotw-2-solution-temporary-objects/' />
+<link rel='next' title='GotW #3 Solution: Using the Standard Library (or, Temporaries&nbsp;Revisited)' href='https://herbsutter.com/2013/05/16/gotw-3-solution-using-the-standard-library-or-temporaries-revisited/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/05/13/gotw-3-using-the-standard-library-or-temporaries-revisited-310/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-us' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F13%2Fgotw-3-using-the-standard-library-or-temporaries-revisited-310%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F13%2Fgotw-3-using-the-standard-library-or-temporaries-revisited-310%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #3: Using the Standard Library (or, Temporaries Revisited) (3/10)" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/13/gotw-3-using-the-standard-library-or-temporaries-revisited-310/" />
+<meta property="og:description" content="Effective reuse is an important part of good software engineering. To demonstrate how much better off you can be by using standard library algorithms instead of handcrafting your own, let&#8217;s r…" />
+<meta property="article:published_time" content="2013-05-13T12:31:55+00:00" />
+<meta property="article:modified_time" content="2013-05-13T12:25:59+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965411" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #3: Using the Standard Library (or, Temporaries Revisited)&nbsp;(3/10)" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Effective reuse is an important part of good software engineering. To demonstrate how much better off you can be by using standard library algorithms instead of handcrafting your own, let&#039;s reconsider the previous question to demonstrate how many of the problems could have been avoided by simply reusing what&#039;s already available in the standard library.&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/05/13/gotw-3-using-the-standard-library-or-temporaries-revisited-310/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-1888 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/05/13/gotw-2-solution-temporary-objects/" rel="prev">GotW #2 Solution: Temporary&nbsp;Objects</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/05/16/gotw-3-solution-using-the-standard-library-or-temporaries-revisited/" rel="next">GotW #3 Solution: Using the Standard Library (or, Temporaries&nbsp;Revisited)</a> &raquo;</div>
+			</div>
+			
+			<div class="post-1888 post type-post status-publish format-standard hentry category-gotw" id="post-1888">
+				<div class="posttitle">
+					<h2>GotW #3: Using the Standard Library (or, Temporaries Revisited)&nbsp;(3/10)</h2>
+					<p class="post-info">2013-05-13 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>Effective reuse is an important part of good software engineering. To demonstrate how much better off you can be by using standard library algorithms instead of handcrafting your own, let&#8217;s reconsider the previous question to demonstrate how many of the problems could have been avoided by simply reusing what&#8217;s already available in the standard library.<br />
+</em></span></p>
+<p>
+ </p>
+<h1>Problem<br />
+</h1>
+<h2>JG Question<br />
+</h2>
+<p>1. What is the most widely used C++ library?
+</p>
+<h2>Guru Question<br />
+</h2>
+<p>2. How many of the pitfalls in GotW #2 could have been avoided in the first place, if only the programmer had replaced the explicit iterator-based <span style="color:#2e74b5;">for</span> loop with:
+</p>
+<p style="margin-left:36pt;">(a) a range-based <span style="color:#2e74b5;">for</span> loop?
+</p>
+<p style="margin-left:36pt;">(b) a standard library algorithm call?
+</p>
+<p>Demonstrate. (Note: As with GotW #2, don&#8217;t change the semantics of the function, even though they could be improved.)
+</p>
+<p>To recap, here is the mostly-fixed function:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>string find_addr( const list&lt;employee&gt;&amp; emps, const string&amp; name ) {<br />    for( auto i = begin(emps);  i != end(emps); ++i ) {<br />        if( i-&gt;name() == name ) {<br />            return i-&gt;addr;<br />        }<br />    }<br />    return "";<br />}
+</code></pre></p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											35 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">35 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-30993">
+		<div id="div-comment-30993">
+		<div class="cmtinfo"><em> on <a href="#comment-30993" title="">2014-10-29 at 8:13 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1fa40d1ff1c5ee90efcd97561f1fac3c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>jonh</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_30993"></div><p>Ouch. Sorry. &#8220;Let&#8217;s learn the lession from ambiguous expressions in &#8220;if&#8221; and &#8220;for&#8221; statements, and require &#8220;{}&#8221; in situations where there&#8217;s no benefit to allowing them to be elided.&#8221;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-30992">
+		<div id="div-comment-30992">
+		<div class="cmtinfo"><em> on <a href="#comment-30992" title="">2014-10-29 at 8:11 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1fa40d1ff1c5ee90efcd97561f1fac3c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>jonh</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_30992"></div><p>I really hope that &#8216;expression lambdas&#8217; don&#8217;t get added to a future version of C++. Consider:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+int i = 1, j =1;
+auto f = [](auto &amp;i, auto &amp;j) i++; j++;
+</pre>
+<p>Unless we&#8217;re going to adopt a policy of &#8220;never let a lambda parameter name shadow a variable in scope&#8221;, then expression lambda syntax is just a trap for the unwary. Let&#8217;s learn the lesson from ambiguous expressions in </p>
+<pre class="brush: plain; title: ; notranslate" title="">if</pre>
+<p> and </p>
+<pre class="brush: plain; title: ; notranslate" title="">for</pre>
+<p> statements, and require </p>
+<pre class="brush: plain; title: ; notranslate" title="">{}</pre>
+<p> in situations where there&#8217;s no benefit to allowing them to be elided.</p>
+<p>Adding (more) syntactical ambiguity to the language for the &#8216;benefit&#8217; of typing two characters fewer is not a net win, in my opinion.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10204">
+		<div id="div-comment-10204">
+		<div class="cmtinfo"><em> on <a href="#comment-10204" title="">2013-05-17 at 3:16 pm</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/100004054812229/picture?q=type%3Dlarge%26_md5%3D9e5f827892523ff7a319a1687be4b4dd&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/profile.php?id=100004054812229' rel='external nofollow' class='url'>Róbert Dávid</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10204"></div><p>@Olaf van der Spek: The other guys already told about find_if being self documenting: To discover that this code is doing a search, you only need to read the function name in the find_if case, but for range for, you need to check the loop body, and if the condition is more complex than this, you might need to take more than 0.1s to discover that it is a search. It&#8217;s also less error prone (no silently compiling mistakes e.g. if( name = emp.name() ) ).</p>
+<p>And if you are into unit testing, you would also like that find_if version has only 2 branches (I&#8217;m not really into testing STL implementation), while the range-for version has 4 (depending on how you define branches), so you need more test cases for 100% code coverage.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10134">
+		<div id="div-comment-10134">
+		<div class="cmtinfo"><em> on <a href="#comment-10134" title="">2013-05-16 at 11:48 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10134"></div><p>@Bret Kuhns: C++14 does have generic lambdas, meaning &#8220;auto&#8221; type parameters that generate a templated function call operator. However, other parts of lambda syntax refinements, including potentially allowing expression lambdas like [](auto&amp; e) ++e, , are still under active discussion.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10100">
+		<div id="div-comment-10100">
+		<div class="cmtinfo"><em> on <a href="#comment-10100" title="">2013-05-15 at 9:38 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/db892012bc52cc6cbfd27db9d98acf8b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>GregM</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10100"></div><p>I seriously hope that Steve is just woefully uninformed, and we will in fact be receiving VC++ updates prior to VS.Next.  That assertion is completely ridiculous (see VS2008 vs. VS2008 SP1 for a direct contradiction).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10096">
+		<div id="div-comment-10096">
+		<div class="cmtinfo"><em> on <a href="#comment-10096" title="">2013-05-15 at 8:29 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/2d62de19319092e658a1b403adc6b03d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/MJKlaim' rel='external nofollow' class='url'>Klaim - Joel Lamotte (@MJKlaim)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10096"></div><p>I totally agree with Bret Kuhns that find_if is clearer than a raw loop. A raw loop is an implementation of the algorithm, not it&#8217;s name. We have abstractions to help us understand our code, let&#8217;s user them.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10094">
+		<div id="div-comment-10094">
+		<div class="cmtinfo"><em> on <a href="#comment-10094" title="">2013-05-15 at 6:53 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d89642ad0c050ed65618587627b595bb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Sigh</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10094"></div><p><a href="http://blogs.msdn.com/b/bharry/archive/2013/05/08/some-thoughts-on-a-comment-about-vs-2012-3.aspx" rel="nofollow">http://blogs.msdn.com/b/bharry/archive/2013/05/08/some-thoughts-on-a-comment-about-vs-2012-3.aspx</a><br />
+Steve Teixeira, MSFT 13 May 2013 12:17 PM #<br />
+@Tom Kirby-Green, C++11 support remains a very high priority. However, we are targeting the next VS release for additional C++11 support (you&#8217;ve already seen the beginnings of this in the CTP). It is problematic for us to add new language features in VS Updates because doing so creates a situation whereas two VS2012 developers may not be able to share code with one another due to different levels of language support in different point-releases.</p>
+<p>&#8212;&#8211;</p>
+<p>How disappointing.. Sigh.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10092">
+		<div id="div-comment-10092">
+		<div class="cmtinfo"><em> on <a href="#comment-10092" title="">2013-05-15 at 4:28 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/602221e0c40c93cfe5c1925a89f2d291?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/bkuhns' rel='external nofollow' class='url'>Bret Kuhns</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10092"></div><p>@Olaf I said information density, not functionality. There are lots of things you can do to pack more functionality in less code, and the majority of those techniques are a bad idea because they reduce readability. Whereas STL algorithms give the reader more information in a tight space than imperative for/while loops.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10086">
+		<div id="div-comment-10086">
+		<div class="cmtinfo"><em> on <a href="#comment-10086" title="">2013-05-15 at 2:12 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/26230e55188637785a569c6ec8ca0f3f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://xwis.net/' rel='external nofollow' class='url'>Olaf van der Spek</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10086"></div><p>@bkuhns The for variant packs the same functionality into less code, so IMO that one wins the dense contest.<br />
+However, the find_if variant is less lines.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10084">
+		<div id="div-comment-10084">
+		<div class="cmtinfo"><em> on <a href="#comment-10084" title="">2013-05-14 at 11:51 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/23463b99b62a72f26ed677cc556c44e8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Example</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10084"></div><p>@PietroV:<br />
+ &gt;I know, i call the employee’s constructor, but it’s more readable (I think).</p>
+<p>You don&#8217;t know whether employee::employee(std::string) or employee::operator==(&#8230;) exist, and even if they do, it is rather unlikely that two employees are only identified by their name and find() will most-likely return end().</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-bkuhns even thread-even depth-1 highlander-comment" id="comment-10082">
+		<div id="div-comment-10082">
+		<div class="cmtinfo"><em> on <a href="#comment-10082" title="">2013-05-14 at 5:00 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/602221e0c40c93cfe5c1925a89f2d291?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bkuhns</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10082"></div><p>@Olaf What about if we&#8217;re skimming through code, trying to get a grasp on what it does. Let&#8217;s say my eyes catch this line:</p>
+<pre class="brush: plain; title: ; notranslate" title="">for (auto&amp; e : emps) {</pre>
+<p>All this tells me is that you&#8217;re looking through `emps`. If I instead see this line:</p>
+<pre class="brush: plain; title: ; notranslate" title="">auto it = find_if(emps, [&amp;](auto&amp; e) e.name == name );</pre>
+<p>Then, well&#8230; the story&#8217;s over. I see exactly what it&#8217;s doing. Even if I don&#8217;t read the lambda, I know you&#8217;re looking for something in `emps` and whatever&#8217;s found, if any, is stored in `it`. I know this from reading only part of one line of code.</p>
+<p>The advantage of using STL algorithms is about information density, IMO.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10074">
+		<div id="div-comment-10074">
+		<div class="cmtinfo"><em> on <a href="#comment-10074" title="">2013-05-14 at 11:47 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/048b60040ffdd00df1aa43d3caa5fceb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Tom</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10074"></div><p>Well may be this sound strange for some peoples here but STL is not used all the time.<br />
+In some projects I was working on STL usage was a bad sign and was not really permitted.<br />
+Boost look like a great library but it is much too big and many times slow (compiler time and runtime).</p>
+<p>IMHO range based for loop is shorter and better as find_if.<br />
+And less dependencies on STL :)</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr( const vector&lt;employee&gt;&amp; emps, const  u16string&amp; name ) {
+    for(const auto&amp; i : emps ) {    if( i.name() == name)   return i.addr;   }
+    return &quot;&quot;;
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-germinolegrand even thread-even depth-1 highlander-comment" id="comment-10072">
+		<div id="div-comment-10072">
+		<div class="cmtinfo"><em> on <a href="#comment-10072" title="">2013-05-14 at 7:37 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/28fb981f4140586663137d6225e6862f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://cpponfire.wordpress.com' rel='external nofollow' class='url'>germinolegrand</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10072"></div><p>@Olaf : code self-expressivity i guess&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10071">
+		<div id="div-comment-10071">
+		<div class="cmtinfo"><em> on <a href="#comment-10071" title="">2013-05-14 at 7:36 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/26230e55188637785a569c6ec8ca0f3f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://xwis.net/' rel='external nofollow' class='url'>Olaf van der Spek</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10071"></div><p>For is still shorter / simpler. What&#8217;s the advantage of find_if?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10070">
+		<div id="div-comment-10070">
+		<div class="cmtinfo"><em> on <a href="#comment-10070" title="">2013-05-14 at 6:53 am</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/100004054812229/picture?q=type%3Dlarge&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/profile.php?id=100004054812229' rel='external nofollow' class='url'>Róbert Dávid</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10070"></div><p>@Olaf<br />
+range-based-for</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+for (auto&amp; e : emps) {
+    if (name == e.name()) {
+        return e.addr();
+    }
+}
+return {};
+</pre>
+<p>vs stl-range-find + generic lambda + N3560 section 2.2:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+auto it = find_if(emps, [&amp;](auto&amp; e) e.name == name );
+if (it != emps.end())
+    return it-&gt;addr();
+return {};
+</pre>
+<p>Not convinced :)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-bkuhns odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10066">
+		<div id="div-comment-10066">
+		<div class="cmtinfo"><em> on <a href="#comment-10066" title="">2013-05-14 at 4:29 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/602221e0c40c93cfe5c1925a89f2d291?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bkuhns</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10066"></div><p>@bilbothegravatar Also, the Range Study Group is targeting a TS after C++14. They fixed some wording for C++14 to remove some roadblocks for the TS, hopefully making it all the easier to adopt in C++17. Judging by your gravatar, I&#8217;ll assume you know to use boost.range for now ;-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-bkuhns even thread-even depth-1 highlander-comment" id="comment-10065">
+		<div id="div-comment-10065">
+		<div class="cmtinfo"><em> on <a href="#comment-10065" title="">2013-05-14 at 4:15 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/602221e0c40c93cfe5c1925a89f2d291?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bkuhns</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10065"></div><p>@bilbothegravatar Herb mentioned the GotW&#8217;s are covering C++14 now. That lambda syntax is a new feature of C++14. It uses both generic/polymorphic lambdas (note the const auto&amp; parameter), and the abbreviated syntax that makes the curly braces and return statement optional (the return becomes assumed).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-bilbothegravatar odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10063">
+		<div id="div-comment-10063">
+		<div class="cmtinfo"><em> on <a href="#comment-10063" title="">2013-05-14 at 3:13 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/256c9d534302a138d5d1fe3ed833e217?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bilbothegravatar</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10063"></div><p>Comparing the boiler plate needed for std::find_if vs. the code needed to write this with a range-based-for loop IMHO clearly shows that we need range algorithms (not in C++14, right?) in the standard and (at least) auto lambdas (in C++14, right?).</p>
+<p>And, btw. [CODE][&amp;](const auto&amp; e) e.name() == name;[/CODE] &#8230; being able to get rid of the curly braces for one-line lambdas would also be nice. Is this actually in C++14 of a typo of @BretKuhns?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10061">
+		<div id="div-comment-10061">
+		<div class="cmtinfo"><em> on <a href="#comment-10061" title="">2013-05-14 at 1:24 am</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/100000883453352/picture?q=type%3Dlarge%26_md5%3Db67f184116ced793db7255152c287232&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/Z.Fernando.Moreira' rel='external nofollow' class='url'>Fernando Moreira</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10061"></div><p>(Don&#8217;t you hate this editor??? That&#8217;s what I call an arrogant interface :P &#8211; ) &#8211; Let&#8217;s try again&#8230;</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+std::optional&lt;std::string&gt; find_addr( const list&lt;employee&gt;&amp; emps, const std::string&amp; name )
+{
+    std::optional&lt;std::string&gt; result;
+    find_if(begin(emps), end(emps), [&amp;result, &amp;name](const auto&amp; employee) {
+        if(employee.name() == name){
+            result = employee.addr;
+            return true;
+         }
+        else
+           return false; } );
+    return result;
+}
+</pre>
+<p>usage:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+auto result = find_addr(employees, lookup_name);
+if(result)
+std::cout &lt;&lt; &quot;Employee's address found: &quot; &lt;&lt; *result &lt;&lt; std::endl;
+else
+std::cout &lt;&lt; &quot;Sorry. Employee not found.&quot; &lt;&lt; std::endl;
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10060">
+		<div id="div-comment-10060">
+		<div class="cmtinfo"><em> on <a href="#comment-10060" title="">2013-05-14 at 1:19 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/45eb253e73a0c9ec7042d218fca8a96f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Fernando</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10060"></div><p>Using C++14 this function should return a std::optional:</p>
+<p>[CODE]<br />
+std::optional find_addr( const list&amp; emps, const string&amp; name )<br />
+{<br />
+    std::optional result;<br />
+    find_if(begin(emps), end(emps), [&amp;result, &amp;name](const auto&amp; employee) {<br />
+        if(employee.name() == name){<br />
+            result = employee.addr;<br />
+            return true;<br />
+        }<br />
+        else<br />
+            return false;<br />
+    } );<br />
+    return result;<br />
+}<br />
+[/CODE]</p>
+<p>usage:</p>
+<p>[CODE]<br />
+auto result = find_addr(employees, lookup_name);<br />
+if(result)<br />
+    std::cout &lt;&lt; &quot;Employee&#039;s address found: &quot; &lt;&lt; *result &lt;&lt; std::endl;<br />
+else<br />
+    std::cout &lt;&lt; &quot;Sorry. Employee not found.&quot; &lt;&lt; std::endl;<br />
+[/CODE]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10057">
+		<div id="div-comment-10057">
+		<div class="cmtinfo"><em> on <a href="#comment-10057" title="">2013-05-14 at 12:40 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/26230e55188637785a569c6ec8ca0f3f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://xwis.net/' rel='external nofollow' class='url'>Olaf van der Spek</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10057"></div><p>@Róbert As I wrote: &#8220;Using find_if is quite verbose, the for variant is simpler.&#8221;<br />
+A range-based find_if won&#8217;t really help.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10055">
+		<div id="div-comment-10055">
+		<div class="cmtinfo"><em> on <a href="#comment-10055" title="">2013-05-13 at 11:41 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6bcbddbd9c7b31aaff8cf25a356bc96c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Gonzalo BG</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10055"></div><p>1. What is the most widely used C++ library? The Standard Library, hopefully followed by Boost.</p>
+<p>2. a) See other answers, the right thing to do is to use find_if.<br />
+2. b) Quoting from my answer to the previous question:</p>
+<p>Taking the parameters by const reference and using boost::find_if solves all the “sought” problems (it&#8217;s just a range-based wrapper to the STL call):</p>
+<p>auto find_addr(const list&amp; emps, const string&amp; name) {<br />
+    const auto pos = find_if(emps, [&amp;](const auto&amp; e){ return e.name == name; });<br />
+    return pos != end(emps) ? pos-&gt;addr : string();<br />
+}</p>
+<p>In code review I would probably complain that with the find_addr function you get an empty string if:<br />
+– the employee does not exist, _and_<br />
+– the employee exists but its adress has not been set yet (e.g. addr was default constructed to an empty string).</p>
+<p>If the function is required I’d recommend using boost::optional for the return type. However I would _strongly_ recommend that the best way to improve this function is not to write it in the first place. Is just a one-liner call to find_if. And by using find_if directly the semantics of not found are crystal clear.</p>
+<p>@Gabriel Garcia used std::optional up there. I still think the best thing is not to write this function at all.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10053">
+		<div id="div-comment-10053">
+		<div class="cmtinfo"><em> on <a href="#comment-10053" title="">2013-05-13 at 7:16 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f80eb98f480f76f5101cac3164474502?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/monamimani' rel='external nofollow' class='url'>monamimani</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10053"></div><p>For fun I&#8217;ll try something new :)</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr( const list&lt;employee&gt;&amp; emps, const string&amp; name ) 
+{
+    string result;
+    find_if(begin(emps), end(emps), [&amp;result, &amp;name](const auto&amp; employee) 
+    { 
+        bool found = employee.name() == name; 
+        if(found)
+            result = employee.addr;
+        return found;
+    } );
+    return result;
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-pindragon odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10052">
+		<div id="div-comment-10052">
+		<div class="cmtinfo"><em> on <a href="#comment-10052" title="">2013-05-13 at 6:26 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/20f3a5c1e83e75b2585df9e4dbca0b05?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>pindragon</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10052"></div><p>&gt; What would these people say about the range-version std::find?</p>
+<p>I’m a part of those people (I&#8217;m Mikhail Belyaev with wordpress messing my name for every second comment) and I would say it rocks. I even have my own set of range-based algorithms in my current project (as well as a function that wraps any pair of iterators into a range-for-enabled structure). Too bad we don&#8217;t have &#8217;em in the stl yet.<br />
+On the other hand, some complex loopy operations will still be expressed with range-for much better.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10047">
+		<div id="div-comment-10047">
+		<div class="cmtinfo"><em> on <a href="#comment-10047" title="">2013-05-13 at 4:08 pm</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/691456865/picture?q=type%3Dlarge%26_md5%3D788c8efecd81faaa861ecaed4635125a&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/garciat' rel='external nofollow' class='url'>Gabriel Garcia</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10047"></div><p>C++14 + Concepts Lite:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+template &lt;Container Cont&gt;
+    requires std::is_same&lt;typename Value_type&lt;Cont&gt;, employee&gt;
+std::optional&lt;string&gt; find_addr(const Cont &amp;cont, const string &amp;name) {
+    for (const auto &amp;cur : cont) {
+        if (cur.name() == name) {
+            return cur.addr;
+        }
+    }
+    return std::nullopt;
+}
+</pre>
+<p>(I may be missing a thing or two, regarding Concepts Lite correctness)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-germinolegrand odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10046">
+		<div id="div-comment-10046">
+		<div class="cmtinfo"><em> on <a href="#comment-10046" title="">2013-05-13 at 3:35 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/28fb981f4140586663137d6225e6862f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://cpponfire.wordpress.com' rel='external nofollow' class='url'>germinolegrand</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10046"></div><p>&gt; What would these people say about the range-version std::find?</p>
+<p>I&#8217;m not part of those people, but I&#8217;d really love to have all algorithms range version, because it would both combine simplicity (whitch means mostly relyability) and full expressivity !</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10045">
+		<div id="div-comment-10045">
+		<div class="cmtinfo"><em> on <a href="#comment-10045" title="">2013-05-13 at 3:22 pm</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/100004054812229/picture?q=type%3Dlarge%26_md5%3D9e5f827892523ff7a319a1687be4b4dd&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/profile.php?id=100004054812229' rel='external nofollow' class='url'>Róbert Dávid</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10045"></div><p>I wonder why do people prefer range-for over std::find/find_if. Is it because the &#8216;redundant&#8217; begin(), end() pair? What would these people say about the range-version std::find? It should be roughly </p>
+<pre class="brush: plain; title: ; notranslate" title="">auto it = find(emps, employee(name));</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10044">
+		<div id="div-comment-10044">
+		<div class="cmtinfo"><em> on <a href="#comment-10044" title="">2013-05-13 at 2:12 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/a7f324ea312073639a9466eb669b0df6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>PietroV</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10044"></div><p>1) STL</p>
+<p>2a) range-for:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr( list const&amp; emps, string const&amp; name ) {
+    for( auto const&amp; emp : emps )
+        if( emp.name() == name )
+            return emp.addr;
+    return &quot;&quot;;
+}
+</pre>
+<p>2b) stl algo:<br />
+I’ll try a different approach..</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr( list const&amp; emps, string const&amp; name ) {
+    auto found = find(begin(emps), end(emps), employee(name) );
+    if( found != end(emps) )
+        return found-&gt;addr;
+    return &quot;&quot;;
+}
+</pre>
+<p>I know, i call the employee’s constructor, but it’s more readable (I think).<br />
+I still prefer the range-for version.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10040">
+		<div id="div-comment-10040">
+		<div class="cmtinfo"><em> on <a href="#comment-10040" title="">2013-05-13 at 1:10 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/653e9876709910096ccdde524a306bf8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/mordachaiwolf' rel='external nofollow' class='url'>mordachaiwolf</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10040"></div><p>I would just add a niggling note that since we use end(emps) multiple times, but it won&#8217;t change, it wouldn&#8217;t hurt to store that once &amp; only once:</p>
+<p>string find_addr(const list&amp; emps, const string&amp; name )<br />
+{<br />
+    auto notfound = end(emps);<br />
+    auto location = find_if(begin(emps), notfound, [&amp;name](const auto&amp; emp)<br />
+    {<br />
+        return emp.name() == name;<br />
+    });</p>
+<p>    if (location != notfound)<br />
+        return location-&gt;addr;</p>
+<p>    return &#8220;&#8221;;<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10033">
+		<div id="div-comment-10033">
+		<div class="cmtinfo"><em> on <a href="#comment-10033" title="">2013-05-13 at 8:38 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/28fb981f4140586663137d6225e6862f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/germinolegrand' rel='external nofollow' class='url'>germinolegrand</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10033"></div><p>1. STL is the best.<br />
+2. STL Algoritms + lambda are the best.</p>
+<p>I won&#8217;t give the range for based loop (uh, need an abbreviation for this :D) since is simple and already given by everyone here.</p>
+<p>I will rather try to point something about the lambda+algo one :</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr(const list&lt;employee&gt;&amp; emps, const string&amp; name ) 
+{
+    auto empIt = find_if(begin(emps), end(emps), [&amp;name](const auto&amp; emp)
+    {
+        return emp.name() == name;
+    });
+
+    if(empIt != end(emps))
+        return empIt -&gt;addr;
+
+    return &quot;&quot;;
+}
+</pre>
+<p>Since we write for C++14, we can use auto. This is cool because it simplifies a generic code. I personnaly always try to avoid repeating a type.</p>
+<p>In C++11 (because I can&#8217;t use C++14 in production code of course), I have to write this :</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr(const list&lt;employee&gt;&amp; emps, const string&amp; name ) 
+{
+    auto empIt = find_if(begin(emps), end(emps), [&amp;name](const decltype(emps)::value_type&amp; emp)
+    {
+        return emp.name() == name;
+    });
+
+    if(empIt != end(emps))
+        return empIt-&gt;addr;
+
+    return &quot;&quot;;
+}
+</pre>
+<p>But even if I&#8217;m restricting to STL like containers in the C++11 version, it is highly preferable than repeating the type of what is stored in emps (perhaps const decltype(*begin(emps))&amp; would be better ? I think it lacks of clarity but it would have the great advantage of working on any kind of container, STL like or not).</p>
+<p>With this, I am able to change the container type, or even the type in the container (as long as it has a name() method and an addr member attribute) from one and only one point (here the function declaration) without changing at all the meaning and the validity of the code.<br />
+This increases code reusability.</p>
+<p>For the difference between RBFL and lambda+algo :<br />
+* RBFL is simpler : no extra variables, no extra code. But it needs either a comment or a longer read time later.<br />
+* lambda+algo is more expressive : the code itself says it wants to *find* the *emp* *whose name* is *name* and *return* *its addr* *if you found one* or *&#8221;&#8221; as the default value*. Could you even be more expressive on what this code does in a comment poorly paraphrasing the code ?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10026">
+		<div id="div-comment-10026">
+		<div class="cmtinfo"><em> on <a href="#comment-10026" title="">2013-05-13 at 7:09 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/37aa3ec65ec47c5a3f9e2a80534837f3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/stackedcrooked' rel='external nofollow' class='url'>stackedcrooked</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10026"></div><p>1. The Standard C++ library<br />
+2. I think Mikhail Belyaev&#8217;s answer is perfect here.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10025">
+		<div id="div-comment-10025">
+		<div class="cmtinfo"><em> on <a href="#comment-10025" title="">2013-05-13 at 7:03 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c102cedf3c930e6c4079f52d8d261b8d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='https://github.com/pfultz2' rel='external nofollow' class='url'>Paul</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10025"></div><p>Maybe this isn&#8217;t appropriate but using Linq in C++, it can be done in one line without much clutter:</p>
+<pre class="brush: plain; title: ; notranslate" title=""> 
+string find_addr(const list&lt;employee&gt;&amp; emps, const string&amp; name ) 
+{
+    return LINQ(from(emp, emps) where(emp.name() == name)) | linq::first_or_default;
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10020">
+		<div id="div-comment-10020">
+		<div class="cmtinfo"><em> on <a href="#comment-10020" title="">2013-05-13 at 6:33 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/68f403eb5e6fef229e3c19a5d5f7fea6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mikhail Belyaev</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10020"></div><p>1. If you take the question like &#8220;what library is used in most C++ projects&#8221;, it&#8217;s probably iostreams. If you take it like &#8220;what library&#8217;s functions are called most of all&#8221;, it&#8217;s STL.<br />
+2. As I&#8217;ve already proposed range-for-based loop, here it is again:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr(const list&lt;employee&gt;&amp; emps, const string&amp; name ) {
+    for( const auto&amp; emp : emps)
+        if( emp.name() == name ) return emp.addr;
+    return &quot;&quot;;
+}
+</pre>
+<p>for_each:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr(const list&lt;employee&gt;&amp; emps, const string&amp; name ) {
+    auto where = 
+           std::find_if(cbegin(emps), cend(emps), [&amp;name](const employee&amp; emp) { return emp.name() == name; });
+    return (where == cend(emps))? &quot;&quot; : where-&gt;addr;
+}
+</pre>
+<p>What do we get from both?<br />
+1. We do not need to memoize end(emps);<br />
+2. No possible ++ issues (hey, nobody can guarantee he never wrote postfix ++ accidentally);<br />
+3. We&#8217;ve got and employee&amp; inside the body rather than some_fancy_iterator.</p>
+<p>What do we get from range-for?<br />
+It soo much more clear what&#8217;s happening with less code. Not all algorithm combinations can be expressed with this loop though.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10018">
+		<div id="div-comment-10018">
+		<div class="cmtinfo"><em> on <a href="#comment-10018" title="">2013-05-13 at 5:39 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/602221e0c40c93cfe5c1925a89f2d291?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/bkuhns' rel='external nofollow' class='url'>Bret Kuhns</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10018"></div><pre class="brush: plain; title: ; notranslate" title="">string find_addr( const list&lt;employee&gt;&amp; emps, const string&amp; name ) {
+    for( const auto&amp; i : emps ) {
+        if( i.name() == name ) {
+            return i.addr;
+        }
+    }
+    return &quot;&quot;;
+}</pre>
+<pre class="brush: plain; title: ; notranslate" title="">string find_addr( const list&lt;employee&gt;&amp; emps, const string&amp; name ) {
+    auto iter = find_if(cbegin(emps), cend(emps), [&amp;](const auto&amp; e) e.name() == name );
+    return iter != cend(emps) 
+         ? iter-&gt;addr
+         : &quot;&quot;;
+}</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10012">
+		<div id="div-comment-10012">
+		<div class="cmtinfo"><em> on <a href="#comment-10012" title="">2013-05-13 at 5:09 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/26230e55188637785a569c6ec8ca0f3f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Olaf van der Spek</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10012"></div><pre class="brush: plain; title: ; notranslate" title="">
+string find_addr( const list&lt;employee&gt;&amp; emps, const string&amp; name ) {
+    for( auto&amp; i : emps ) {
+        if( i.name() == name )
+            return i.addr;
+    }
+    return &quot;&quot;;
+}
+</pre>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr( const list&lt;employee&gt;&amp; emps, const string&amp; name ) {
+	auto i = find_if(begin(emps), end(emps), [&amp;](const employee&amp; a) { return a.name() == name; } );
+	return i == end(emps) ? &quot;&quot; : i-&gt;addr;
+}
+</pre>
+<p>Using find_if is quite verbose, the for variant is simpler. I&#8217;d still return employee* though. :p</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/05/13/gotw-3-using-the-standard-library-or-temporaries-revisited-310/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-1fa40d1ff1c5ee90efcd97561f1fac3c">
+	</div>
+	<div class="grofile-hash-map-322cf2e150d5cd84275b131184731c0a">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-db892012bc52cc6cbfd27db9d98acf8b">
+	</div>
+	<div class="grofile-hash-map-2d62de19319092e658a1b403adc6b03d">
+	</div>
+	<div class="grofile-hash-map-d89642ad0c050ed65618587627b595bb">
+	</div>
+	<div class="grofile-hash-map-602221e0c40c93cfe5c1925a89f2d291">
+	</div>
+	<div class="grofile-hash-map-26230e55188637785a569c6ec8ca0f3f">
+	</div>
+	<div class="grofile-hash-map-23463b99b62a72f26ed677cc556c44e8">
+	</div>
+	<div class="grofile-hash-map-602221e0c40c93cfe5c1925a89f2d291">
+	</div>
+	<div class="grofile-hash-map-048b60040ffdd00df1aa43d3caa5fceb">
+	</div>
+	<div class="grofile-hash-map-28fb981f4140586663137d6225e6862f">
+	</div>
+	<div class="grofile-hash-map-256c9d534302a138d5d1fe3ed833e217">
+	</div>
+	<div class="grofile-hash-map-45eb253e73a0c9ec7042d218fca8a96f">
+	</div>
+	<div class="grofile-hash-map-6bcbddbd9c7b31aaff8cf25a356bc96c">
+	</div>
+	<div class="grofile-hash-map-f80eb98f480f76f5101cac3164474502">
+	</div>
+	<div class="grofile-hash-map-20f3a5c1e83e75b2585df9e4dbca0b05">
+	</div>
+	<div class="grofile-hash-map-8df2c9fb8dc016dcdce04b633ba9a6b4">
+	</div>
+	<div class="grofile-hash-map-a7f324ea312073639a9466eb669b0df6">
+	</div>
+	<div class="grofile-hash-map-653e9876709910096ccdde524a306bf8">
+	</div>
+	<div class="grofile-hash-map-28fb981f4140586663137d6225e6862f">
+	</div>
+	<div class="grofile-hash-map-37aa3ec65ec47c5a3f9e2a80534837f3">
+	</div>
+	<div class="grofile-hash-map-c102cedf3c930e6c4079f52d8d261b8d">
+	</div>
+	<div class="grofile-hash-map-68f403eb5e6fef229e3c19a5d5f7fea6">
+	</div>
+	<div class="grofile-hash-map-26230e55188637785a569c6ec8ca0f3f">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_30993={"id":468178,"unique_id":"wp-comment-30993","title":"Ouch.%20Sorry.%20%26quot%3BLet%26%23039%3Bs%20learn%20the%20lession%20from%20ambiguous%20expressions%20in%20%26quot%3Bif%26quot%3B%20and%20%26quot%3Bfor%26quot%3B%20statements%2C%20and%20require%20%26quot%3B%7B%7D%26quot%3B%20in%20situations%20where%20there%26%23039%3Bs%20no%20benefit%20to%20allowing%20them%20to%20be%20elided.%26quot%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-30993","item_id":"_comm_30993"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_30993 == 'undefined' ){PDRTJS_468178_comm_30993 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_30993 );}}PDRTJS_settings_468178_comm_30992={"id":468178,"unique_id":"wp-comment-30992","title":"I%20really%20hope%20that%20%26%23039%3Bexpression%20lambdas%26%23039%3B%20don%26%23039%3Bt%20get%20added%20to%20a%20future%20version%20of%20C%2B%2B.%20Consider%3A%26%23091%3Bcode%26%23093%3Bint%20i%20%3D%201%2C%20j%20%3D1%3Bauto%20f%20%3D%20%26%23091%3B%26%23093%3B%28auto%20%26amp%3Bi%2C%20auto%20%26amp%3Bj%29%20i%2B%2B%3B%20j%2B%2B%3B%26%23091%3B%2Fcode%26%23093%3BUnless%20we%26%23039%3Bre%20going%20to%20adop...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-30992","item_id":"_comm_30992"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_30992 == 'undefined' ){PDRTJS_468178_comm_30992 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_30992 );}}PDRTJS_settings_468178_comm_10204={"id":468178,"unique_id":"wp-comment-10204","title":"%40Olaf%20van%20der%20Spek%3A%20The%20other%20guys%20already%20told%20about%20find_if%20being%20self%20documenting%3A%20To%20discover%20that%20this%20code%20is%20doing%20a%20search%2C%20you%20only%20need%20to%20read%20the%20function%20name%20in%20the%20find_if%20case%2C%20bu...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10204","item_id":"_comm_10204"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10204 == 'undefined' ){PDRTJS_468178_comm_10204 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10204 );}}PDRTJS_settings_468178_comm_10134={"id":468178,"unique_id":"wp-comment-10134","title":"%40Bret%20Kuhns%3A%20C%2B%2B14%20does%20have%20generic%20lambdas%2C%20meaning%20%26quot%3Bauto%26quot%3B%20type%20parameters%20that%20generate%20a%20templated%20function%20call%20operator.%20However%2C%20other%20parts%20of%20lambda%20syntax%20refinements%2C%20including%20potenti...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10134","item_id":"_comm_10134"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10134 == 'undefined' ){PDRTJS_468178_comm_10134 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10134 );}}PDRTJS_settings_468178_comm_10100={"id":468178,"unique_id":"wp-comment-10100","title":"I%20seriously%20hope%20that%20Steve%20is%20just%20woefully%20uninformed%2C%20and%20we%20will%20in%20fact%20be%20receiving%20VC%2B%2B%20updates%20prior%20to%20VS.Next.%20%20That%20assertion%20is%20completely%20ridiculous%20%28see%20VS2008%20vs.%20VS2008%20SP1%20for%20a%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10100","item_id":"_comm_10100"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10100 == 'undefined' ){PDRTJS_468178_comm_10100 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10100 );}}PDRTJS_settings_468178_comm_10096={"id":468178,"unique_id":"wp-comment-10096","title":"I%20totally%20agree%20with%20Bret%20Kuhns%20that%20find_if%20is%20clearer%20than%20a%20raw%20loop.%20A%20raw%20loop%20is%20an%20implementation%20of%20the%20algorithm%2C%20not%20it%26%23039%3Bs%20name.%20We%20have%20abstractions%20to%20help%20us%20understand%20our%20code%2C%20let%26%23039%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10096","item_id":"_comm_10096"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10096 == 'undefined' ){PDRTJS_468178_comm_10096 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10096 );}}PDRTJS_settings_468178_comm_10094={"id":468178,"unique_id":"wp-comment-10094","title":"http%3A%2F%2Fblogs.msdn.com%2Fb%2Fbharry%2Farchive%2F2013%2F05%2F08%2Fsome-thoughts-on-a-comment-about-vs-2012-3.aspxSteve%20Teixeira%2C%20MSFT%2013%20May%202013%2012%3A17%20PM%20%23%40Tom%20Kirby-Green%2C%20C%2B%2B11%20support%20remains%20a%20very%20high%20pri...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10094","item_id":"_comm_10094"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10094 == 'undefined' ){PDRTJS_468178_comm_10094 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10094 );}}PDRTJS_settings_468178_comm_10092={"id":468178,"unique_id":"wp-comment-10092","title":"%40Olaf%20I%20said%20information%20density%2C%20not%20functionality.%20There%20are%20lots%20of%20things%20you%20can%20do%20to%20pack%20more%20functionality%20in%20less%20code%2C%20and%20the%20majority%20of%20those%20techniques%20are%20a%20bad%20idea%20because%20they%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10092","item_id":"_comm_10092"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10092 == 'undefined' ){PDRTJS_468178_comm_10092 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10092 );}}PDRTJS_settings_468178_comm_10086={"id":468178,"unique_id":"wp-comment-10086","title":"%40bkuhns%20The%20for%20variant%20packs%20the%20same%20functionality%20into%20less%20code%2C%20so%20IMO%20that%20one%20wins%20the%20dense%20contest.%20However%2C%20the%20find_if%20variant%20is%20less%20lines....","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10086","item_id":"_comm_10086"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10086 == 'undefined' ){PDRTJS_468178_comm_10086 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10086 );}}PDRTJS_settings_468178_comm_10084={"id":468178,"unique_id":"wp-comment-10084","title":"%40PietroV%3A%20%20%26gt%3BI%20know%2C%20i%20call%20the%20employees%20constructor%2C%20but%20its%20more%20readable%20%28I%20think%29.You%20don%26%23039%3Bt%20know%20whether%20employee%3A%3Aemployee%28std%3A%3Astring%29%20or%20employee%3A%3Aoperator%3D%3D%28...%29%20exist%2C%20and%20even%20if%20the...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10084","item_id":"_comm_10084"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10084 == 'undefined' ){PDRTJS_468178_comm_10084 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10084 );}}PDRTJS_settings_468178_comm_10082={"id":468178,"unique_id":"wp-comment-10082","title":"%40Olaf%20What%20about%20if%20we%26%23039%3Bre%20skimming%20through%20code%2C%20trying%20to%20get%20a%20grasp%20on%20what%20it%20does.%20Let%26%23039%3Bs%20say%20my%20eyes%20catch%20this%20line%3A%26%23091%3Bcode%26%23093%3Bfor%20%28auto%26amp%3B%20e%20%3A%20emps%29%20%7B%26%23091%3B%2Fcode%26%23093%3BAll%20this%20tells%20me%20is%20that%20you%26%23039%3Bre%20l...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10082","item_id":"_comm_10082"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10082 == 'undefined' ){PDRTJS_468178_comm_10082 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10082 );}}PDRTJS_settings_468178_comm_10074={"id":468178,"unique_id":"wp-comment-10074","title":"Well%20may%20be%20this%20sound%20strange%20for%20some%20peoples%20here%20but%20STL%20is%20not%20used%20all%20the%20time.In%20some%20projects%20I%20was%20working%20on%20STL%20usage%20was%20a%20bad%20sign%20and%20was%20not%20really%20permitted.Boost%20look%20like%20a%20gre...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10074","item_id":"_comm_10074"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10074 == 'undefined' ){PDRTJS_468178_comm_10074 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10074 );}}PDRTJS_settings_468178_comm_10072={"id":468178,"unique_id":"wp-comment-10072","title":"%40Olaf%20%3A%20code%20self-expressivity%20i%20guess......","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10072","item_id":"_comm_10072"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10072 == 'undefined' ){PDRTJS_468178_comm_10072 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10072 );}}PDRTJS_settings_468178_comm_10071={"id":468178,"unique_id":"wp-comment-10071","title":"For%20is%20still%20shorter%20%2F%20simpler.%20What%26%23039%3Bs%20the%20advantage%20of%20find_if%3F...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10071","item_id":"_comm_10071"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10071 == 'undefined' ){PDRTJS_468178_comm_10071 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10071 );}}PDRTJS_settings_468178_comm_10070={"id":468178,"unique_id":"wp-comment-10070","title":"%40Olafrange-based-for%26%23091%3Bcode%26%23093%3Bfor%20%28auto%26amp%3B%20e%20%3A%20emps%29%20%7B%20%20%20%20if%20%28name%20%3D%3D%20e.name%28%29%29%20%7B%20%20%20%20%20%20%20%20return%20e.addr%28%29%3B%20%20%20%20%7D%7Dreturn%20%7B%7D%3B%26%23091%3B%2Fcode%26%23093%3Bvs%20stl-range-find%20%2B%20generic%20lambda%20%2B%20N3560%20section%202.2%3A%26%23091%3Bcode%26%23093%3Bauto%20it%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10070","item_id":"_comm_10070"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10070 == 'undefined' ){PDRTJS_468178_comm_10070 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10070 );}}PDRTJS_settings_468178_comm_10066={"id":468178,"unique_id":"wp-comment-10066","title":"%40bilbothegravatar%20Also%2C%20the%20Range%20Study%20Group%20is%20targeting%20a%20TS%20after%20C%2B%2B14.%20They%20fixed%20some%20wording%20for%20C%2B%2B14%20to%20remove%20some%20roadblocks%20for%20the%20TS%2C%20hopefully%20making%20it%20all%20the%20easier%20to%20adopt%20in...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10066","item_id":"_comm_10066"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10066 == 'undefined' ){PDRTJS_468178_comm_10066 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10066 );}}PDRTJS_settings_468178_comm_10065={"id":468178,"unique_id":"wp-comment-10065","title":"%40bilbothegravatar%20Herb%20mentioned%20the%20GotW%26%23039%3Bs%20are%20covering%20C%2B%2B14%20now.%20That%20lambda%20syntax%20is%20a%20new%20feature%20of%20C%2B%2B14.%20It%20uses%20both%20generic%2Fpolymorphic%20lambdas%20%28note%20the%20const%20auto%26amp%3B%20parameter%29%2C%20an...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10065","item_id":"_comm_10065"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10065 == 'undefined' ){PDRTJS_468178_comm_10065 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10065 );}}PDRTJS_settings_468178_comm_10063={"id":468178,"unique_id":"wp-comment-10063","title":"Comparing%20the%20boiler%20plate%20needed%20for%20std%3A%3Afind_if%20vs.%20the%20code%20needed%20to%20write%20this%20with%20a%20range-based-for%20loop%20IMHO%20clearly%20shows%20that%20we%20need%20range%20algorithms%20%28not%20in%20C%2B%2B14%2C%20right%3F%29%20in%20the%20sta...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10063","item_id":"_comm_10063"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10063 == 'undefined' ){PDRTJS_468178_comm_10063 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10063 );}}PDRTJS_settings_468178_comm_10061={"id":468178,"unique_id":"wp-comment-10061","title":"%28Don%26%23039%3Bt%20you%20hate%20this%20editor%3F%3F%3F%20That%26%23039%3Bs%20what%20I%20call%20an%20arrogant%20interface%20%3AP%20-%20%29%20-%20Let%26%23039%3Bs%20try%20again...%26%23091%3Bcode%26%23093%3Bstd%3A%3Aoptional%26lt%3Bstd%3A%3Astring%26gt%3B%20find_addr%28%20const%20list%26lt%3Bemployee%26gt%3B%26amp%3B%20emps%2C%20const%20st...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10061","item_id":"_comm_10061"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10061 == 'undefined' ){PDRTJS_468178_comm_10061 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10061 );}}PDRTJS_settings_468178_comm_10060={"id":468178,"unique_id":"wp-comment-10060","title":"Using%20C%2B%2B14%20this%20function%20should%20return%20a%20std%3A%3Aoptional%3A%26%23091%3BCODE%26%23093%3Bstd%3A%3Aoptional%20find_addr%28%20const%20list%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7Bstd%3A%3Aoptional%20result%3Bfind_if%28begin%28emps%29%2C%20end%28emps%29%2C%20%26%23091%3B%26amp%3Br...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10060","item_id":"_comm_10060"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10060 == 'undefined' ){PDRTJS_468178_comm_10060 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10060 );}}PDRTJS_settings_468178_comm_10057={"id":468178,"unique_id":"wp-comment-10057","title":"%40Rbert%20As%20I%20wrote%3A%20%26quot%3BUsing%20find_if%20is%20quite%20verbose%2C%20the%20for%20variant%20is%20simpler.%26quot%3BA%20range-based%20find_if%20won%26%23039%3Bt%20really%20help....","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10057","item_id":"_comm_10057"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10057 == 'undefined' ){PDRTJS_468178_comm_10057 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10057 );}}PDRTJS_settings_468178_comm_10055={"id":468178,"unique_id":"wp-comment-10055","title":"1.%20What%20is%20the%20most%20widely%20used%20C%2B%2B%20library%3F%20The%20Standard%20Library%2C%20hopefully%20followed%20by%20Boost.2.%20a%29%20See%20other%20answers%2C%20the%20right%20thing%20to%20do%20is%20to%20use%20find_if.2.%20b%29%20Quoting%20from%20my%20answer%20to%20the...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10055","item_id":"_comm_10055"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10055 == 'undefined' ){PDRTJS_468178_comm_10055 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10055 );}}PDRTJS_settings_468178_comm_10053={"id":468178,"unique_id":"wp-comment-10053","title":"For%20fun%20I%26%23039%3Bll%20try%20something%20new%20%3A%29%26%23091%3Bcode%26%23093%3Bstring%20find_addr%28%20const%20list%26lt%3Bemployee%26gt%3B%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7B%20%20%20%20string%20result%3B%20%20%20%20find_if%28begin%28emps%29%2C%20end%28emps%29%2C%20%26%23091%3B%26amp%3Bresult%2C%20%26amp%3Bn...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10053","item_id":"_comm_10053"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10053 == 'undefined' ){PDRTJS_468178_comm_10053 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10053 );}}PDRTJS_settings_468178_comm_10052={"id":468178,"unique_id":"wp-comment-10052","title":"%26gt%3B%20What%20would%20these%20people%20say%20about%20the%20range-version%20std%3A%3Afind%3FIm%20a%20part%20of%20those%20people%20%28I%26%23039%3Bm%20Mikhail%20Belyaev%20with%20wordpress%20messing%20my%20name%20for%20every%20second%20comment%29%20and%20I%20would%20say%20it%20rocks...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10052","item_id":"_comm_10052"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10052 == 'undefined' ){PDRTJS_468178_comm_10052 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10052 );}}PDRTJS_settings_468178_comm_10047={"id":468178,"unique_id":"wp-comment-10047","title":"C%2B%2B14%20%2B%20Concepts%20Lite%3A%26%23091%3Bcode%26%23093%3Btemplate%20%26lt%3BContainer%20Cont%26gt%3B%20%20%20%20requires%20std%3A%3Ais_same%26lt%3Btypename%20Value_type%26lt%3BCont%26gt%3B%2C%20employee%26gt%3Bstd%3A%3Aoptional%26lt%3Bstring%26gt%3B%20find_addr%28const%20Cont%20%26amp%3Bcont%2C%20co...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10047","item_id":"_comm_10047"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10047 == 'undefined' ){PDRTJS_468178_comm_10047 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10047 );}}PDRTJS_settings_468178_comm_10046={"id":468178,"unique_id":"wp-comment-10046","title":"%26gt%3B%20What%20would%20these%20people%20say%20about%20the%20range-version%20std%3A%3Afind%3FI%26%23039%3Bm%20not%20part%20of%20those%20people%2C%20but%20I%26%23039%3Bd%20really%20love%20to%20have%20all%20algorithms%20range%20version%2C%20because%20it%20would%20both%20combine%20simplicity...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10046","item_id":"_comm_10046"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10046 == 'undefined' ){PDRTJS_468178_comm_10046 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10046 );}}PDRTJS_settings_468178_comm_10045={"id":468178,"unique_id":"wp-comment-10045","title":"I%20wonder%20why%20do%20people%20prefer%20range-for%20over%20std%3A%3Afind%2Ffind_if.%20Is%20it%20because%20the%20%26%23039%3Bredundant%26%23039%3B%20begin%28%29%2C%20end%28%29%20pair%3F%20What%20would%20these%20people%20say%20about%20the%20range-version%20std%3A%3Afind%3F%20It%20should%20be%20roug...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10045","item_id":"_comm_10045"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10045 == 'undefined' ){PDRTJS_468178_comm_10045 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10045 );}}PDRTJS_settings_468178_comm_10044={"id":468178,"unique_id":"wp-comment-10044","title":"1%29%20STL2a%29%20range-for%3A%26%23091%3Bcode%26%23093%3Bstring%20find_addr%28%20list%20const%26amp%3B%20emps%2C%20string%20const%26amp%3B%20name%20%29%20%7B%20%20%20%20for%28%20auto%20const%26amp%3B%20emp%20%3A%20emps%20%29%20%20%20%20%20%20%20%20if%28%20emp.name%28%29%20%3D%3D%20name%20%29%20%20%20%20%20%20%20%20%20%20%20%20return%20emp.addr%3B%20%20%20%20re...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10044","item_id":"_comm_10044"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10044 == 'undefined' ){PDRTJS_468178_comm_10044 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10044 );}}PDRTJS_settings_468178_comm_10040={"id":468178,"unique_id":"wp-comment-10040","title":"I%20would%20just%20add%20a%20niggling%20note%20that%20since%20we%20use%20end%28emps%29%20multiple%20times%2C%20but%20it%20won%26%23039%3Bt%20change%2C%20it%20wouldn%26%23039%3Bt%20hurt%20to%20store%20that%20once%20%26amp%3B%20only%20once%3Astring%20find_addr%28const%20list%26amp%3B%20emps%2C%20const%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10040","item_id":"_comm_10040"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10040 == 'undefined' ){PDRTJS_468178_comm_10040 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10040 );}}PDRTJS_settings_468178_comm_10033={"id":468178,"unique_id":"wp-comment-10033","title":"1.%20STL%20is%20the%20best.2.%20STL%20Algoritms%20%2B%20lambda%20are%20the%20best.I%20won%26%23039%3Bt%20give%20the%20range%20for%20based%20loop%20%28uh%2C%20need%20an%20abbreviation%20for%20this%20%3AD%29%20since%20is%20simple%20and%20already%20given%20by%20everyone%20here.I%20will%20ra...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10033","item_id":"_comm_10033"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10033 == 'undefined' ){PDRTJS_468178_comm_10033 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10033 );}}PDRTJS_settings_468178_comm_10026={"id":468178,"unique_id":"wp-comment-10026","title":"1.%20The%20Standard%20C%2B%2B%20library2.%20I%20think%20Mikhail%20Belyaev%26%23039%3Bs%20answer%20is%20perfect%20here....","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10026","item_id":"_comm_10026"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10026 == 'undefined' ){PDRTJS_468178_comm_10026 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10026 );}}PDRTJS_settings_468178_comm_10025={"id":468178,"unique_id":"wp-comment-10025","title":"Maybe%20this%20isn%26%23039%3Bt%20appropriate%20but%20using%20Linq%20in%20C%2B%2B%2C%20it%20can%20be%20done%20in%20one%20line%20without%20much%20clutter%3A%26%23091%3Bcode%26%23093%3B%20string%20find_addr%28const%20list%26lt%3Bemployee%26gt%3B%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7B%20%20%20%20ret...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10025","item_id":"_comm_10025"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10025 == 'undefined' ){PDRTJS_468178_comm_10025 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10025 );}}PDRTJS_settings_468178_comm_10020={"id":468178,"unique_id":"wp-comment-10020","title":"1.%20If%20you%20take%20the%20question%20like%20%26quot%3Bwhat%20library%20is%20used%20in%20most%20C%2B%2B%20projects%26quot%3B%2C%20it%26%23039%3Bs%20probably%20iostreams.%20If%20you%20take%20it%20like%20%26quot%3Bwhat%20library%26%23039%3Bs%20functions%20are%20called%20most%20of%20all%26quot%3B%2C%20it%26%23039%3Bs%20STL.2.%20As%20I%26%23039%3Bve%20a...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10020","item_id":"_comm_10020"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10020 == 'undefined' ){PDRTJS_468178_comm_10020 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10020 );}}PDRTJS_settings_468178_comm_10018={"id":468178,"unique_id":"wp-comment-10018","title":"%26%23091%3Bcode%26%23093%3Bstring%20find_addr%28%20const%20list%26lt%3Bemployee%26gt%3B%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7B%20%20%20%20for%28%20const%20auto%26amp%3B%20i%20%3A%20emps%20%29%20%7B%20%20%20%20%20%20%20%20if%28%20i.name%28%29%20%3D%3D%20name%20%29%20%7B%20%20%20%20%20%20%20%20%20%20%20%20return%20i.addr%3B%20%20%20%20%20%20%20%20%7D%20%20%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10018","item_id":"_comm_10018"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10018 == 'undefined' ){PDRTJS_468178_comm_10018 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10018 );}}PDRTJS_settings_468178_comm_10012={"id":468178,"unique_id":"wp-comment-10012","title":"%26%23091%3Bcode%26%23093%3Bstring%20find_addr%28%20const%20list%26lt%3Bemployee%26gt%3B%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7B%20%20%20%20for%28%20auto%26amp%3B%20i%20%3A%20emps%20%29%20%7B%20%20%20%20%20%20%20%20if%28%20i.name%28%29%20%3D%3D%20name%20%29%20%20%20%20%20%20%20%20%20%20%20%20return%20i.addr%3B%20%20%20%20%7D%20%20%20%20return%20%26amp%3Bquo...","permalink":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/#comment-10012","item_id":"_comm_10012"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10012 == 'undefined' ){PDRTJS_468178_comm_10012 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10012 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F13%2Fgotw-3-using-the-standard-library-or-temporaries-revisited-310%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/05\/13\/gotw-3-using-the-standard-library-or-temporaries-revisited-310\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F05%2F13%2Fgotw-3-using-the-standard-library-or-temporaries-revisited-310%2F","postID":"1888","shortlink":"https:\/\/wp.me\/peb5Y-us","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/1888","statsLink":"https:\/\/wordpress.com\/stats\/post\/1888\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F13%2Fgotw-3-using-the-standard-library-or-temporaries-revisited-310%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'1888','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sQjlGP1tNMWklPS9ULkEwekMwRTFUNm8vbSs1Yz1iMyZ4dnxMYi4uRFF2amVVZT9wK2FsLTFdeHI2LFpMM1FlWy9fVSx8cGVNd3ZQVD09PWJXTlUlZTElRzJRZXFiQ0ZbdVhCNW5YN3JzSltfakVdblVWOEhrUnZUaWp8Qk56MGxWcz91aEFddkhJUGFKfkVqYWVHL2ZVQ25FfnUyK1lGQ2JNUHZCMjBmSkZyNz9IVmppenJZaWdpN2I/Ryt0ciVKcjhpWXdYdA=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '1888' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

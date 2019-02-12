@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: Interview: On simplifying C++	</title>
+	<atom:link href="https://herbsutter.com/2017/11/02/interview-on-clion-on-simplifying-c/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2017/11/02/interview-on-clion-on-simplifying-c/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Maciej Jablonski				</title>
+				<link>https://herbsutter.com/2017/11/02/interview-on-clion-on-simplifying-c/#comment-40231</link>
+		<dc:creator><![CDATA[Maciej Jablonski]]></dc:creator>
+		<pubDate>Tue, 01 May 2018 18:56:45 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=3602#comment-40231</guid>
+					<description><![CDATA[Hello,
+apparently pretty exciting things are coming to C++. Thanks for all this work.
+
+I wonder how far this functionality metaclasses is actually far from static reflection as
+iterating fields and methods decomposing them and based on that adding new code to classes is pretty close.
+
+If there is much overlap between those two (metaclasses and static reflection) wouldn&#039;t there is a case for a unified approach for the two.
+
+Maciej Jablonski]]></description>
+		<content:encoded><![CDATA[<p>Hello,<br />
+apparently pretty exciting things are coming to C++. Thanks for all this work.</p>
+<p>I wonder how far this functionality metaclasses is actually far from static reflection as<br />
+iterating fields and methods decomposing them and based on that adding new code to classes is pretty close.</p>
+<p>If there is much overlap between those two (metaclasses and static reflection) wouldn&#8217;t there is a case for a unified approach for the two.</p>
+<p>Maciej Jablonski</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Greg Marr				</title>
+				<link>https://herbsutter.com/2017/11/02/interview-on-clion-on-simplifying-c/#comment-40041</link>
+		<dc:creator><![CDATA[Greg Marr]]></dc:creator>
+		<pubDate>Tue, 14 Nov 2017 16:09:24 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=3602#comment-40041</guid>
+					<description><![CDATA[1. You can generally use &lt;pre&gt;for(;;)&lt;/pre&gt; instead of &lt;pre&gt;while(true)&lt;/pre&gt; to get rid of the warning.
+2. The code you propose
+[code]
+    std::scope([myMutex](){
+        std::lock_guard&#060;std::mutex&#062; lock(myMutex);
+        //perform safe work
+    });
+[/code]
+can already be written as
+[code]
+    {
+        std::lock_guard&#060;std::mutex&#062; lock(myMutex);
+        //perform safe work
+    }
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>1. You can generally use </p>
+<pre>for(;;)</pre>
+<p> instead of </p>
+<pre>while(true)</pre>
+<p> to get rid of the warning.<br />
+2. The code you propose</p>
+<pre class="brush: plain; title: ; notranslate">
+    std::scope([myMutex](){
+        std::lock_guard&lt;std::mutex&gt; lock(myMutex);
+        //perform safe work
+    });
+</pre>
+<p>can already be written as</p>
+<pre class="brush: plain; title: ; notranslate">
+    {
+        std::lock_guard&lt;std::mutex&gt; lock(myMutex);
+        //perform safe work
+    }
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Andrei				</title>
+				<link>https://herbsutter.com/2017/11/02/interview-on-clion-on-simplifying-c/#comment-40020</link>
+		<dc:creator><![CDATA[Andrei]]></dc:creator>
+		<pubDate>Wed, 08 Nov 2017 14:03:16 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=3602#comment-40020</guid>
+					<description><![CDATA[Hello Mr. Sutter,
+
+I read your interview with great interest since I am a long time C++ developer and I am interested in all new cool features that would help improve my work efficiency and code style. In particular, I liked very much your idea of examining pieces of code and extracting snippets from them, in order to pursue new avenues of improvements.
+
+As a long practitioner of C++ developer, I also have some suggestions that have accumulated during the years. They might not seem important, but I find these scenarios over and over again, and smallest improvements are more than welcome.
+
+So, here they are:
+1. The {code}while(true){/code} problem. While most people are used of of writing this, there are some issues: usually the compiler will trigger an infinite loop warning (MS), or, if if replace it with {code}(while(some_condition){/code}, doesn&#039;t really express intent if there can be multiple exit points.
+One example would be a merge sort:
+[code]
+void merge(Node* list1, Node* list2)
+{
+    while (list1)
+    {
+        if (list2 == nullptr) break;
+        ...
+        list1 = list1-&#062;next;
+        continue;
+        ...
+        list2 = list1-&#062;next;
+        continue;
+    }
+}
+[/code]
+I understand that this code is not very often found in a C++ world, but I used it as an example 
+My proposal would be a plain C keyword loop{} which can be break-able and continue-able (break and continue work the same as in a while-loop), or, as a C++ extension, the [code]std::loop(void&#060;void&#062;)[/code].
+This approach has the disadvantage that is non-trivially continue-able.
+
+2. An artificial scope. I understand that most of the time it is recommended to create a new method, but there are lots of cases where for simplicity, an artificial scope is helpfull.
+Considering a class {code}std::scope(void scopeWork){/code}, the you could use simple methods like the following:
+[code]
+void SomeFunction(...)
+{
+    ... do some work
+    std::scope([myMutex](){
+        std::lock_guard&#060;std::mutex&#062; lock(myMutex);
+        //perform safe work
+    });
+    
+    // perform some other work.  
+}
+[/code]
+
+3. A scope cleanup way. This would be something like a scope destructor, instead of extending a class&#039;s destructor with extra functionality, you can have a static constructor.
+There would be 2 ways to achieve this: custom class ({code}std::on_scope(void scopeFunction{/code})or extending std::scope ({code}std::scope(void scopeWork, void scopeCleanup){/code})
+[code]
+void SomeFunction(...)
+{
+    std::on_scope([](){PerformLegacyCleanup();});
+    auto logger = GetLogger();
+    std::on_scope([logger](){logger-&#062;LogSomething();});
+    
+    std::scope([](){
+        PerformWork();
+    });
+}
+[/code]
+or
+[code]
+void SomeFunction(...)
+{   
+    auto logger = GetLogger();
+    
+    std::scope([](){
+        PerformWork();
+        if(condition)
+            return;
+        PerformOtherWork();
+    },
+    [logger](){
+        logger-&#062;LogSomething();
+        PerformLegacyCleanup(); // order is reversed
+    });
+}
+[/code]
+
+I understand that many of the C++ comittee are geared towards making C++ a pure language and cut as much of the C roots, but the reality is, that there is a lot of legacy code out there, that we have to work with, and, I would say, these proposals also help people write better C++ code.
+
+4. Process/Module scope variables
+At the moment, the C/C++ language doesn&#039;t guarantee scope of the variables, and many times, we, as developers, must create all kinds of workaround to achive this in a platform specific way.
+The problem I see is that when C/C++ was designed, only the concept of static linking was present, and from what I see, this hasn&#039;t changed (I might be wrong here, please correct me I am).
+For example, let&#039;s suppose have in a static library:
+[code]
+//singleton.h
+int* GetSingleton();
+//singleton.cpp
+static int singleton = 0;
+int* GetSingleton()
+{
+    return &#038;singleton;
+}
+[/code]
+
+If I include this library in 2 different dlls, which will then be included into one preocess, then I will have the variable singleton instantiated twice:
+[code]
+0:000&#062; x *!singleton
+0f858000          dll2!singleton = 0n5
+0ffa8000          dll1!singleton = 0n5
+[/code]
+
+My proposal would be to have 2 new keywords or classes, to allow developers to specify 2 scopes: module_scope and process_scope. A typical usage would be:
+[code]
+void DllA!Function1()
+{
+    std::process_scope&#060;T&#062; ps(&#034;unique_name&#034;);
+    ps.some_data = 5;
+    std::module_scope&#060;T&#062; ms(&#034;unique_name&#034;);
+    ps.some_data = 10;
+}
+void DllB!Function2()
+{
+    std::process_scope&#060;T&#062; ps(&#034;unique_name&#034;);
+    Assert(5 == ps.some_data);
+    std::module_scope&#060;T&#062; ms(&#034;unique_name&#034;);
+    Assert(10 != ms.some_data);
+}
+[/code]
+
+
+ I know that this is not a trivial task to ask, because of the timing problems:
+- when should a module_scope variable be initialized? what about destroyed? My proposal is to initialize when it&#039;s first used and destroyed when module is unload, after static variables.
+- when should a process_scope variable be initialized? what about destroyed? My proposal is to initialize when it&#039;s first used, and destroyed after all module_scope variables were destroyed (from all modules).]]></description>
+		<content:encoded><![CDATA[<p>Hello Mr. Sutter,</p>
+<p>I read your interview with great interest since I am a long time C++ developer and I am interested in all new cool features that would help improve my work efficiency and code style. In particular, I liked very much your idea of examining pieces of code and extracting snippets from them, in order to pursue new avenues of improvements.</p>
+<p>As a long practitioner of C++ developer, I also have some suggestions that have accumulated during the years. They might not seem important, but I find these scenarios over and over again, and smallest improvements are more than welcome.</p>
+<p>So, here they are:<br />
+1. The {code}while(true){/code} problem. While most people are used of of writing this, there are some issues: usually the compiler will trigger an infinite loop warning (MS), or, if if replace it with {code}(while(some_condition){/code}, doesn&#8217;t really express intent if there can be multiple exit points.<br />
+One example would be a merge sort:</p>
+<pre class="brush: plain; title: ; notranslate">
+void merge(Node* list1, Node* list2)
+{
+    while (list1)
+    {
+        if (list2 == nullptr) break;
+        ...
+        list1 = list1-&gt;next;
+        continue;
+        ...
+        list2 = list1-&gt;next;
+        continue;
+    }
+}
+</pre>
+<p>I understand that this code is not very often found in a C++ world, but I used it as an example<br />
+My proposal would be a plain C keyword loop{} which can be break-able and continue-able (break and continue work the same as in a while-loop), or, as a C++ extension, the </p>
+<pre class="brush: plain; title: ; notranslate">std::loop(void&lt;void&gt;)</pre>
+<p>.<br />
+This approach has the disadvantage that is non-trivially continue-able.</p>
+<p>2. An artificial scope. I understand that most of the time it is recommended to create a new method, but there are lots of cases where for simplicity, an artificial scope is helpfull.<br />
+Considering a class {code}std::scope(void scopeWork){/code}, the you could use simple methods like the following:</p>
+<pre class="brush: plain; title: ; notranslate">
+void SomeFunction(...)
+{
+    ... do some work
+    std::scope([myMutex](){
+        std::lock_guard&lt;std::mutex&gt; lock(myMutex);
+        //perform safe work
+    });
+    
+    // perform some other work.  
+}
+</pre>
+<p>3. A scope cleanup way. This would be something like a scope destructor, instead of extending a class&#8217;s destructor with extra functionality, you can have a static constructor.<br />
+There would be 2 ways to achieve this: custom class ({code}std::on_scope(void scopeFunction{/code})or extending std::scope ({code}std::scope(void scopeWork, void scopeCleanup){/code})</p>
+<pre class="brush: plain; title: ; notranslate">
+void SomeFunction(...)
+{
+    std::on_scope([](){PerformLegacyCleanup();});
+    auto logger = GetLogger();
+    std::on_scope([logger](){logger-&gt;LogSomething();});
+    
+    std::scope([](){
+        PerformWork();
+    });
+}
+</pre>
+<p>or</p>
+<pre class="brush: plain; title: ; notranslate">
+void SomeFunction(...)
+{   
+    auto logger = GetLogger();
+    
+    std::scope([](){
+        PerformWork();
+        if(condition)
+            return;
+        PerformOtherWork();
+    },
+    [logger](){
+        logger-&gt;LogSomething();
+        PerformLegacyCleanup(); // order is reversed
+    });
+}
+</pre>
+<p>I understand that many of the C++ comittee are geared towards making C++ a pure language and cut as much of the C roots, but the reality is, that there is a lot of legacy code out there, that we have to work with, and, I would say, these proposals also help people write better C++ code.</p>
+<p>4. Process/Module scope variables<br />
+At the moment, the C/C++ language doesn&#8217;t guarantee scope of the variables, and many times, we, as developers, must create all kinds of workaround to achive this in a platform specific way.<br />
+The problem I see is that when C/C++ was designed, only the concept of static linking was present, and from what I see, this hasn&#8217;t changed (I might be wrong here, please correct me I am).<br />
+For example, let&#8217;s suppose have in a static library:</p>
+<pre class="brush: plain; title: ; notranslate">
+//singleton.h
+int* GetSingleton();
+//singleton.cpp
+static int singleton = 0;
+int* GetSingleton()
+{
+    return &amp;singleton;
+}
+</pre>
+<p>If I include this library in 2 different dlls, which will then be included into one preocess, then I will have the variable singleton instantiated twice:</p>
+<pre class="brush: plain; title: ; notranslate">
+0:000&gt; x *!singleton
+0f858000          dll2!singleton = 0n5
+0ffa8000          dll1!singleton = 0n5
+</pre>
+<p>My proposal would be to have 2 new keywords or classes, to allow developers to specify 2 scopes: module_scope and process_scope. A typical usage would be:</p>
+<pre class="brush: plain; title: ; notranslate">
+void DllA!Function1()
+{
+    std::process_scope&lt;T&gt; ps(&quot;unique_name&quot;);
+    ps.some_data = 5;
+    std::module_scope&lt;T&gt; ms(&quot;unique_name&quot;);
+    ps.some_data = 10;
+}
+void DllB!Function2()
+{
+    std::process_scope&lt;T&gt; ps(&quot;unique_name&quot;);
+    Assert(5 == ps.some_data);
+    std::module_scope&lt;T&gt; ms(&quot;unique_name&quot;);
+    Assert(10 != ms.some_data);
+}
+</pre>
+<p> I know that this is not a trivial task to ask, because of the timing problems:<br />
+&#8211; when should a module_scope variable be initialized? what about destroyed? My proposal is to initialize when it&#8217;s first used and destroyed when module is unload, after static variables.<br />
+&#8211; when should a process_scope variable be initialized? what about destroyed? My proposal is to initialize when it&#8217;s first used, and destroyed after all module_scope variables were destroyed (from all modules).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: xABBAAA				</title>
+				<link>https://herbsutter.com/2017/11/02/interview-on-clion-on-simplifying-c/#comment-40016</link>
+		<dc:creator><![CDATA[xABBAAA]]></dc:creator>
+		<pubDate>Fri, 03 Nov 2017 08:32:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=3602#comment-40016</guid>
+					<description><![CDATA[Thanks for providing the chance to share my ideas with the rest of the world.
+So! There are some of my notes to share with the rest of the world:
+
+1. The idea of making something more simple, if the word simple is used in usual manner is iffy ... There is very good example of Java and overloading operators. In some cases we will end up with some very long long expressions and the is not the only case. However, there are some really nice stuff about Java, the way the matrix could be used, in particular, well dynamic one.
+
+2. The idea of templates is great, though there should be more work be done. Because, there are some more things that need to be implemented. One could be found in matheval.h, that is part of GNU project and it will allow the programmer to have more power and flexibility at the same time. That would in a way let us create the &quot;functions&quot; body in more power full way.
+
+3. Idea of providing some things like delegates, could be accomplished with pointers to the functions, but if somebody is pleased ... 
+
+4. The part in which we try to define the error it is important too. This way it has a lot of freedom, but if one could take the shot of the registers etc... and send the report to the developer, that would be more useful. Well, I guess.
+
+5. The next thing the multi threading is done in not so smart way... and the outcome is not that good. 
+
+6. Having virtual part inside the class and let&#039;s say friend and then private, protected and public would change mush of the hurdles we face each and every day...]]></description>
+		<content:encoded><![CDATA[<p>Thanks for providing the chance to share my ideas with the rest of the world.<br />
+So! There are some of my notes to share with the rest of the world:</p>
+<p>1. The idea of making something more simple, if the word simple is used in usual manner is iffy &#8230; There is very good example of Java and overloading operators. In some cases we will end up with some very long long expressions and the is not the only case. However, there are some really nice stuff about Java, the way the matrix could be used, in particular, well dynamic one.</p>
+<p>2. The idea of templates is great, though there should be more work be done. Because, there are some more things that need to be implemented. One could be found in matheval.h, that is part of GNU project and it will allow the programmer to have more power and flexibility at the same time. That would in a way let us create the &#8220;functions&#8221; body in more power full way.</p>
+<p>3. Idea of providing some things like delegates, could be accomplished with pointers to the functions, but if somebody is pleased &#8230; </p>
+<p>4. The part in which we try to define the error it is important too. This way it has a lot of freedom, but if one could take the shot of the registers etc&#8230; and send the report to the developer, that would be more useful. Well, I guess.</p>
+<p>5. The next thing the multi threading is done in not so smart way&#8230; and the outcome is not that good. </p>
+<p>6. Having virtual part inside the class and let&#8217;s say friend and then private, protected and public would change mush of the hurdles we face each and every day&#8230;</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

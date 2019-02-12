@@ -1,0 +1,644 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: Trip Report: February 2012 C++ Standards Meeting	</title>
+	<atom:link href="https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Matthieu M.				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-5082</link>
+		<dc:creator><![CDATA[Matthieu M.]]></dc:creator>
+		<pubDate>Wed, 04 Apr 2012 18:02:32 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-5082</guid>
+					<description><![CDATA[I can only cast my vote for Modules too, but not necessarily because of compilation speed.
+
+Modules enable a *strict* dependency order, which in turns means we could get rid of the infamous **Initialization Order Fiasco** and its counterpart the **Destruction Order Fiasco**.
+
+The mere fact that a specific paragraph in the Standard is required for `std::cin`, `std::cout` and `std::cerr` to circumvent the issue is a clear indicator that there is something fundamentally wrong there.]]></description>
+		<content:encoded><![CDATA[<p>I can only cast my vote for Modules too, but not necessarily because of compilation speed.</p>
+<p>Modules enable a *strict* dependency order, which in turns means we could get rid of the infamous **Initialization Order Fiasco** and its counterpart the **Destruction Order Fiasco**.</p>
+<p>The mere fact that a specific paragraph in the Standard is required for `std::cin`, `std::cout` and `std::cerr` to circumvent the issue is a clear indicator that there is something fundamentally wrong there.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Sean Middleditch (@DreadSpoon)				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4985</link>
+		<dc:creator><![CDATA[Sean Middleditch (@DreadSpoon)]]></dc:creator>
+		<pubDate>Wed, 28 Mar 2012 22:39:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4985</guid>
+					<description><![CDATA[Personally, there are only two things I&#039;m really really missing in C++11 right now.  The first, which I think is quite feasible for C++next, and which only requires a library component and some small language changes, is a proper delegate system.  That is a way of binding not (just) a parameter to a function but to bind an instance of a class to a method, which can be stored in std::function or a new std::delegate (slightly different semantics than std::function).
+
+It can be done in C++03, but only with some serious functionality limitations and an ugly syntax.  I&#039;m working on the &quot;nicest possible version C++11 can do&quot; which I&#039;ll be publishing some time later, but the best C++11 can do is pretty far from what is ideal, due to one small issue: function/member pointers passed to templates cannot be passed through constexpr pointers because the type system loses knowledge of the linkage of the functions.
+
+It ideally should be possible to write something like:
+
+  struct my_type { int method(int const&#038; lhs, int const&#038; rhs) const; };
+
+  std::function foo = std::make_delegate(my_ptr, &#038;my_type::method);
+
+With some extra optional std::delegate type parameters to specify the object lifetime policy (raw pointer vs shared_ptr vs unique_ptr, etc.).
+
+The other major feature I&#039;m missing is compile-time type introspection.  I saw the Google proposals for the type-rich pointers, but I cannot stress strongly enough how unsuitable those will be for many users.  Their biggest problem is that they are entirely non-extensible, and almost every real use I&#039;ve had for introspection has required some kind of metadata that is not part of the C++ type system.
+
+With compile-time introspection, rather than the run-time introspection that Google proposed, it would be possible for me to write the necessary metaprogramming code to generate the type metadata that my application needs.  As is, I have to use and abuse some disgusting macros and metaprogramming to get an almost-but-not-quite good enough metadata system (primary problems being the runtime initialization and overhead it requires, as it cannot generate static constant tables of data).
+
+@rbmj: most platforms do have a standard C++ ABI.  It is largely only Microsoft&#039;s platform (and various non-mainstream platforms) that has several different ABIs, hailing from the bad old days of non-standardized C++.  Most UNIX-like platforms have long since standardized on the &quot;Itanium C++ ABI&quot; (even on non-Itanium platforms) and there&#039;s virtually no problems with mixing compilers.
+
+If MIcrosoft were to more clearly document their C++ ABI (and ideally, document their PDB format too, so other compilers can produce symbols files that can be used by Microsoft&#039;s debuggers), things would definitely look a lot better for C++.  In any case, it&#039;s not really the C++ committee&#039;s job, especially given that the ABI is going to be heavily dependent on the platform in various cases (e.g., how dynamic library linking or exceptions work on Windows is very different than how it works on ELF-based UNIX platforms).]]></description>
+		<content:encoded><![CDATA[<p>Personally, there are only two things I&#8217;m really really missing in C++11 right now.  The first, which I think is quite feasible for C++next, and which only requires a library component and some small language changes, is a proper delegate system.  That is a way of binding not (just) a parameter to a function but to bind an instance of a class to a method, which can be stored in std::function or a new std::delegate (slightly different semantics than std::function).</p>
+<p>It can be done in C++03, but only with some serious functionality limitations and an ugly syntax.  I&#8217;m working on the &#8220;nicest possible version C++11 can do&#8221; which I&#8217;ll be publishing some time later, but the best C++11 can do is pretty far from what is ideal, due to one small issue: function/member pointers passed to templates cannot be passed through constexpr pointers because the type system loses knowledge of the linkage of the functions.</p>
+<p>It ideally should be possible to write something like:</p>
+<p>  struct my_type { int method(int const&amp; lhs, int const&amp; rhs) const; };</p>
+<p>  std::function foo = std::make_delegate(my_ptr, &amp;my_type::method);</p>
+<p>With some extra optional std::delegate type parameters to specify the object lifetime policy (raw pointer vs shared_ptr vs unique_ptr, etc.).</p>
+<p>The other major feature I&#8217;m missing is compile-time type introspection.  I saw the Google proposals for the type-rich pointers, but I cannot stress strongly enough how unsuitable those will be for many users.  Their biggest problem is that they are entirely non-extensible, and almost every real use I&#8217;ve had for introspection has required some kind of metadata that is not part of the C++ type system.</p>
+<p>With compile-time introspection, rather than the run-time introspection that Google proposed, it would be possible for me to write the necessary metaprogramming code to generate the type metadata that my application needs.  As is, I have to use and abuse some disgusting macros and metaprogramming to get an almost-but-not-quite good enough metadata system (primary problems being the runtime initialization and overhead it requires, as it cannot generate static constant tables of data).</p>
+<p>@rbmj: most platforms do have a standard C++ ABI.  It is largely only Microsoft&#8217;s platform (and various non-mainstream platforms) that has several different ABIs, hailing from the bad old days of non-standardized C++.  Most UNIX-like platforms have long since standardized on the &#8220;Itanium C++ ABI&#8221; (even on non-Itanium platforms) and there&#8217;s virtually no problems with mixing compilers.</p>
+<p>If MIcrosoft were to more clearly document their C++ ABI (and ideally, document their PDB format too, so other compilers can produce symbols files that can be used by Microsoft&#8217;s debuggers), things would definitely look a lot better for C++.  In any case, it&#8217;s not really the C++ committee&#8217;s job, especially given that the ABI is going to be heavily dependent on the platform in various cases (e.g., how dynamic library linking or exceptions work on Windows is very different than how it works on ELF-based UNIX platforms).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Dave Oldcorn				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4984</link>
+		<dc:creator><![CDATA[Dave Oldcorn]]></dc:creator>
+		<pubDate>Wed, 28 Mar 2012 18:50:31 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4984</guid>
+					<description><![CDATA[Sure. It can be done with multiple inheritance, too, and there&#039;s a few thunking tricks as well. But I think there&#039;s always at least some overhead and it kind of defeats the point of reducing complexity :) .]]></description>
+		<content:encoded><![CDATA[<p>Sure. It can be done with multiple inheritance, too, and there&#8217;s a few thunking tricks as well. But I think there&#8217;s always at least some overhead and it kind of defeats the point of reducing complexity :) .</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: rbmj				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4983</link>
+		<dc:creator><![CDATA[rbmj]]></dc:creator>
+		<pubDate>Wed, 28 Mar 2012 12:02:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4983</guid>
+					<description><![CDATA[Its a little bit more work, but you could define a nested class that is a friend of both classes and has a private interface to handle communication between the classes (say it takes a T&#038; in the ctor  and then operates on that reference). Then define a method to return an instance of that class. It should optimize and inline down to just calling methods on a pointer. It is more verbose and isnt necesdarily the most elegant pattern, but it works.]]></description>
+		<content:encoded><![CDATA[<p>Its a little bit more work, but you could define a nested class that is a friend of both classes and has a private interface to handle communication between the classes (say it takes a T&amp; in the ctor  and then operates on that reference). Then define a method to return an instance of that class. It should optimize and inline down to just calling methods on a pointer. It is more verbose and isnt necesdarily the most elegant pattern, but it works.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Dave Oldcorn				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4982</link>
+		<dc:creator><![CDATA[Dave Oldcorn]]></dc:creator>
+		<pubDate>Wed, 28 Mar 2012 08:25:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4982</guid>
+					<description><![CDATA[friend is also an exceedingly blunt instrument though. It grants access to an entire class, not a specific portion of it, and it requires the object providing the interface to be aware of the implementation of the object making calls into it.
+
+It&#039;s great for granting access to specific friend functions for value types, but not in these one-program-built-of-subprograms cases where you want to define a really fine-grained interface in order to make sure that part-of-program A only talks to part-of-program B via a minimal interface.
+
+Smaller and stricter interfaces are (in my very limited opinion) the number one route to reducing program complexity and that&#039;s what something resembling this idea would help promote.]]></description>
+		<content:encoded><![CDATA[<p>friend is also an exceedingly blunt instrument though. It grants access to an entire class, not a specific portion of it, and it requires the object providing the interface to be aware of the implementation of the object making calls into it.</p>
+<p>It&#8217;s great for granting access to specific friend functions for value types, but not in these one-program-built-of-subprograms cases where you want to define a really fine-grained interface in order to make sure that part-of-program A only talks to part-of-program B via a minimal interface.</p>
+<p>Smaller and stricter interfaces are (in my very limited opinion) the number one route to reducing program complexity and that&#8217;s what something resembling this idea would help promote.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: rbmj				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4981</link>
+		<dc:creator><![CDATA[rbmj]]></dc:creator>
+		<pubDate>Wed, 28 Mar 2012 00:06:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4981</guid>
+					<description><![CDATA[@Dave:
+
+Isn&#039;t that what friend is for?
+
+And I mean semi-standard ABI.  Make it an &quot;optional&quot; part of the standard.  This way, on major platforms, you can add a command line switch to the compiler to use the standards compliant ABI, even if it is slightly less optimal.  Maybe use generalized attributes (though that would be verbose).  And if you&#039;re working on an embedded platform, then you can specify you wish to use a more optimal ABI.]]></description>
+		<content:encoded><![CDATA[<p>@Dave:</p>
+<p>Isn&#8217;t that what friend is for?</p>
+<p>And I mean semi-standard ABI.  Make it an &#8220;optional&#8221; part of the standard.  This way, on major platforms, you can add a command line switch to the compiler to use the standards compliant ABI, even if it is slightly less optimal.  Maybe use generalized attributes (though that would be verbose).  And if you&#8217;re working on an embedded platform, then you can specify you wish to use a more optimal ABI.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Dave Oldcorn				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4980</link>
+		<dc:creator><![CDATA[Dave Oldcorn]]></dc:creator>
+		<pubDate>Tue, 27 Mar 2012 21:53:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4980</guid>
+					<description><![CDATA[The mild frustration I most commonly run up against in C++ is the coarse grain of class access control (public / protected / private).
+
+In programs which construct a complex system by subdividing it into smaller entities with (generally noncopyable) objects - each component typically designed to slot into this particular system only, rather than being more generally reusable - it&#039;s quite common for the public interface to end up cluttered with lots of functions which are for a specific other class to talk to that class, rather than for general use.
+
+If you could specify something like
+
+class Engine
+{
+public:
+   int GetTemperature() const;
+public (class Car, class EngineTestBench):
+   void Start();
+};
+
+it would make it clear that although any external entity can check the engine temperature, only a Car object or an EngineTestBench object can ask the engine to start, and some other object (maybe an Exhaust which needs to know which Engine it is attached to) can&#039;t.
+
+It&#039;s not a big thing for libraries, but for real-world programs constructed out of myriad object it seems to me like it would be pretty useful - essentially, this is a feature like const; optional, but improves program self-documentation while allowing the compiler to catch a certain class of errors. (And it looks a fairly easy add to a compiler, with a simple parsing rule).]]></description>
+		<content:encoded><![CDATA[<p>The mild frustration I most commonly run up against in C++ is the coarse grain of class access control (public / protected / private).</p>
+<p>In programs which construct a complex system by subdividing it into smaller entities with (generally noncopyable) objects &#8211; each component typically designed to slot into this particular system only, rather than being more generally reusable &#8211; it&#8217;s quite common for the public interface to end up cluttered with lots of functions which are for a specific other class to talk to that class, rather than for general use.</p>
+<p>If you could specify something like</p>
+<p>class Engine<br />
+{<br />
+public:<br />
+   int GetTemperature() const;<br />
+public (class Car, class EngineTestBench):<br />
+   void Start();<br />
+};</p>
+<p>it would make it clear that although any external entity can check the engine temperature, only a Car object or an EngineTestBench object can ask the engine to start, and some other object (maybe an Exhaust which needs to know which Engine it is attached to) can&#8217;t.</p>
+<p>It&#8217;s not a big thing for libraries, but for real-world programs constructed out of myriad object it seems to me like it would be pretty useful &#8211; essentially, this is a feature like const; optional, but improves program self-documentation while allowing the compiler to catch a certain class of errors. (And it looks a fairly easy add to a compiler, with a simple parsing rule).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: rbmj				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4973</link>
+		<dc:creator><![CDATA[rbmj]]></dc:creator>
+		<pubDate>Mon, 26 Mar 2012 12:02:48 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4973</guid>
+					<description><![CDATA[I think partial classes introduces too much uncertainty into the language.
+
+The one big feature that I see as essential is a standard ABI. I think we would see a lot more libraries written with c++. Theres less incentive to write a library in c++ as any program that uses the library has to use the same compiler. Also, the higher degree of complexity in writing language bindings for these libraries pushes library writers, especially in the open source world where interoperability is key, to write in C.
+
+If we are to be serious about increasing the use of c++ as a library language (which is something it is very good at), then a standard ABI (yes, it is hard) is necessary.]]></description>
+		<content:encoded><![CDATA[<p>I think partial classes introduces too much uncertainty into the language.</p>
+<p>The one big feature that I see as essential is a standard ABI. I think we would see a lot more libraries written with c++. Theres less incentive to write a library in c++ as any program that uses the library has to use the same compiler. Also, the higher degree of complexity in writing language bindings for these libraries pushes library writers, especially in the open source world where interoperability is key, to write in C.</p>
+<p>If we are to be serious about increasing the use of c++ as a library language (which is something it is very good at), then a standard ABI (yes, it is hard) is necessary.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: C++ and Beyond 2012: Aug 5-8, Asheville, NC, USA &#171; Sutter’s Mill				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4971</link>
+		<dc:creator><![CDATA[C++ and Beyond 2012: Aug 5-8, Asheville, NC, USA &#171; Sutter’s Mill]]></dc:creator>
+		<pubDate>Mon, 26 Mar 2012 11:36:59 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4971</guid>
+					<description><![CDATA[[...] Comments        &#171; Trip Report: February 2012 C++ Standards&#160;Meeting [...]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Comments        &laquo; Trip Report: February 2012 C++ Standards&nbsp;Meeting [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Brian				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4970</link>
+		<dc:creator><![CDATA[Brian]]></dc:creator>
+		<pubDate>Mon, 26 Mar 2012 01:26:48 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4970</guid>
+					<description><![CDATA[I think they are useful for keeping the code written by people separate from code written by a computer.  I&#039;d rather not mix the two in one file if I don&#039;t have to.  The status quo has weaknesses, but it allows me to keep computer-generated and human written code in separate files -- http://webEbenezer.net.]]></description>
+		<content:encoded><![CDATA[<p>I think they are useful for keeping the code written by people separate from code written by a computer.  I&#8217;d rather not mix the two in one file if I don&#8217;t have to.  The status quo has weaknesses, but it allows me to keep computer-generated and human written code in separate files &#8212; <a href="http://webEbenezer.net" rel="nofollow">http://webEbenezer.net</a>.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mrts1				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4969</link>
+		<dc:creator><![CDATA[mrts1]]></dc:creator>
+		<pubDate>Sun, 25 Mar 2012 21:36:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4969</guid>
+					<description><![CDATA[Are there any channels for mere mortals to participate in the working group discussions?
+
+Opening up the proposal process has been proven fruitful for e.g. Python - additions usually start from a discussion in the python-ideas mailing list and are developed into a formal proposal in open collaboration.
+
+Open process has obvious downsides too - signal-to-noise ratio will be definitely smaller than in controlled environment.
+
+(To bring an example from my personal list: using lambdas as template arguments would open up many interesting possibilities (and functions work, so lambdas should too) - to name one, implementing properties (an oft-requested feature that was raised again during Bjarne Stroustrup&#039;s Going Native 2012 talk) in expressive way would be trivial:
+
+struct S
+{
+    std::property&#060;int,
+        [] (int&#038; value) { log(std::default_get(value)); }, // getter
+        [] (int&#038; value, const int&#038; rhs) { log(std::default_set(value, rhs)); }&#062; // setter, assignment not possible if omitted
+            some_field;
+};
+
+There&#039;s a full-featured example at http://ideone.com/jrQzs that explains this better. This does obviously not work as of now - but without getting the discussion started, it never will :). )]]></description>
+		<content:encoded><![CDATA[<p>Are there any channels for mere mortals to participate in the working group discussions?</p>
+<p>Opening up the proposal process has been proven fruitful for e.g. Python &#8211; additions usually start from a discussion in the python-ideas mailing list and are developed into a formal proposal in open collaboration.</p>
+<p>Open process has obvious downsides too &#8211; signal-to-noise ratio will be definitely smaller than in controlled environment.</p>
+<p>(To bring an example from my personal list: using lambdas as template arguments would open up many interesting possibilities (and functions work, so lambdas should too) &#8211; to name one, implementing properties (an oft-requested feature that was raised again during Bjarne Stroustrup&#8217;s Going Native 2012 talk) in expressive way would be trivial:</p>
+<p>struct S<br />
+{<br />
+    std::property&lt;int,<br />
+        [] (int&amp; value) { log(std::default_get(value)); }, // getter<br />
+        [] (int&amp; value, const int&amp; rhs) { log(std::default_set(value, rhs)); }&gt; // setter, assignment not possible if omitted<br />
+            some_field;<br />
+};</p>
+<p>There&#8217;s a full-featured example at <a href="http://ideone.com/jrQzs" rel="nofollow">http://ideone.com/jrQzs</a> that explains this better. This does obviously not work as of now &#8211; but without getting the discussion started, it never will :). )</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: bobobobo				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4964</link>
+		<dc:creator><![CDATA[bobobobo]]></dc:creator>
+		<pubDate>Sat, 24 Mar 2012 22:41:09 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4964</guid>
+					<description><![CDATA[Partial classes are an abomination. Why would you ever need them?]]></description>
+		<content:encoded><![CDATA[<p>Partial classes are an abomination. Why would you ever need them?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Brian				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4961</link>
+		<dc:creator><![CDATA[Brian]]></dc:creator>
+		<pubDate>Fri, 23 Mar 2012 02:22:54 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4961</guid>
+					<description><![CDATA[&quot;The compilation model of C++ is simply pathetic and it needs to be solved ASAP.&quot;
+
+I hope modules with support for partial classes will be the priority.  2017 isn&#039;t soon enough though.]]></description>
+		<content:encoded><![CDATA[<p>&#8220;The compilation model of C++ is simply pathetic and it needs to be solved ASAP.&#8221;</p>
+<p>I hope modules with support for partial classes will be the priority.  2017 isn&#8217;t soon enough though.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: David H. Braun				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4956</link>
+		<dc:creator><![CDATA[David H. Braun]]></dc:creator>
+		<pubDate>Tue, 20 Mar 2012 00:40:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4956</guid>
+					<description><![CDATA[Thanks, Herb. I appreciate the care with which the C++ standards process has been conducted, which means the care of people like yourself and Bjarne Stroustrup to balance desire for progress with the need to think things through and get it &quot;right&quot;.  I wasn&#039;t complaining about concepts&#039; exclusion, just expressing my own ignorance and misperception of the subject. Thanks for the clarification. It seems that static if will allow, at the least, proof-of-concept of concepts. ;-)
+
+As to my characterization of static if&#039;s potential, it may be grandiose and is unsubstantial as stated. Actual use of static if will be needed to see what boundaries are pushed upon, to determine future advancements for compile-time logic. Unlike my musing, your proposal for static if is well-thought-out, conservative, and concrete.]]></description>
+		<content:encoded><![CDATA[<p>Thanks, Herb. I appreciate the care with which the C++ standards process has been conducted, which means the care of people like yourself and Bjarne Stroustrup to balance desire for progress with the need to think things through and get it &#8220;right&#8221;.  I wasn&#8217;t complaining about concepts&#8217; exclusion, just expressing my own ignorance and misperception of the subject. Thanks for the clarification. It seems that static if will allow, at the least, proof-of-concept of concepts. ;-)</p>
+<p>As to my characterization of static if&#8217;s potential, it may be grandiose and is unsubstantial as stated. Actual use of static if will be needed to see what boundaries are pushed upon, to determine future advancements for compile-time logic. Unlike my musing, your proposal for static if is well-thought-out, conservative, and concrete.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4955</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Mon, 19 Mar 2012 22:25:00 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4955</guid>
+					<description><![CDATA[@David: It was Bjarne who gave his assessment at last month&#039;s meeting that concepts wouldn&#039;t fit into a C++17-or-so timeframe, though perhaps a &quot;concepts lite&quot; based on static if could be interesting and might fit. We&#039;ll have to see how it all goes; it&#039;s early days yet and we&#039;re still in &quot;survey&quot; mode. We&#039;ll know more about what specific proposals the committee is interested in pursuing after the fall meeting when we&#039;ll start making some decisions about what we are and aren&#039;t interested in working on for this revision.]]></description>
+		<content:encoded><![CDATA[<p>@David: It was Bjarne who gave his assessment at last month&#8217;s meeting that concepts wouldn&#8217;t fit into a C++17-or-so timeframe, though perhaps a &#8220;concepts lite&#8221; based on static if could be interesting and might fit. We&#8217;ll have to see how it all goes; it&#8217;s early days yet and we&#8217;re still in &#8220;survey&#8221; mode. We&#8217;ll know more about what specific proposals the committee is interested in pursuing after the fall meeting when we&#8217;ll start making some decisions about what we are and aren&#8217;t interested in working on for this revision.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: David H. Braun				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4953</link>
+		<dc:creator><![CDATA[David H. Braun]]></dc:creator>
+		<pubDate>Mon, 19 Mar 2012 19:04:03 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4953</guid>
+					<description><![CDATA[I&#039;m surprised, Herb, to read that concepts almost definitely won&#039;t be included in the next standard, as Bjarne Stroustrup&#039;s article on the subject made it sound like it just wouldn&#039;t *quite* make it into C++11, in which it was originally planned for inclusion. Definite exclusion from the *next* standard relegates it to the back burner.
+
+Since you write of there being room for only one *major* new feature in C++1y, it would help if you would identify features that qualify as &quot;major&quot; enough to be mutually exclusive.
+
+In your earlier comment above, you clearly identify &quot;static if&quot; as a minor feature than can just be thrown in the mix, even though it has a major impact, even allowing implementation of a &quot;concepts light&quot;, &quot;concepts&quot; being described as &quot;huge&quot;. From what I&#039;ve read, implementation of &quot;static if&quot; seems pretty straightforward as to its natural syntax and logic.
+
+Though conceptually simple, I think &quot;static if&quot; has potential for far more impact than has been realized, which will in due course be uncovered. In particular, &quot;static if&quot; opens a world of possibilities by supplying as a first-class compile-time logic construct *the* fundamental element of logic flow -- heretofore operational, as such, only at run time or in arcane template &quot;tricks&quot; or in detached and clunky preprocessing directives.
+
+As to static if&#039;s potential, recall that it was only through serendipity that it was discovered that C++ template metaprogramming was Turing-complete at compile time. It&#039;s amazing to think that this capability was &quot;discovered&quot; (like a force of nature) in a feature *after* it was added to the language, not as reason for its inclusion. Further, as Bjarne Stroustrup wrote on page 10 of his paper, &quot;Evolving a language in and for the real world: C++ 1991-2006&quot;, Alexander Stepanov &quot;had inspired me to work harder on generality and efficiency of some of the template mechanisms, but fortunately he failed to convince me to make templates more like Ada generics. Had he succeeded, he wouldn’t have been able to design and implement the STL!&quot;
+
+I believe &quot;static if&quot; has great potential in making logic flow a compile-time, rather than just a run-time, reality. Included in this is making template metaprogramming far less arcane, to look more like &quot;normal&quot; programming.  Further, there is a part of the C++ language definition which is &quot;Turing-complete-at-compile-time&quot;, but this &quot;completeness&quot; is in theory only, as the vast majority of demonstrations end in compiler failure, not a complete runnable program that utilizes the arbitrarily complex results of the compilation. The results are just spit out as a &quot;side-effect&quot; to ultimate compiler failure. &quot;Static if&quot; could be a step toward making it possible for a programmer to decide more or less freely what he wants determined at compile time, by the compiler, not by manually entering it, and what he wants deferred until run time. If the &quot;Turing-completeness-at-compile-time&quot; of C++ is consciously developed into a first-class part of the language, with natural flow and syntax, it should be possible to have that freedom and power.]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;m surprised, Herb, to read that concepts almost definitely won&#8217;t be included in the next standard, as Bjarne Stroustrup&#8217;s article on the subject made it sound like it just wouldn&#8217;t *quite* make it into C++11, in which it was originally planned for inclusion. Definite exclusion from the *next* standard relegates it to the back burner.</p>
+<p>Since you write of there being room for only one *major* new feature in C++1y, it would help if you would identify features that qualify as &#8220;major&#8221; enough to be mutually exclusive.</p>
+<p>In your earlier comment above, you clearly identify &#8220;static if&#8221; as a minor feature than can just be thrown in the mix, even though it has a major impact, even allowing implementation of a &#8220;concepts light&#8221;, &#8220;concepts&#8221; being described as &#8220;huge&#8221;. From what I&#8217;ve read, implementation of &#8220;static if&#8221; seems pretty straightforward as to its natural syntax and logic.</p>
+<p>Though conceptually simple, I think &#8220;static if&#8221; has potential for far more impact than has been realized, which will in due course be uncovered. In particular, &#8220;static if&#8221; opens a world of possibilities by supplying as a first-class compile-time logic construct *the* fundamental element of logic flow &#8212; heretofore operational, as such, only at run time or in arcane template &#8220;tricks&#8221; or in detached and clunky preprocessing directives.</p>
+<p>As to static if&#8217;s potential, recall that it was only through serendipity that it was discovered that C++ template metaprogramming was Turing-complete at compile time. It&#8217;s amazing to think that this capability was &#8220;discovered&#8221; (like a force of nature) in a feature *after* it was added to the language, not as reason for its inclusion. Further, as Bjarne Stroustrup wrote on page 10 of his paper, &#8220;Evolving a language in and for the real world: C++ 1991-2006&#8221;, Alexander Stepanov &#8220;had inspired me to work harder on generality and efficiency of some of the template mechanisms, but fortunately he failed to convince me to make templates more like Ada generics. Had he succeeded, he wouldn’t have been able to design and implement the STL!&#8221;</p>
+<p>I believe &#8220;static if&#8221; has great potential in making logic flow a compile-time, rather than just a run-time, reality. Included in this is making template metaprogramming far less arcane, to look more like &#8220;normal&#8221; programming.  Further, there is a part of the C++ language definition which is &#8220;Turing-complete-at-compile-time&#8221;, but this &#8220;completeness&#8221; is in theory only, as the vast majority of demonstrations end in compiler failure, not a complete runnable program that utilizes the arbitrarily complex results of the compilation. The results are just spit out as a &#8220;side-effect&#8221; to ultimate compiler failure. &#8220;Static if&#8221; could be a step toward making it possible for a programmer to decide more or less freely what he wants determined at compile time, by the compiler, not by manually entering it, and what he wants deferred until run time. If the &#8220;Turing-completeness-at-compile-time&#8221; of C++ is consciously developed into a first-class part of the language, with natural flow and syntax, it should be possible to have that freedom and power.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: rbmj				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4940</link>
+		<dc:creator><![CDATA[rbmj]]></dc:creator>
+		<pubDate>Fri, 16 Mar 2012 14:24:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4940</guid>
+					<description><![CDATA[@Ivan: Deprecating old pointer syntax might be nice but since pointers are so widely used and the current syntax is so ingrained (both in terms of habit and culture), I doubt that the standards committee would go for it.  It would literally break every C programmer on the planet.  Yes, the old syntax would still be available, if deprecated, but if this were the case I don&#039;t think anyone would switch to the new syntax.  On the other hand, const ptr[void] vs ptr[const void] is more obvious than const void * vs void * const...
+
+This is minor, but I feel like uniform initialization would be a lot more uniform if initializer list constructors no longer got special treatment, so in order to call std::vector[T]::vector(std::initializer_list[T]) you would need to write std::vector[T] var{{some_t1, some_t2...}}; or std::vector[T] var = {some_t1, some_t2...};  This way no constructors are hidden.
+
+Modules would be nice, but I personally would prefer to see static if.  The hacks/workarounds using SFINAE are (IMHO) unnecessarily complicated. Polymorphic lambdas would also be powerful in highly generic code.
+
+The standard library is the most important feature of all, though.  I don&#039;t see *any* reason C++ shouldn&#039;t have a standard filesystem and socket library.
+
+(replace [] with angles throughout)]]></description>
+		<content:encoded><![CDATA[<p>@Ivan: Deprecating old pointer syntax might be nice but since pointers are so widely used and the current syntax is so ingrained (both in terms of habit and culture), I doubt that the standards committee would go for it.  It would literally break every C programmer on the planet.  Yes, the old syntax would still be available, if deprecated, but if this were the case I don&#8217;t think anyone would switch to the new syntax.  On the other hand, const ptr[void] vs ptr[const void] is more obvious than const void * vs void * const&#8230;</p>
+<p>This is minor, but I feel like uniform initialization would be a lot more uniform if initializer list constructors no longer got special treatment, so in order to call std::vector[T]::vector(std::initializer_list[T]) you would need to write std::vector[T] var{{some_t1, some_t2&#8230;}}; or std::vector[T] var = {some_t1, some_t2&#8230;};  This way no constructors are hidden.</p>
+<p>Modules would be nice, but I personally would prefer to see static if.  The hacks/workarounds using SFINAE are (IMHO) unnecessarily complicated. Polymorphic lambdas would also be powerful in highly generic code.</p>
+<p>The standard library is the most important feature of all, though.  I don&#8217;t see *any* reason C++ shouldn&#8217;t have a standard filesystem and socket library.</p>
+<p>(replace [] with angles throughout)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4936</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 15 Mar 2012 15:42:31 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4936</guid>
+					<description><![CDATA[@Andrzej: Right, the wiki is not public at this time.]]></description>
+		<content:encoded><![CDATA[<p>@Andrzej: Right, the wiki is not public at this time.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Andrzej Krzemieński				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4933</link>
+		<dc:creator><![CDATA[Andrzej Krzemieński]]></dc:creator>
+		<pubDate>Wed, 14 Mar 2012 23:02:01 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4933</guid>
+					<description><![CDATA[Hi Herb. The post-Kona mailing often refers to links at address http://wiki.edg.com/twiki/bin/view/Wg21kona2012.
+Is it something that only the Committee members have access to?]]></description>
+		<content:encoded><![CDATA[<p>Hi Herb. The post-Kona mailing often refers to links at address <a href="http://wiki.edg.com/twiki/bin/view/Wg21kona2012" rel="nofollow">http://wiki.edg.com/twiki/bin/view/Wg21kona2012</a>.<br />
+Is it something that only the Committee members have access to?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pjmlp				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4932</link>
+		<dc:creator><![CDATA[pjmlp]]></dc:creator>
+		<pubDate>Wed, 14 Mar 2012 18:28:53 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4932</guid>
+					<description><![CDATA[Despite of my previous rant, if I would vote on one single major feature, it would also be modules.
+
+I believe it would really speed up the compilation time a lot, not having to parse the include files over and over again. Not sure how this would play with conditional compilation though.]]></description>
+		<content:encoded><![CDATA[<p>Despite of my previous rant, if I would vote on one single major feature, it would also be modules.</p>
+<p>I believe it would really speed up the compilation time a lot, not having to parse the include files over and over again. Not sure how this would play with conditional compilation though.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mike (a different one)				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4931</link>
+		<dc:creator><![CDATA[Mike (a different one)]]></dc:creator>
+		<pubDate>Wed, 14 Mar 2012 16:55:32 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4931</guid>
+					<description><![CDATA[Does the &quot;(Doug Gregor)&quot; after &quot;Modules&quot; imply a reboot, or will this continue to build on Daveed Vandevoorde&#039;s work earlier in the C++0x process?
+
+Modules would also be my preferred One Big Feature. Partly because it&#039;s the biggest competitive disadvantage (I don&#039;t think other mainstream languages have great answers to par/conc either, and I don&#039;t think *anyone* has hit on the One True Obviously Correct Way, but almost everyone else has semi-sane modules now). Partly because it&#039;s the one whose absence can&#039;t be alleviated by libraries *at all*.]]></description>
+		<content:encoded><![CDATA[<p>Does the &#8220;(Doug Gregor)&#8221; after &#8220;Modules&#8221; imply a reboot, or will this continue to build on Daveed Vandevoorde&#8217;s work earlier in the C++0x process?</p>
+<p>Modules would also be my preferred One Big Feature. Partly because it&#8217;s the biggest competitive disadvantage (I don&#8217;t think other mainstream languages have great answers to par/conc either, and I don&#8217;t think *anyone* has hit on the One True Obviously Correct Way, but almost everyone else has semi-sane modules now). Partly because it&#8217;s the one whose absence can&#8217;t be alleviated by libraries *at all*.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michael				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4926</link>
+		<dc:creator><![CDATA[Michael]]></dc:creator>
+		<pubDate>Tue, 13 Mar 2012 13:58:02 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4926</guid>
+					<description><![CDATA[I so absolutely hope the next major language feature is going to be modules. It is THE number 1 drawback C++ has, compared to any other mainstream programming language. The compilation model of C++ is simply pathetic and it needs to be solved ASAP.
+
+Every day, I see C++ programmers not getting their dependencies right, because there is no clear concept for that. Library A depends on B, but B still includes stuff from A, etc.
+
+Need... modules... .need... modules....  need .....]]></description>
+		<content:encoded><![CDATA[<p>I so absolutely hope the next major language feature is going to be modules. It is THE number 1 drawback C++ has, compared to any other mainstream programming language. The compilation model of C++ is simply pathetic and it needs to be solved ASAP.</p>
+<p>Every day, I see C++ programmers not getting their dependencies right, because there is no clear concept for that. Library A depends on B, but B still includes stuff from A, etc.</p>
+<p>Need&#8230; modules&#8230; .need&#8230; modules&#8230;.  need &#8230;..</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Ivan				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4920</link>
+		<dc:creator><![CDATA[Ivan]]></dc:creator>
+		<pubDate>Mon, 12 Mar 2012 15:59:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4920</guid>
+					<description><![CDATA[Argh... bracket eating blog comments...
+So new syntax for void star star would be
+ptr left_angle_bracket ptr &#060;left_angle_bracket void  right_angle_bracket right_angle_bracket]]></description>
+		<content:encoded><![CDATA[<p>Argh&#8230; bracket eating blog comments&#8230;<br />
+So new syntax for void star star would be<br />
+ptr left_angle_bracket ptr &lt;left_angle_bracket void  right_angle_bracket right_angle_bracket</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Ivan				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4919</link>
+		<dc:creator><![CDATA[Ivan]]></dc:creator>
+		<pubDate>Mon, 12 Mar 2012 15:51:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4919</guid>
+					<description><![CDATA[Herb tnx for your answer... 
+ but I have 3 small Y/N questions...
+1) Do you see C++Prime(how you called it in one C9 interview) coming before 2020(are there any plans for this) and(super important)
+having C++ to human readable C++Prime translator/compiler. 
+2) Do you see committee simplifying C++17 syntax(eg deprecating raw ptr syntax and replacing it with ptr (so you have ptr&#060;ptr&#062; :))) if somebody makes C++11 to C++17 human readable code compiler? 
+3) Do you see somebody(MS, Google, FB, Santa :) ) funding some rapid prototyping of C++17 stuff so that committee could actually be more aggressive in standardising.
+btw I use word compiler how we used it in college... any source lang to and dest, obviously dest is here also source not asm code.]]></description>
+		<content:encoded><![CDATA[<p>Herb tnx for your answer&#8230;<br />
+ but I have 3 small Y/N questions&#8230;<br />
+1) Do you see C++Prime(how you called it in one C9 interview) coming before 2020(are there any plans for this) and(super important)<br />
+having C++ to human readable C++Prime translator/compiler.<br />
+2) Do you see committee simplifying C++17 syntax(eg deprecating raw ptr syntax and replacing it with ptr (so you have ptr&lt;ptr&gt; :))) if somebody makes C++11 to C++17 human readable code compiler?<br />
+3) Do you see somebody(MS, Google, FB, Santa :) ) funding some rapid prototyping of C++17 stuff so that committee could actually be more aggressive in standardising.<br />
+btw I use word compiler how we used it in college&#8230; any source lang to and dest, obviously dest is here also source not asm code.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4918</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Mon, 12 Mar 2012 13:05:41 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4918</guid>
+					<description><![CDATA[@pjmlp: Actually our compiler is implementing much of what&#039;s new in C11 (delta from C99) in this release -- e.g., memory model and atomics, which are closely aligned with C++11. The jury&#039;s still out on whether many of the features that C99 added should be prioritized over other work (e.g., C++11 conformance) because: (a) some of them conflict with C++ features or are not obviously well defined in a C++ setting with constructors and destructors etc.; and (b) I still don&#039;t see the strong demand for some of them -- it&#039;s widely acknowledged, including within C, that C99 was a bit of a misstep while the committee was mostly composed of a special interest group, and at the beginning of the C11 process there was even some discussion about repealing some of the C99 features by deprecating or removing them in C11 (this did not happen though).]]></description>
+		<content:encoded><![CDATA[<p>@pjmlp: Actually our compiler is implementing much of what&#8217;s new in C11 (delta from C99) in this release &#8212; e.g., memory model and atomics, which are closely aligned with C++11. The jury&#8217;s still out on whether many of the features that C99 added should be prioritized over other work (e.g., C++11 conformance) because: (a) some of them conflict with C++ features or are not obviously well defined in a C++ setting with constructors and destructors etc.; and (b) I still don&#8217;t see the strong demand for some of them &#8212; it&#8217;s widely acknowledged, including within C, that C99 was a bit of a misstep while the committee was mostly composed of a special interest group, and at the beginning of the C11 process there was even some discussion about repealing some of the C99 features by deprecating or removing them in C11 (this did not happen though).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4917</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Mon, 12 Mar 2012 12:59:07 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4917</guid>
+					<description><![CDATA[@Simon,all: NP, and besides, several &quot;minor&quot; features add up to a major. :)
+
+Concepts definitely won&#039;t fit into C++17 because it&#039;s (a) huge and (b) still experimental and needs more bake time... unless the static if proposal I&#039;m championing progresses well enough to do a &quot;concepts lite&quot; for a subset of the broader concepts direction that is well understood and useful.
+
+The two big reasons why I&#039;m excited about static if: 1. It &quot;will&quot; help bring many uses of template metaprogramming into the language by offering a feature to say directly what templates are (ab)used to say indirectly today. 2. It &quot;may&quot; let us get some of the benefits of concepts sooner -- I&#039;m all for simpler features that deliver lots of the benefit of a more complex feature, as long as they are not off in another direction but on the same path to the larger feature in the future if and when that&#039;s ready.]]></description>
+		<content:encoded><![CDATA[<p>@Simon,all: NP, and besides, several &#8220;minor&#8221; features add up to a major. :)</p>
+<p>Concepts definitely won&#8217;t fit into C++17 because it&#8217;s (a) huge and (b) still experimental and needs more bake time&#8230; unless the static if proposal I&#8217;m championing progresses well enough to do a &#8220;concepts lite&#8221; for a subset of the broader concepts direction that is well understood and useful.</p>
+<p>The two big reasons why I&#8217;m excited about static if: 1. It &#8220;will&#8221; help bring many uses of template metaprogramming into the language by offering a feature to say directly what templates are (ab)used to say indirectly today. 2. It &#8220;may&#8221; let us get some of the benefits of concepts sooner &#8212; I&#8217;m all for simpler features that deliver lots of the benefit of a more complex feature, as long as they are not off in another direction but on the same path to the larger feature in the future if and when that&#8217;s ready.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4916</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Mon, 12 Mar 2012 12:54:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4916</guid>
+					<description><![CDATA[@Mike: If you want to attend a Study Group meeting, just email the SG chair (or me). Here&#039;s some canned information I send to people who email about how to participate in WG21 in general:
+
+&lt;blockquote&gt;
+The C++ committee meets two times a year for a week at a time, mostly alternating between Europe and North America. Meetings are open to the public, and we welcome people to attend for a meeting or two as an observer; this lets you participate and argue and do most everything, except only you can&#039;t actually cast a vote. To have a vote, or for longer-term participation, normally you would join your national body; each NB has its own rules and requirements. It is also possible to join the United States national body, which permits non-US members and accepts just about anyone who wants to pay $1,200 a year to be a member; a number of our international participants use this option esp. when it&#039;s a lot cheaper than what their own national body charges. [[For those interested in this option I cc: Steve Clamage, chair of the U.S. committee, for further information.]] We also have email reflectors that are open to any member of some participating national body even if you aren&#039;t able to attend the face-to-face meetings.
+&lt;/blockquote&gt;]]></description>
+		<content:encoded><![CDATA[<p>@Mike: If you want to attend a Study Group meeting, just email the SG chair (or me). Here&#8217;s some canned information I send to people who email about how to participate in WG21 in general:</p>
+<blockquote><p>
+The C++ committee meets two times a year for a week at a time, mostly alternating between Europe and North America. Meetings are open to the public, and we welcome people to attend for a meeting or two as an observer; this lets you participate and argue and do most everything, except only you can&#8217;t actually cast a vote. To have a vote, or for longer-term participation, normally you would join your national body; each NB has its own rules and requirements. It is also possible to join the United States national body, which permits non-US members and accepts just about anyone who wants to pay $1,200 a year to be a member; a number of our international participants use this option esp. when it&#8217;s a lot cheaper than what their own national body charges. [[For those interested in this option I cc: Steve Clamage, chair of the U.S. committee, for further information.]] We also have email reflectors that are open to any member of some participating national body even if you aren&#8217;t able to attend the face-to-face meetings.
+</p></blockquote>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jeffrey Bosboom				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4915</link>
+		<dc:creator><![CDATA[Jeffrey Bosboom]]></dc:creator>
+		<pubDate>Mon, 12 Mar 2012 10:39:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4915</guid>
+					<description><![CDATA[Are concepts one of the major language features being considered?]]></description>
+		<content:encoded><![CDATA[<p>Are concepts one of the major language features being considered?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: kjellkod				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4914</link>
+		<dc:creator><![CDATA[kjellkod]]></dc:creator>
+		<pubDate>Mon, 12 Mar 2012 08:35:00 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4914</guid>
+					<description><![CDATA[This is great news. I feel with what Ivan said - what &quot;major&quot; is for one person is maybe a &quot;minor&quot; for another. Even so I am thrilled to hear that the whole shebang is in motion. I just love coding in C++ and reading this makes it even more fun =)]]></description>
+		<content:encoded><![CDATA[<p>This is great news. I feel with what Ivan said &#8211; what &#8220;major&#8221; is for one person is maybe a &#8220;minor&#8221; for another. Even so I am thrilled to hear that the whole shebang is in motion. I just love coding in C++ and reading this makes it even more fun =)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pjmlp				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4911</link>
+		<dc:creator><![CDATA[pjmlp]]></dc:creator>
+		<pubDate>Sun, 11 Mar 2012 22:02:39 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4911</guid>
+					<description><![CDATA[I wonder for how long C++ will still be valid.
+
+Personally I like C++11, but on the other hand I think the language is reaching the complexity border, up to the point no one will care about new standard revisions.
+
+A bit like Microsoft is currently ignoring C99 and C11.
+
+Standards are only meaningful if people apply them.
+
+On the other hand any of the mainstream managed languages can also be used as native, and we also have Go and D adoption slowly growing.
+
+Will anyone care about C++17, in what might be a completely different hardware architecture, specially if we consider the evolution of the last 10 years?]]></description>
+		<content:encoded><![CDATA[<p>I wonder for how long C++ will still be valid.</p>
+<p>Personally I like C++11, but on the other hand I think the language is reaching the complexity border, up to the point no one will care about new standard revisions.</p>
+<p>A bit like Microsoft is currently ignoring C99 and C11.</p>
+<p>Standards are only meaningful if people apply them.</p>
+<p>On the other hand any of the mainstream managed languages can also be used as native, and we also have Go and D adoption slowly growing.</p>
+<p>Will anyone care about C++17, in what might be a completely different hardware architecture, specially if we consider the evolution of the last 10 years?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Simon Buchan				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4910</link>
+		<dc:creator><![CDATA[Simon Buchan]]></dc:creator>
+		<pubDate>Sun, 11 Mar 2012 21:06:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4910</guid>
+					<description><![CDATA[@Herb: Hey, I&#039;m not complaining! Just putting my 2c into what I find most attractive in the N*s I&#039;ve seen. On the other hand, I can&#039;t speak for how I&#039;ll feel in &#039;17 - but don&#039;t take that the wrong way either.]]></description>
+		<content:encoded><![CDATA[<p>@Herb: Hey, I&#8217;m not complaining! Just putting my 2c into what I find most attractive in the N*s I&#8217;ve seen. On the other hand, I can&#8217;t speak for how I&#8217;ll feel in &#8217;17 &#8211; but don&#8217;t take that the wrong way either.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Luna				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4905</link>
+		<dc:creator><![CDATA[Luna]]></dc:creator>
+		<pubDate>Sat, 10 Mar 2012 18:57:02 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4905</guid>
+					<description><![CDATA[I mean if C++ fails, maybe Herb would develop a passion for the D programming language :)]]></description>
+		<content:encoded><![CDATA[<p>I mean if C++ fails, maybe Herb would develop a passion for the D programming language :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4901</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Fri, 09 Mar 2012 20:34:16 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4901</guid>
+					<description><![CDATA[@Simon,Ivan: Note I said one &quot;major&quot; language feature. I&#039;m sure there will be several. Personally I&#039;m working on (and pushing for) polymorphic lambdas and static if, among others. And a lot can be done in pure libraries, including task-based parallel algorithms and concurrent containers... and as noted libraries don&#039;t necessarily need to wait for the next full standard.]]></description>
+		<content:encoded><![CDATA[<p>@Simon,Ivan: Note I said one &#8220;major&#8221; language feature. I&#8217;m sure there will be several. Personally I&#8217;m working on (and pushing for) polymorphic lambdas and static if, among others. And a lot can be done in pure libraries, including task-based parallel algorithms and concurrent containers&#8230; and as noted libraries don&#8217;t necessarily need to wait for the next full standard.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mike				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4899</link>
+		<dc:creator><![CDATA[Mike]]></dc:creator>
+		<pubDate>Fri, 09 Mar 2012 14:36:39 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4899</guid>
+					<description><![CDATA[Herb, if someone were interested in getting more involved in this process (e.g. Study Groups), how would you recommend they go about it?]]></description>
+		<content:encoded><![CDATA[<p>Herb, if someone were interested in getting more involved in this process (e.g. Study Groups), how would you recommend they go about it?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Ivan				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4898</link>
+		<dc:creator><![CDATA[Ivan]]></dc:creator>
+		<pubDate>Fri, 09 Mar 2012 10:31:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4898</guid>
+					<description><![CDATA[1 language feature in 5 years... sorry to hear that because I think that is pathetic. TBH IDK why even bother... LWG part is nice and needed but I mean seriously IMHO you either make a big change or u are wasting your time... Imagine if next AMD CPU design was projected to be released in 2 y and 7% faster than the current one. Somebody smart would say either make it 30% or dont bother making it...  So if you can do 1 feature in 5 years you better dont bother. You think Im just being mean... but seriously c++ either gets all it needs (modules, concepts, static_if ...) or it is dead. No amount of PR can change that. And ofc 5y time horizon is a joke. Consider the speed of C# evolution to speed of C++ evolution. Again I know that C# and C++ have &quot;different&quot; funding mechanisms, but that is not the point. Point is that in 5 y people wont really care about the whole philosophical cr*p of ISO vs proprietary.... theyll care that language they use is a modern one. And the fact that you cant make in 5y what is needed to make c++ modern lang today is tragic. Still I appreciate all the hard work done on the C++ by you and other members. My point is that it is either all of the features, C++Prime, or nothing. 1 lang feature is IMO just a wasted five years.]]></description>
+		<content:encoded><![CDATA[<p>1 language feature in 5 years&#8230; sorry to hear that because I think that is pathetic. TBH IDK why even bother&#8230; LWG part is nice and needed but I mean seriously IMHO you either make a big change or u are wasting your time&#8230; Imagine if next AMD CPU design was projected to be released in 2 y and 7% faster than the current one. Somebody smart would say either make it 30% or dont bother making it&#8230;  So if you can do 1 feature in 5 years you better dont bother. You think Im just being mean&#8230; but seriously c++ either gets all it needs (modules, concepts, static_if &#8230;) or it is dead. No amount of PR can change that. And ofc 5y time horizon is a joke. Consider the speed of C# evolution to speed of C++ evolution. Again I know that C# and C++ have &#8220;different&#8221; funding mechanisms, but that is not the point. Point is that in 5 y people wont really care about the whole philosophical cr*p of ISO vs proprietary&#8230;. theyll care that language they use is a modern one. And the fact that you cant make in 5y what is needed to make c++ modern lang today is tragic. Still I appreciate all the hard work done on the C++ by you and other members. My point is that it is either all of the features, C++Prime, or nothing. 1 lang feature is IMO just a wasted five years.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Nicol Bolas				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4896</link>
+		<dc:creator><![CDATA[Nicol Bolas]]></dc:creator>
+		<pubDate>Fri, 09 Mar 2012 01:29:00 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4896</guid>
+					<description><![CDATA[&quot;SG2: Modules (Doug Gregor) &quot;
+
+You do not know how happy this makes me. You just do not know. The standards committee sounds like they&#039;re serious about making this work for C++1y.
+
+Really, what someone needs to do is take Clang and make a module-ized version of it, just as a proof-of-concept that the idea functions and can provide useful compile-time results. There&#039;s already a &quot;Concept Clang&quot; out there.
+
+For the study groups, will there be additional mailings from these? Or will internal progress and deliberation be kept only by the members of the SG?]]></description>
+		<content:encoded><![CDATA[<p>&#8220;SG2: Modules (Doug Gregor) &#8221;</p>
+<p>You do not know how happy this makes me. You just do not know. The standards committee sounds like they&#8217;re serious about making this work for C++1y.</p>
+<p>Really, what someone needs to do is take Clang and make a module-ized version of it, just as a proof-of-concept that the idea functions and can provide useful compile-time results. There&#8217;s already a &#8220;Concept Clang&#8221; out there.</p>
+<p>For the study groups, will there be additional mailings from these? Or will internal progress and deliberation be kept only by the members of the SG?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Simon Buchan				</title>
+				<link>https://herbsutter.com/2012/03/08/trip-report-february-2012-c-standards-meeting/#comment-4895</link>
+		<dc:creator><![CDATA[Simon Buchan]]></dc:creator>
+		<pubDate>Fri, 09 Mar 2012 00:24:52 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1414#comment-4895</guid>
+					<description><![CDATA[Sounds really good. (Hawaii? You bastards! Well, OK, you deserved it!)
+
+If I had to pick *one* language feature, I&#039;d have to go with Modules, in at least the eliminating headers sense (though I wouldn&#039;t complain about a well-defined ABI for, eg dynamic libraries!) I believe much of the &quot;modern&quot; feeling that other (static) languages have is their automatic handling of visibility, if we get far better compile times out of it, so much the better!
+
+Much of the other stuff &quot;missing&quot; from C++ can be done in libraries, in most cases you can just use existing 3rd party libraries or wrap OS APIs. so those are less &quot;exciting&quot;. Rather than trying to get the C++ libraries to .NET framework size, have you (the Committee) perhaps considered some sort of library package specification/site a-la CPAN, PyPl or NuGet? It&#039;s a big, gnarly issue, involving all sorts of cross-platform headaches, but I feel putting the same effort into integrating libraries into the standard library would not give as much benefit.
+
+C#-esque &quot;await&quot; would be really nice, but I&#039;m not holding my breath on that one.]]></description>
+		<content:encoded><![CDATA[<p>Sounds really good. (Hawaii? You bastards! Well, OK, you deserved it!)</p>
+<p>If I had to pick *one* language feature, I&#8217;d have to go with Modules, in at least the eliminating headers sense (though I wouldn&#8217;t complain about a well-defined ABI for, eg dynamic libraries!) I believe much of the &#8220;modern&#8221; feeling that other (static) languages have is their automatic handling of visibility, if we get far better compile times out of it, so much the better!</p>
+<p>Much of the other stuff &#8220;missing&#8221; from C++ can be done in libraries, in most cases you can just use existing 3rd party libraries or wrap OS APIs. so those are less &#8220;exciting&#8221;. Rather than trying to get the C++ libraries to .NET framework size, have you (the Committee) perhaps considered some sort of library package specification/site a-la CPAN, PyPl or NuGet? It&#8217;s a big, gnarly issue, involving all sorts of cross-platform headaches, but I feel putting the same effort into integrating libraries into the standard library would not give as much benefit.</p>
+<p>C#-esque &#8220;await&#8221; would be really nice, but I&#8217;m not holding my breath on that one.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

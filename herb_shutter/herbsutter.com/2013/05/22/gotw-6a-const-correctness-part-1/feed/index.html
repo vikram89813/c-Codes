@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #6a: Const-Correctness, Part 1	</title>
+	<atom:link href="https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Functional Programming in C++ &#171; Carl Gibbs &#8211; Blog				</title>
+				<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/#comment-12127</link>
+		<dc:creator><![CDATA[Functional Programming in C++ &#171; Carl Gibbs &#8211; Blog]]></dc:creator>
+		<pubDate>Sun, 11 Aug 2013 20:14:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1986#comment-12127</guid>
+					<description><![CDATA[[&#8230;] Herb Sutter on const and concurrency in C++: https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/ [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Herb Sutter on const and concurrency in C++: <a href="https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/" rel="nofollow">https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/</a> [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: earwicker				</title>
+				<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/#comment-10395</link>
+		<dc:creator><![CDATA[earwicker]]></dc:creator>
+		<pubDate>Fri, 24 May 2013 14:35:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1986#comment-10395</guid>
+					<description><![CDATA[@Gregory:
+
+These instances a, b, are related through their sharing the same counter:
+
+[code]
+IntRef a;
+IntRef b(a);
+[/code]
+
+Such related instances are already liable to cause UB through data race when accessible from multiple threads (banned by the &quot;Dem&#039;s De Rules, Part 1 of 2&quot; snippet of the standard in Herb&#039;s talk).
+
+But specifically, suppose two threads each have their own private std::vector. Thread 1 says:
+
+[code]
+vec1.push_back(a)
+[/code]
+
+And symmetrically thread 2 says:
+
+[code]
+vec2.push_back(b)
+[/code]
+
+Subsequent calls to push_back on vec1 will potentially call the copy constructor of a again, as the vector may need to reconfigure its internal storage. Similarly for thread 2 and b. As a and b are related, this will cause attempts to increment the same counter, which would be a data race.
+
+This is banned by the &quot;Dem&#039;s De Rules, Part 2 of 2&quot; snippet of the standard in Herb&#039;s talk, because the counter being modified, indirectly, by push_back, has not been accessed via (directly or indirectly) a non-const argument to push_back (indeed, not by any argument passed to the subsequent call to push_back), and yet is accessible to another thread.]]></description>
+		<content:encoded><![CDATA[<p>@Gregory:</p>
+<p>These instances a, b, are related through their sharing the same counter:</p>
+<pre class="brush: plain; title: ; notranslate">
+IntRef a;
+IntRef b(a);
+</pre>
+<p>Such related instances are already liable to cause UB through data race when accessible from multiple threads (banned by the &#8220;Dem&#8217;s De Rules, Part 1 of 2&#8221; snippet of the standard in Herb&#8217;s talk).</p>
+<p>But specifically, suppose two threads each have their own private std::vector. Thread 1 says:</p>
+<pre class="brush: plain; title: ; notranslate">
+vec1.push_back(a)
+</pre>
+<p>And symmetrically thread 2 says:</p>
+<pre class="brush: plain; title: ; notranslate">
+vec2.push_back(b)
+</pre>
+<p>Subsequent calls to push_back on vec1 will potentially call the copy constructor of a again, as the vector may need to reconfigure its internal storage. Similarly for thread 2 and b. As a and b are related, this will cause attempts to increment the same counter, which would be a data race.</p>
+<p>This is banned by the &#8220;Dem&#8217;s De Rules, Part 2 of 2&#8221; snippet of the standard in Herb&#8217;s talk, because the counter being modified, indirectly, by push_back, has not been accessed via (directly or indirectly) a non-const argument to push_back (indeed, not by any argument passed to the subsequent call to push_back), and yet is accessible to another thread.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mordachaiwolf				</title>
+				<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/#comment-10357</link>
+		<dc:creator><![CDATA[mordachaiwolf]]></dc:creator>
+		<pubDate>Thu, 23 May 2013 14:25:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1986#comment-10357</guid>
+					<description><![CDATA[1. What is a “shared variable”? 
+
+Any variable that has a scope larger than a &quot;single user&quot; -- to me that means it can be a class member or a global variable or a variable that has shared ownership amongst multiple points of access in a program even for a single threaded application.
+
+Any variable that has scope that crosses multiple threads is even more &quot;shared&quot; than that.
+
+
+2. What do const and mutable mean on shared variables? 
+
+`const` acts as a contract between provider and client.  Declaring that something is a const parameter to a function, tells the clients of that API that the object that they&#039;re handing over will not be used in any but a const manner (i.e. read-only or its const-member-functions employed).
+
+Casting around the interface you&#039;re providing or using is almost certainly wrong - it violates the contract - and at that point you&#039;re asking for the code to break -- if not today, then in the future during maintenance.
+
+`mutable` means &quot;internally modifiable under const contract conditions.&quot;  i.e. for a class A with mutable int b, b can be modified by any of A&#039;s const member functions.  It is not a violation of A&#039;s const interface to modify mutable member b.
+
+I&#039;ve used this commonly to cache values for a class - things that do not affect the state or meaning of A, but only help A do it&#039;s job.  e.g. if we have a class that represents a Filename, then I might have mutable members for volume, path, name, extension.  As long as the filename as a whole doesn&#039;t change semantics, those members can be updated at the pleasure of Filename - even in via its const APIs.
+
+Now that we&#039;re dealing with multiple threads, mutable is useful to specify on the synchronization object if it is a member.  Whether the internal state of my object is locked or not doesn&#039;t change the semantics of it.  So the const interface can remain coherent while internally I take a read-lock and do whatever I need to in order to execute the API-contract for my client.
+
+3. How are const and mutable different in C++98 and C++11?
+
+???]]></description>
+		<content:encoded><![CDATA[<p>1. What is a “shared variable”? </p>
+<p>Any variable that has a scope larger than a &#8220;single user&#8221; &#8212; to me that means it can be a class member or a global variable or a variable that has shared ownership amongst multiple points of access in a program even for a single threaded application.</p>
+<p>Any variable that has scope that crosses multiple threads is even more &#8220;shared&#8221; than that.</p>
+<p>2. What do const and mutable mean on shared variables? </p>
+<p>`const` acts as a contract between provider and client.  Declaring that something is a const parameter to a function, tells the clients of that API that the object that they&#8217;re handing over will not be used in any but a const manner (i.e. read-only or its const-member-functions employed).</p>
+<p>Casting around the interface you&#8217;re providing or using is almost certainly wrong &#8211; it violates the contract &#8211; and at that point you&#8217;re asking for the code to break &#8212; if not today, then in the future during maintenance.</p>
+<p>`mutable` means &#8220;internally modifiable under const contract conditions.&#8221;  i.e. for a class A with mutable int b, b can be modified by any of A&#8217;s const member functions.  It is not a violation of A&#8217;s const interface to modify mutable member b.</p>
+<p>I&#8217;ve used this commonly to cache values for a class &#8211; things that do not affect the state or meaning of A, but only help A do it&#8217;s job.  e.g. if we have a class that represents a Filename, then I might have mutable members for volume, path, name, extension.  As long as the filename as a whole doesn&#8217;t change semantics, those members can be updated at the pleasure of Filename &#8211; even in via its const APIs.</p>
+<p>Now that we&#8217;re dealing with multiple threads, mutable is useful to specify on the synchronization object if it is a member.  Whether the internal state of my object is locked or not doesn&#8217;t change the semantics of it.  So the const interface can remain coherent while internally I take a read-lock and do whatever I need to in order to execute the API-contract for my client.</p>
+<p>3. How are const and mutable different in C++98 and C++11?</p>
+<p>???</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mttpd				</title>
+				<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/#comment-10354</link>
+		<dc:creator><![CDATA[mttpd]]></dc:creator>
+		<pubDate>Thu, 23 May 2013 13:09:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1986#comment-10354</guid>
+					<description><![CDATA[Regarding the definition of a shared variable -- perhaps Section 1.2.5, &quot;Data Terminology,&quot; of the latest (draft) OpenMP specification can serve as an inspiration (together with providing a neat distinction between a &quot;shared variable&quot; and a &quot;private variable&quot;): http://www.openmp.org/mp-documents/OpenMP_4.0_RC2.pdf]]></description>
+		<content:encoded><![CDATA[<p>Regarding the definition of a shared variable &#8212; perhaps Section 1.2.5, &#8220;Data Terminology,&#8221; of the latest (draft) OpenMP specification can serve as an inspiration (together with providing a neat distinction between a &#8220;shared variable&#8221; and a &#8220;private variable&#8221;): <a href="http://www.openmp.org/mp-documents/OpenMP_4.0_RC2.pdf" rel="nofollow">http://www.openmp.org/mp-documents/OpenMP_4.0_RC2.pdf</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Gregory				</title>
+				<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/#comment-10348</link>
+		<dc:creator><![CDATA[Gregory]]></dc:creator>
+		<pubDate>Thu, 23 May 2013 08:26:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1986#comment-10348</guid>
+					<description><![CDATA[I&#039;m a bit lost trying to put the change of meaning of const into the bigger picture. So, let me ask two counter-questions.
+
+1) You have a simple struct 
+&lt;code&gt;
+struct A
+{
+std::string first;
+std::string second;
+};
+&lt;/code&gt;
+
+And function that takes struct A by const-reference. 
+
+&lt;code&gt;
+void f(A const&#038; a);
+&lt;/code&gt;
+
+Without any assumptions, is it legal to put parameter a into standard container?
+
+2) You have following class:
+
+&lt;code&gt;
+
+class IntRef
+{
+public:
+IntRef():ptr{new int(0)} {}
+
+IntRef(const IntRef&#038; other):ptr(other.ptr)
+{
+    increment();
+}
+
+void increment() const
+{
+     std::shared_ptr p = ptr;
+     ++*p;
+}
+private:
+ std::shared_ptr ptr;
+};
+&lt;/code&gt;
+
+Is it safe to put object of this class into standard container?]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;m a bit lost trying to put the change of meaning of const into the bigger picture. So, let me ask two counter-questions.</p>
+<p>1) You have a simple struct<br />
+<code><br />
+struct A<br />
+{<br />
+std::string first;<br />
+std::string second;<br />
+};<br />
+</code></p>
+<p>And function that takes struct A by const-reference. </p>
+<p><code><br />
+void f(A const&amp; a);<br />
+</code></p>
+<p>Without any assumptions, is it legal to put parameter a into standard container?</p>
+<p>2) You have following class:</p>
+<p><code></p>
+<p>class IntRef<br />
+{<br />
+public:<br />
+IntRef():ptr{new int(0)} {}</p>
+<p>IntRef(const IntRef&amp; other):ptr(other.ptr)<br />
+{<br />
+    increment();<br />
+}</p>
+<p>void increment() const<br />
+{<br />
+     std::shared_ptr p = ptr;<br />
+     ++*p;<br />
+}<br />
+private:<br />
+ std::shared_ptr ptr;<br />
+};<br />
+</code></p>
+<p>Is it safe to put object of this class into standard container?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: pip010 (@ppetrovdotnet)				</title>
+				<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/#comment-10346</link>
+		<dc:creator><![CDATA[pip010 (@ppetrovdotnet)]]></dc:creator>
+		<pubDate>Thu, 23 May 2013 07:49:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1986#comment-10346</guid>
+					<description><![CDATA[this is confusing. does use semantics change and if no, why care?]]></description>
+		<content:encoded><![CDATA[<p>this is confusing. does use semantics change and if no, why care?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Jesse Good				</title>
+				<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/#comment-10344</link>
+		<dc:creator><![CDATA[Jesse Good]]></dc:creator>
+		<pubDate>Thu, 23 May 2013 04:33:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1986#comment-10344</guid>
+					<description><![CDATA[Hans Boehm uses the term &quot;shared variable&quot; throughout all his papers. However, he fails to give a formal definition as far as I can tell. The &quot;Dictionary of Computer Science, Engineering and Technology&quot; defines it as follows:
+&quot;a variable that can be accessed by two or more concurrent program units&quot;
+However, that definition is extremely outdated, so a formal definition is definitely needed!
+
+Since we don&#039;t have a formal definition of &quot;shared variable&quot;, the only question left
+to answer is the third one and I cannot write a better answer than what is
+already found out the following link:
+http://stackoverflow.com/questions/14127379/does-const-mean-thread-safe-in-c11]]></description>
+		<content:encoded><![CDATA[<p>Hans Boehm uses the term &#8220;shared variable&#8221; throughout all his papers. However, he fails to give a formal definition as far as I can tell. The &#8220;Dictionary of Computer Science, Engineering and Technology&#8221; defines it as follows:<br />
+&#8220;a variable that can be accessed by two or more concurrent program units&#8221;<br />
+However, that definition is extremely outdated, so a formal definition is definitely needed!</p>
+<p>Since we don&#8217;t have a formal definition of &#8220;shared variable&#8221;, the only question left<br />
+to answer is the third one and I cannot write a better answer than what is<br />
+already found out the following link:<br />
+<a href="http://stackoverflow.com/questions/14127379/does-const-mean-thread-safe-in-c11" rel="nofollow">http://stackoverflow.com/questions/14127379/does-const-mean-thread-safe-in-c11</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marshall Clow				</title>
+				<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/#comment-10337</link>
+		<dc:creator><![CDATA[Marshall Clow]]></dc:creator>
+		<pubDate>Thu, 23 May 2013 00:01:04 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1986#comment-10337</guid>
+					<description><![CDATA[I&#039;ll start with const, when used in a parameter list.
+[code]
+void foo ( const std::string &#038;s ) { /* ... */ }
+[/code]
+
+Nothing in &#039;foo&#039; should change &#039;s&#039;; no changing of public members, no calling of non-const member functions, no passing of &#039;foo&#039; to a function that takes a non-const reference.
+
+Notes: 
+1) `const_cast` can be used to get around this
+2) There&#039;s no guarantee that some other thread of execution will not change &#039;s&#039; while foo is executing; the string referred to by &#039;s&#039; may not be const; only foo&#039;s view of &#039;s&#039; is const.]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;ll start with const, when used in a parameter list.</p>
+<pre class="brush: plain; title: ; notranslate">
+void foo ( const std::string &amp;s ) { /* ... */ }
+</pre>
+<p>Nothing in &#8216;foo&#8217; should change &#8216;s&#8217;; no changing of public members, no calling of non-const member functions, no passing of &#8216;foo&#8217; to a function that takes a non-const reference.</p>
+<p>Notes:<br />
+1) `const_cast` can be used to get around this<br />
+2) There&#8217;s no guarantee that some other thread of execution will not change &#8216;s&#8217; while foo is executing; the string referred to by &#8216;s&#8217; may not be const; only foo&#8217;s view of &#8216;s&#8217; is const.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mttpd				</title>
+				<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/#comment-10334</link>
+		<dc:creator><![CDATA[mttpd]]></dc:creator>
+		<pubDate>Wed, 22 May 2013 23:39:51 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1986#comment-10334</guid>
+					<description><![CDATA[A proposed follow-up question: constexpr-correctness, compare and contrast with const-correctness :-)
+A possible starting point: http://isocpp.org/blog/2013/01/quick-q-whats-the-difference-between-constexpr-and-const-stackoverflow]]></description>
+		<content:encoded><![CDATA[<p>A proposed follow-up question: constexpr-correctness, compare and contrast with const-correctness :-)<br />
+A possible starting point: <a href="http://isocpp.org/blog/2013/01/quick-q-whats-the-difference-between-constexpr-and-const-stackoverflow" rel="nofollow">http://isocpp.org/blog/2013/01/quick-q-whats-the-difference-between-constexpr-and-const-stackoverflow</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Nicol Bolas				</title>
+				<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/#comment-10331</link>
+		<dc:creator><![CDATA[Nicol Bolas]]></dc:creator>
+		<pubDate>Wed, 22 May 2013 23:27:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1986#comment-10331</guid>
+					<description><![CDATA[&#062; What is a “shared variable”? 
+
+It&#039;s an English phrase that has no well-defined meaning without some form of context. The first word, &quot;shared&quot; means to allow ownership between multiple parties. The word &quot;variable&quot; refers to the well-defined C++ concept of a variable. Thus the term would represent a variable that is in some way owned by multiple parties.
+
+The term &quot;shared variable&quot; is not defined by any version of ISO/IEC 14882 Standard for Programming Language C++. Nor is it a term in common, colloquial usage among C++ programmers.
+
+Therefore, I submit that the term cannot be considered to have a firm definition outside of what the words themselves mean. As such, it means nothing without further context. What are the multiple parties in question who might have ownership of the variable? What kind of ownership is under discussion?
+
+Furthermore, I would submit that it is not appropriate for Herb to unilaterally declare that this phrase has *any* particular meaning. It&#039;s bad enough that we&#039;ve got Scott Meyers inventing non-standard terms like &quot;Universal References&quot; that ultimately serve to drive them away from proper standard language. We don&#039;t need multiple high-profile C++ people making it difficult for people to effectively communicate by unilaterally inventing terminology for concepts ex nihilo.]]></description>
+		<content:encoded><![CDATA[<p>&gt; What is a “shared variable”? </p>
+<p>It&#8217;s an English phrase that has no well-defined meaning without some form of context. The first word, &#8220;shared&#8221; means to allow ownership between multiple parties. The word &#8220;variable&#8221; refers to the well-defined C++ concept of a variable. Thus the term would represent a variable that is in some way owned by multiple parties.</p>
+<p>The term &#8220;shared variable&#8221; is not defined by any version of ISO/IEC 14882 Standard for Programming Language C++. Nor is it a term in common, colloquial usage among C++ programmers.</p>
+<p>Therefore, I submit that the term cannot be considered to have a firm definition outside of what the words themselves mean. As such, it means nothing without further context. What are the multiple parties in question who might have ownership of the variable? What kind of ownership is under discussion?</p>
+<p>Furthermore, I would submit that it is not appropriate for Herb to unilaterally declare that this phrase has *any* particular meaning. It&#8217;s bad enough that we&#8217;ve got Scott Meyers inventing non-standard terms like &#8220;Universal References&#8221; that ultimately serve to drive them away from proper standard language. We don&#8217;t need multiple high-profile C++ people making it difficult for people to effectively communicate by unilaterally inventing terminology for concepts ex nihilo.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Chris Vine				</title>
+				<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/#comment-10329</link>
+		<dc:creator><![CDATA[Chris Vine]]></dc:creator>
+		<pubDate>Wed, 22 May 2013 22:33:36 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1986#comment-10329</guid>
+					<description><![CDATA[@zahirtezcan:
+
+Beware of that presentation though.  The issues are not clear cut.  First, 17.6.5.9/3 of the C++11 standard provides an absolute preclusion of bitwise modification of an object through a const argument, irrespective of whether it would be thread-safe to do so because there is internal synchronization so it can safely be made mutable.  Possibly 17.6.5.9/7 is intended to permit this, but it is not clear (to me at least) that it qualifies 17.6.5.9/3, nor is is it clear to me what is meant by &quot;implementations&quot; in relation to user provided objects.  Secondly, just because a library function taking an object by const reference is guaranteed by 17.6.5.9/3 not to modify the object does not of itself make a read operation made by that function thread safe.  If an object is visible to another thread, the read is only thread safe if the other thread does not modify it or there is synchronization. const does not therefore seem to me to mean &quot;thread-safe&quot; in anything other than a significantly qualified sense.]]></description>
+		<content:encoded><![CDATA[<p>@zahirtezcan:</p>
+<p>Beware of that presentation though.  The issues are not clear cut.  First, 17.6.5.9/3 of the C++11 standard provides an absolute preclusion of bitwise modification of an object through a const argument, irrespective of whether it would be thread-safe to do so because there is internal synchronization so it can safely be made mutable.  Possibly 17.6.5.9/7 is intended to permit this, but it is not clear (to me at least) that it qualifies 17.6.5.9/3, nor is is it clear to me what is meant by &#8220;implementations&#8221; in relation to user provided objects.  Secondly, just because a library function taking an object by const reference is guaranteed by 17.6.5.9/3 not to modify the object does not of itself make a read operation made by that function thread safe.  If an object is visible to another thread, the read is only thread safe if the other thread does not modify it or there is synchronization. const does not therefore seem to me to mean &#8220;thread-safe&#8221; in anything other than a significantly qualified sense.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: zahirtezcan (@zahirtezcan)				</title>
+				<link>https://herbsutter.com/2013/05/22/gotw-6a-const-correctness-part-1/#comment-10322</link>
+		<dc:creator><![CDATA[zahirtezcan (@zahirtezcan)]]></dc:creator>
+		<pubDate>Wed, 22 May 2013 20:01:16 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1986#comment-10322</guid>
+					<description><![CDATA[http://channel9.msdn.com/posts/C-and-Beyond-2012-Herb-Sutter-You-dont-know-blank-and-blank ? :)]]></description>
+		<content:encoded><![CDATA[<p><a href="http://channel9.msdn.com/posts/C-and-Beyond-2012-Herb-Sutter-You-dont-know-blank-and-blank" rel="nofollow">http://channel9.msdn.com/posts/C-and-Beyond-2012-Herb-Sutter-You-dont-know-blank-and-blank</a> ? :)</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

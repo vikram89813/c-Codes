@@ -1,0 +1,513 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>&ldquo;Strong&rdquo; and &ldquo;weak&rdquo; hardware memory models | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965446&amp;back=https%3A%2F%2Fherbsutter.com%2F2012%2F08%2F02%2Fstrong-and-weak-hardware-memory-models%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; &ldquo;Strong&rdquo; and &ldquo;weak&rdquo; hardware memory&nbsp;models Comments Feed" href="https://herbsutter.com/2012/08/02/strong-and-weak-hardware-memory-models/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Late-Breaking C&amp;B Session: A Special&nbsp;Announcement' href='https://herbsutter.com/2012/07/30/late-breaking-cb-session-a-special-announcement/' />
+<link rel='next' title='C&amp;B Panel: Alexandrescu, Meyers, Sutter on Static If, C++11, and&nbsp;Metaprogramming' href='https://herbsutter.com/2012/08/21/cb-panel/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2012/08/02/strong-and-weak-hardware-memory-models/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-pE' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2012%2F08%2F02%2Fstrong-and-weak-hardware-memory-models%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2012%2F08%2F02%2Fstrong-and-weak-hardware-memory-models%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="&ldquo;Strong&rdquo; and &ldquo;weak&rdquo; hardware memory models" />
+<meta property="og:url" content="https://herbsutter.com/2012/08/02/strong-and-weak-hardware-memory-models/" />
+<meta property="og:description" content="In Welcome to the Jungle, I predicted that “weak” hardware memory models will disappear. This is true, and it’s happening before our eyes: x86 has always been considered a “strong” hardware memory …" />
+<meta property="article:published_time" content="2012-08-02T11:26:37+00:00" />
+<meta property="article:modified_time" content="2012-08-02T11:52:15+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965446" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="&ldquo;Strong&rdquo; and &ldquo;weak&rdquo; hardware memory&nbsp;models" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="In Welcome to the Jungle, I predicted that “weak” hardware memory models will disappear. This is true, and it’s happening before our eyes: x86 has always been considered a “strong” hardware memory model that supports sequentially consistent atomics efficiently. The other major architecture, ARM, recently announced that they are now adding strong memory ordering in&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2012/08/02/strong-and-weak-hardware-memory-models/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-1590 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2012/07/30/late-breaking-cb-session-a-special-announcement/" rel="prev">Late-Breaking C&amp;B Session: A Special&nbsp;Announcement</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2012/08/21/cb-panel/" rel="next">C&amp;B Panel: Alexandrescu, Meyers, Sutter on Static If, C++11, and&nbsp;Metaprogramming</a> &raquo;</div>
+			</div>
+			
+			<div class="post-1590 post type-post status-publish format-standard hentry category-c-net category-c category-concurrency category-hardware category-java category-talks-events" id="post-1590">
+				<div class="posttitle">
+					<h2>&ldquo;Strong&rdquo; and &ldquo;weak&rdquo; hardware memory&nbsp;models</h2>
+					<p class="post-info">2012-08-02 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>In <a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the Jungle</a>, I predicted that “weak” hardware memory models will disappear. This is true, and it’s happening before our eyes:</p>
+<ul>
+<li>x86 has always been considered a “strong” hardware memory model that supports sequentially consistent atomics efficiently.</li>
+<li>The other major architecture, ARM, recently announced that they are now adding strong memory ordering in ARMv8 with the new sequentially consistent <em>ldra </em>and <em>strl </em>instructions, as I predicted they would. (Actually, Hans Boehm and I influenced ARM in this direction, so it was an ever-so-slightly disingenuous prediction&#8230;)</li>
+</ul>
+<p>However, at least two people have been confused by what I meant by “weak” hardware memory models, so let me clarify what “weak” means – it means something different for hardware memory models and software memory models, so perhaps those aren’t the clearest terms to use.</p>
+<p>By &#8220;weak <strong><em>(hardware)</em></strong> memory model&#8221; CPUs I mean specifically ones that do not natively support efficient sequentially consistent (SC) atomics, because on the <strong><em>software</em></strong> side programming languages have converged on &#8220;sequential consistency for data-race-free programs&#8221; (SC-DRF, roughly aka DRF0 or RCsc) as the default (C11, C++11) or only (Java 5+) supported software memory model for software. POWER and ARMv7 notoriously do not support SC atomics efficiently.</p>
+<p>Hardware that supports only hardware memory models weaker than SC-DRF, <em>meaning that they do not support SC-DRF efficiently</em>, are permanently disadvantaged and will either become stronger or atrophy. As I mentioned specifically in the article, the two main current hardware architectures with what I called &#8220;weak&#8221; memory models were current ARM (ARMv7) and POWER:</p>
+<ul>
+<li>ARM recently announced ARMv8 which, as I predicted, is upgrading to SC acquire/release by adding new SC acquire/release instructions ldra and strl that are mandatory in both 32-bit and 64-bit mode. In fact, this is something of an industry first &#8212; ARMv8 is the first major CPU architecture to support SC acquire/release instructions directly like this. (Note: That’s for CPUs, but the roadmap for ARM GPUs is similar. ARM GPUs currently have a stronger memory model, namely fully SC; ARM has announced their GPU future roadmap has the GPUs fully coherent with the CPUs, and will likely add “SC load acquire” and “SC store release” to GPUs as well.)</li>
+<li>It remains to be seen whether POWER will adapt similarly, or die out.</li>
+</ul>
+<p>Note that I&#8217;ve seen some people call x86 &#8220;weak&#8221;, but x86 has always been the poster child for a <strong><em>strong (hardware) </em></strong>memory model in all of our <strong><em>software</em></strong> memory model discussions for Java, C, and C++ during the 2000s. Therefore perhaps &#8220;weak&#8221; and &#8220;strong&#8221; are not useful terms if they mean different things to some people, and I&#8217;ve updated the WttJ text to make this clearer.</p>
+<p>I will be discussing this in detail in my <a href="https://herbsutter.com/2012/06/29/cb-session-atomic-weapons-the-c11-memory-model-and-modern-hardware/">atomic&lt;&gt; Weapons</a> talk at C&amp;B next week, which I hope to make freely available online in the near future (as I do most of my talks). I’ll post a link on this blog when I can make it available online.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c-net/" rel="category tag">C# / .NET</a>, <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/hardware/" rel="category tag">Hardware</a>, <a href="https://herbsutter.com/category/java/" rel="category tag">Java</a>, <a href="https://herbsutter.com/category/talks-events/" rel="category tag">Talks &amp; Events</a> | 											10 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">10 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-13232">
+		<div id="div-comment-13232">
+		<div class="cmtinfo"><em> on <a href="#comment-13232" title="">2013-11-14 at 1:09 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13232"></div><p>@Ragavendra: If I wrote a formal reference on a paper it would be: &#8220;Jem Davies and Richard Grisenthwaite, personal communication, June 2012.&#8221; Jem and Richard are The Guys &#8212; the primary ARM processor and memory model architects &#8212; and what I wrote and presented in the talk was the summary of the ARM v8 CPU and GPU memory models that ARM approved for me to report publicly at that time for this talk. Specifically, as of that writing, ARM GPUs had no equivalent of load-acquire store-release instructions because they didn&#8217;t need them.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13229">
+		<div id="div-comment-13229">
+		<div class="cmtinfo"><em> on <a href="#comment-13229" title="">2013-11-14 at 9:35 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/3eba4d4d15d1947dacf23eb48ad48153?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Ragavendra Natarajan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13229"></div><p>&#8220;ARM GPUs currently have a stronger memory model, namely fully SC&#8221;.</p>
+<p>I&#8217;ve been reading about ARM GPU memory models and cannot find a reference that states they have SC model. Can you please provide a reference for this?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-5904">
+		<div id="div-comment-5904">
+		<div class="cmtinfo"><em> on <a href="#comment-5904" title="">2012-08-04 at 7:30 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5904"></div><p>@Jon: This was the terminology we used during the C++ and C memory model discussions (and Java, which I wasn&#8217;t involved with but did involve many of the same people): We talked about x86 as the poster child for strong because it has the strongest guarantees of mainstream hardware (not all of which guarantees are necessary or desirable, as I&#8217;ll mention in my talk on Tuesday) and especially it efficiently supports SC program semantics, whereas ARM(v7) and POWER require heavy sync operations to get SC program semantics. I say &#8220;SC program semantics&#8221; because it&#8217;s not only about atomics, though that is part of it.</p>
+<p>Of course, no mainstream hardware is truly SC any more and will never be again, so &#8220;pure SC hardware&#8221; is of historical interest only. However, giving programs SC semantics is a very strong guarantee, even with the C++11/C11/Java qualifier &#8220;if you don&#8217;t write races,&#8221; and it&#8217;s important because it&#8217;s the only thing that anyone has been able to show mainstream developers can reason about successfully.</p>
+<p>@Dave: Synchronizing using mutexes/cvs is what we prefer to teach people to use by default. Programming using SC atomics is indeed experts-only difficulty, but unfortunately it&#8217;s also justified more often than I would like (e.g., DCL, reference counting, and several other common patterns some of which should be wrapped in types but can&#8217;t always be) and so it turns out that we still have to teach SC atomics techniques to advanced-but-mainstream C++ programmers. However, programming using weaker-than-SC atomics is yet another major level of difficulty beyond that, and I don&#8217;t know if there are 100 people in the world who can reliably use those directly; I&#8217;m still trying to discourage resorting to them, although there currently are performance reasons to reach for them on ARMv7 and POWER. There is a difference of opinion among experts as to whether weaker-than-SC atomics are fully going away or not (e.g., they are lingering in 1000+ core count supercomputing applications), but with ARMv8 in particular the industry momentum in mainstream processors is going in the direction of seeing the performance carrot shrinking and disappearing for resorting to weaker-than-SC models.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5903">
+		<div id="div-comment-5903">
+		<div class="cmtinfo"><em> on <a href="#comment-5903" title="">2012-08-04 at 3:11 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/827b1643b9e1ac6af6a9341db5bd3f6a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.ffconsultancy.com' rel='external nofollow' class='url'>Jon Harrop</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5903"></div><p>&#8220;x86 has always been the poster child for a strong (hardware) memory model&#8221;</p>
+<p>FWIW, memory model researchers at the University of Cambridge regard x86 as having a weak memory model:</p>
+<p><a href="http://www.cl.cam.ac.uk/~pes20/weakmemory/cacm.pdf" rel="nofollow">http://www.cl.cam.ac.uk/~pes20/weakmemory/cacm.pdf</a></p>
+<p>And memory model researchers at the University of Oxford also regard x86 as having a weak memory model:</p>
+<p><a href="http://www.cs.ox.ac.uk/people/jade.alglave/papers/aplas11.pdf" rel="nofollow">http://www.cs.ox.ac.uk/people/jade.alglave/papers/aplas11.pdf</a></p>
+<p>The reason is that they regard a strong model as one where all memory operations are sequentially consistent. That is obviously not true of x86 because it reorders independent reads so x86 is a weak memory model by that definition.</p>
+<p>I had never seen your definitions before but your previous statements make sense in their context. You were saying that only atomics will be sequentially consistent in future architectures.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5896">
+		<div id="div-comment-5896">
+		<div class="cmtinfo"><em> on <a href="#comment-5896" title="">2012-08-03 at 8:17 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/5b45540ae377ec54a071f313b7193a27?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://daveabrahams.com' rel='external nofollow' class='url'>Dave Abrahams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5896"></div><p>I&#8217;m still not pretending to be an expert in this area, but to the best of my understanding (and please correct me if I&#8217;m wrong), </p>
+<p>• SC-DRF has been efficiently implemented on PowerPC for higher-level threading primitives like mutexes, locks, and condition variables.<br />
+• PowerPC&#8217;s weaker atomics are also sometimes less expensive<br />
+• In some lock-free algorithms you don&#8217;t need sequential consistency for every operation, and at those times, the PPC model can be more efficient<br />
+• It can be a lot harder to write some lock-free algorithms without SC-DRF atomics.</p>
+<p>If that&#8217;s the case, I don&#8217;t understand the evolutionary pressure you imply exists toward SC-DRF atomics.  After all, lock-free programming is still (and probably always will be) considered an experts-only domain, and everybody else is supposed to use the higher-level primitives, which all have the SC-DRF property.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5890">
+		<div id="div-comment-5890">
+		<div class="cmtinfo"><em> on <a href="#comment-5890" title="">2012-08-02 at 4:45 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/fc4eea8bf863a9a9bd32abf7883cc3af?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://cpptruths.blogspot.com' rel='external nofollow' class='url'>Sumant Tambe</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5890"></div><p>I&#8217;m happy to know that &#8220;strong&#8221; memory models are taking a stronghold! The definitions of &#8220;weak&#8221; and &#8220;strong&#8221; make sense to me for a single core but for many-core processors I think the memory models should be defined more broadly. For instance, Intel SCC (<a href="http://communities.intel.com/community/marc" rel="nofollow">http://communities.intel.com/community/marc</a>) has 48 Pentium P54C cores but it provides no mechanism for cache coherence between the cores (<a href="http://communities.intel.com/docs/DOC-5512" rel="nofollow">http://communities.intel.com/docs/DOC-5512</a>). I believe the individial cores provide sequential consistency but I would not call the chip&#8217;s overall memory model &#8220;strong&#8221; due to the lack of hardware supported cache coherence. Perhaps it is further evidence that &#8220;weak&#8221; and &#8220;strong&#8221; is not the right way of thinking about it. Is cache coherence between cores orthogonal to the &#8220;weak&#8221; and &#8220;strong&#8221; models you are talking about? More importatnly, do you think such cache incoherent architectures would be common in future?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5889">
+		<div id="div-comment-5889">
+		<div class="cmtinfo"><em> on <a href="#comment-5889" title="">2012-08-02 at 11:34 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/b78ea06cf6ec29eea1d0cc82aab5f998?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jeff Hammond</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5889"></div><p>Alex: No, I&#8217;m not talking about lwarx+stwcx, which are not scalable, but certainly do not go on forever (assuming no user error).  There are special store instructions for BQC that do store-with-increment, etc. as a single instruction that is applied in the L2 itself. The documentation will be eventually at <a href="https://bgq.anl-external.org/wiki/index.php/Main_Page" rel="nofollow">https://bgq.anl-external.org/wiki/index.php/Main_Page</a> when we have time to upload it.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5888">
+		<div id="div-comment-5888">
+		<div class="cmtinfo"><em> on <a href="#comment-5888" title="">2012-08-02 at 11:14 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1bf192d786057c786aa0a98c81e62ba2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alex Buynytskyy</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5888"></div><p>2Jeff Hammond:<br />
+Can you please clarify your point about hardware atomics on PowerPC?<br />
+From my knowledge to make an atomic operation you have to lock L2 cache line, then do, then check if it&#8217;s OK. If it&#8217;s not OK, you should do it again. So this kind of cycle can go on forever.<br />
+Potentially it&#8217;s more powerful since you can do all operations you want and then try to &#8220;commit&#8221; all cache-line. But on practice it&#8217;s very difficult to use.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-5886">
+		<div id="div-comment-5886">
+		<div class="cmtinfo"><em> on <a href="#comment-5886" title="">2012-08-02 at 10:29 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/b78ea06cf6ec29eea1d0cc82aab5f998?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jeff Hammond</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5886"></div><p>Your definition of strong and weak memory models is somewhat inconsistent with every other one I\’ve seen, which are talking about the ordering of conventional loads and stores, not presence or absence of single-instruction atomics.</p>
+<p>The Blue Gene/Q compute chip (BQC), which PowerPC with extensions, is very much weak in the traditional sense of PowerPC, but also provides hardware atomics in the L2 cache that are probably superior to anything you can get from x86.</p>
+<p>The BQC also has hardware transaction memory, which allows one to do far richer lock-free algorithms than x86.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-5883">
+		<div id="div-comment-5883">
+		<div class="cmtinfo"><em> on <a href="#comment-5883" title="">2012-08-02 at 8:12 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/18c4b79a7fd7e606866246ff5991c7eb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/mjklaim' rel='external nofollow' class='url'>mjklaim</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_5883"></div><p>Hi Herb, </p>
+<p>I didn&#8217;t understand everything you explained even after having watched before the video that you mention here. However I think it&#8217;s a great opportunity for me to learn about that, thanks.</p>
+<p>By the way, here is a suggestions related to one of the GOTW (we can&#8217;t comment the pages): In GOTW #100 and #101 you suggest using std::unique_ptr in the implementation of the class exposing the interface, while this pointer would hold the implementation. I think it might be very useful to add to the document the case where your class is the interface of a shared library that is supposed to be accessible by other compilers or versions of compilers or binaries with different compilation builds, because std::unique_ptr is a class template. Visual Studio compilers notify the programmer through a warning so it is obvious when you try, but it might be good to specify in such a great article that it is no use in this case. There seem to be a way to compile the specific instance of the template used, and then expose it in the interface of the shared library, but it is not very clear to me yet.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2012/08/02/strong-and-weak-hardware-memory-models/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-3eba4d4d15d1947dacf23eb48ad48153">
+	</div>
+	<div class="grofile-hash-map-827b1643b9e1ac6af6a9341db5bd3f6a">
+	</div>
+	<div class="grofile-hash-map-5b45540ae377ec54a071f313b7193a27">
+	</div>
+	<div class="grofile-hash-map-fc4eea8bf863a9a9bd32abf7883cc3af">
+	</div>
+	<div class="grofile-hash-map-b78ea06cf6ec29eea1d0cc82aab5f998">
+	</div>
+	<div class="grofile-hash-map-1bf192d786057c786aa0a98c81e62ba2">
+	</div>
+	<div class="grofile-hash-map-18c4b79a7fd7e606866246ff5991c7eb">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_13232={"id":468178,"unique_id":"wp-comment-13232","title":"%40Ragavendra%3A%20If%20I%20wrote%20a%20formal%20reference%20on%20a%20paper%20it%20would%20be%3A%20%26quot%3BJem%20Davies%20and%20Richard%20Grisenthwaite%2C%20personal%20communication%2C%20June%202012.%26quot%3B%20Jem%20and%20Richard%20are%20The%20Guys%20--%20the%20primary%20ARM%20proce...","permalink":"https:\/\/herbsutter.com\/2012\/08\/02\/strong-and-weak-hardware-memory-models\/#comment-13232","item_id":"_comm_13232"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13232 == 'undefined' ){PDRTJS_468178_comm_13232 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13232 );}}PDRTJS_settings_468178_comm_13229={"id":468178,"unique_id":"wp-comment-13229","title":"%26quot%3BARM%20GPUs%20currently%20have%20a%20stronger%20memory%20model%2C%20namely%20fully%20SC%26quot%3B.I%26%23039%3Bve%20been%20reading%20about%20ARM%20GPU%20memory%20models%20and%20cannot%20find%20a%20reference%20that%20states%20they%20have%20SC%20model.%20Can%20you%20please%20provide...","permalink":"https:\/\/herbsutter.com\/2012\/08\/02\/strong-and-weak-hardware-memory-models\/#comment-13229","item_id":"_comm_13229"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13229 == 'undefined' ){PDRTJS_468178_comm_13229 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13229 );}}PDRTJS_settings_468178_comm_5904={"id":468178,"unique_id":"wp-comment-5904","title":"%40Jon%3A%20This%20was%20the%20terminology%20we%20used%20during%20the%20C%2B%2B%20and%20C%20memory%20model%20discussions%20%28and%20Java%2C%20which%20I%20wasn%26%23039%3Bt%20involved%20with%20but%20did%20involve%20many%20of%20the%20same%20people%29%3A%20We%20talked%20about%20x86%20as%20the%20p...","permalink":"https:\/\/herbsutter.com\/2012\/08\/02\/strong-and-weak-hardware-memory-models\/#comment-5904","item_id":"_comm_5904"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5904 == 'undefined' ){PDRTJS_468178_comm_5904 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5904 );}}PDRTJS_settings_468178_comm_5903={"id":468178,"unique_id":"wp-comment-5903","title":"%26quot%3Bx86%20has%20always%20been%20the%20poster%20child%20for%20a%20strong%20%28hardware%29%20memory%20model%26quot%3BFWIW%2C%20memory%20model%20researchers%20at%20the%20University%20of%20Cambridge%20regard%20x86%20as%20having%20a%20weak%20memory%20model%3Ahttp%3A%2F%2Fwww.cl.cam...","permalink":"https:\/\/herbsutter.com\/2012\/08\/02\/strong-and-weak-hardware-memory-models\/#comment-5903","item_id":"_comm_5903"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5903 == 'undefined' ){PDRTJS_468178_comm_5903 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5903 );}}PDRTJS_settings_468178_comm_5896={"id":468178,"unique_id":"wp-comment-5896","title":"I%26%23039%3Bm%20still%20not%20pretending%20to%20be%20an%20expert%20in%20this%20area%2C%20but%20to%20the%20best%20of%20my%20understanding%20%28and%20please%20correct%20me%20if%20I%26%23039%3Bm%20wrong%29%2C%20SC-DRF%20has%20been%20efficiently%20implemented%20on%20PowerPC%20for%20higher-leve...","permalink":"https:\/\/herbsutter.com\/2012\/08\/02\/strong-and-weak-hardware-memory-models\/#comment-5896","item_id":"_comm_5896"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5896 == 'undefined' ){PDRTJS_468178_comm_5896 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5896 );}}PDRTJS_settings_468178_comm_5890={"id":468178,"unique_id":"wp-comment-5890","title":"I%26%23039%3Bm%20happy%20to%20know%20that%20%26quot%3Bstrong%26quot%3B%20memory%20models%20are%20taking%20a%20stronghold%21%20The%20definitions%20of%20%26quot%3Bweak%26quot%3B%20and%20%26quot%3Bstrong%26quot%3B%20make%20sense%20to%20me%20for%20a%20single%20core%20but%20for%20many-core%20processors%20I%20think%20the%20memory%20mo...","permalink":"https:\/\/herbsutter.com\/2012\/08\/02\/strong-and-weak-hardware-memory-models\/#comment-5890","item_id":"_comm_5890"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5890 == 'undefined' ){PDRTJS_468178_comm_5890 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5890 );}}PDRTJS_settings_468178_comm_5889={"id":468178,"unique_id":"wp-comment-5889","title":"Alex%3A%20No%2C%20I%26%23039%3Bm%20not%20talking%20about%20lwarx%2Bstwcx%2C%20which%20are%20not%20scalable%2C%20but%20certainly%20do%20not%20go%20on%20forever%20%28assuming%20no%20user%20error%29.%20%20There%20are%20special%20store%20instructions%20for%20BQC%20that%20do%20store-with-...","permalink":"https:\/\/herbsutter.com\/2012\/08\/02\/strong-and-weak-hardware-memory-models\/#comment-5889","item_id":"_comm_5889"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5889 == 'undefined' ){PDRTJS_468178_comm_5889 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5889 );}}PDRTJS_settings_468178_comm_5888={"id":468178,"unique_id":"wp-comment-5888","title":"2Jeff%20Hammond%3ACan%20you%20please%20clarify%20your%20point%20about%20hardware%20atomics%20on%20PowerPC%3FFrom%20my%20knowledge%20to%20make%20an%20atomic%20operation%20you%20have%20to%20lock%20L2%20cache%20line%2C%20then%20do%2C%20then%20check%20if%20it%26%23039%3Bs%20OK.%20If%20...","permalink":"https:\/\/herbsutter.com\/2012\/08\/02\/strong-and-weak-hardware-memory-models\/#comment-5888","item_id":"_comm_5888"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5888 == 'undefined' ){PDRTJS_468178_comm_5888 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5888 );}}PDRTJS_settings_468178_comm_5886={"id":468178,"unique_id":"wp-comment-5886","title":"Your%20definition%20of%20strong%20and%20weak%20memory%20models%20is%20somewhat%20inconsistent%20with%20every%20other%20one%20I%0Be%20seen%2C%20which%20are%20talking%20about%20the%20ordering%20of%20conventional%20loads%20and%20stores%2C%20not%20presence%20or%20ab...","permalink":"https:\/\/herbsutter.com\/2012\/08\/02\/strong-and-weak-hardware-memory-models\/#comment-5886","item_id":"_comm_5886"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5886 == 'undefined' ){PDRTJS_468178_comm_5886 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5886 );}}PDRTJS_settings_468178_comm_5883={"id":468178,"unique_id":"wp-comment-5883","title":"Hi%20Herb%2C%20I%20didn%26%23039%3Bt%20understand%20everything%20you%20explained%20even%20after%20having%20watched%20before%20the%20video%20that%20you%20mention%20here.%20However%20I%20think%20it%26%23039%3Bs%20a%20great%20opportunity%20for%20me%20to%20learn%20about%20that%2C%20thanks...","permalink":"https:\/\/herbsutter.com\/2012\/08\/02\/strong-and-weak-hardware-memory-models\/#comment-5883","item_id":"_comm_5883"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_5883 == 'undefined' ){PDRTJS_468178_comm_5883 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_5883 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F08%2F02%2Fstrong-and-weak-hardware-memory-models%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2012\/08\/02\/strong-and-weak-hardware-memory-models\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2012%2F08%2F02%2Fstrong-and-weak-hardware-memory-models%2F","postID":"1590","shortlink":"https:\/\/wp.me\/peb5Y-pE","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/1590","statsLink":"https:\/\/wordpress.com\/stats\/post\/1590\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F08%2F02%2Fstrong-and-weak-hardware-memory-models%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'1590','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLjZ3cWhtTi1+a1NEZ35rPzFBRlVTJVNUWnNGZTRDMmRmK3lmMVBhUzc3NUZ8Z1JnbUZVLz9vJTMwWy8sJVpQMFNkcTZYVzVpLFRFTSVbcnE1SzEwYVJBUn5zY2xSUmFyanordHVxVmg3UGtiZ1dCY2JdZmM2VUREK2NYLXpSW1hvLVV0NDQvXXQ/Y0Zwa2dPbllDUWtsVS5wLE8lbTVjTmRpdVRzMzN4dFAlK1JZUWNzPzBuVGNWVGxiWHNFfjhKVFVsV1J8cg=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '1590' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

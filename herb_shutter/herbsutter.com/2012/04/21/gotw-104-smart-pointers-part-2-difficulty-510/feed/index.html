@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #104: Smart Pointers, Part 2 (Difficulty: 5/10)	</title>
+	<atom:link href="https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: alleey				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5373</link>
+		<dc:creator><![CDATA[alleey]]></dc:creator>
+		<pubDate>Fri, 27 Apr 2012 15:09:23 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5373</guid>
+					<description><![CDATA[1.1 Widget can not have non-public destructor and still the callers can own - therefore delete - it.
+1.2 Callers can either own or not own the widget. To mix the two the ownership needs must be explicitly checked for like widget::is_ownable(). This is a nuisance.
+1.3 It is not possible to return from the same implementation say a static Null_Widget (for whatever reason) or a heap based widget. Special case of 1.2.
+
+2. unique_ptr or shared_ptr can bind to a Deleter that makes possible use of private destructors. Also, with special deleters static or heap based objects can be returned - the deleter for static would be void.
+
+Some people have mentioned return by reference - widget sounds polymorphic to me!
+
+3. auto and move semantics. (without move unique_ptr isnt returnable)]]></description>
+		<content:encoded><![CDATA[<p>1.1 Widget can not have non-public destructor and still the callers can own &#8211; therefore delete &#8211; it.<br />
+1.2 Callers can either own or not own the widget. To mix the two the ownership needs must be explicitly checked for like widget::is_ownable(). This is a nuisance.<br />
+1.3 It is not possible to return from the same implementation say a static Null_Widget (for whatever reason) or a heap based widget. Special case of 1.2.</p>
+<p>2. unique_ptr or shared_ptr can bind to a Deleter that makes possible use of private destructors. Also, with special deleters static or heap based objects can be returned &#8211; the deleter for static would be void.</p>
+<p>Some people have mentioned return by reference &#8211; widget sounds polymorphic to me!</p>
+<p>3. auto and move semantics. (without move unique_ptr isnt returnable)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: innochenti				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5348</link>
+		<dc:creator><![CDATA[innochenti]]></dc:creator>
+		<pubDate>Wed, 25 Apr 2012 18:30:01 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5348</guid>
+					<description><![CDATA[oh god, again. 
+template left bracket widget rigth bracket
+using MyPtr = std::shared_ptr left bracket widget rigth bracket
+
+Now in all places we can just write MyPtr]]></description>
+		<content:encoded><![CDATA[<p>oh god, again.<br />
+template left bracket widget rigth bracket<br />
+using MyPtr = std::shared_ptr left bracket widget rigth bracket</p>
+<p>Now in all places we can just write MyPtr</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: innochenti				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5347</link>
+		<dc:creator><![CDATA[innochenti]]></dc:creator>
+		<pubDate>Wed, 25 Apr 2012 18:28:52 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5347</guid>
+					<description><![CDATA[By the way, for 3rd case we can use new feature
+template  
+using MyPtr = std::shared_ptr;]]></description>
+		<content:encoded><![CDATA[<p>By the way, for 3rd case we can use new feature<br />
+template<br />
+using MyPtr = std::shared_ptr;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Adrian				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5344</link>
+		<dc:creator><![CDATA[Adrian]]></dc:creator>
+		<pubDate>Wed, 25 Apr 2012 17:08:29 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5344</guid>
+					<description><![CDATA[1.  The raw pointer doesn&#039;t make it clear to the caller who&#039;s responsible for the lifetime of the widget.
+
+This appears to be a free function rather than a method of a class, which suggests that there is no factor entity that actually owns the widget.  So either the caller is responsible to later delete the object, or there&#039;s a static singleton factory object that owns the widget and will delete it at the end of the execution.  Neither seems likely in modern code.
+
+2.  My inclination is to return the widget by value rather than by reference.  But there are various good reasons why this function might return a (raw or smart) pointer to a widget rather than the widget itself: (1) the right (derived) type can only be determined at runtime and thus it must be dynamically allocated, (2) performance concerns about returning a large object by value, (3) the ability to indicate failure by returning nullptr, (4) whether sharing of the widget is allowed or even desired.
+
+To accommodate those options, people seem to be assuming that the choices are (1) unique_ptr, or (2) shared_ptr.  But the best choice depends a lot on circumstances that aren&#039;t provided.
+
+This makes me think of pimpl.  Let&#039;s rename widget to widget_impl, and make a new widget that provides the same interface.  This new widget needs a pointer to the implementation, and we can decide *there* what type of pointer it should be, what the lifetime and sharabilty rules are.  Effectively, the pimpl class is a smart pointer.  widget presents the same interface, even if the actual object is some derived class only known at runtime.  We can return a widget efficiently, even if a widget_impl is ungainly.  We could return a zombie implementation if there&#039;s a failure.  And the sharing rules can be baked into how widget handles copy and assignment.
+
+In the olden days (or when making a C-compatible API), we&#039;d return some small opaque type and call it a handle.  Pimpl is a handle with a lot of syntactic sugar that lets us say w.frobnicate() rather than frobnicate(h).
+
+3.  A pimpl solution would require the all of the calling code to change (all the w-&#062;frobnicate()s must become w.frobnicates()s).  Although that&#039;s a purely mechanical change, the fact that it&#039;s a change at all suggests that this isn&#039;t the answer you&#039;re looking for.
+
+So that brings us back to shared_ptr and unique_ptr.  I supposed you could typedef a widget_ptr to one or the other, which gives you the flexibility to decide the sharing rules separately.  But that still requires at least some changes in the calling code since the caller is likely calling delete on the pointer later, and that would be inappropriate if we swapping in a smart pointer.]]></description>
+		<content:encoded><![CDATA[<p>1.  The raw pointer doesn&#8217;t make it clear to the caller who&#8217;s responsible for the lifetime of the widget.</p>
+<p>This appears to be a free function rather than a method of a class, which suggests that there is no factor entity that actually owns the widget.  So either the caller is responsible to later delete the object, or there&#8217;s a static singleton factory object that owns the widget and will delete it at the end of the execution.  Neither seems likely in modern code.</p>
+<p>2.  My inclination is to return the widget by value rather than by reference.  But there are various good reasons why this function might return a (raw or smart) pointer to a widget rather than the widget itself: (1) the right (derived) type can only be determined at runtime and thus it must be dynamically allocated, (2) performance concerns about returning a large object by value, (3) the ability to indicate failure by returning nullptr, (4) whether sharing of the widget is allowed or even desired.</p>
+<p>To accommodate those options, people seem to be assuming that the choices are (1) unique_ptr, or (2) shared_ptr.  But the best choice depends a lot on circumstances that aren&#8217;t provided.</p>
+<p>This makes me think of pimpl.  Let&#8217;s rename widget to widget_impl, and make a new widget that provides the same interface.  This new widget needs a pointer to the implementation, and we can decide *there* what type of pointer it should be, what the lifetime and sharabilty rules are.  Effectively, the pimpl class is a smart pointer.  widget presents the same interface, even if the actual object is some derived class only known at runtime.  We can return a widget efficiently, even if a widget_impl is ungainly.  We could return a zombie implementation if there&#8217;s a failure.  And the sharing rules can be baked into how widget handles copy and assignment.</p>
+<p>In the olden days (or when making a C-compatible API), we&#8217;d return some small opaque type and call it a handle.  Pimpl is a handle with a lot of syntactic sugar that lets us say w.frobnicate() rather than frobnicate(h).</p>
+<p>3.  A pimpl solution would require the all of the calling code to change (all the w-&gt;frobnicate()s must become w.frobnicates()s).  Although that&#8217;s a purely mechanical change, the fact that it&#8217;s a change at all suggests that this isn&#8217;t the answer you&#8217;re looking for.</p>
+<p>So that brings us back to shared_ptr and unique_ptr.  I supposed you could typedef a widget_ptr to one or the other, which gives you the flexibility to decide the sharing rules separately.  But that still requires at least some changes in the calling code since the caller is likely calling delete on the pointer later, and that would be inappropriate if we swapping in a smart pointer.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Laurent NAVARRO				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5337</link>
+		<dc:creator><![CDATA[Laurent NAVARRO]]></dc:creator>
+		<pubDate>Wed, 25 Apr 2012 13:41:07 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5337</guid>
+					<description><![CDATA[Hello,
+
+ 1) as Already said, who own it ?
+ 2) Use a smart pointer, an unique_ptr explain you are the only owner, you can share later it if you wish
+ 3) The request (as I understood it) is to do not break the compatibility, not to have smart_pointer features on raw pointer
+
+ Then my idea is to said, if you assign it to an unique_ptr you got a smart pointer
+ if you assign it to a raw pointer it&#039;s like before.
+
+ My idea is to use a intermediate class acting as unique_ptr with a cast operator to widget* which release it.
+
+class widgetUniquePtr : public std::unique_ptr
+{
+public:
+    widgetUniquePtr(widget *Ptr) :std::unique_ptr(Ptr)
+    { }
+    widgetUniquePtr(widgetUniquePtr &#038;Ptr):std::unique_ptr(Ptr.get())
+    { }
+    operator widget* ()
+    {
+        return release();
+    }
+};
+
+Exemple of load_widget
+widgetUniquePtr load_widget(std::string _Name)
+{
+    widgetUniquePtr w(new widget(_Name));
+    return w;
+}
+
+Exemple of client code.
+std::unique_ptr Test_unptr(load_widget(&quot;W7&quot;));
+widget* TestRawPtr=load_widget(&quot;W1&quot;);]]></description>
+		<content:encoded><![CDATA[<p>Hello,</p>
+<p> 1) as Already said, who own it ?<br />
+ 2) Use a smart pointer, an unique_ptr explain you are the only owner, you can share later it if you wish<br />
+ 3) The request (as I understood it) is to do not break the compatibility, not to have smart_pointer features on raw pointer</p>
+<p> Then my idea is to said, if you assign it to an unique_ptr you got a smart pointer<br />
+ if you assign it to a raw pointer it&#8217;s like before.</p>
+<p> My idea is to use a intermediate class acting as unique_ptr with a cast operator to widget* which release it.</p>
+<p>class widgetUniquePtr : public std::unique_ptr<br />
+{<br />
+public:<br />
+    widgetUniquePtr(widget *Ptr) :std::unique_ptr(Ptr)<br />
+    { }<br />
+    widgetUniquePtr(widgetUniquePtr &amp;Ptr):std::unique_ptr(Ptr.get())<br />
+    { }<br />
+    operator widget* ()<br />
+    {<br />
+        return release();<br />
+    }<br />
+};</p>
+<p>Exemple of load_widget<br />
+widgetUniquePtr load_widget(std::string _Name)<br />
+{<br />
+    widgetUniquePtr w(new widget(_Name));<br />
+    return w;<br />
+}</p>
+<p>Exemple of client code.<br />
+std::unique_ptr Test_unptr(load_widget(&#8220;W7&#8221;));<br />
+widget* TestRawPtr=load_widget(&#8220;W1&#8221;);</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: nunu				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5318</link>
+		<dc:creator><![CDATA[nunu]]></dc:creator>
+		<pubDate>Tue, 24 Apr 2012 23:40:20 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5318</guid>
+					<description><![CDATA[Hi guys,
+
+From my every day live I can say that If you know that your factory function is used in millions lines of code, you should do something like this:
+
+typedef std::shared_ptr widget_ptr;
+widget_ptr load_widget(widget::id desired);
+
+And all client code should use widget_ptr instead of hardcoded shared_ptr. widget_ptr should be treated as an abstract pointer. Believe me, typedef is wonderful. It allows you to change only several lines of code, recompile and be happy :)
+
+Thanks]]></description>
+		<content:encoded><![CDATA[<p>Hi guys,</p>
+<p>From my every day live I can say that If you know that your factory function is used in millions lines of code, you should do something like this:</p>
+<p>typedef std::shared_ptr widget_ptr;<br />
+widget_ptr load_widget(widget::id desired);</p>
+<p>And all client code should use widget_ptr instead of hardcoded shared_ptr. widget_ptr should be treated as an abstract pointer. Believe me, typedef is wonderful. It allows you to change only several lines of code, recompile and be happy :)</p>
+<p>Thanks</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: innochenti				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5307</link>
+		<dc:creator><![CDATA[innochenti]]></dc:creator>
+		<pubDate>Tue, 24 Apr 2012 09:48:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5307</guid>
+					<description><![CDATA[oops, in last sentence should be
+auto ptr = factory-&#062;create left_bracket texture right_bracket(&quot;texture1&quot;);]]></description>
+		<content:encoded><![CDATA[<p>oops, in last sentence should be<br />
+auto ptr = factory-&gt;create left_bracket texture right_bracket(&#8220;texture1&#8221;);</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: innochenti				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5306</link>
+		<dc:creator><![CDATA[innochenti]]></dc:creator>
+		<pubDate>Tue, 24 Apr 2012 09:46:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5306</guid>
+					<description><![CDATA[1. there is nothing wrong with this code. I would say there is problem with input parameter. What if id is std::string? const widget::id&#038; would be fine. :)
+
+2. it depends on resource strategy control. If widget can be shared and application is multi-threaded - it definitely needs std::shared_ptr. In single threaded application boost::intrusive_ptr is great solution.
+If widget is unique resource - your choice is std::unique_ptr.
+raw pointer is also ok. Imagine scene graph where nodes are created by factory and deleted only by their parents.
+
+3. I don&#039;t think that auto should be used in cases like this:
+auto ptr = factory-&#062;create(&quot;texture1&quot;);
+It doesn&#039;t say anything about ptr type. I don&#039;t understand people who writes auto everywhere. 
+BUT, if your factory has template method that receives type, then following is ok:
+auto ptr = factory-&#062;create(&quot;texture&quot;);]]></description>
+		<content:encoded><![CDATA[<p>1. there is nothing wrong with this code. I would say there is problem with input parameter. What if id is std::string? const widget::id&amp; would be fine. :)</p>
+<p>2. it depends on resource strategy control. If widget can be shared and application is multi-threaded &#8211; it definitely needs std::shared_ptr. In single threaded application boost::intrusive_ptr is great solution.<br />
+If widget is unique resource &#8211; your choice is std::unique_ptr.<br />
+raw pointer is also ok. Imagine scene graph where nodes are created by factory and deleted only by their parents.</p>
+<p>3. I don&#8217;t think that auto should be used in cases like this:<br />
+auto ptr = factory-&gt;create(&#8220;texture1&#8221;);<br />
+It doesn&#8217;t say anything about ptr type. I don&#8217;t understand people who writes auto everywhere.<br />
+BUT, if your factory has template method that receives type, then following is ok:<br />
+auto ptr = factory-&gt;create(&#8220;texture&#8221;);</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mjklaim				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5302</link>
+		<dc:creator><![CDATA[mjklaim]]></dc:creator>
+		<pubDate>Tue, 24 Apr 2012 01:45:03 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5302</guid>
+					<description><![CDATA[I think your owned_ptr might be to expensive to use compared to something that only avoid you to delete the pointed object.]]></description>
+		<content:encoded><![CDATA[<p>I think your owned_ptr might be to expensive to use compared to something that only avoid you to delete the pointed object.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Nico M				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5300</link>
+		<dc:creator><![CDATA[Nico M]]></dc:creator>
+		<pubDate>Mon, 23 Apr 2012 20:05:51 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5300</guid>
+					<description><![CDATA[Loïc Joly&#062; I agree with you with the fact that there is something missing for that purpose. 
+For the solution, my first idea was just the same as yours. But after thinking a bit more to this, I think it is just the wrong one.
+Instead, I think the right way would be to add a pointer wich will be more like a unique_ptr (say owner_ptr for example). 
+Basically, an owner_ptr will be just like a unique_ptr. It will have a pointer to the widget and won&#039;t share ownership with any other pointer. But you will be able to create a weak_ptr from an owner_ptr, so that you can share the widget without sharing ownership. As for the shared_ptr, it will embded a weak_reference counter, so that you will also be able to access the data after the owner_ptr have released it. The widget will only be deleted after the weak_references counter reached 0, avoiding hard to find bugs. (I thinks this can be particullary usefull in mutlithreaded scenarios, where you can easilly access a data wich have just been deleted without you being aware of that).
+
+Note that this has another advantage: 
+If at a time, you must, for any reason, change the internal structure of your class and replace the owner_ptr by a shared_ptr, this won&#039;t change the signature of your public method, since you always return a weak_ptr. In your case, you will have to change the ref_ptr by a weak_ptr, wich can potentially break things.]]></description>
+		<content:encoded><![CDATA[<p>Loïc Joly&gt; I agree with you with the fact that there is something missing for that purpose.<br />
+For the solution, my first idea was just the same as yours. But after thinking a bit more to this, I think it is just the wrong one.<br />
+Instead, I think the right way would be to add a pointer wich will be more like a unique_ptr (say owner_ptr for example).<br />
+Basically, an owner_ptr will be just like a unique_ptr. It will have a pointer to the widget and won&#8217;t share ownership with any other pointer. But you will be able to create a weak_ptr from an owner_ptr, so that you can share the widget without sharing ownership. As for the shared_ptr, it will embded a weak_reference counter, so that you will also be able to access the data after the owner_ptr have released it. The widget will only be deleted after the weak_references counter reached 0, avoiding hard to find bugs. (I thinks this can be particullary usefull in mutlithreaded scenarios, where you can easilly access a data wich have just been deleted without you being aware of that).</p>
+<p>Note that this has another advantage:<br />
+If at a time, you must, for any reason, change the internal structure of your class and replace the owner_ptr by a shared_ptr, this won&#8217;t change the signature of your public method, since you always return a weak_ptr. In your case, you will have to change the ref_ptr by a weak_ptr, wich can potentially break things.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Dave Harris				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5295</link>
+		<dc:creator><![CDATA[Dave Harris]]></dc:creator>
+		<pubDate>Mon, 23 Apr 2012 09:50:29 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5295</guid>
+					<description><![CDATA[Vincent, returning a Widget by value won&#039;t work if load_widget may actually return a derived class for some values of id (or if it may change to do that in future). It also will break caller code that uses operator-&#062;().]]></description>
+		<content:encoded><![CDATA[<p>Vincent, returning a Widget by value won&#8217;t work if load_widget may actually return a derived class for some values of id (or if it may change to do that in future). It also will break caller code that uses operator-&gt;().</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mjklaim				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5293</link>
+		<dc:creator><![CDATA[mjklaim]]></dc:creator>
+		<pubDate>Mon, 23 Apr 2012 06:48:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5293</guid>
+					<description><![CDATA[Loïc Joly&#062; Nice idea. I would have call such a pointer ref_ptr (if it&#039;s not already taken...).
+One important thing with it would be that it would forbid deleting. (without using .release() or .get() ... if they are provided)]]></description>
+		<content:encoded><![CDATA[<p>Loïc Joly&gt; Nice idea. I would have call such a pointer ref_ptr (if it&#8217;s not already taken&#8230;).<br />
+One important thing with it would be that it would forbid deleting. (without using .release() or .get() &#8230; if they are provided)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Loïc Joly				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5292</link>
+		<dc:creator><![CDATA[Loïc Joly]]></dc:creator>
+		<pubDate>Mon, 23 Apr 2012 06:29:32 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5292</guid>
+					<description><![CDATA[I think this question exemplifies a problem I have with smart pointers, as they are currently defined by the standard. When we have shared_ptr, weak_ptr or unique_ptr, we know exactly what is the semantic associated with the pointer ownership. When we see a raw pointer, it could be one of two things:
+- A non-owning pointer associated with a unique_ptr. You should not delete it. This is a fine idiom.
+- A old-time pointer, where the owning semantic is not clear. You may or may not be responsible to delete it. You should probably avoid this idiom, but most of the existing code is written that way.
+
+I think this could be solved by adding a new smart pointer that is to unique_ptr what weak_ptr is to shared_ptr. It would have the following semantics:
+- Default copy/move constructor and operator=
+- Default destructor (does not delete anything)
+- Can be constructed from a unique_ptr
+- The most important feature of this class is to have a name that states the intend of the code, thereby solving the ambiguity.
+- Optionally, some implementation may use the added semantic provided by this class to provide tracking so that using this pointer when the corresponding unique_ptr destructor has been called results in an easy to debug assert, instead of a hard to debug access to a deleted object. This tracking would add some non acceptable performance cost to unique_ptr, and would be controlled by some compiler flags.
+
+I&#039;ve seen previous answer ask for more documentation of load_widget. I think this class would be a good compiler-enforced documentation.  I don&#039;t mind about the specific name this class may have (maybe non_owning_ptr, or observing_ptr), and I could easily write the class myself, but I&#039;d really love it to be standardized, so that it can become a common idiom that can be taught along with unique_ptr.]]></description>
+		<content:encoded><![CDATA[<p>I think this question exemplifies a problem I have with smart pointers, as they are currently defined by the standard. When we have shared_ptr, weak_ptr or unique_ptr, we know exactly what is the semantic associated with the pointer ownership. When we see a raw pointer, it could be one of two things:<br />
+&#8211; A non-owning pointer associated with a unique_ptr. You should not delete it. This is a fine idiom.<br />
+&#8211; A old-time pointer, where the owning semantic is not clear. You may or may not be responsible to delete it. You should probably avoid this idiom, but most of the existing code is written that way.</p>
+<p>I think this could be solved by adding a new smart pointer that is to unique_ptr what weak_ptr is to shared_ptr. It would have the following semantics:<br />
+&#8211; Default copy/move constructor and operator=<br />
+&#8211; Default destructor (does not delete anything)<br />
+&#8211; Can be constructed from a unique_ptr<br />
+&#8211; The most important feature of this class is to have a name that states the intend of the code, thereby solving the ambiguity.<br />
+&#8211; Optionally, some implementation may use the added semantic provided by this class to provide tracking so that using this pointer when the corresponding unique_ptr destructor has been called results in an easy to debug assert, instead of a hard to debug access to a deleted object. This tracking would add some non acceptable performance cost to unique_ptr, and would be controlled by some compiler flags.</p>
+<p>I&#8217;ve seen previous answer ask for more documentation of load_widget. I think this class would be a good compiler-enforced documentation.  I don&#8217;t mind about the specific name this class may have (maybe non_owning_ptr, or observing_ptr), and I could easily write the class myself, but I&#8217;d really love it to be standardized, so that it can become a common idiom that can be taught along with unique_ptr.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mjklaim				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5289</link>
+		<dc:creator><![CDATA[mjklaim]]></dc:creator>
+		<pubDate>Mon, 23 Apr 2012 01:28:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5289</guid>
+					<description><![CDATA[I don&#039;t believe that returning by copy is a good idea. The reason is that the original code returns by pointer. This suggest that, as in almost all use of factory, whatever the factory create have entity semantic, not value semantic. Returning by copy imply that the type have value semantic, but here the object identity itself is (or seems) important.
+
+Move semantic are for value semantic entities, like copy. Here I think we&#039;re dealing with entity semantic.]]></description>
+		<content:encoded><![CDATA[<p>I don&#8217;t believe that returning by copy is a good idea. The reason is that the original code returns by pointer. This suggest that, as in almost all use of factory, whatever the factory create have entity semantic, not value semantic. Returning by copy imply that the type have value semantic, but here the object identity itself is (or seems) important.</p>
+<p>Move semantic are for value semantic entities, like copy. Here I think we&#8217;re dealing with entity semantic.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: bames53				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5287</link>
+		<dc:creator><![CDATA[bames53]]></dc:creator>
+		<pubDate>Sun, 22 Apr 2012 20:32:26 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5287</guid>
+					<description><![CDATA[1) Assuming that the function is creating a widget resource and returning it to be owned by the caller, the problem is that return type is a raw pointer. This can result in mistakes in resource management where ownership of the widget is not correctly assumed, leading to resource leaks.
+
+2) load_widget should return a resource owning Widget object, copyable or move only as allowed by the resource or as required by the resource&#039;s usage semantics. This could require significant refactoring of load_widget callers and other APIs.
+
+Alternatively returning a shared_ptr to be owned by the caller will probably result in the least impact on other code. shared_ptr has flexible ownership semantics and relieves users of any need for discipline in resource lifetime management. This flexibility comes at the cost of time and memory spent by the shared_ptr doing lifetime management which may not be necessary in a particular case. E.g. the shared_ptr synchronizes its reference count even if all owners guaranteed by construction to be on the same thread.
+
+Another alternative is unique_ptr. unique_ptr compromises between the refactoring necessary to introduce a resource owning Widget type and the performance cost of shared_ptr&#039;s flexibility by imposing a strict &#039;single owner&#039; requirement on the pointer. If the program already maintains a disciplined ownership graph with a single owner for each widget* then dropping in unique_ptr may be relatively easy with no performance cost and relatively few code changes. Owning pointers become unique_ptr, passing the widget to non-owners becomes ptr.get(), ownership transfers (which should be rare to nonexistent) becomes something like ptr_b = std::move(ptr_a); and of course delete or unload_widget disappears.
+
+3) If calling code already uses shared_ptr to capture and manage ownership of the raw pointer then changing load_widget to return a unique_ptr may require no change in to calling code. The calling code is already written to work with shared_ptr, and a shared_ptr can be constructed from a unique_ptr (so long as no deleter or allocator is being used with the shared_ptr).]]></description>
+		<content:encoded><![CDATA[<p>1) Assuming that the function is creating a widget resource and returning it to be owned by the caller, the problem is that return type is a raw pointer. This can result in mistakes in resource management where ownership of the widget is not correctly assumed, leading to resource leaks.</p>
+<p>2) load_widget should return a resource owning Widget object, copyable or move only as allowed by the resource or as required by the resource&#8217;s usage semantics. This could require significant refactoring of load_widget callers and other APIs.</p>
+<p>Alternatively returning a shared_ptr to be owned by the caller will probably result in the least impact on other code. shared_ptr has flexible ownership semantics and relieves users of any need for discipline in resource lifetime management. This flexibility comes at the cost of time and memory spent by the shared_ptr doing lifetime management which may not be necessary in a particular case. E.g. the shared_ptr synchronizes its reference count even if all owners guaranteed by construction to be on the same thread.</p>
+<p>Another alternative is unique_ptr. unique_ptr compromises between the refactoring necessary to introduce a resource owning Widget type and the performance cost of shared_ptr&#8217;s flexibility by imposing a strict &#8216;single owner&#8217; requirement on the pointer. If the program already maintains a disciplined ownership graph with a single owner for each widget* then dropping in unique_ptr may be relatively easy with no performance cost and relatively few code changes. Owning pointers become unique_ptr, passing the widget to non-owners becomes ptr.get(), ownership transfers (which should be rare to nonexistent) becomes something like ptr_b = std::move(ptr_a); and of course delete or unload_widget disappears.</p>
+<p>3) If calling code already uses shared_ptr to capture and manage ownership of the raw pointer then changing load_widget to return a unique_ptr may require no change in to calling code. The calling code is already written to work with shared_ptr, and a shared_ptr can be constructed from a unique_ptr (so long as no deleter or allocator is being used with the shared_ptr).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Eric Duhon (@duhonedd)				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5286</link>
+		<dc:creator><![CDATA[Eric Duhon (@duhonedd)]]></dc:creator>
+		<pubDate>Sun, 22 Apr 2012 20:32:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5286</guid>
+					<description><![CDATA[1) As mjklaim mentioned there are 3 possible use cases. I guess the primary problem with the code as written is that you can&#039;t tell which one is intended. A comment would have helped, but code that is difficult to use incorrectly would be better.
+
+2)
+If ownership is passed to the caller, then I&#039;d go with
+   unique_ptr load_widget( widget::id desired );
+clearly states that ownership is being passed to you.
+
+If ownership is shared then
+   shared_ptr load_widget( widget::id desired );
+
+I&#039;m not as confident about the case where ownership is completely held by the factory. I don&#039;t think returning a raw pointer is a good idea in that case either. The user could turn around and delete it. At the very least you would want
+   widget* const load_widget( widget::id desired );
+Might consider
+   widget&#038; load_widget( widget::id desired );
+but you can&#039;t return nullptr for failure in that case. In the end I think I&#039;ll go with this though
+   weak_ptr load_widget( widget::id desired );
+clearly states that the factory must own it (it must have had a shared_ptr to make the weak). 
+  Also what if the factory decides to destroy the object while your using it(from a different thread maybe)? weak_ptr will help with that. If nothing else you will get an error when you try to make a shared_ptr out of it(lock). The thing I don&#039;t like about this though, is that the user could create a shared_ptr from the weak, and then hold onto it. Would be nice to be able to prevent that. maybe the * const is better because of that.
+  Could probably argue that this &quot;third&quot; case doesn&#039;t really exist though. Still technically &quot;sharing&quot; the object. Its only the length of &quot;time&quot; of the sharing that is different.
+
+3) Depends on the case again. 
+If owner ship is passed to caller, the owner was probably creating a unique_ptr out of the returned ptr anyway, so no change needed. Basically the change just prevents some future bugs (caller forgetting to delete the object, exception safety issues, if they didn&#039;t use a unique_ptr to take the return value)
+
+Other cases are more problematic. I don&#039;t see anyway not modifying existing code would be possible. In these cases, the existing api would just be trusting on the caller to &quot;do the right thing&quot;.]]></description>
+		<content:encoded><![CDATA[<p>1) As mjklaim mentioned there are 3 possible use cases. I guess the primary problem with the code as written is that you can&#8217;t tell which one is intended. A comment would have helped, but code that is difficult to use incorrectly would be better.</p>
+<p>2)<br />
+If ownership is passed to the caller, then I&#8217;d go with<br />
+   unique_ptr load_widget( widget::id desired );<br />
+clearly states that ownership is being passed to you.</p>
+<p>If ownership is shared then<br />
+   shared_ptr load_widget( widget::id desired );</p>
+<p>I&#8217;m not as confident about the case where ownership is completely held by the factory. I don&#8217;t think returning a raw pointer is a good idea in that case either. The user could turn around and delete it. At the very least you would want<br />
+   widget* const load_widget( widget::id desired );<br />
+Might consider<br />
+   widget&amp; load_widget( widget::id desired );<br />
+but you can&#8217;t return nullptr for failure in that case. In the end I think I&#8217;ll go with this though<br />
+   weak_ptr load_widget( widget::id desired );<br />
+clearly states that the factory must own it (it must have had a shared_ptr to make the weak).<br />
+  Also what if the factory decides to destroy the object while your using it(from a different thread maybe)? weak_ptr will help with that. If nothing else you will get an error when you try to make a shared_ptr out of it(lock). The thing I don&#8217;t like about this though, is that the user could create a shared_ptr from the weak, and then hold onto it. Would be nice to be able to prevent that. maybe the * const is better because of that.<br />
+  Could probably argue that this &#8220;third&#8221; case doesn&#8217;t really exist though. Still technically &#8220;sharing&#8221; the object. Its only the length of &#8220;time&#8221; of the sharing that is different.</p>
+<p>3) Depends on the case again.<br />
+If owner ship is passed to caller, the owner was probably creating a unique_ptr out of the returned ptr anyway, so no change needed. Basically the change just prevents some future bugs (caller forgetting to delete the object, exception safety issues, if they didn&#8217;t use a unique_ptr to take the return value)</p>
+<p>Other cases are more problematic. I don&#8217;t see anyway not modifying existing code would be possible. In these cases, the existing api would just be trusting on the caller to &#8220;do the right thing&#8221;.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Matthieu M.				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5285</link>
+		<dc:creator><![CDATA[Matthieu M.]]></dc:creator>
+		<pubDate>Sun, 22 Apr 2012 18:37:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5285</guid>
+					<description><![CDATA[What is most interesting, I suppose, is that already the comments diverge.
+
+1. Signature.
+
+It&#039;s fine as far as I am concerned. You pass and idea and receive a possibly null reference to the object it references, depending on whether or not the object was found. Clean, no issue. At least in a good and modern codebase.
+
+In an unknown code base, it&#039;s also unknown what the pointer is supposed to mean here. It could mean a nullable reference or that you are given ownership of the object. The function requires documentation.
+
+2. Recommended.
+
+I cannot; at least not without speculating over the ownership.
+
+&#062; No ownership ? Then a simple `ptr` class, clearly indicating that there is no ownership involved and we just want a nullable reference is the best type I can think of.
+
+&#062; Ownership ? Then a `unique_ptr` obviously.
+
+The name kinda suggests the second alternative (we could think of loading from some configuration file or something). However having worked with non-native speakers, I have come to question the choice of names more than once, so I would prefer not to have to *assume*.
+
+3. Going ahead.
+
+This question actually illuminates the previous one. It probably points the ability of a `shared_ptr` to be built directly from a `unique_ptr` and thus suggests that the function actually implied transfer of ownership to the caller.
+
+In this case, `unique_ptr` is fine because either the caller used `auto` to save typing, or used `unique_ptr` or `shared_ptr` and both will automatically work.
+
+---
+
+The exercise is interesting, but I am afraid to point out that the questions are not so clear cut that you may have assumed when you asked them. I would certainly feel better if they were formulated so as to take the doubt away, such as beginning `2` with *Assuming that transfer of ownership to the caller is intended*.]]></description>
+		<content:encoded><![CDATA[<p>What is most interesting, I suppose, is that already the comments diverge.</p>
+<p>1. Signature.</p>
+<p>It&#8217;s fine as far as I am concerned. You pass and idea and receive a possibly null reference to the object it references, depending on whether or not the object was found. Clean, no issue. At least in a good and modern codebase.</p>
+<p>In an unknown code base, it&#8217;s also unknown what the pointer is supposed to mean here. It could mean a nullable reference or that you are given ownership of the object. The function requires documentation.</p>
+<p>2. Recommended.</p>
+<p>I cannot; at least not without speculating over the ownership.</p>
+<p>&gt; No ownership ? Then a simple `ptr` class, clearly indicating that there is no ownership involved and we just want a nullable reference is the best type I can think of.</p>
+<p>&gt; Ownership ? Then a `unique_ptr` obviously.</p>
+<p>The name kinda suggests the second alternative (we could think of loading from some configuration file or something). However having worked with non-native speakers, I have come to question the choice of names more than once, so I would prefer not to have to *assume*.</p>
+<p>3. Going ahead.</p>
+<p>This question actually illuminates the previous one. It probably points the ability of a `shared_ptr` to be built directly from a `unique_ptr` and thus suggests that the function actually implied transfer of ownership to the caller.</p>
+<p>In this case, `unique_ptr` is fine because either the caller used `auto` to save typing, or used `unique_ptr` or `shared_ptr` and both will automatically work.</p>
+<p>&#8212;</p>
+<p>The exercise is interesting, but I am afraid to point out that the questions are not so clear cut that you may have assumed when you asked them. I would certainly feel better if they were formulated so as to take the doubt away, such as beginning `2` with *Assuming that transfer of ownership to the caller is intended*.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: David Cuccia				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5284</link>
+		<dc:creator><![CDATA[David Cuccia]]></dc:creator>
+		<pubDate>Sun, 22 Apr 2012 18:04:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5284</guid>
+					<description><![CDATA[I&#039;d vote for Vincent&#039;s answer and move semantics, though it&#039;s hard to know without more info/documentation - the factory method could be from an IoC container designed to manage the instance&#039;s lifetime.]]></description>
+		<content:encoded><![CDATA[<p>I&#8217;d vote for Vincent&#8217;s answer and move semantics, though it&#8217;s hard to know without more info/documentation &#8211; the factory method could be from an IoC container designed to manage the instance&#8217;s lifetime.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Vincent				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5283</link>
+		<dc:creator><![CDATA[Vincent]]></dc:creator>
+		<pubDate>Sun, 22 Apr 2012 17:33:51 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5283</guid>
+					<description><![CDATA[Nobody mentionned the possibility to return just a widget (that is having the following signature: &quot;widget load_widget(widget::id desired);&quot;).
+Before C++11, there were good reasons not to do that: creating a copy of the object and destroying the original could have been too expensive to consider doing that. C++11&#039;s move semantic is an answer to the problem, however because it&#039;s not yet automatic (I believe that if you, that means you have to go implement the move constructor for the widget class. I&#039;m not sure what the recommendation here should be:
+1- Still don&#039;t return objects that are expensive to copy construct (prefer unique_ptr): draw back is you have to deal with pointers, do more memory allocations...
+2- Return the object, go implement the move constructor if you measure it&#039;s needed: draw back is I will forget to implement the move constructor, perf will be bad because there are a lot of copies of expensive objects that we didn&#039;t bother to implement the move constructor for
+3- Return the object, always implement a move constructor for every class: draw back is the overhead of implementing and maintaining the move constructor]]></description>
+		<content:encoded><![CDATA[<p>Nobody mentionned the possibility to return just a widget (that is having the following signature: &#8220;widget load_widget(widget::id desired);&#8221;).<br />
+Before C++11, there were good reasons not to do that: creating a copy of the object and destroying the original could have been too expensive to consider doing that. C++11&#8217;s move semantic is an answer to the problem, however because it&#8217;s not yet automatic (I believe that if you, that means you have to go implement the move constructor for the widget class. I&#8217;m not sure what the recommendation here should be:<br />
+1- Still don&#8217;t return objects that are expensive to copy construct (prefer unique_ptr): draw back is you have to deal with pointers, do more memory allocations&#8230;<br />
+2- Return the object, go implement the move constructor if you measure it&#8217;s needed: draw back is I will forget to implement the move constructor, perf will be bad because there are a lot of copies of expensive objects that we didn&#8217;t bother to implement the move constructor for<br />
+3- Return the object, always implement a move constructor for every class: draw back is the overhead of implementing and maintaining the move constructor</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5282</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sun, 22 Apr 2012 16:39:07 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5282</guid>
+					<description><![CDATA[@Alf: Interesting -- it didn&#039;t occur to me that the placeholder name &quot;widget&quot; could connote a GUI widget. I&#039;ve just been following Scott Meyers&#039; longtime convention of using &quot;widget&quot; and &quot;gadget&quot; as placeholder names for types, since those names are nicer than &quot;foo&quot; and &quot;bar&quot; but still pretty generic. I see now that both those names also could connote a GUI item, but that&#039;s not intended here, and FWIW I plan to talk about raw pointers more in the next GotW #105...]]></description>
+		<content:encoded><![CDATA[<p>@Alf: Interesting &#8212; it didn&#8217;t occur to me that the placeholder name &#8220;widget&#8221; could connote a GUI widget. I&#8217;ve just been following Scott Meyers&#8217; longtime convention of using &#8220;widget&#8221; and &#8220;gadget&#8221; as placeholder names for types, since those names are nicer than &#8220;foo&#8221; and &#8220;bar&#8221; but still pretty generic. I see now that both those names also could connote a GUI item, but that&#8217;s not intended here, and FWIW I plan to talk about raw pointers more in the next GotW #105&#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: brian				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5281</link>
+		<dc:creator><![CDATA[brian]]></dc:creator>
+		<pubDate>Sun, 22 Apr 2012 11:48:56 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5281</guid>
+					<description><![CDATA[The real problem is lack of documentation - period!!!!
+Solution  - original engineer to be sent on programming/communication course....]]></description>
+		<content:encoded><![CDATA[<p>The real problem is lack of documentation &#8211; period!!!!<br />
+Solution  &#8211; original engineer to be sent on programming/communication course&#8230;.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Alf P. Steinbach				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5279</link>
+		<dc:creator><![CDATA[Alf P. Steinbach]]></dc:creator>
+		<pubDate>Sun, 22 Apr 2012 09:45:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5279</guid>
+					<description><![CDATA[
+    Given:
+&lt;pre&gt;
+widget* load_widget( widget::id desired );
+&lt;/pre&gt;
+
+
+Q1. &#8220;What&#8217;s wrong with the return type?&#8221;
+
+    Most probably nothing.
+
+    In the absence of documentation to the contrary, the raw pointer indicates a simple reference to a not-owned-by-you object, and &lt;em&gt;that is exactly what one expects and requires for a GUI widget&lt;/em&gt;.
+
+    Each GUI widget object is typically part of a list of child widgets in some parent widget, and it typically has a number of child widgets itself. Typically it is therefore destroyed by its parent, and/or it &lt;strong&gt;self-destructs&lt;/strong&gt; when it is closed by the user. Destruction from client code, e.g. via a &lt;code&gt;delete&lt;/code&gt; performed by a &lt;code&gt;unique_ptr&lt;/code&gt;, will most often be catastrophic: a primitive &lt;code&gt;delete&lt;/code&gt; can fail to update the parent widget&#8217;s child list, leaving dangling pointers there, and possibly it can also fail to destroy child widgets, and it can fail to properly update various kinds of external-to-the-widget state  (ideally the &lt;code&gt;widget&lt;/code&gt; class would not permit client code &lt;code&gt;delete&lt;/code&gt;, but in practice such classes tend to permit all kinds of disastrous operations).
+
+    However, let&#8217;s also consider the case where the naming used in the code is misleading, where this is not really a GUI widget. It could, for example, be an image frame from a web camera, and the id could serve to identify which cam. In that case the raw pointer result still indicates a simple refererence to a not-owned-by-you object, which still is most probably correct, e.g. with the OpenCV library each new frame is put in a common buffer, overwriting the earlier contents, and a non-owning pointer to that single common buffer is returned.
+
+    On the third hand, if there are many unskilled programmers using this function, and they tend to &lt;code&gt;delete&lt;/code&gt; pointers to widgets (with catastropic effects!), then one might consider a &lt;code&gt;unique_ptr&lt;/code&gt; with a no-op deleter just to deal with that.
+
+
+Q2. &#8220;What is the recommended return type? Explain your answer, including any tradeoffs.&#8221;
+
+    The generally best return type here is the raw pointer. That&#8217;s because an appropriate smart pointer type is generally not available (in particular, not available in the C++ standard library). A &lt;code&gt;unique_ptr&lt;/code&gt; with no-op deleter would be technically correct, and could prevent unskilled programmers from doing disastrous &lt;code&gt;delete&lt;/code&gt;s, but it would very misleadingly communicate ownership to competent programmers.
+
+    So, assuming mostly competent programmers, &lt;code&gt;unique_ptr&lt;/code&gt; or some other conventional smart pointer would be simply &lt;em&gt;wrong&lt;/em&gt; here, communicating an incorrect idea of ownership.
+
+    However, an unconventional special kind of smart pointer that cooperates with the pointee and whose &lt;code&gt;operator-&#062;&lt;/code&gt; throws an exception or &lt;code&gt;assert&lt;/code&gt;s or aborts if the pointee has been destroyed, like my &lt;a href=&quot;http://groups.google.com/group/comp.lang.c++/browse_thread/thread/14d3c30f977eb6ce/d6a21d05a51a63bb?lnk=gst&#038;q=alf+zptr#d6a21d05a51a63bb&quot; rel=&quot;nofollow&quot;&gt;&lt;strong&gt;ZPtr&lt;/strong&gt;&lt;/a&gt; from 2009 (actually a few years earlier, but that was the earliest public posting about it that I could find), could in principle be appropriate. But such a smart pointer &#8211; what should we call it? &#8211; is not part of the standard library, nor is there, to my knowledge, such a smart pointer in the Boost library (the &lt;code&gt;weak_ptr&lt;/code&gt; idea is in that general direction, though), and as far as I know it is generally not available. Since it has a great many uses where it can prevent errors and provide a general safety net (I was primarily thinking of using it for file and stream objects, which can enter an error state) it might be generally available in the future, and then, with programmers generally knowing about it and understanding it, it might be preferable to the raw pointer result.
+
+    
+Q3. &#8220;&#8230; What makes you so confident?&#8221;
+
+    Well, I think mostly my confidence stems from years and years of exposing my ideas and logic to the leading worldwide experts, and having them mercilessly killing those ideas and chains of thought that did not work well. What&#8217;s left, including my own internal idea and logic filters, is bound to be of high quality (but of course not perfect: the time when one stops being wrong is also the time when one stops learning, which means that either one is dead, or one&#8217;s mind has devolved to the degree that one would perhaps rather want to be dead). Also, unsolicited recognition and thanks helps quite a bit on one&#8217;s confidence. :-)]]></description>
+		<content:encoded><![CDATA[<p>    Given:</p>
+<pre>
+widget* load_widget( widget::id desired );
+</pre>
+<p>Q1. &ldquo;What&rsquo;s wrong with the return type?&rdquo;</p>
+<p>    Most probably nothing.</p>
+<p>    In the absence of documentation to the contrary, the raw pointer indicates a simple reference to a not-owned-by-you object, and <em>that is exactly what one expects and requires for a GUI widget</em>.</p>
+<p>    Each GUI widget object is typically part of a list of child widgets in some parent widget, and it typically has a number of child widgets itself. Typically it is therefore destroyed by its parent, and/or it <strong>self-destructs</strong> when it is closed by the user. Destruction from client code, e.g. via a <code>delete</code> performed by a <code>unique_ptr</code>, will most often be catastrophic: a primitive <code>delete</code> can fail to update the parent widget&rsquo;s child list, leaving dangling pointers there, and possibly it can also fail to destroy child widgets, and it can fail to properly update various kinds of external-to-the-widget state  (ideally the <code>widget</code> class would not permit client code <code>delete</code>, but in practice such classes tend to permit all kinds of disastrous operations).</p>
+<p>    However, let&rsquo;s also consider the case where the naming used in the code is misleading, where this is not really a GUI widget. It could, for example, be an image frame from a web camera, and the id could serve to identify which cam. In that case the raw pointer result still indicates a simple refererence to a not-owned-by-you object, which still is most probably correct, e.g. with the OpenCV library each new frame is put in a common buffer, overwriting the earlier contents, and a non-owning pointer to that single common buffer is returned.</p>
+<p>    On the third hand, if there are many unskilled programmers using this function, and they tend to <code>delete</code> pointers to widgets (with catastropic effects!), then one might consider a <code>unique_ptr</code> with a no-op deleter just to deal with that.</p>
+<p>Q2. &ldquo;What is the recommended return type? Explain your answer, including any tradeoffs.&rdquo;</p>
+<p>    The generally best return type here is the raw pointer. That&rsquo;s because an appropriate smart pointer type is generally not available (in particular, not available in the C++ standard library). A <code>unique_ptr</code> with no-op deleter would be technically correct, and could prevent unskilled programmers from doing disastrous <code>delete</code>s, but it would very misleadingly communicate ownership to competent programmers.</p>
+<p>    So, assuming mostly competent programmers, <code>unique_ptr</code> or some other conventional smart pointer would be simply <em>wrong</em> here, communicating an incorrect idea of ownership.</p>
+<p>    However, an unconventional special kind of smart pointer that cooperates with the pointee and whose <code>operator-&gt;</code> throws an exception or <code>assert</code>s or aborts if the pointee has been destroyed, like my <a href="http://groups.google.com/group/comp.lang.c++/browse_thread/thread/14d3c30f977eb6ce/d6a21d05a51a63bb?lnk=gst&amp;q=alf+zptr#d6a21d05a51a63bb" rel="nofollow"><strong>ZPtr</strong></a> from 2009 (actually a few years earlier, but that was the earliest public posting about it that I could find), could in principle be appropriate. But such a smart pointer &ndash; what should we call it? &ndash; is not part of the standard library, nor is there, to my knowledge, such a smart pointer in the Boost library (the <code>weak_ptr</code> idea is in that general direction, though), and as far as I know it is generally not available. Since it has a great many uses where it can prevent errors and provide a general safety net (I was primarily thinking of using it for file and stream objects, which can enter an error state) it might be generally available in the future, and then, with programmers generally knowing about it and understanding it, it might be preferable to the raw pointer result.</p>
+<p>Q3. &ldquo;&hellip; What makes you so confident?&rdquo;</p>
+<p>    Well, I think mostly my confidence stems from years and years of exposing my ideas and logic to the leading worldwide experts, and having them mercilessly killing those ideas and chains of thought that did not work well. What&rsquo;s left, including my own internal idea and logic filters, is bound to be of high quality (but of course not perfect: the time when one stops being wrong is also the time when one stops learning, which means that either one is dead, or one&rsquo;s mind has devolved to the degree that one would perhaps rather want to be dead). Also, unsolicited recognition and thanks helps quite a bit on one&rsquo;s confidence. :-)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mjklaim				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5277</link>
+		<dc:creator><![CDATA[mjklaim]]></dc:creator>
+		<pubDate>Sun, 22 Apr 2012 05:57:19 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5277</guid>
+					<description><![CDATA[1. The return type is a raw pointer. Raw pointers don&#039;t imply any ownership information. This induce that we don&#039;t know what are the conditions for the returned object to be destroyed  (if the function return non-null). The user of this function cannot know how to manage the object: do he have to manage it&#039;s lifetime? or will the factory implementation take care of it? Is there any documentation about it? Do he have to look at the function implementation? 
+At this point, precious work (and life) time of the user is already lost because he don&#039;t have any obvious information about the object lifetime, that is an incredibly important matter for programming and cannot easily be ignored.
+Even having a garbage collector available suggest to the user how the object lifetime will be managed, while here, there is no way to guess at this point.
+
+BUT.
+
+If the project was written using C++11 and it&#039;s associated specific best practice, then usually a raw pointer means that the user of this function don&#039;t get ownership of the object. Raw pointers, in C++11 good practice context, always suggest a lack of ownership of any kind, while smart pointers specify which kind of ownership behavior is used.
+In a project essentially using C++11 features and it&#039;s modern practices, the user could safely assume that the factory function will take care of the object lifetime and the user shouldn&#039;t manage at all the lifetime of the object.
+
+This context is not common yet, for the time being, and with any project started before 2011, the user should just assume that there is no obvious ownership information provided with the return type, and will have to make sure what is the required use of the function, loosing precious time.
+
+2. All depends on the strategy of the factory itself. Basically you have 3 strategies:
+
+A. The factory is the only owner of the object lifetime: even if the user loose all references to the object, it will stay alive until the factory decide (or is ordered) to destroy this object, whatever the rule the factory follows. It also can be re-used or re-provided by the same factory function call with the same parameter. Still it depends on the factory behavior.
+In this strategy, in C++11, as explained above and assuming that the whole project follow C++11 best practices, it is &quot;safe&quot; to use a raw pointer to tell the (guru?) user that he just get a reference, no ownership involved. This strategy also imply that the factory could destroy the object while in use, without the references being &quot;notified&quot;. That said, in most of such implementation, the factory will not do so without the user itself asking for destruction, or being notified about the destruction of objects before it occurs, for example using an event system.
+
+B. The factory will share ownership of the object lifetime: the factory provide the object and will keep track of it until he needs to destroy it (either by request or by it&#039;s implementation logic). However, the object shouldn&#039;t be destroyed immediately if still in use. This this the strategy often use to share objects representing resources, like textures in a graphic application. In this context, as the verb &#039;share&#039; suggest, a shared_ptr is mandatory.
+Having a shared pointer returned inform the user that whatever the use of the user, the object will be automatically destroyed when not used anymore. The factory could keep the object lifetime of the object, or maybe not. This information is not obvious but isn&#039;t useful for the user either most of the time. What is useful to him is that he knows that the object lifetime will be managed for him and that until he don&#039;t need the object, the object will live, even if it don&#039;t live anymore in the factory.
+It also suggest that the returned object is the kind of data that can be used by different users, maybe in parallel, and that end of life of the object cannot be guessed.
+
+C. The factory give full ownership of the object to the user: the factory will only build the object, it will not manage it&#039;s lifetime. It just throw the ball to the user for him to take care of it. This strategy is common when only the object creation process should be the responsibility of the factory, ownership being an other matter. In this context, a unique_ptr is the most useful returned type. unique_ptr will immediately imply that whoever call the function will immediately get the full and unique ownership of the referenced object. It also ease the management of that ownership by making it automatic: the user can drop the object whenever he wants and assume that it will be destroyed immediately. 
+
+Sidenote: I personally don&#039;t feel confident enough to assert what is good practice; but I think that C is the safer strategy to implement a factory function, letting the responsibility of the lifetime of the object directly to the user of the function or to another object which responsibility is precisely to manage the object lifetime for the end user.
+Either way, a unique_ptr is an excellent solution.
+
+All this assume that the default new and delete behaviour are used, but in the context of specific allocators, the use of smart pointers should be the same. Only the allocator type used in the smart pointer type instance should be different.
+
+
+3. Modern C++ imply that the code is written at a high level of abstraction, as much as possible. It imply that pointers use is simple and follow the most basic pointer semantic. Using auto abstract the real type, while the use of the object imply that it&#039;s an iterator, whatever the real type is. So changing the type, in best case, should not force us to change the code that use this function.
+
+However, compilation might point semantic problems. 
+
+If a unique_ptr is returned, because it corresponds to the strategy of the factory, then the user code should never try copy the pointer in any way. If it does, the changed code will not compile and the compiler will be able to point where the user code fails to follow the factory strategy. This is a good thing: it points the problem that have been totally non-obvious until now. Humans would have a hard time understanding what the heck is happening in this code where some pointers, at some points, start to try using destroyed objects. Using unique_ptr, all the failures of following the strategy of the factory are pointed and obvious.The code which intent is really to move instead of copy can be enhanced by adding a move() call instead of an ambiguous assignation. This is a formidable opportunity for fixing non-obvious bugs.
+
+If a share_ptr is returned, then whatever the user call should do (but use delete) will still work. At worst, the object lifetime will be extended far more than what was initially thought, but if the user code does keep the reference to the object then it certainly need it. 
+
+In all cases, a quick search for delete calls might be a good idea, just to make sure that there is non in the user code, only in memory-management-specific part of the program.
+
+
+
+-------
+
+Wow, interesting exercise!]]></description>
+		<content:encoded><![CDATA[<p>1. The return type is a raw pointer. Raw pointers don&#8217;t imply any ownership information. This induce that we don&#8217;t know what are the conditions for the returned object to be destroyed  (if the function return non-null). The user of this function cannot know how to manage the object: do he have to manage it&#8217;s lifetime? or will the factory implementation take care of it? Is there any documentation about it? Do he have to look at the function implementation?<br />
+At this point, precious work (and life) time of the user is already lost because he don&#8217;t have any obvious information about the object lifetime, that is an incredibly important matter for programming and cannot easily be ignored.<br />
+Even having a garbage collector available suggest to the user how the object lifetime will be managed, while here, there is no way to guess at this point.</p>
+<p>BUT.</p>
+<p>If the project was written using C++11 and it&#8217;s associated specific best practice, then usually a raw pointer means that the user of this function don&#8217;t get ownership of the object. Raw pointers, in C++11 good practice context, always suggest a lack of ownership of any kind, while smart pointers specify which kind of ownership behavior is used.<br />
+In a project essentially using C++11 features and it&#8217;s modern practices, the user could safely assume that the factory function will take care of the object lifetime and the user shouldn&#8217;t manage at all the lifetime of the object.</p>
+<p>This context is not common yet, for the time being, and with any project started before 2011, the user should just assume that there is no obvious ownership information provided with the return type, and will have to make sure what is the required use of the function, loosing precious time.</p>
+<p>2. All depends on the strategy of the factory itself. Basically you have 3 strategies:</p>
+<p>A. The factory is the only owner of the object lifetime: even if the user loose all references to the object, it will stay alive until the factory decide (or is ordered) to destroy this object, whatever the rule the factory follows. It also can be re-used or re-provided by the same factory function call with the same parameter. Still it depends on the factory behavior.<br />
+In this strategy, in C++11, as explained above and assuming that the whole project follow C++11 best practices, it is &#8220;safe&#8221; to use a raw pointer to tell the (guru?) user that he just get a reference, no ownership involved. This strategy also imply that the factory could destroy the object while in use, without the references being &#8220;notified&#8221;. That said, in most of such implementation, the factory will not do so without the user itself asking for destruction, or being notified about the destruction of objects before it occurs, for example using an event system.</p>
+<p>B. The factory will share ownership of the object lifetime: the factory provide the object and will keep track of it until he needs to destroy it (either by request or by it&#8217;s implementation logic). However, the object shouldn&#8217;t be destroyed immediately if still in use. This this the strategy often use to share objects representing resources, like textures in a graphic application. In this context, as the verb &#8216;share&#8217; suggest, a shared_ptr is mandatory.<br />
+Having a shared pointer returned inform the user that whatever the use of the user, the object will be automatically destroyed when not used anymore. The factory could keep the object lifetime of the object, or maybe not. This information is not obvious but isn&#8217;t useful for the user either most of the time. What is useful to him is that he knows that the object lifetime will be managed for him and that until he don&#8217;t need the object, the object will live, even if it don&#8217;t live anymore in the factory.<br />
+It also suggest that the returned object is the kind of data that can be used by different users, maybe in parallel, and that end of life of the object cannot be guessed.</p>
+<p>C. The factory give full ownership of the object to the user: the factory will only build the object, it will not manage it&#8217;s lifetime. It just throw the ball to the user for him to take care of it. This strategy is common when only the object creation process should be the responsibility of the factory, ownership being an other matter. In this context, a unique_ptr is the most useful returned type. unique_ptr will immediately imply that whoever call the function will immediately get the full and unique ownership of the referenced object. It also ease the management of that ownership by making it automatic: the user can drop the object whenever he wants and assume that it will be destroyed immediately. </p>
+<p>Sidenote: I personally don&#8217;t feel confident enough to assert what is good practice; but I think that C is the safer strategy to implement a factory function, letting the responsibility of the lifetime of the object directly to the user of the function or to another object which responsibility is precisely to manage the object lifetime for the end user.<br />
+Either way, a unique_ptr is an excellent solution.</p>
+<p>All this assume that the default new and delete behaviour are used, but in the context of specific allocators, the use of smart pointers should be the same. Only the allocator type used in the smart pointer type instance should be different.</p>
+<p>3. Modern C++ imply that the code is written at a high level of abstraction, as much as possible. It imply that pointers use is simple and follow the most basic pointer semantic. Using auto abstract the real type, while the use of the object imply that it&#8217;s an iterator, whatever the real type is. So changing the type, in best case, should not force us to change the code that use this function.</p>
+<p>However, compilation might point semantic problems. </p>
+<p>If a unique_ptr is returned, because it corresponds to the strategy of the factory, then the user code should never try copy the pointer in any way. If it does, the changed code will not compile and the compiler will be able to point where the user code fails to follow the factory strategy. This is a good thing: it points the problem that have been totally non-obvious until now. Humans would have a hard time understanding what the heck is happening in this code where some pointers, at some points, start to try using destroyed objects. Using unique_ptr, all the failures of following the strategy of the factory are pointed and obvious.The code which intent is really to move instead of copy can be enhanced by adding a move() call instead of an ambiguous assignation. This is a formidable opportunity for fixing non-obvious bugs.</p>
+<p>If a share_ptr is returned, then whatever the user call should do (but use delete) will still work. At worst, the object lifetime will be extended far more than what was initially thought, but if the user code does keep the reference to the object then it certainly need it. </p>
+<p>In all cases, a quick search for delete calls might be a good idea, just to make sure that there is non in the user code, only in memory-management-specific part of the program.</p>
+<p>&#8212;&#8212;-</p>
+<p>Wow, interesting exercise!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: MF				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5276</link>
+		<dc:creator><![CDATA[MF]]></dc:creator>
+		<pubDate>Sun, 22 Apr 2012 05:47:49 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5276</guid>
+					<description><![CDATA[I disagree with Xeo over #3. If the callers are written as auto foo = load_widget(...) then there have to be explicit deletes in the code and that is rather dated, not to mention oddlooking.
+
+I can only assume that all the callers were written as
+
+(shared_ptr or unique_ptr) foo = load_widget(...)
+
+and then the return type of load_widget could be changed to unique_ptr without risk as unique_ptr is convertible to shared_ptr.]]></description>
+		<content:encoded><![CDATA[<p>I disagree with Xeo over #3. If the callers are written as auto foo = load_widget(&#8230;) then there have to be explicit deletes in the code and that is rather dated, not to mention oddlooking.</p>
+<p>I can only assume that all the callers were written as</p>
+<p>(shared_ptr or unique_ptr) foo = load_widget(&#8230;)</p>
+<p>and then the return type of load_widget could be changed to unique_ptr without risk as unique_ptr is convertible to shared_ptr.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Xeo				</title>
+				<link>https://herbsutter.com/2012/04/21/gotw-104-smart-pointers-part-2-difficulty-510/#comment-5272</link>
+		<dc:creator><![CDATA[Xeo]]></dc:creator>
+		<pubDate>Sun, 22 Apr 2012 02:17:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/?p=1485#comment-5272</guid>
+					<description><![CDATA[1) It&#039;s a raw pointer that might leak if you&#039;re not careful or pass it directly to a smart pointer. That, however, is a burden the caller shouldn&#039;t have to carry if we can easily fix this on the callee site.
+
+2) As we learning in the answer to the GotW #103, the default smart pointer is &lt;i&gt;unique_ptr&lt;/i&gt;. It can later be converted to a &lt;i&gt;shared_ptr&lt;/i&gt;, if needed, and whatever deallocator frees the resource can be immediately supplied aswell, freeing the caller from having to do that.
+
+However, we know too little about widget at this point to tell if unique ownership is really what we want. Maybe we want shared ownership from the get-go, because internally the widgets are cached and already shared? We don&#039;t know that, so that&#039;s all I can say here
+
+3) I&#039;m guessing &lt;i&gt;auto&lt;/i&gt; is meant here, our sweet little type inferencing type specifier. The old code will automatically pick up the new return type without the coder having to worry about changing that.]]></description>
+		<content:encoded><![CDATA[<p>1) It&#8217;s a raw pointer that might leak if you&#8217;re not careful or pass it directly to a smart pointer. That, however, is a burden the caller shouldn&#8217;t have to carry if we can easily fix this on the callee site.</p>
+<p>2) As we learning in the answer to the GotW #103, the default smart pointer is <i>unique_ptr</i>. It can later be converted to a <i>shared_ptr</i>, if needed, and whatever deallocator frees the resource can be immediately supplied aswell, freeing the caller from having to do that.</p>
+<p>However, we know too little about widget at this point to tell if unique ownership is really what we want. Maybe we want shared ownership from the get-go, because internally the widgets are cached and already shared? We don&#8217;t know that, so that&#8217;s all I can say here</p>
+<p>3) I&#8217;m guessing <i>auto</i> is meant here, our sweet little type inferencing type specifier. The old code will automatically pick up the new return type without the coder having to worry about changing that.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

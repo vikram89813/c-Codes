@@ -1,0 +1,1054 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #102: Exception-Safe Function Calls (Difficulty: 7/10) | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965879&amp;back=https%3A%2F%2Fherbsutter.com%2F2011%2F12%2F02%2Fgotw-102-exception-safe-function-calls-difficulty-710%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #102: Exception-Safe Function Calls (Difficulty:&nbsp;7/10) Comments Feed" href="https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #101: Solution' href='https://herbsutter.com/2011/12/02/gotw-101-solution/' />
+<link rel='next' title='Welcome to the&nbsp;Jungle' href='https://herbsutter.com/2011/12/29/welcome-to-the-jungle/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-hT' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2011%2F12%2F02%2Fgotw-102-exception-safe-function-calls-difficulty-710%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2011%2F12%2F02%2Fgotw-102-exception-safe-function-calls-difficulty-710%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #102: Exception-Safe Function Calls (Difficulty: 7/10)" />
+<meta property="og:url" content="https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/" />
+<meta property="og:description" content="JG Question 1. In each of the following statements, what can you say about the order of evaluation of the functions f, g, and h and the expressions expr1 and expr2? Assume that expr1 and expr2 do n…" />
+<meta property="article:published_time" content="2011-12-03T01:17:53+00:00" />
+<meta property="article:modified_time" content="2012-04-21T22:24:44+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://herbsutter.files.wordpress.com/2011/11/image4.png?w=137&amp;h=244" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #102: Exception-Safe Function Calls (Difficulty:&nbsp;7/10)" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="JG Question 1. In each of the following statements, what can you say about the order of evaluation of the functions f, g, and h and the expressions expr1 and expr2? Assume that expr1 and expr2 do not contain more function calls. Guru Questions 2. In your travels through the dusty corners of your company&#039;s&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-1109 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2011/12/02/gotw-101-solution/" rel="prev">GotW #101: Solution</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2011/12/29/welcome-to-the-jungle/" rel="next">Welcome to the&nbsp;Jungle</a> &raquo;</div>
+			</div>
+			
+			<div class="post-1109 post type-post status-publish format-standard hentry category-c category-gotw" id="post-1109">
+				<div class="posttitle">
+					<h2>GotW #102: Exception-Safe Function Calls (Difficulty:&nbsp;7/10)</h2>
+					<p class="post-info">2011-12-02 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<h3><img style="display:inline;float:right;margin:0 0 0 10px;" src="https://herbsutter.files.wordpress.com/2011/11/image4.png?w=137&amp;h=244" alt="" align="right" />JG Question</h3>
+<p>1. In each of the following statements, what can you say about the order of evaluation of the functions <em>f</em>, <em>g</em>, and <em>h</em> and the expressions <em>expr1 </em>and <em>expr2</em>? Assume that <em>expr1 </em>and <em>expr2 </em>do not contain more function calls.</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:cd0f240e-8c2b-4bfa-b87e-c20e281fd52a" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; gutter: false; highlight: [1,5]; pad-line-numbers: true; title: ; notranslate" title="">
+// Example 1(a)
+//
+f( expr1, expr2 );
+
+// Example 1(b)
+//
+f( g( expr1 ), h( expr2 ) );
+</pre>
+</div>
+<h3>Guru Questions</h3>
+<p>2. In your travels through the dusty corners of your company&#8217;s code archives, you find the following code fragment:</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:c21ad45f-ae91-4a41-9ad4-0d7b4b9fbf4f" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; first-line: 1; gutter: false; highlight: [1]; title: ; notranslate" title="">
+//  Example 2
+
+//  In some header file:
+void f( T1*, T2* );
+
+//  At some call site:
+f( new T1, new T2 );
+</pre>
+</div>
+<p>Does this code have any potential exception safety or other problems? Explain.</p>
+<p>3. As you continue to root through the archives, you see that someone must not have liked Example 2 because later versions of the files in question were changed as follows:</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:24d44790-97b4-4cce-bc9e-43e70523f575" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; gutter: false; highlight: [1]; title: ; notranslate" title="">
+//  Example 3
+
+//  In some header file:
+void f( std::unique_ptr&lt;T1&gt;, std::unique_ptr&lt;T2&gt; );
+
+//  At some call site:
+f( std::unique_ptr&lt;T1&gt;{ new T1 }, std::unique_ptr&lt;T2&gt;{ new T2 } );
+</pre>
+</div>
+<p>What are the semantics of this call? What improvements does this version offer over Example 2, if any? Do any exception safety problems remain? Explain.</p>
+<p>4. Demonstrate how to write a <em>make_unique</em> facility that solves the safety problems in Question 3 and can be invoked as follows:</p>
+<div id="scid:C89E2BDB-ADD3-4f7a-9810-1B7EACF446C1:791a704a-8978-410f-8fc9-e85bc951c4b1" class="wlWriterEditableSmartContent" style="display:inline;float:none;margin:0;padding:0;">
+<pre class="brush: cpp; gutter: false; highlight: [1]; title: ; notranslate" title="">
+//  Example 4
+
+//  In some header file:
+void f( std::unique_ptr&lt;T1&gt;, std::unique_ptr&lt;T2&gt; );
+
+//  At some call site:
+f( make_unique&lt;T1&gt;(), make_unique&lt;T2&gt;() );
+</pre>
+</div>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											30 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">30 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-4637">
+		<div id="div-comment-4637">
+		<div class="cmtinfo"><em> on <a href="#comment-4637" title="">2011-12-30 at 1:43 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3a029a7275593b0c98c2c11497e68aca?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>deft_code</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4637"></div><p>@Xeo did you explicitly omit a new expression in the the return statement?</p>
+<p>Is that a new feature of std::unique or just a typo?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4630">
+		<div id="div-comment-4630">
+		<div class="cmtinfo"><em> on <a href="#comment-4630" title="">2011-12-29 at 6:52 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/094c8aadbb8b0fed74585598ea2aa291?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Xeo</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4630"></div><p>Sheesh, damn markup. Let&#8217;s try that again for the make_unique code:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &lt;memory&gt;
+#include &lt;utility&gt;
+
+template&lt;class T, class D = std::default_delete&lt;T&gt;, class... Args&gt;
+std::unique_ptr&lt;T,D&gt; make_unique(Args&amp;&amp;... args){
+    return std::unique_ptr&lt;T,D&gt;{ std::forward&lt;Args&gt;(args)... };
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4629">
+		<div id="div-comment-4629">
+		<div class="cmtinfo"><em> on <a href="#comment-4629" title="">2011-12-29 at 6:37 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/094c8aadbb8b0fed74585598ea2aa291?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Xeo</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4629"></div><p>@Jonathan, @Andrzej:</p>
+<p><em><strong>Never</strong></em> return a <em>T&amp;&amp;</em> when you actually return a temporary. This is the same issue as this one:</p>
+<p><code><br />
+int const&amp; f(){<br />
+    return 5;<br />
+}</p>
+<p>int main(){<br />
+    int i = f();<br />
+}<br />
+</code></p>
+<p>And as MSVC10 rightly warns me here, you are returning a reference to a <em>temporary</em> here. This doesn&#8217;t change with rvalue references, they are <em>still just references</em>. Just leave it as is, with a value return.</p>
+<p>On Topic:<br />
+#1 a: In C++11 terms, both <em>expr1</em> and <em>expr2</em> are sequenced before <em>f</em>, but are unsequenced relative to each other, i.e. they can both be evaluated in any order.<br />
+#1 b: Not really that different. <em>expr1</em> and <em>expr2</em>, aswell as <em>g</em> and <em>h</em> are sequenced before <em>f</em>, while <em>expr1</em> is sequenced before <em>g</em> and <em>expr2</em> is sequenced before <em>h</em>. I&#8217;m not totally sure about this last part, but all other cases should be unsequenced, e.g. <em>expr1</em> could get evaluated before <em>h</em>, or it might aswell get evaluated after <em>expr2</em>.</p>
+<p>#2: Same as #1 a, just with actual expressions instead of placeholders (<em>new T1</em> == <em>expr1</em>, <em>new T2</em> == <em>expr2</em>).</p>
+<p>#3: Same as #1 b really (<em>new T1</em> == <em>expr1</em>, <em>new T2</em> == <em>expr2</em> and <em>std::unique_ptr&lt;T1&gt;{ expr1 }</em> == <em>g</em>, <em>std::unique_ptr&lt;T2&gt;{ expr2 }</em> == <em>h</em>.</p>
+<p>#4<br />
+<code><br />
+#include<br />
+#include </p>
+<p>template&lt;class T, class D = std::default_deleter, class... Args&gt;<br />
+std::unique_ptr make_unique(Args&amp;&amp;... args){<br />
+    return std::unique_ptr{ std::forward(args)... };<br />
+}<br />
+</code></p>
+<p>Now, #4 is again the same as #1 a w.r.t. sequencing, but it has an important difference: The <em>new</em> expressions are explicitly sequenced, since they are part of a function call. They can&#8217;t be magically sequenced before actually being bound to a std::unique_ptr.</p>
+<p>(I hope that I got the standard terminology right.)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4593">
+		<div id="div-comment-4593">
+		<div class="cmtinfo"><em> on <a href="#comment-4593" title="">2011-12-16 at 6:18 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3450f3b1a849d45e4e55585fc96da9f1?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.securecoding.cert.org' rel='external nofollow' class='url'>David Svoboda</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4593"></div><p>I&#8217;ll take a stab at this&#8230;</p>
+<p>1. The order of evaluations is unspecified. C99 allows expr1 and expr2 to be evaluated simultaneously.  (Not sure what C1x, C++03, or C++11 say, but I&#8217;ll assume the answer is the same.)    I believe on x86 platforms the latter arguments get evaluated first, but that is a mere implementation detail :)</p>
+<p>CERT addresses this issue in some depth (and I&#8217;d like more!) in the CERT C &amp; C++ rules:<br />
+	EXP30-C. Do not depend on order of evaluation between sequence points<br />
+	<a href="https://www.securecoding.cert.org/confluence/x/ZwE" rel="nofollow">https://www.securecoding.cert.org/confluence/x/ZwE</a><br />
+	EXP30-CPP. Do not depend on order of evaluation between sequence points<br />
+	<a href="https://www.securecoding.cert.org/confluence/x/fYAyAQ" rel="nofollow">https://www.securecoding.cert.org/confluence/x/fYAyAQ</a><br />
+IIRC WG14 wanted to eliminate sequence points from C1x but it never happened.</p>
+<p>The examples raise more interesting questions though. While you said nothing of separate execution threads, the problem of determining which of two threads does execution first is very similar to the problem of which expression gets evaluated first.  If expr1 and expr2 did both manipulate some global variable, you could have race conditions on the variable. I suspect this bears partly on your next question.</p>
+<p>I&#8217;ll conclude up by saying that this is not a problem in Java because Java explicitly specifies that the first expression in a function argument list finishes being executed before the second begins. That saves Java programs from most (all?) of the headaches this puzzle is about.</p>
+<p>2. The code definitely has some problems and probably has others. As pointed out above, if there is insufficient memory to allocate both objects, then a bad_alloc exception can be thrown while the other object is successfully allocated, causeing a memory leak.  But even if operator new never fails, I don&#8217;t think this code is safe, or is at best non-portable. As noted earlier, the order of the operator new&#8217;s is unspecified. While operator new&#8217;s implementation is also unspecified, I&#8217;m not convinced that it&#8217;s safe to have these two invocations that could (theoretically) be intertwined. I&#8217;m pretty sure that its unsafe to have two threads invoke operator new simultaneously under C++03 and POSIX threads. Not sure if Windows threads or C++11 threads permit this.</p>
+<p>3. The code tries to mitigate the first problem cited above and fails, because of the second problem. Wrapping the new expressions in unique_ptr solves the memory leak. But not in the way the code is done because the order of evaluation is still unspecified.  </p>
+<p>4. This code would have mitigated both problems:</p>
+<p>{<br />
+	//  At some call site:<br />
+	auto t1_ptr = std::unique_ptr( new T1 );<br />
+	auto t2_ptr = std::unique_ptr( new T2 );<br />
+	f( t1_ptr, t2_ptr);<br />
+} // both ptrs released</p>
+<p>I don&#8217;t think you can mitigate the problem using a single line of code that looks like f(&#8230; , &#8230;). Well, maybe you could if you use static/global variables, but the code would certainly be ugly and your manager would shoot you if he saw such code in production software :)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4585">
+		<div id="div-comment-4585">
+		<div class="cmtinfo"><em> on <a href="#comment-4585" title="">2011-12-14 at 10:25 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/46e7d411999b6a7db10df77cc0c8b5bc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jim Park</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4585"></div><p>I put the ellipsis in the wrong place. Here&#8217;s a revision:</p>
+<p><code><br />
+template&nbsp;&lt;&nbsp;typename&nbsp;Type,&nbsp;typename...&nbsp;Args&nbsp;&gt;<br />
+typename&nbsp;std::enable_if&lt;&nbsp;std::is_array&lt;Type&gt;::value&nbsp;==&nbsp;false,&nbsp;std::unique_ptr&lt;Type&gt;&nbsp;&gt;::type<br />
+&nbsp;&nbsp;&nbsp;make_unique(Args&amp;&amp;&nbsp;...args)<br />
+{<br />
+&nbsp;&nbsp;&nbsp;return&nbsp;std::unique_ptr&lt;Type&gt;(&nbsp;new&nbsp;Type(std::forward&lt;Args&gt;(args)...)&nbsp;);<br />
+}</p>
+<p>//&nbsp;Array&nbsp;specialization<br />
+template&nbsp;&lt;&nbsp;typename&nbsp;Type&nbsp;&gt;<br />
+typename&nbsp;std::enable_if&lt;&nbsp;std::is_array&lt;Type&gt;::value,&nbsp;std::unique_ptr&lt;Type&gt;&nbsp;&gt;::type<br />
+&nbsp;&nbsp;&nbsp;make_unique(&nbsp;size_t&nbsp;size&nbsp;)<br />
+{<br />
+&nbsp;&nbsp;&nbsp;return&nbsp;std::unique_ptr&lt;Type&gt;(&nbsp;new&nbsp;typename&nbsp;std::remove_extent&lt;Type&gt;::type&nbsp;[&nbsp;size&nbsp;]&nbsp;);<br />
+}<br />
+</code></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4584">
+		<div id="div-comment-4584">
+		<div class="cmtinfo"><em> on <a href="#comment-4584" title="">2011-12-14 at 10:22 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/46e7d411999b6a7db10df77cc0c8b5bc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jim Park</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4584"></div><p>Woops, I put the parenthesis around the ellipses in the wrong place&#8230; Here&#8217;s a correction:</p>
+<p><strong></strong> meta-tag. E.g. if that is correct, then you can write, or paste,</p>
+<blockquote><p>
+<code><br />
+template nbsp;&lt; nbsp;typename nbsp;Type, nbsp;typename... nbsp;Args nbsp;&gt;<br />
+typename nbsp;std::enable_if&lt; nbsp;std::is_array&lt;Type&gt;::value nbsp;== nbsp;false, nbsp;std::unique_ptr&lt;Type&gt; nbsp;&gt;::type<br />
+ nbsp; nbsp; nbsp;make_unique(Args&amp;&amp; nbsp;...args)<br />
+{<br />
+ nbsp; nbsp; nbsp;return nbsp;std::unique_ptr&lt;Type&gt;( nbsp;new nbsp;Type(std::forward&lt;Args&gt;(args)...) nbsp;);<br />
+}</p>
+<p>// nbsp;Array nbsp;specialization<br />
+template nbsp;&lt; nbsp;typename nbsp;Type nbsp;&gt;<br />
+typename nbsp;std::enable_if&lt; nbsp;std::is_array&lt;Type&gt;::value, nbsp;std::unique_ptr&lt;Type&gt; nbsp;&gt;::type<br />
+ nbsp; nbsp; nbsp;make_unique( nbsp;size_t nbsp;size nbsp;)<br />
+{<br />
+ nbsp; nbsp; nbsp;return nbsp;std::unique_ptr&lt;Type&gt;( nbsp;new nbsp;typename nbsp;std::remove_extent&lt;Type&gt;::type nbsp;[ nbsp;size nbsp;] nbsp;);<br />
+}</p>
+<p></code></p></blockquote>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4583">
+		<div id="div-comment-4583">
+		<div class="cmtinfo"><em> on <a href="#comment-4583" title="">2011-12-14 at 7:51 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/46e7d411999b6a7db10df77cc0c8b5bc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Jim Park</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4583"></div><p>std::unique_ptr can hold arrays, too. So if you were to account for that, since template functions do not have partial specialization, we use SFINAE via std::enable_if&lt;&gt;.</p>
+<p><code><br />
+template &lt; typename Type, typename... Args &gt;<br />
+typename std::enable_if&lt;std::is_array&lt;Type&gt;::value == false, std::unique_ptr&lt;Type&gt; &gt;::type<br />
+   make_unique(Args&amp;&amp; ...args)<br />
+{<br />
+   return std::unique_ptr&lt;Type&gt;( new Type(std::forward&lt;Args&gt;(args))... );<br />
+}</p>
+<p>// Array specialization<br />
+template &lt; typename Type &gt;<br />
+typename std::enable_if&lt;std::is_array&lt;Type&gt;::value, std::unique_ptr&lt;Type&gt; &gt;::type<br />
+   make_unique( size_t size )<br />
+{<br />
+   return std::unique_ptr&lt;Type&gt;( new typename std::remove_extent&lt;Type&gt;::type [ size ] );<br />
+}<br />
+</code></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4577">
+		<div id="div-comment-4577">
+		<div class="cmtinfo"><em> on <a href="#comment-4577" title="">2011-12-13 at 12:20 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/ac51295810a3abf2ae009345a3cf76fc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://asio-samples.blogspot.com' rel='external nofollow' class='url'>Marat Abrarov</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4577"></div><p>&#8230;<br />
+and the </p>
+<blockquote><p>
+<code><br />
+unique_ptr&lt;T1&gt; arg1(new T1);<br />
+unique_ptr&lt;T2&gt; arg2(new T2);<br />
+f(std::move(arg1), std::move(arg2));<br />
+</code>
+</p></blockquote>
+<p>seems to be preferable because of custom deleter awareness.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4576">
+		<div id="div-comment-4576">
+		<div class="cmtinfo"><em> on <a href="#comment-4576" title="">2011-12-13 at 12:00 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/ac51295810a3abf2ae009345a3cf76fc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://asio-samples.blogspot.com' rel='external nofollow' class='url'>Marat Abrarov</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4576"></div><p>#3. It seems that there are more than one right solution here:<br />
+<code><br />
+unique_ptr&lt;T1&gt; arg1(new T1);<br />
+unique_ptr&lt;T2&gt; arg2(new T2);<br />
+f(arg1.release(), arg2.release());<br />
+</code><br />
+and<br />
+<code><br />
+unique_ptr&lt;T1&gt; arg1(new T1);<br />
+unique_ptr&lt;T2&gt; arg2(new T2);<br />
+f(std::move(arg1), std::move(arg2));<br />
+</code></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4574">
+		<div id="div-comment-4574">
+		<div class="cmtinfo"><em> on <a href="#comment-4574" title="">2011-12-12 at 11:26 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/19f91addf19aab45488fcb1402011c57?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Seb</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4574"></div><p>Thanks Herb for your work ! and sorry for the inconvenience ! Indeed update GotW with the new specification from c++11 is a pretty nice idea !</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-4573">
+		<div id="div-comment-4573">
+		<div class="cmtinfo"><em> on <a href="#comment-4573" title="">2011-12-12 at 4:01 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4573"></div><p>@Patrick, @Seb: Yes, this is a C++11 update to GotW #56. I&#8217;m going to be writing both brand-new GotWs as well as C++11-era revisions of older GotWs.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4570">
+		<div id="div-comment-4570">
+		<div class="cmtinfo"><em> on <a href="#comment-4570" title="">2011-12-12 at 1:42 am</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/712104268/picture?q=type%3Dlarge&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/jonathan.ouyang' rel='external nofollow' class='url'>Jonathan Ou-yang</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4570"></div><p>@Andrzej:  Thanks for the explanation.  Never heard of xvalue and prvalue (gotta read up on that in the future), but the part &#8220;Rvalue reference is still a reference and the same safety rules for references apply&#8221; really hit it home for me.  I did an experiment with the following code:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+T1&amp;&amp; make_T1()
+{
+     return T1();
+}
+
+auto t = make_T1();
+</pre>
+<p>and the invocation sequence is:</p>
+<p>1.  temporary T1&#8217;s constructor.<br />
+2.  temporary T1&#8217;s destructor (the function make_T1() returns a copy of the temporary&#8217;s reference and destroys the temporary).<br />
+3.  t&#8217;s move constructor on the return value (which is a rvalue reference).</p>
+<p>By the time step 3 is called, the temporary T1 is already gone.  Dangling reference.  This is what you would expect if the function declaration was:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+T1&amp; make_T1()
+</pre>
+<p>where step 3 was instead t&#8217;s copy constructor.</p>
+<p>But with rvalue references I somehow thought the invocation sequence would&#8217;ve been 1, 3, then 2.  Good to clear that up!  Thanks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-akrzemi1 even thread-even depth-1 highlander-comment" id="comment-4569">
+		<div id="div-comment-4569">
+		<div class="cmtinfo"><em> on <a href="#comment-4569" title="">2011-12-12 at 12:56 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c3baf4aa5bebf6d1407ed4e3b0981864?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://akrzemi1.wordpress.com' rel='external nofollow' class='url'>Andrzej Krzemieński</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4569"></div><p>@Jonathan: either function:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+std::unique_ptr&lt;T&gt;&amp;&amp; make_unique(Args…arg) 
+</pre>
+<p>or </p>
+<pre class="brush: plain; title: ; notranslate" title="">
+std::unique_ptr&lt;T&gt; make_unique(Args…arg) 
+</pre>
+<p>equally well triggers the move semantics: calling the former is an xvalue; calling the second is a prvalue; but xvalues and prvalues are both rvalues which bind to rvalue reference.<br />
+However, the variant that returns an rvalue reference is dangerous. Rvalue reference is still a reference and the same safety rules for references apply: you should not return references to automatic objects created inside your functions.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4568">
+		<div id="div-comment-4568">
+		<div class="cmtinfo"><em> on <a href="#comment-4568" title="">2011-12-11 at 11:31 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/19f91addf19aab45488fcb1402011c57?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Seb</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4568"></div><p>Is it the same problem as this : <a href="http://gotw.ca/gotw/056.htm" rel="nofollow">http://gotw.ca/gotw/056.htm</a> ?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4567">
+		<div id="div-comment-4567">
+		<div class="cmtinfo"><em> on <a href="#comment-4567" title="">2011-12-11 at 10:19 pm</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/712104268/picture?q=type%3Dlarge%26_md5%3D1599b0b01f20d0e542c17ce55b11b666&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/jonathan.ouyang' rel='external nofollow' class='url'>Jonathan Ou-yang</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4567"></div><p>@Alf:  I had a similar answer to #4 as you, but instead of returning a plain std::unique_ptr for the make_unique() function, I had the return type as std::unique_ptr&amp;&amp;.  That is, my function looked like this:</p>
+<p>std::unique_ptr&amp;&amp; make_unique(Args&#8230;arg)  </p>
+<p>Isn&#8217;t it better to do that so you get move semantics when you&#8217;re calling f( make_unique() )?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4565">
+		<div id="div-comment-4565">
+		<div class="cmtinfo"><em> on <a href="#comment-4565" title="">2011-12-10 at 4:00 am</a></em>  <cite><a href='http://www.codewiz51.com/blog/post/2011/12/10/So-you-think-you-know-C2b2b.aspx' rel='external nofollow' class='url'>So, you think you know C++?</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4565"></div><p>[&#8230;] GotW #102: Exception-Safe Function Calls (Difficulty: 7/10) [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4562">
+		<div id="div-comment-4562">
+		<div class="cmtinfo"><em> on <a href="#comment-4562" title="">2011-12-09 at 5:39 am</a></em> <img alt='' src='https://i1.wp.com/graph.facebook.com/639710059/picture?q=type%3Dlarge%26_md5%3D807055b9e56267abf1405814798690d9&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/patrick.v.hines' rel='external nofollow' class='url'>Patrick V Hines</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4562"></div><p>I thought you were going crazy and reposted a recent GotW, glad it was just me.  I had a problem with one of these at work about three weeks ago and found the solution in your GotW.  Turns out it was a similar-but-old one I found in a web search:  <a href="http://www.gotw.ca/gotw/056.htm" rel="nofollow">http://www.gotw.ca/gotw/056.htm</a>.  Question:  the difficulty dropped from 8/10 to 7/10 &#8211; did we all get smarter?  I know I did after reading it, thanks Herb for your work in the community.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-akrzemi1 odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4549">
+		<div id="div-comment-4549">
+		<div class="cmtinfo"><em> on <a href="#comment-4549" title="">2011-12-05 at 3:24 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c3baf4aa5bebf6d1407ed4e3b0981864?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://akrzemi1.wordpress.com' rel='external nofollow' class='url'>Andrzej Krzemieński</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4549"></div><p>@Michal: I am not sure if I understand your question, so pardon me if my answer is a bit off-topic. The brace notation is allowed for a number of contexts where the type of the initialized object can be easily deduced:<br />
+* return expression,<br />
+* assignment expression,<br />
+* argument of operator[],<br />
+* function call argument:</p>
+<p>~~~<br />
+struct Rational{ int num, den; };</p>
+<p>struct Container{<br />
+  &#8230;<br />
+  Rational operator[]( Rational r ) {<br />
+    return {2, 3};<br />
+  }<br />
+}</p>
+<p>void test( Rational x );</p>
+<p>Rational r1;<br />
+r1 = {1, 2};<br />
+Container c;<br />
+r1 = c[{4, 5}];<br />
+test({3, 7});<br />
+~~~</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4543">
+		<div id="div-comment-4543">
+		<div class="cmtinfo"><em> on <a href="#comment-4543" title="">2011-12-04 at 7:02 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/05aa36ab5c7d2c620d27d86415ba2eb7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://mmocny.com' rel='external nofollow' class='url'>Michal Mocny</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4543"></div><p>@Andrzej, @Herb: That sucks, the notation is allowed for return values right?  Seems to be an odd duality there..</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4534">
+		<div id="div-comment-4534">
+		<div class="cmtinfo"><em> on <a href="#comment-4534" title="">2011-12-03 at 8:11 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4534"></div><p>@Andrzej: Good catch, thanks. Fixed. I wish that decision had gone the other way; it&#8217;s an explicit request to construct something.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-akrzemi1 even thread-even depth-1 highlander-comment" id="comment-4521">
+		<div id="div-comment-4521">
+		<div class="cmtinfo"><em> on <a href="#comment-4521" title="">2011-12-03 at 2:21 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c3baf4aa5bebf6d1407ed4e3b0981864?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://akrzemi1.wordpress.com' rel='external nofollow' class='url'>Andrzej Krzemieński</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4521"></div><p>Note that example 3 (with shared_ptr and brace-initialization syntax) does not compile in C++11. The new initialization syntax cannot be used this way to trigger the explicit constructor. (At some point the Committee considered allowing this usage, but the final standard prohibits it):</p>
+<p>8.5 p. 15:<br />
+The initialization that occurs in the forms<br />
+T x(a);<br />
+T x{a};<br />
+as well as in new expressions (5.3.4), static_cast expressions (5.2.9), functional notation type conversions<br />
+(5.2.3), and base and member initializers (12.6.2) is called direct-initialization.</p>
+<p>12.3.1 p. 2:<br />
+An explicit constructor constructs objects just like non-explicit constructors, but does so only where the<br />
+direct-initialization syntax (8.5) or where casts (5.2.9, 5.4) are explicitly used. A default constructor<br />
+may be an explicit constructor; such a constructor will be used to perform default-initialization or value-initialization<br />
+(8.5).</p>
+<p>Regards,<br />
+&amp;rzej</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4519">
+		<div id="div-comment-4519">
+		<div class="cmtinfo"><em> on <a href="#comment-4519" title="">2011-12-02 at 10:44 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6d1c46e2968a7674186b73b819dbca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/alfps' rel='external nofollow' class='url'>Alf P. Steinbach</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4519"></div><p>For others who want to post code in their answers/responses (I&#8217;m a bit late discovering things, so my own answer was quite a bit short of perfect!):</p>
+<p>This seems to be a WordPress blog, and it seems to support the WordPress <strong></p>
+<pre class="brush: plain; title: ; notranslate" title="">&lt;/strong&gt; meta-tag. E.g. if that is correct, then you can write, or paste,
+
+&lt;blockquote&gt;
+&lt;code&gt;[sourcecode language=&quot;cpp&quot;]
+#include &amp;lt;iostream&amp;gt;
+using namespace std;
+int main()
+{ cout &amp;lt;&amp;lt;&quot;Hello!&quot; &amp;lt;&amp;lt; endl; }
+</pre>
+<p>and have it render as</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &lt;iostream&gt;
+using namespace std;
+int main()
+{ cout &lt;&lt; &quot;Hello!&quot; &lt;&lt; endl; }
+</pre>
+<p>Cheers, &amp; hoping this is deleted if it&#8217;s wrong &hellip;</strong></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4517">
+		<div id="div-comment-4517">
+		<div class="cmtinfo"><em> on <a href="#comment-4517" title="">2011-12-02 at 10:25 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6d1c46e2968a7674186b73b819dbca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/alfps' rel='external nofollow' class='url'>Alf P. Steinbach</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4517"></div><p>@Marat Abrarov:</p>
+<p>You wrote:</p>
+<p>&#8220;<code><br />
+unique_ptr&lt;T1&gt; arg1( new T1 );<br />
+f( arg1.release(), unique_ptr&lt;T2&gt;( new T2 ).release() );<br />
+</code><br />
+has the same problem as #2 and #3.<br />
+&#8221;</p>
+<p>You&#8217;re right, thanks.</p>
+<p>If the first <code>release()</code> is evaluated first, and <code>T2::T2</code> throws, one has a leak.</p>
+<p>However I did not realize that until I had posted, and I could not find any edit button. :-(</p>
+<p>By the way, here I used HTML symbolic entities like <code>&amp;lt;</code> to avoid the collapsing of things enclosed by &lt; and &gt;.</p>
+<p>Cheers,</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4516">
+		<div id="div-comment-4516">
+		<div class="cmtinfo"><em> on <a href="#comment-4516" title="">2011-12-02 at 10:06 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/ac51295810a3abf2ae009345a3cf76fc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://asio-samples.blogspot.com/' rel='external nofollow' class='url'>Marat Abrarov</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4516"></div><p>&gt; The only right solution seems to be (only because of unique_ptr::release() is nothrow):<br />
+&gt;  unique_ptr arg1( new T1 );<br />
+&gt;  unique_ptr arg1( new T2 );<br />
+&gt;  f( arg1.release(), arg2.release() );<br />
+and because of constructor unique_ptr::unique_ptr(T*) is nothrow.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4515">
+		<div id="div-comment-4515">
+		<div class="cmtinfo"><em> on <a href="#comment-4515" title="">2011-12-02 at 9:59 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/ac51295810a3abf2ae009345a3cf76fc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://asio-samples.blogspot.com/' rel='external nofollow' class='url'>Marat Abrarov</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4515"></div><p>#1 and #2 are trivial.<br />
+#3 has the same problem as #2. But declaration of function &#8220;f&#8221; at #3 has different (better) semantic then #2. At #3 f&#8217;s declaration explicitly moves ownership of it&#8217;s args to the callee. This is the reason I like smart pointers (and prefer over the raw ones) &#8211; an interface with smart pointers seems to be more self-describing. As Boost.SmartPtr best practices says: &#8220;Avoid using unnamed shared_ptr temporaries to save typing&#8221; (it can be extended to almost every smart pointer).</p>
+<p>To Alf P. Steinbach:<br />
+    unique_ptr arg1( new T1 );<br />
+    f( arg1.release(), unique_ptr( new T2 ).release() );<br />
+has the same problem as #2 and #3.</p>
+<p>The only right solution seems to be (only because of unique_ptr::release() is nothrow):<br />
+    unique_ptr arg1( new T1 );<br />
+    unique_ptr arg1( new T2 );<br />
+    f( arg1.release(), arg2.release() );</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4513">
+		<div id="div-comment-4513">
+		<div class="cmtinfo"><em> on <a href="#comment-4513" title="">2011-12-02 at 7:50 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c6d1c46e2968a7674186b73b819dbca4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/alfps' rel='external nofollow' class='url'>Alf P. Steinbach</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4513"></div><p>As I wrote earlier, it&#8217;s splendid that you&#8217;re continuing the GOTW series.</p>
+<p>It would be even nicer if you would allow and encourage general discussion, as you did in former times, by posting these questions to a discussion-oriented forum such as (you did) [comp.lang.c++].</p>
+<p>That would also solve the problem of formatting of responses.</p>
+<p>That said,</p>
+<p>  #1:</p>
+<p>the arguments of a function call are fully evaluated before a function is called, but apart from that the order of evaluation is up to the compiler. It&#8217;s unclear what you&#8217;re asking for above that. But as an example, by this rule, for the call <code>f( g( expr1 ), h( expr2 ) )</code> the <code>g</code> and <code>h</code> calls occur in some unspecified order before the call of <code>f</code>, and for example, both or just one of <code>expr1</code> and <code>expr2</code> may have been evaluated when <code>g</code> is called.</p>
+<p>  #2:</p>
+<p>For the call <code>f( new T1, new T2 );</code> one may have a memory leak if either of the <code>T1</code> or <code>T2</code> constructors throw.</p>
+<p>&#8220;May&#8221;: it&#8217;s in principle possible to define e.g. class-specific allocation functions that e.g. always allocate the same memory, but that would be pretty unusual and brittle, so let&#8217;s ignore that possibility.</p>
+<p>A fix for the general case depends on what guarantees <code>f</code> offers. Assuming that <code>f</code> guarantees to take ownership of the objects, and guarantees to not leak them if it fails, then all that&#8217;s needed is to allocate at least one of them before the function call, and use RAII cleanup. E.g.,</p>
+<pre>
+    unique_ptr arg1( new T1 );
+    f( arg1.release(), unique_ptr( new T2 ).release() );
+</pre>
+<p>That looks a bit assymetric, and it is. I don&#8217;t know what&#8217;s best: to call the reader&#8217;s attention to this by intentionally showing the assymetric nature of the thing, or trying to make it look more safe and symmetric by creating both argument objects before the call. I guess, however, that a reader of code will react negatively to such asymmetry, thus it would probably be better to write &hellip;</p>
+<pre>
+    unique_ptr arg1( new T1 );
+    unique_ptr arg1( new T2 );
+    f( arg1.release(), arg2.release() );
+</pre>
+<p>  #3:</p>
+<p>With <code>f</code> changed to</p>
+<pre>
+    void f( unique_ptr, unique_ptr )
+</pre>
+<p>the exact same exception problem remains. And dang if I don&#8217;t seem to recall that this has been discussed in some earlier GOTW. Anyway, now as of 2011 it&#8217;s a well-known problem, perhaps in part thanks to your GOTW efforts.</p>
+<p>The problem is that for an actual call with <code>new</code>-expressions as actual arguments, the compiler may choose to generate code that evaluates both <code>new</code>-expressions before invoking the <code>unique_ptr</code> constructors.</p>
+<p>  #4:</p>
+<p>The question calls for a <code>make_unique</code> facility, and in C++11 that&#8217;s either trivial (for the case of a maker function that just addresses the current problem) or quite complex (for the general case).</p>
+<p>The trivial:</p>
+<pre>
+  template&lt; class Type, class Deleter = std::default_delete, class... Args &gt;
+  std::unique_ptr make_unique( Args... args )
+  {
+      return std::unique_ptr( new Type( args... ) );
+  }
+</pre>
+<p>The call of <code>f</code> then becomes</p>
+<pre>
+    void f( make_unique_ptr(), make_unique_ptr() )
+</pre>
+<p>which is safe, since a function call (here call of <code>make_unique</code>) must complete before anything else happens.</p>
+<p>The complexity enters the picture when one wishes support for arrays and for custom deleter values (not just custom deleter type).</p>
+<p>One would not, or I would not, want to code up that.</p>
+<p>So, it is a bit surprising that this function did not make into the C++11 standard, while `make_shared` did.</p>
+<p>  #5 (by Alf):</p>
+<p>Is this a <em>good</em> solution to the given problem?</p>
+<p>It&#8217;s ingenious, yes, and it&#8217;s a Very&trade; nice tool to have in general (to wit, the `make_shared` function&#8217;s popularity).</p>
+<p>As a solution to the given problem it relies on a convention, that whoever calls <code>f</code> should remember to use <code>make_unique</code>. And it&#8217;s rather easy to forget to apply conventions, or to apply them incorrectly or only partially. Thus,  as a solution to the given problem it&#8217;s rather brittle.</p>
+<p>  #6 (by Alf):</p>
+<p>But is there any alternative?</p>
+<p>Yes, in addition to introducing the <code>make_unique</code> function (which is very useful in general) the function <code>f</code> should be be made safe. It should ideally be made near to impossible to use incorrectly or to use in an unsafe way. And with the original <code>f</code> as the basic functionality that somehow &#8220;must&#8221; result, making it safe involves <em>imposing sequencing on the client code&#8217;s argument evaluation</em>.</p>
+<p>Given the freedom the compiler has wrt. argument evaluation such sequencing cannot be imposed with both arguments specified directly.</p>
+<p>The problem with <code>unique_ptr</code> in that respect, is that it allows direct construction of a <code>unique_ptr</code>, without using the <code>make_unique</code> function.</p>
+<p>There are many possible solutions, including the functional one of replacing f(x,y) with f(x)(y), but one simple solution that also yields fairly concise and readable notation (which I feel is pretty important!), is to just define a wrapper class for <code>unique_ptr</code>, a wrapper class for this special usage. A separate factory function is then not needed, since a constructor can do that job. It can look like this:</p>
+<pre>
+template
+class DynArg
+{
+private:
+    std::unique_ptr     p_;
+
+public:
+    std::unique_ptr value()
+    {
+        return std::move( p_ );
+    }
+    
+    template
+    DynArg( Args... args )
+        : p_( new Type( args... ) )
+    {}
+    
+    DynArg( DynArg&amp;&amp; other )
+        : p_( std::move( other.p_ ) )
+    {}
+};
+</pre>
+<p>And a wrapper for the original function can then look like</p>
+<pre>
+void f( DynArg a1, DynArg a2 )
+{
+    original::f( a1.value().release(), a2.value().release() );
+}
+</pre>
+<p>with a call like, for example,</p>
+<pre>
+    f( DynArg( 1 ), DynArg( 3.14 ) );
+</pre>
+<p>The wrapper function definition above has the arguments passed by value because that&#8217;s most natural when one is familiar with a host of different smart pointers that are passed by value. Still, in C++11 one could perhaps guarantee some micro-efficiency by passing as rvalue references (avoiding moves). I like it simple, though.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4512">
+		<div id="div-comment-4512">
+		<div class="cmtinfo"><em> on <a href="#comment-4512" title="">2011-12-02 at 7:20 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/37c970aebf05ba70985ed65b148907c9?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/jagansai' rel='external nofollow' class='url'>Jagannath</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4512"></div><p>1a)   f( g( expr1 ), h( expr2 ) );<br />
+The order of evaluation is not guaranteed. </p>
+<p>2) f( new T1, new T2 );<br />
+If T1 is constructed first and If construction of T2 throws an exception, then there is a memory leak here.</p>
+<p>3 &amp; 4 not sure of the answers. :-(</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4511">
+		<div id="div-comment-4511">
+		<div class="cmtinfo"><em> on <a href="#comment-4511" title="">2011-12-02 at 7:01 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/ea6872cf5f32040741eabf1e7e089416?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/simonbuchan' rel='external nofollow' class='url'>Simon Buchan</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4511"></div><p>I&#8217;d guess 3 is still not safe according to the standard, since (again, I guess) it&#8217;s valid for compiler to evaluate both news before evaluating the initializer lists, in the same way as it could evaluate expr1 and expr2 before g() and h().  Of course no real-world compiler ever would, since that means you need to keep a temporary around while evaluating a function, *and* it&#8217;s more complex to implement.</p>
+<p>Though I think C made the right choice for it&#8217;s purpose, I really like that C# has extremely strict rules on order of evaluation for parameters, even in the face of named and ref parameters and even more crazily await expressions, even if that means Eric Lippert spends a lot of late evenings tearing his hair out :)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4508">
+		<div id="div-comment-4508">
+		<div class="cmtinfo"><em> on <a href="#comment-4508" title="">2011-12-02 at 5:44 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3e0c8cedf18f49a6571b5ef109976fec?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Paprikachu</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4508"></div><p>Somehow the code in angle brackets is missing. Here&#8217;s a solution to #4: <a href="http://ideone.com/Y65S6" rel="nofollow">http://ideone.com/Y65S6</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4507">
+		<div id="div-comment-4507">
+		<div class="cmtinfo"><em> on <a href="#comment-4507" title="">2011-12-02 at 5:38 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/3e0c8cedf18f49a6571b5ef109976fec?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Paprikachu</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4507"></div><p>This is pretty easy, except #1. I don&#8217;t know exactly what the standard says about the order of evaluation in case 2, but i think it&#8217;s undefined in both cases.<br />
+#2 has the problem that memory is leaked if the second allocation fails. Like in #1 it&#8217;s undefined which allocation comes first.<br />
+#3 is better than #2 because a unique_ptr is constructed. If the second allocation fails, the first object is deleted properly.<br />
+The solution to #4 might look like:<br />
+template<br />
+std::unique_ptr make_unique(Args&amp;&amp;&#8230; args)<br />
+{<br />
+    return std::unique_ptr(new T(std::forward(args)&#8230;));<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2011/12/02/gotw-102-exception-safe-function-calls-difficulty-710/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-3a029a7275593b0c98c2c11497e68aca">
+	</div>
+	<div class="grofile-hash-map-094c8aadbb8b0fed74585598ea2aa291">
+	</div>
+	<div class="grofile-hash-map-3450f3b1a849d45e4e55585fc96da9f1">
+	</div>
+	<div class="grofile-hash-map-46e7d411999b6a7db10df77cc0c8b5bc">
+	</div>
+	<div class="grofile-hash-map-ac51295810a3abf2ae009345a3cf76fc">
+	</div>
+	<div class="grofile-hash-map-19f91addf19aab45488fcb1402011c57">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-501a860910dcc6080b069686bee83339">
+	</div>
+	<div class="grofile-hash-map-c3baf4aa5bebf6d1407ed4e3b0981864">
+	</div>
+	<div class="grofile-hash-map-35f421fedeed8293f39ab99146b15423">
+	</div>
+	<div class="grofile-hash-map-05aa36ab5c7d2c620d27d86415ba2eb7">
+	</div>
+	<div class="grofile-hash-map-c6d1c46e2968a7674186b73b819dbca4">
+	</div>
+	<div class="grofile-hash-map-37c970aebf05ba70985ed65b148907c9">
+	</div>
+	<div class="grofile-hash-map-ea6872cf5f32040741eabf1e7e089416">
+	</div>
+	<div class="grofile-hash-map-3e0c8cedf18f49a6571b5ef109976fec">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_4637={"id":468178,"unique_id":"wp-comment-4637","title":"%40Xeo%20did%20you%20explicitly%20omit%20a%20new%20expression%20in%20the%20the%20return%20statement%3FIs%20that%20a%20new%20feature%20of%20std%3A%3Aunique%20or%20just%20a%20typo%3F...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4637","item_id":"_comm_4637"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4637 == 'undefined' ){PDRTJS_468178_comm_4637 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4637 );}}PDRTJS_settings_468178_comm_4630={"id":468178,"unique_id":"wp-comment-4630","title":"Sheesh%2C%20damn%20markup.%20Let%26%23039%3Bs%20try%20that%20again%20for%20the%20make_unique%20code%3A%26%23091%3Bsourcecode%20language%3D%26quot%3Bcpp%26quot%3B%26%23093%3B%23include%20%26lt%3Bmemory%26gt%3B%23include%20%26lt%3Butility%26gt%3Btemplate%26lt%3Bclass%20T%2C%20class%20D%20%3D%20std%3A%3Adefault_delete%26lt%3B...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4630","item_id":"_comm_4630"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4630 == 'undefined' ){PDRTJS_468178_comm_4630 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4630 );}}PDRTJS_settings_468178_comm_4629={"id":468178,"unique_id":"wp-comment-4629","title":"%40Jonathan%2C%20%40Andrzej%3A%26lt%3Bem%26gt%3B%26lt%3Bstrong%26gt%3BNever%26lt%3B%2Fstrong%26gt%3B%26lt%3B%2Fem%26gt%3B%20return%20a%20%26lt%3Bem%26gt%3BT%26amp%3B%26amp%3B%26lt%3B%2Fem%26gt%3B%20when%20you%20actually%20return%20a%20temporary.%20This%20is%20the%20same%20issue%20as%20this%20one%3A%26lt%3Bcode%26gt%3Bint%20const%26amp%3B%20f%28%29%7B%20%20%20%20return%205%3B%7Di...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4629","item_id":"_comm_4629"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4629 == 'undefined' ){PDRTJS_468178_comm_4629 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4629 );}}PDRTJS_settings_468178_comm_4593={"id":468178,"unique_id":"wp-comment-4593","title":"I%26%23039%3Bll%20take%20a%20stab%20at%20this...1.%20The%20order%20of%20evaluations%20is%20unspecified.%20C99%20allows%20expr1%20and%20expr2%20to%20be%20evaluated%20simultaneously.%20%20%28Not%20sure%20what%20C1x%2C%20C%2B%2B03%2C%20or%20C%2B%2B11%20say%2C%20but%20I%26%23039%3Bll%20assume%20the%20ans...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4593","item_id":"_comm_4593"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4593 == 'undefined' ){PDRTJS_468178_comm_4593 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4593 );}}PDRTJS_settings_468178_comm_4585={"id":468178,"unique_id":"wp-comment-4585","title":"I%20put%20the%20ellipsis%20in%20the%20wrong%20place.%20Here%26%23039%3Bs%20a%20revision%3A%26lt%3Bcode%26gt%3Btemplate%26nbsp%3B%26lt%3B%26nbsp%3Btypename%26nbsp%3BType%2C%26nbsp%3Btypename...%26nbsp%3BArgs%26nbsp%3B%26gt%3Btypename%26nbsp%3Bstd%3A%3Aenable_if%26lt%3B%26nbsp%3Bstd%3A%3Ais_array%26amp%3B...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4585","item_id":"_comm_4585"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4585 == 'undefined' ){PDRTJS_468178_comm_4585 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4585 );}}PDRTJS_settings_468178_comm_4584={"id":468178,"unique_id":"wp-comment-4584","title":"Woops%2C%20I%20put%20the%20parenthesis%20around%20the%20ellipses%20in%20the%20wrong%20place...%20Here%26%23039%3Bs%20a%20correction%3A%26lt%3Bstrong%26gt%3B%26lt%3B%2Fstrong%26gt%3B%20meta-tag.%20E.g.%20if%20that%20is%20correct%2C%20then%20you%20can%20write%2C%20or%20paste%2C%26lt%3Bblockquote%26gt%3B%26lt%3Bcode%26gt%3B%26%23091%3Bsou...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4584","item_id":"_comm_4584"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4584 == 'undefined' ){PDRTJS_468178_comm_4584 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4584 );}}PDRTJS_settings_468178_comm_4583={"id":468178,"unique_id":"wp-comment-4583","title":"std%3A%3Aunique_ptr%20can%20hold%20arrays%2C%20too.%20So%20if%20you%20were%20to%20account%20for%20that%2C%20since%20template%20functions%20do%20not%20have%20partial%20specialization%2C%20we%20use%20SFINAE%20via%20std%3A%3Aenable_if%26lt%3B%26gt%3B.%26lt%3Bcode%26gt%3B%26%23091%3Bsourcecode%20l...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4583","item_id":"_comm_4583"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4583 == 'undefined' ){PDRTJS_468178_comm_4583 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4583 );}}PDRTJS_settings_468178_comm_4577={"id":468178,"unique_id":"wp-comment-4577","title":"...and%20the%20%26lt%3Bblockquote%26gt%3B%26lt%3Bcode%26gt%3B%26%23091%3Bsourcecode%20language%3D%26quot%3Bcpp%26quot%3B%26%23093%3B%26%23091%3B%2Fsourcecode%26%23093%3Bunique_ptr%26lt%3BT1%26gt%3B%20arg1%28new%20T1%29%3Bunique_ptr%26lt%3BT2%26gt%3B%20arg2%28new%20T2%29%3Bf%28std%3A%3Amove%28arg1%29%2C%20std%3A%3Amove%28arg2%29%29%3B%26lt%3B%2Fcode%26gt%3B%26lt%3B%2Fblockquote%26gt%3Bse...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4577","item_id":"_comm_4577"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4577 == 'undefined' ){PDRTJS_468178_comm_4577 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4577 );}}PDRTJS_settings_468178_comm_4576={"id":468178,"unique_id":"wp-comment-4576","title":"%233.%20It%20seems%20that%20there%20are%20more%20than%20one%20right%20solution%20here%3A%26lt%3Bcode%26gt%3B%26%23091%3Bsourcecode%20language%3D%26quot%3Bcpp%26quot%3B%26%23093%3B%26%23091%3B%2Fsourcecode%26%23093%3Bunique_ptr%26lt%3BT1%26gt%3B%20arg1%28new%20T1%29%3Bunique_ptr%26lt%3BT2%26gt%3B%20arg2%28new%20T2%29%3Bf%28arg1.release%28%29%2C%20a...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4576","item_id":"_comm_4576"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4576 == 'undefined' ){PDRTJS_468178_comm_4576 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4576 );}}PDRTJS_settings_468178_comm_4574={"id":468178,"unique_id":"wp-comment-4574","title":"Thanks%20Herb%20for%20your%20work%20%21%20and%20sorry%20for%20the%20inconvenience%20%21%20Indeed%20update%20GotW%20with%20the%20new%20specification%20from%20c%2B%2B11%20is%20a%20pretty%20nice%20idea%20%21...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4574","item_id":"_comm_4574"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4574 == 'undefined' ){PDRTJS_468178_comm_4574 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4574 );}}PDRTJS_settings_468178_comm_4573={"id":468178,"unique_id":"wp-comment-4573","title":"%40Patrick%2C%20%40Seb%3A%20Yes%2C%20this%20is%20a%20C%2B%2B11%20update%20to%20GotW%20%2356.%20I%26%23039%3Bm%20going%20to%20be%20writing%20both%20brand-new%20GotWs%20as%20well%20as%20C%2B%2B11-era%20revisions%20of%20older%20GotWs....","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4573","item_id":"_comm_4573"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4573 == 'undefined' ){PDRTJS_468178_comm_4573 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4573 );}}PDRTJS_settings_468178_comm_4570={"id":468178,"unique_id":"wp-comment-4570","title":"%40Andrzej%3A%20%20Thanks%20for%20the%20explanation.%20%20Never%20heard%20of%20xvalue%20and%20prvalue%20%28gotta%20read%20up%20on%20that%20in%20the%20future%29%2C%20but%20the%20part%20%26quot%3BRvalue%20reference%20is%20still%20a%20reference%20and%20the%20same%20safety%20rules%20for%20...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4570","item_id":"_comm_4570"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4570 == 'undefined' ){PDRTJS_468178_comm_4570 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4570 );}}PDRTJS_settings_468178_comm_4569={"id":468178,"unique_id":"wp-comment-4569","title":"%40Jonathan%3A%20either%20function%3A%26%23091%3Bcode%26%23093%3Bstd%3A%3Aunique_ptr%26lt%3BT%26gt%3B%26amp%3B%26amp%3B%20make_unique%28Argsarg%29%20%26%23091%3B%2Fcode%26%23093%3Bor%20%26%23091%3Bcode%26%23093%3Bstd%3A%3Aunique_ptr%26lt%3BT%26gt%3B%20make_unique%28Argsarg%29%20%26%23091%3B%2Fcode%26%23093%3Bequally%20well%20triggers%20the%20move%20semant...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4569","item_id":"_comm_4569"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4569 == 'undefined' ){PDRTJS_468178_comm_4569 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4569 );}}PDRTJS_settings_468178_comm_4568={"id":468178,"unique_id":"wp-comment-4568","title":"Is%20it%20the%20same%20problem%20as%20this%20%3A%20http%3A%2F%2Fgotw.ca%2Fgotw%2F056.htm%20%3F...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4568","item_id":"_comm_4568"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4568 == 'undefined' ){PDRTJS_468178_comm_4568 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4568 );}}PDRTJS_settings_468178_comm_4567={"id":468178,"unique_id":"wp-comment-4567","title":"%40Alf%3A%20%20I%20had%20a%20similar%20answer%20to%20%234%20as%20you%2C%20but%20instead%20of%20returning%20a%20plain%20std%3A%3Aunique_ptr%20for%20the%20make_unique%28%29%20function%2C%20I%20had%20the%20return%20type%20as%20std%3A%3Aunique_ptr%26amp%3B%26amp%3B.%20%20That%20is%2C%20my%20funct...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4567","item_id":"_comm_4567"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4567 == 'undefined' ){PDRTJS_468178_comm_4567 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4567 );}}PDRTJS_settings_468178_comm_4565={"id":468178,"unique_id":"wp-comment-4565","title":"%26%23091%3B...%26%23093%3B%20GotW%20%23102%3A%20Exception-Safe%20Function%20Calls%20%28Difficulty%3A%207%2F10%29%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4565","item_id":"_comm_4565"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4565 == 'undefined' ){PDRTJS_468178_comm_4565 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4565 );}}PDRTJS_settings_468178_comm_4562={"id":468178,"unique_id":"wp-comment-4562","title":"I%20thought%20you%20were%20going%20crazy%20and%20reposted%20a%20recent%20GotW%2C%20glad%20it%20was%20just%20me.%20%20I%20had%20a%20problem%20with%20one%20of%20these%20at%20work%20about%20three%20weeks%20ago%20and%20found%20the%20solution%20in%20your%20GotW.%20%20Turns%20out%20it...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4562","item_id":"_comm_4562"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4562 == 'undefined' ){PDRTJS_468178_comm_4562 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4562 );}}PDRTJS_settings_468178_comm_4549={"id":468178,"unique_id":"wp-comment-4549","title":"%40Michal%3A%20I%20am%20not%20sure%20if%20I%20understand%20your%20question%2C%20so%20pardon%20me%20if%20my%20answer%20is%20a%20bit%20off-topic.%20The%20brace%20notation%20is%20allowed%20for%20a%20number%20of%20contexts%20where%20the%20type%20of%20the%20initialized%20object...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4549","item_id":"_comm_4549"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4549 == 'undefined' ){PDRTJS_468178_comm_4549 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4549 );}}PDRTJS_settings_468178_comm_4543={"id":468178,"unique_id":"wp-comment-4543","title":"%40Andrzej%2C%20%40Herb%3A%20That%20sucks%2C%20the%20notation%20is%20allowed%20for%20return%20values%20right%3F%20%20Seems%20to%20be%20an%20odd%20duality%20there.....","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4543","item_id":"_comm_4543"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4543 == 'undefined' ){PDRTJS_468178_comm_4543 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4543 );}}PDRTJS_settings_468178_comm_4534={"id":468178,"unique_id":"wp-comment-4534","title":"%40Andrzej%3A%20Good%20catch%2C%20thanks.%20Fixed.%20I%20wish%20that%20decision%20had%20gone%20the%20other%20way%3B%20it%26%23039%3Bs%20an%20explicit%20request%20to%20construct%20something....","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4534","item_id":"_comm_4534"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4534 == 'undefined' ){PDRTJS_468178_comm_4534 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4534 );}}PDRTJS_settings_468178_comm_4521={"id":468178,"unique_id":"wp-comment-4521","title":"Note%20that%20example%203%20%28with%20shared_ptr%20and%20brace-initialization%20syntax%29%20does%20not%20compile%20in%20C%2B%2B11.%20The%20new%20initialization%20syntax%20cannot%20be%20used%20this%20way%20to%20trigger%20the%20explicit%20constructor.%20%28At%20som...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4521","item_id":"_comm_4521"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4521 == 'undefined' ){PDRTJS_468178_comm_4521 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4521 );}}PDRTJS_settings_468178_comm_4519={"id":468178,"unique_id":"wp-comment-4519","title":"For%20others%20who%20want%20to%20post%20code%20in%20their%20answers%2Fresponses%20%28I%26%23039%3Bm%20a%20bit%20late%20discovering%20things%2C%20so%20my%20own%20answer%20was%20quite%20a%20bit%20short%20of%20perfect%21%29%3AThis%20seems%20to%20be%20a%20WordPress%20blog%2C%20and%20it%20seems...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4519","item_id":"_comm_4519"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4519 == 'undefined' ){PDRTJS_468178_comm_4519 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4519 );}}PDRTJS_settings_468178_comm_4517={"id":468178,"unique_id":"wp-comment-4517","title":"%40Marat%20Abrarov%3AYou%20wrote%3A%26quot%3B%26lt%3Bcode%26gt%3Bunique_ptr%26lt%3BT1%26gt%3B%20arg1%28%20new%20T1%20%29%3Bf%28%20arg1.release%28%29%2C%20unique_ptr%26lt%3BT2%26gt%3B%28%20new%20T2%20%29.release%28%29%20%29%3B%26lt%3B%2Fcode%26gt%3Bhas%20the%20same%20problem%20as%20%232%20and%20%233.%26quot%3BYou%26%23039%3Bre%20right%2C%20thanks.If...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4517","item_id":"_comm_4517"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4517 == 'undefined' ){PDRTJS_468178_comm_4517 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4517 );}}PDRTJS_settings_468178_comm_4516={"id":468178,"unique_id":"wp-comment-4516","title":"%26gt%3B%20The%20only%20right%20solution%20seems%20to%20be%20%28only%20because%20of%20unique_ptr%3A%3Arelease%28%29%20is%20nothrow%29%3A%26gt%3B%20%20unique_ptr%20arg1%28%20new%20T1%20%29%3B%26gt%3B%20%20unique_ptr%20arg1%28%20new%20T2%20%29%3B%26gt%3B%20%20f%28%20arg1.release%28%29%2C%20arg2.release%28%29...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4516","item_id":"_comm_4516"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4516 == 'undefined' ){PDRTJS_468178_comm_4516 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4516 );}}PDRTJS_settings_468178_comm_4515={"id":468178,"unique_id":"wp-comment-4515","title":"%231%20and%20%232%20are%20trivial.%233%20has%20the%20same%20problem%20as%20%232.%20But%20declaration%20of%20function%20%26quot%3Bf%26quot%3B%20at%20%233%20has%20different%20%28better%29%20semantic%20then%20%232.%20At%20%233%20f%26%23039%3Bs%20declaration%20explicitly%20moves%20ownership%20of%20it%26%23039%3Bs%20args%20t...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4515","item_id":"_comm_4515"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4515 == 'undefined' ){PDRTJS_468178_comm_4515 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4515 );}}PDRTJS_settings_468178_comm_4513={"id":468178,"unique_id":"wp-comment-4513","title":"As%20I%20wrote%20earlier%2C%20it%26%23039%3Bs%20splendid%20that%20you%26%23039%3Bre%20continuing%20the%20GOTW%20series.It%20would%20be%20even%20nicer%20if%20you%20would%20allow%20and%20encourage%20general%20discussion%2C%20as%20you%20did%20in%20former%20times%2C%20by%20posting%20these%20q...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4513","item_id":"_comm_4513"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4513 == 'undefined' ){PDRTJS_468178_comm_4513 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4513 );}}PDRTJS_settings_468178_comm_4512={"id":468178,"unique_id":"wp-comment-4512","title":"1a%29%20%20%20f%28%20g%28%20expr1%20%29%2C%20h%28%20expr2%20%29%20%29%3B%20The%20order%20of%20evaluation%20is%20not%20guaranteed.%202%29%20f%28%20new%20T1%2C%20new%20T2%20%29%3BIf%20T1%20is%20constructed%20first%20and%20If%20construction%20of%20T2%20throws%20an%20exception%2C%20then%20there%20is%20a%20memo...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4512","item_id":"_comm_4512"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4512 == 'undefined' ){PDRTJS_468178_comm_4512 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4512 );}}PDRTJS_settings_468178_comm_4511={"id":468178,"unique_id":"wp-comment-4511","title":"I%26%23039%3Bd%20guess%203%20is%20still%20not%20safe%20according%20to%20the%20standard%2C%20since%20%28again%2C%20I%20guess%29%20it%26%23039%3Bs%20valid%20for%20compiler%20to%20evaluate%20both%20news%20before%20evaluating%20the%20initializer%20lists%2C%20in%20the%20same%20way%20as%20it%20could%20...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4511","item_id":"_comm_4511"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4511 == 'undefined' ){PDRTJS_468178_comm_4511 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4511 );}}PDRTJS_settings_468178_comm_4508={"id":468178,"unique_id":"wp-comment-4508","title":"Somehow%20the%20code%20in%20angle%20brackets%20is%20missing.%20Here%26%23039%3Bs%20a%20solution%20to%20%234%3A%20http%3A%2F%2Fideone.com%2FY65S6...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4508","item_id":"_comm_4508"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4508 == 'undefined' ){PDRTJS_468178_comm_4508 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4508 );}}PDRTJS_settings_468178_comm_4507={"id":468178,"unique_id":"wp-comment-4507","title":"This%20is%20pretty%20easy%2C%20except%20%231.%20I%20don%26%23039%3Bt%20know%20exactly%20what%20the%20standard%20says%20about%20the%20order%20of%20evaluation%20in%20case%202%2C%20but%20i%20think%20it%26%23039%3Bs%20undefined%20in%20both%20cases.%232%20has%20the%20problem%20that%20memory%20is%20lea...","permalink":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/#comment-4507","item_id":"_comm_4507"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4507 == 'undefined' ){PDRTJS_468178_comm_4507 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4507 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKioFmldQQE3jAnISM/OABtrn2hqaGBkZmxgZGptkAQB2YF92'></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2011%2F12%2F02%2Fgotw-102-exception-safe-function-calls-difficulty-710%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2011\/12\/02\/gotw-102-exception-safe-function-calls-difficulty-710\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2011%2F12%2F02%2Fgotw-102-exception-safe-function-calls-difficulty-710%2F","postID":"1109","shortlink":"https:\/\/wp.me\/peb5Y-hT","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/1109","statsLink":"https:\/\/wordpress.com\/stats\/post\/1109\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2011%2F12%2F02%2Fgotw-102-exception-safe-function-calls-difficulty-710%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'1109','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sbTlNOWNlRGhKP0Z2P1JSbD1BU3w/SDd0RFdGNWt5L1J8JSsxfk1fNFl2RGptPSZhNS0tRE9henxPdFpKRVMzMzklaDlXa2E3RW1Pdl1mUmtkVD9RVWRiN2k0MDdVVU9vNzErRCswMklrK0JBb0FbLGZHJnV1WltfREQsQStuMSVLUkMxSFNrNUgwcjdxWW0vSCw2Qj8yZj8vTkJlVUd3Nls1QU96cDVzJXVQb0x6S1pxemtdTUV1dVAvU21PSUk3VUtDOV9q'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '1109' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

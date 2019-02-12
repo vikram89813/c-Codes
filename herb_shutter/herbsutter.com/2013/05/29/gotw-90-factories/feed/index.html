@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #90: Factories	</title>
+	<atom:link href="https://herbsutter.com/2013/05/29/gotw-90-factories/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/05/29/gotw-90-factories/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Sebastian Zander				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-11152</link>
+		<dc:creator><![CDATA[Sebastian Zander]]></dc:creator>
+		<pubDate>Sun, 09 Jun 2013 20:13:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-11152</guid>
+					<description><![CDATA[1. The problem is it&#039;s a raw pointer. The pointer is, presumably, dynamically allocated and it is not clear who is responsible for its deletion.
+
+2. Because it&#039;s a widget I would say std::shared_ptr is the best. This way we could pass it to other classes, functions, which we couldn&#039;t do with std::unique_ptr. If we weren&#039;t meant to pass it around std::unique_ptr would be preferable.
+
+3. Because the callers are all using 
+
+    [code]auto w = load_widget(some_ID)[/code]
+
+And because std::unique_ptr and std::shared_ptr both are written to be used like a pointer would it wouldn&#039;t make a difference anywhere (except we couldn&#039;t use delete on them!). 
+ 
+4. Probably the recommended type would be a straight up object, and we could move it out of the function. We could make the load_widget be a template function over the type of widget we wish to create:
+
+[code]template &#060;typename WidgetType&#062;
+WidgetType load_widget()[/code]
+
+Because the type is not polymorphic there is no reason to bind it to a pointer to a base object.]]></description>
+		<content:encoded><![CDATA[<p>1. The problem is it&#8217;s a raw pointer. The pointer is, presumably, dynamically allocated and it is not clear who is responsible for its deletion.</p>
+<p>2. Because it&#8217;s a widget I would say std::shared_ptr is the best. This way we could pass it to other classes, functions, which we couldn&#8217;t do with std::unique_ptr. If we weren&#8217;t meant to pass it around std::unique_ptr would be preferable.</p>
+<p>3. Because the callers are all using </p>
+<pre class="brush: plain; title: ; notranslate">auto w = load_widget(some_ID)</pre>
+<p>And because std::unique_ptr and std::shared_ptr both are written to be used like a pointer would it wouldn&#8217;t make a difference anywhere (except we couldn&#8217;t use delete on them!). </p>
+<p>4. Probably the recommended type would be a straight up object, and we could move it out of the function. We could make the load_widget be a template function over the type of widget we wish to create:</p>
+<pre class="brush: plain; title: ; notranslate">template &lt;typename WidgetType&gt;
+WidgetType load_widget()</pre>
+<p>Because the type is not polymorphic there is no reason to bind it to a pointer to a base object.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Barry				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10731</link>
+		<dc:creator><![CDATA[Barry]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 19:50:42 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10731</guid>
+					<description><![CDATA[Even though I brought it up earlier, why is using auto the preferred style in this situation? I prefer to stick with auto only when dealing with nested dependent typenames (in which cases writing out the type probably doesn&#039;t add any clarity, if it&#039;s even possible to do) and lambdas. 
+
+Plus don&#039;t you WANT to be made aware if somebody changed the underlying return type from a raw pointer to a smart pointer? Especially since (as other&#039;s pointed out), you probably should have a delete somewhere...]]></description>
+		<content:encoded><![CDATA[<p>Even though I brought it up earlier, why is using auto the preferred style in this situation? I prefer to stick with auto only when dealing with nested dependent typenames (in which cases writing out the type probably doesn&#8217;t add any clarity, if it&#8217;s even possible to do) and lambdas. </p>
+<p>Plus don&#8217;t you WANT to be made aware if somebody changed the underlying return type from a raw pointer to a smart pointer? Especially since (as other&#8217;s pointed out), you probably should have a delete somewhere&#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Laurent L.				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10709</link>
+		<dc:creator><![CDATA[Laurent L.]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 11:27:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10709</guid>
+					<description><![CDATA[Pretty good answers sofar, regarding polymorphism and ownership. I would add a question :
+
+Does the absence of &quot;noexcept&quot; tell the caller that failure management is performed through throwing an exception? In that case, all &quot;widget*&quot; solutions should be turned into &quot;widget&#038;&quot; since the normal course of things guarantees that an object will be returned. And the smart pointers cannot be null, so they can be used safely without checking.
+
+IOW, any widget* solution should also say &quot;noexcept&quot;.]]></description>
+		<content:encoded><![CDATA[<p>Pretty good answers sofar, regarding polymorphism and ownership. I would add a question :</p>
+<p>Does the absence of &#8220;noexcept&#8221; tell the caller that failure management is performed through throwing an exception? In that case, all &#8220;widget*&#8221; solutions should be turned into &#8220;widget&amp;&#8221; since the normal course of things guarantees that an object will be returned. And the smart pointers cannot be null, so they can be used safely without checking.</p>
+<p>IOW, any widget* solution should also say &#8220;noexcept&#8221;.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Sebastian Redl				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10708</link>
+		<dc:creator><![CDATA[Sebastian Redl]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 11:13:32 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10708</guid>
+					<description><![CDATA[I think Ben Craig&#039;s initial instinct was more right.
+If callers currently use unique_ptr, code just keeps working.
+If callers currently use auto, then the previous version would deduce a raw pointer for that, and callers would have an explicit delete somewhere, which doesn&#039;t work on unique_ptr. So you&#039;d still have to change ever caller.]]></description>
+		<content:encoded><![CDATA[<p>I think Ben Craig&#8217;s initial instinct was more right.<br />
+If callers currently use unique_ptr, code just keeps working.<br />
+If callers currently use auto, then the previous version would deduce a raw pointer for that, and callers would have an explicit delete somewhere, which doesn&#8217;t work on unique_ptr. So you&#8217;d still have to change ever caller.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Elvis				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10702</link>
+		<dc:creator><![CDATA[Elvis]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 09:48:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10702</guid>
+					<description><![CDATA[I Agree with  Ben except for point 3.
+#3. [code]load_widtget[/code] must return [code]std::unique_ptr&#060;widget&#062;[/code] where widget is an pure abstract class.]]></description>
+		<content:encoded><![CDATA[<p>I Agree with  Ben except for point 3.<br />
+#3. </p>
+<pre class="brush: plain; title: ; notranslate">load_widtget</pre>
+<p> must return </p>
+<pre class="brush: plain; title: ; notranslate">std::unique_ptr&lt;widget&gt;</pre>
+<p> where widget is an pure abstract class.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Thibaud				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10698</link>
+		<dc:creator><![CDATA[Thibaud]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 06:48:58 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10698</guid>
+					<description><![CDATA[For #3 if callers are using auto, they are using delete as well and you still have to remove them all.]]></description>
+		<content:encoded><![CDATA[<p>For #3 if callers are using auto, they are using delete as well and you still have to remove them all.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Mikhail Belyaev				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10695</link>
+		<dc:creator><![CDATA[Mikhail Belyaev]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 05:10:15 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10695</guid>
+					<description><![CDATA[1. It. Returns. A pointer. Nothing here says if this pointer is to some internal data, or static variable, or a new-allocated structure or (even!) to a malloc-allocated structure. What are we supposed to do with it? We are supposed to read the source code. That breaks the entire encapsulation thing factories were originally ment to bring. And with all the variants I supposed, none of them really needs a pointer returned. 
+
+Too bad LLVM exploits exactly this approach a lot.
+2. If it is a pointer to some static, global or internal state (that is not really what a factory should do, but it happens), pass it by reference. It is the single unambigious way to do it without any tradeoffs. Use a reference to const if you don&#039;t want users to change it.
+
+If it is a real newly-allocated polymorphic pointer, use std::unique_ptr. It has minimal tradeoffs (you just actually need the new-allocation) and fully expresses your intent. Even if some guy comes buy and calls release(), it&#039;s not your fault. If someone needs to share it, he can always create a shared_ptr manually.
+
+If you need to share the pointer (for example, you keep track of all values elsewhere or your method is supposed to return an exact same pointer for a sequence of calls), use the shared_ptr. You can also consider using this if you are stuck with a need to create a uniform interface for both new-allocated, static and need-to-be-deleted-by-other-means values (that actually happened to me) and provide a dynamic deleter for each with a lambda. unique_ptr cannot do that as its deleter is statically-bounded.
+
+4. If it is not really a polymorphic type, just return it by value and let compiler handle the rest unless you know for sure that the type cannot be efficiently move-constructed. Then we are back at #3.]]></description>
+		<content:encoded><![CDATA[<p>1. It. Returns. A pointer. Nothing here says if this pointer is to some internal data, or static variable, or a new-allocated structure or (even!) to a malloc-allocated structure. What are we supposed to do with it? We are supposed to read the source code. That breaks the entire encapsulation thing factories were originally ment to bring. And with all the variants I supposed, none of them really needs a pointer returned. </p>
+<p>Too bad LLVM exploits exactly this approach a lot.<br />
+2. If it is a pointer to some static, global or internal state (that is not really what a factory should do, but it happens), pass it by reference. It is the single unambigious way to do it without any tradeoffs. Use a reference to const if you don&#8217;t want users to change it.</p>
+<p>If it is a real newly-allocated polymorphic pointer, use std::unique_ptr. It has minimal tradeoffs (you just actually need the new-allocation) and fully expresses your intent. Even if some guy comes buy and calls release(), it&#8217;s not your fault. If someone needs to share it, he can always create a shared_ptr manually.</p>
+<p>If you need to share the pointer (for example, you keep track of all values elsewhere or your method is supposed to return an exact same pointer for a sequence of calls), use the shared_ptr. You can also consider using this if you are stuck with a need to create a uniform interface for both new-allocated, static and need-to-be-deleted-by-other-means values (that actually happened to me) and provide a dynamic deleter for each with a lambda. unique_ptr cannot do that as its deleter is statically-bounded.</p>
+<p>4. If it is not really a polymorphic type, just return it by value and let compiler handle the rest unless you know for sure that the type cannot be efficiently move-constructed. Then we are back at #3.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Neil				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10694</link>
+		<dc:creator><![CDATA[Neil]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 04:30:29 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10694</guid>
+					<description><![CDATA[Re #4, the recommendation of returning Widget by value assumes that (N)RVO will kick-in or Widget&#039;s move semantics are more optimized than its copy semantics.  However, if Widget is composed of non-movable members (e.g. an aggregate/POD-type) then move will be no better than copy, so if RVO does not apply then the cost of copying Widget may be greater than new-ing up a Widget* and returning it via unique_ptr.]]></description>
+		<content:encoded><![CDATA[<p>Re #4, the recommendation of returning Widget by value assumes that (N)RVO will kick-in or Widget&#8217;s move semantics are more optimized than its copy semantics.  However, if Widget is composed of non-movable members (e.g. an aggregate/POD-type) then move will be no better than copy, so if RVO does not apply then the cost of copying Widget may be greater than new-ing up a Widget* and returning it via unique_ptr.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: jlehrer				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10690</link>
+		<dc:creator><![CDATA[jlehrer]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 02:07:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10690</guid>
+					<description><![CDATA[WRT #4, I have had plenty of cases where a type was not polymorphic but did have an inheritance tree.  The object factory returns a shared_ptr to the base for the reasons I described.
+
+If there is no sublcass of Widget, then, yes, I&#039;d probably return a simple object.]]></description>
+		<content:encoded><![CDATA[<p>WRT #4, I have had plenty of cases where a type was not polymorphic but did have an inheritance tree.  The object factory returns a shared_ptr to the base for the reasons I described.</p>
+<p>If there is no sublcass of Widget, then, yes, I&#8217;d probably return a simple object.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Joe Gottman				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10685</link>
+		<dc:creator><![CDATA[Joe Gottman]]></dc:creator>
+		<pubDate>Thu, 30 May 2013 00:27:02 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10685</guid>
+					<description><![CDATA[For #4 you just return a Widget. If the class in non-polymorphic there is very little reason to go through the expense of a new and delete.]]></description>
+		<content:encoded><![CDATA[<p>For #4 you just return a Widget. If the class in non-polymorphic there is very little reason to go through the expense of a new and delete.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Ben Craig				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10681</link>
+		<dc:creator><![CDATA[Ben Craig]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 23:20:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10681</guid>
+					<description><![CDATA[After reading other people&#039;s comments, I&#039;ll agree with what I said, except for (3) :).  Auto is the more likely answer, with unique_ptr being a runner up.]]></description>
+		<content:encoded><![CDATA[<p>After reading other people&#8217;s comments, I&#8217;ll agree with what I said, except for (3) :).  Auto is the more likely answer, with unique_ptr being a runner up.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: jlehrer				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10671</link>
+		<dc:creator><![CDATA[jlehrer]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 21:45:03 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10671</guid>
+					<description><![CDATA[for #4 you return a shared_ptr.  This is because the shared_ptr holds a pointer to the destruction function which is determined at construction time.  So, if the code creates a WidgetSubclass, then when the shared_ptr reference count goes to 0, the destructor function is called, and that function is ~WidgetSubclass, even if widget* is not polymorphic.]]></description>
+		<content:encoded><![CDATA[<p>for #4 you return a shared_ptr.  This is because the shared_ptr holds a pointer to the destruction function which is determined at construction time.  So, if the code creates a WidgetSubclass, then when the shared_ptr reference count goes to 0, the destructor function is called, and that function is ~WidgetSubclass, even if widget* is not polymorphic.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: BK				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10670</link>
+		<dc:creator><![CDATA[BK]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 20:54:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10670</guid>
+					<description><![CDATA[For a hierarchy of widget classes, the overridden load_widget function can return the specific widget type. The requirements for a return type by overridden functions is that they return covariant types (see n3242.pdf section 10.3 #7)]]></description>
+		<content:encoded><![CDATA[<p>For a hierarchy of widget classes, the overridden load_widget function can return the specific widget type. The requirements for a return type by overridden functions is that they return covariant types (see n3242.pdf section 10.3 #7)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Ahti Legonkov				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10663</link>
+		<dc:creator><![CDATA[Ahti Legonkov]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 19:44:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10663</guid>
+					<description><![CDATA[I agree with most what Ben Craig said, except with answer to 3.
+
+3. What makes me so confident is the fact that in most places callers use `auto` instead of explicit types.]]></description>
+		<content:encoded><![CDATA[<p>I agree with most what Ben Craig said, except with answer to 3.</p>
+<p>3. What makes me so confident is the fact that in most places callers use `auto` instead of explicit types.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Barry				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10662</link>
+		<dc:creator><![CDATA[Barry]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 19:42:12 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10662</guid>
+					<description><![CDATA[I think Ben has it right, though I wonder if for (3) Herb meant that callers would be using:
+
+[code]
+auto my_widget = load_widget(42);
+[/code]
+
+And that&#039;s why it wouldn&#039;t matter.]]></description>
+		<content:encoded><![CDATA[<p>I think Ben has it right, though I wonder if for (3) Herb meant that callers would be using:</p>
+<pre class="brush: plain; title: ; notranslate">
+auto my_widget = load_widget(42);
+</pre>
+<p>And that&#8217;s why it wouldn&#8217;t matter.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Ben Craig				</title>
+				<link>https://herbsutter.com/2013/05/29/gotw-90-factories/#comment-10656</link>
+		<dc:creator><![CDATA[Ben Craig]]></dc:creator>
+		<pubDate>Wed, 29 May 2013 19:17:54 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2040#comment-10656</guid>
+					<description><![CDATA[1. Using a raw pointer doesn&#039;t express the ownership semantics of the widget resource.  Owning raw pointers should be avoided.
+
+2. If widget is polymorphic, then [code]unique_ptr&#060;widget&#062;[/code] is preferred.  unique_ptr is preferable to a raw pointer or raw reference because of the automatic cleanup, but you still need some kind of pointer-like type for virtual functions to work.
+
+3. If all callers were using unique_ptr already, then changing the return type from widget* to unique_ptr will not require source changes in client code.  The unique_ptr constructor can take a returned unique_ptr just fine thanks to the move constructor.
+
+4. If widget isn&#039;t polymorphic, you should just return a widget value, and let move constructors do their thing.  This lets you avoid the heap.]]></description>
+		<content:encoded><![CDATA[<p>1. Using a raw pointer doesn&#8217;t express the ownership semantics of the widget resource.  Owning raw pointers should be avoided.</p>
+<p>2. If widget is polymorphic, then </p>
+<pre class="brush: plain; title: ; notranslate">unique_ptr&lt;widget&gt;</pre>
+<p> is preferred.  unique_ptr is preferable to a raw pointer or raw reference because of the automatic cleanup, but you still need some kind of pointer-like type for virtual functions to work.</p>
+<p>3. If all callers were using unique_ptr already, then changing the return type from widget* to unique_ptr will not require source changes in client code.  The unique_ptr constructor can take a returned unique_ptr just fine thanks to the move constructor.</p>
+<p>4. If widget isn&#8217;t polymorphic, you should just return a widget value, and let move constructors do their thing.  This lets you avoid the heap.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

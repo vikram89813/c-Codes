@@ -1,0 +1,497 @@
+<!doctype html>
+<html amp lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+	
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #3 Solution: Using the Standard Library (or, Temporaries Revisited)" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/16/gotw-3-solution-using-the-standard-library-or-temporaries-revisited/" />
+<meta property="og:description" content="Effective reuse is an important part of good software engineering. To demonstrate how much better off you can be by using standard library algorithms instead of handcrafting your own, let&#8217;s r…" />
+<meta property="article:published_time" content="2013-05-16T19:58:23+00:00" />
+<meta property="article:modified_time" content="2013-05-17T20:02:32+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965412" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #3 Solution: Using the Standard Library (or, Temporaries Revisited)" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+	<title>GotW #3 Solution: Using the Standard Library (or, Temporaries Revisited) &#8211; Sutter’s Mill</title>
+		<link rel="canonical" href="https://herbsutter.com/2013/05/16/gotw-3-solution-using-the-standard-library-or-temporaries-revisited/" />
+	<script src="https://cdn.ampproject.org/v0.js" async></script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic">	<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+		<script type="application/ld+json">{"@context":"http:\/\/schema.org","@type":"BlogPosting","mainEntityOfPage":"https:\/\/herbsutter.com\/2013\/05\/16\/gotw-3-solution-using-the-standard-library-or-temporaries-revisited\/","publisher":{"@type":"Organization","name":"Sutter\u2019s Mill","logo":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=60&d=https%3A%2F%2Fs0.wp.com%2Fi%2Ffavicons%2Fapple-touch-icon-60x60.png","width":60,"height":60}},"headline":"GotW #3 Solution: Using the Standard Library (or, Temporaries Revisited)","datePublished":"2013-05-16T11:58:23+00:00","dateModified":"2013-05-17T12:02:32+00:00","author":{"@type":"Person","name":"Herb Sutter"},"image":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=200","width":200,"height":200}}</script>
+	<meta name="generator" content="AMP Plugin v0.6.2" />	<style amp-custom>
+		/* Generic WP styling */
+
+.alignright {
+	float: right;
+}
+
+.alignleft {
+	float: left;
+}
+
+.aligncenter {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.amp-wp-enforced-sizes {
+	/** Our sizes fallback is 100vw, and we have a padding on the container; the max-width here prevents the element from overflowing. **/
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+.amp-wp-unknown-size img {
+	/** Worst case scenario when we can't figure out dimensions for an image. **/
+	/** Force the image into a box of fixed dimensions and use object-fit to scale. **/
+	object-fit: contain;
+}
+
+/* Template Styles */
+
+.amp-wp-content,
+.amp-wp-title-bar div {
+		margin: 0 auto;
+	max-width: 500px;
+	}
+
+html {
+	background: #0a89c0;
+}
+
+body {
+	background: #fff;
+	color: #353535;
+	font-family: 'Merriweather', 'Times New Roman', Times, Serif;
+	font-weight: 300;
+	line-height: 1.75em;
+}
+
+p,
+ol,
+ul,
+figure {
+	margin: 0 0 1em;
+	padding: 0;
+}
+
+a,
+a:visited {
+	color: #0a89c0;
+}
+
+a:hover,
+a:active,
+a:focus {
+	color: #353535;
+}
+
+/* Quotes */
+
+blockquote {
+	color: #353535;
+	background: rgba(127,127,127,.125);
+	border-left: 2px solid #0a89c0;
+	margin: 8px 0 24px 0;
+	padding: 16px;
+}
+
+blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+/* UI Fonts */
+
+.amp-wp-meta,
+.amp-wp-header div,
+.amp-wp-title,
+.wp-caption-text,
+.amp-wp-tax-category,
+.amp-wp-tax-tag,
+.amp-wp-comments-link,
+.amp-wp-footer p,
+.back-to-top {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen-Sans", "Ubuntu", "Cantarell", "Helvetica Neue", sans-serif;
+}
+
+/* Header */
+
+.amp-wp-header {
+	background-color: #0a89c0;
+}
+
+.amp-wp-header div {
+	color: #fff;
+	font-size: 1em;
+	font-weight: 400;
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: .875em 16px;
+	position: relative;
+}
+
+.amp-wp-header a {
+	color: #fff;
+	text-decoration: none;
+}
+
+/* Site Icon */
+
+.amp-wp-header .amp-wp-site-icon {
+	/** site icon is 32px **/
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 50%;
+	position: absolute;
+	right: 18px;
+	top: 10px;
+}
+
+/* Article */
+
+.amp-wp-article {
+	color: #353535;
+	font-weight: 400;
+	margin: 1.5em auto;
+	max-width: 840px;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+}
+
+/* Article Header */
+
+.amp-wp-article-header {
+	align-items: center;
+	align-content: stretch;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin: 1.5em 16px 0;
+}
+
+.amp-wp-title {
+	color: #353535;
+	display: block;
+	flex: 1 0 100%;
+	font-weight: 900;
+	margin: 0 0 .625em;
+	width: 100%;
+}
+
+/* Article Meta */
+
+.amp-wp-meta {
+	color: #696969;
+	display: inline-block;
+	flex: 2 1 50%;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0 0 1.5em;
+	padding: 0;
+}
+
+.amp-wp-article-header .amp-wp-meta:last-of-type {
+	text-align: right;
+}
+
+.amp-wp-article-header .amp-wp-meta:first-of-type {
+	text-align: left;
+}
+
+.amp-wp-byline amp-img,
+.amp-wp-byline .amp-wp-author {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.amp-wp-byline amp-img {
+	border: 1px solid #0a89c0;
+	border-radius: 50%;
+	position: relative;
+	margin-right: 6px;
+}
+
+.amp-wp-posted-on {
+	text-align: right;
+}
+
+/* Featured image */
+
+.amp-wp-article-featured-image {
+	margin: 0 0 1em;
+}
+.amp-wp-article-featured-image amp-img {
+	margin: 0 auto;
+}
+.amp-wp-article-featured-image.wp-caption .wp-caption-text {
+	margin: 0 18px;
+}
+
+/* Article Content */
+
+.amp-wp-article-content {
+	margin: 0 16px;
+}
+
+.amp-wp-article-content ul,
+.amp-wp-article-content ol {
+	margin-left: 1em;
+}
+
+.amp-wp-article-content amp-img {
+	margin: 0 auto;
+}
+
+.amp-wp-article-content amp-img.alignright {
+	margin: 0 0 1em 16px;
+}
+
+.amp-wp-article-content amp-img.alignleft {
+	margin: 0 16px 1em 0;
+}
+
+/* Captions */
+
+.wp-caption {
+	padding: 0;
+}
+
+.wp-caption.alignleft {
+	margin-right: 16px;
+}
+
+.wp-caption.alignright {
+	margin-left: 16px;
+}
+
+.wp-caption .wp-caption-text {
+	border-bottom: 1px solid #c2c2c2;
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0;
+	padding: .66em 10px .75em;
+}
+
+/* AMP Media */
+
+amp-carousel {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+amp-iframe,
+amp-youtube,
+amp-instagram,
+amp-vine {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+
+.amp-wp-article-content amp-carousel amp-img {
+	border: none;
+}
+
+amp-carousel > amp-img > img {
+	object-fit: contain;
+}
+
+.amp-wp-iframe-placeholder {
+	background: #c2c2c2 url( https://s2.wp.com/wp-content/plugins/amp/assets/images/placeholder-icon.png ) no-repeat center 40%;
+	background-size: 48px 48px;
+	min-height: 48px;
+}
+
+/* Article Footer Meta */
+
+.amp-wp-article-footer .amp-wp-meta {
+	display: block;
+}
+
+.amp-wp-tax-category,
+.amp-wp-tax-tag {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 1.5em 16px;
+}
+
+.amp-wp-comments-link {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	text-align: center;
+	margin: 2.25em 0 1.5em;
+}
+
+.amp-wp-comments-link a {
+	border-style: solid;
+	border-color: #c2c2c2;
+	border-width: 1px 1px 2px;
+	border-radius: 4px;
+	background-color: transparent;
+	color: #0a89c0;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 18px;
+	margin: 0 auto;
+	max-width: 200px;
+	padding: 11px 16px;
+	text-decoration: none;
+	width: 50%;
+	-webkit-transition: background-color 0.2s ease;
+			transition: background-color 0.2s ease;
+}
+
+/* AMP Footer */
+
+.amp-wp-footer {
+	border-top: 1px solid #c2c2c2;
+	margin: calc(1.5em - 1px) 0 0;
+}
+
+.amp-wp-footer div {
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: 1.25em 16px 1.25em;
+	position: relative;
+}
+
+.amp-wp-footer h2 {
+	font-size: 1em;
+	line-height: 1.375em;
+	margin: 0 0 .5em;
+}
+
+.amp-wp-footer p {
+	color: #696969;
+	font-size: .8em;
+	line-height: 1.5em;
+	margin: 0 85px 0 0;
+}
+
+.amp-wp-footer a {
+	text-decoration: none;
+}
+
+.back-to-top {
+	bottom: 1.275em;
+	font-size: .8em;
+	font-weight: 600;
+	line-height: 2em;
+	position: absolute;
+	right: 16px;
+}
+		/* Inline styles */
+.amp-wp-inline-e118b89cb574341583297a20935ac54c{color:#2e74b5;}.amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe{background:#ffffcc;margin-left:14pt;}.amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34{margin-left:36pt;}.amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b{color:#5a5a5a;}	</style>
+</head>
+
+<body class="">
+
+<header id="top" class="amp-wp-header">
+	<div>
+		<a href="https://herbsutter.com">
+									<span class="amp-site-title">
+				Sutter’s Mill			</span>
+		</a>
+	</div>
+</header>
+
+<article class="amp-wp-article">
+	<header class="amp-wp-article-header">
+		<h1 class="amp-wp-title">GotW #3 Solution: Using the Standard Library (or, Temporaries Revisited)</h1>
+			<div class="amp-wp-meta amp-wp-byline">
+					<amp-img src="https://secure.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=24&#038;d=identicon&#038;r=g" width="24" height="24" layout="fixed"></amp-img>
+				<span class="amp-wp-author author vcard">Herb Sutter</span>
+	</div>
+<div class="amp-wp-meta amp-wp-posted-on">
+	<time datetime="2013-05-16T11:58:23+00:00">
+		6 years ago	</time>
+</div>
+	</header>
+
+	
+	<div class="amp-wp-article-content">
+		<p><span class="amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b"><em>Effective reuse is an important part of good software engineering. To demonstrate how much better off you can be by using standard library algorithms instead of handcrafting your own, let’s reconsider the previous question to demonstrate how many of the problems could have been avoided by simply reusing what’s already available in the standard library.<br/></em></span></p><p>
+ </p><h1>Problem<br/></h1><h2>JG Question<br/></h2><p>1. What is the most widely used C++ library?
+</p><h2>Guru Question<br/></h2><p>2. How many of the pitfalls in GotW #2 could have been avoided in the first place, if only the programmer had replaced the explicit iterator-based <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop with:
+</p><p class="amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34">(a) a range-based <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop?
+</p><p class="amp-wp-inline-44436b9b5909e9f28a17bab55ba41d34">(b) a standard library algorithm call?
+</p><p>Demonstrate. (Note: As with GotW #2, don’t change the semantics of the function, even though they could be improved.)
+</p><p>To recap, here is the mostly-fixed function:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>string find_addr( const list&lt;employee&gt;&amp; emps, const string&amp; name ) {<br/>    for( auto i = begin(emps);  i != end(emps); ++i ) {<br/>        if( i-&gt;name() == name ) {<br/>            return i-&gt;addr;<br/>        }<br/>    }<br/>    return "";<br/>}
+</code></pre><p>
+ </p><h1>Solution<br/></h1><h2>1. What is the most widely used C++ library?<br/></h2><p>The C++ standard library, with its implementations on every platform.
+</p><p>
+ </p><h2>2. (a) How many of the pitfalls in GotW #2 could have been avoided with a range-based for loop?<br/></h2><p>Astute readers of GotW #2 will have been champing at the bit to say: “Why aren’t you using a range-based <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop?” Indeed, why not? That would solve several of the temporaries, never mind be easier to write.
+</p><p>Compare the original unimproved explicit iterator loop:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    for( auto i = begin(emps); i != end(emps); i++ ) {<br/>        if( *i == name ) {<br/>            return i-&gt;addr;<br/>        }<br/>    }
+</code></pre><p>with the range-based <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop (bonus points if you remembered to write the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const auto&amp;</span>):
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    for( const auto&amp; e : emps ) {<br/>        if( e == name ) {<br/>            return e.addr;<br/>        }<br/>    }
+</code></pre><p>The expressions <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">e == name</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">return e.addr;</span> are unchanged in terms of their possible or actual temporaries. But the questions in the naked loop code about whether or not the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">=</span> causes a temporary (recall: it doesn’t), whether or not <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">end()</span> recalculation matters and should be hoisted (recall: probably not, but maybe), and whether or not <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">i++</span> should be rewritten <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">++i</span> (recall: it should) all simply don’t arise in the range-<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> code. Such is the power of clear code, and using a higher level of abstraction.
+</p><p>A key advantage is that using the range-based <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop has increased our level of abstraction, the information density in our code. Consider: What can you say about the following two pieces of code without reading what comes next?
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>    for( auto i = begin(emps); i != end(emps); i++ ) {   // A<br/><br/>    for( const auto&amp; e : emps ) {                        // B
+</code></pre><p>At first it might seem that lines A and B convey the same information, but they don’t. When you see A, all you know is that there’s a loop of some sort that uses an iterator over <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">emps</span>. Granted, we’re so used to A that our eye’s peripheral vision tends to “autocomplete” it in our heads into “a loop that visits the elements of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">emps</span> in order” and our autocomplete is often correct—except when it isn’t: was that a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">++</span>, or a s<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">+= 2</span> in a strided loop? is the index modified inside the body? Our peripheral vision might be wrong.
+</p><p>On the other hand, B conveys more information to the reader. When you see B, you know for certain without inspecting the body of the loop that it is a loop that visits the element of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">emps</span> in order. What’s more, you’ve simplified the loop control because there’s no need for an iterator indirection. Both of these are raising the level of abstraction of our code, and that’s a good thing.
+</p><p>Note that, as discussed in GotW #2, the naked <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop didn’t naturally allow consolidating to a single <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">return</span> statement without resorting to making the code more complex by adding an additional variable and performing extra computation (a default construction followed by an assignment, instead of just a construction). That’s still true of the range-based <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop form, because it still has the two <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">return</span> statements in different scopes.
+</p><h2>2. (b) … with a standard library algorithm call?<br/></h2><p>With no other changes, simply using the standard <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">find</span> algorithm could do everything the range-based <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop did to avoid needless temporaries (and questions about them):
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// Better (focusing on internals)<br/>//<br/>string find_addr( /*...*/ ) {<br/>    const auto i = find( begin(emps), end(emps), name );   // TFTFY<br/>    return i != end(emps) ? i-&gt;addr : "";<br/>}
+</code></pre><p>This naturally eliminates the same temporaries as the range-<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> version, and it further increases our level of abstraction. As with the range-based <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop, we can see at a glance and for certain that the loop will visit the elements of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">emps</span> in order, but on top of that we also know we’re trying to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">find</span> something and will get back an iterator to the first matching element if one exists. We do still have an iterator indirection, but only a single-use iterator object and no iterator arithmetic as in the original naked iterator <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop.
+</p><p>Further, we have eliminated a loop nested scope entirely and flattened out the function to a single scope which can simplify this calling function in ways even the range-<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> couldn’t. To demonstrate still more just how fundamental this point is, note that what else the flattening out of the body buys us: Now, because the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">return</span> statements are in the same scope (possible only because we eliminated the loop scope), we have the option of naturally combining them. You could still write <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">if( i != end(emps) ) return i-&gt;addr; else return “”;</span> here, on one or two or four lines, but there’s no need to. To be clear, the point here is not that reducing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">return</span> statements should be a goal in itself—it shouldn’t be, and “single exit” thinking has always been flawed as we already saw in GotW #2. Rather, the point is that using an algorithm often simplifies our code more than an explicit loop, even a range-<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for</span> loop, can do—not only directly by removing extra indirections and extra variables and a loop nested scope, but often also by permitting additional simplifications in nearby code.
+</p><p>The above code might still cause a temporary when comparing an <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">employee</span> with a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">string</span>, and we can eliminate even that temporary if we go one small step further and use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">find_if</span> with a custom comparison that compares <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">e.name() == name</span> to avoid a possible conversion, assuming something like a suitable <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">employee::name()</span> is available as we did in GotW #2. Combining this with the other fixes to pass parameters by reference, we get:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// Better still (complete)<br/>//<br/>string find_addr( const list&lt;employee&gt;&amp; emps, const string&amp; name ) {<br/>    const auto i = find_if( begin(emps), end(emps),<br/>                      [&amp;](const auto&amp; e) { return e.name() == name; } );<br/>    return i != end(emps) ? i-&gt;addr : "";<br/>}
+</code></pre><p>
+ </p><h2>Summary<br/></h2><p>Prefer algorithm calls over explicit loops, when you have or can write a suitable algorithm that does what you want. They raise the level of abstraction and the clarity of our code. Scott Meyers’ advice in <em>Effective STL</em> is still true, and more applicable than even now that lambdas make algorithms much more usable than before:
+</p><blockquote>
+<p><strong>Guideline: </strong>Prefer algorithm calls to explicit loops. Algorithm calls are often clearer and reduce complexity. If no suitable algorithm exists, why not write it? You’ll use it again.
+</p>
+</blockquote><p>Prefer reusing existing library code to handcrafting your own. The more widely used the library, the more likely it is to come well-designed, pre-debugged, and pre-optimized for many common requirements. And what library is more widely used than the standard library? In your C++ program, your standard library implementation is the most widely used library code you’re likely to use. This helps you both in the library’s design and its implementation: It’s full of code that’s intended to be used and reused, and to that end a lot of thought and care has gone into the design of its features, including its standard algorithms like <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">find</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">sort</span>. Implementers have also spent hours sweating over efficiency details, and usability details, and all sorts of other considerations so that you don’t have to—including performing optimizations you should almost never resort to in application-level code, such as using nonportable OS- and CPU-target specific optimizations.
+</p><p>So, always prefer to reuse code, especially algorithms and especially the standard library, and escape the trap of “I’ll-write-my-own-just-’cause-I-can.”
+</p><blockquote>
+<p><strong>Guideline: </strong>Reuse code—especially standard library code—instead of handcrafting your own. It’s faster, easier, and safer.
+</p>
+</blockquote><h2>Acknowledgments<br/></h2><p>Thanks in particular to the following for their feedback to improve this article: Olaf ven der Spek, Sam Kramer.</p>	</div>
+
+	<footer class="amp-wp-article-footer">
+			<div class="amp-wp-meta amp-wp-tax-category">
+		Categories: <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a>	</div>
+
+		<div class="amp-wp-meta amp-wp-comments-link">
+		<a href="https://herbsutter.com/2013/05/16/gotw-3-solution-using-the-standard-library-or-temporaries-revisited/#comments">
+			View Comments		</a>
+	</div>
+	</footer>
+</article>
+
+<footer class="amp-wp-footer">
+	<div>
+		<h2>Sutter’s Mill</h2>
+		<p>
+			<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a>
+		</p>
+		<a href="#top" class="back-to-top">Back to top</a>
+	</div>
+</footer>
+
+
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;host=herbsutter.com&#038;ref=DOCUMENT_REFERRER&#038;amp=1&#038;blog=3379246&#038;v=wpcom&#038;tz=-8&#038;user_id=0&#038;post=1912&#038;subd=herbsutter"></amp-pixel>
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;v=wpcom-no-pv&#038;crypt=UE40eW5QN0p8M2Y%2FRE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29%2BSmw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8%2FMkNtblkvY1d1TjBELytHc0k%2FMXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNFUsWXdaVVYsJVRvWTBMR0d3Sks5W3ZvU1FFaltLd0c4RE5BVUVlQnNpZXRHSmJ1c2NDN2xNa1syaFQwTGlPaFRseThHY1dUclNZc2gyUlZdUXppNiVxMHpNNHpBTGJ3PTFvRA%3D%3D"></amp-pixel>
+	
+</body>
+</html>

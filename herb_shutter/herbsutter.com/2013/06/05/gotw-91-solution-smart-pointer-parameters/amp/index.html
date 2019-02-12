@@ -1,0 +1,492 @@
+<!doctype html>
+<html amp lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+	
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #91 Solution: Smart Pointer Parameters" />
+<meta property="og:url" content="https://herbsutter.com/2013/06/05/gotw-91-solution-smart-pointer-parameters/" />
+<meta property="og:description" content="NOTE: Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn&#8217;t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is…" />
+<meta property="article:published_time" content="2013-06-05T14:42:12+00:00" />
+<meta property="article:modified_time" content="2013-12-03T17:01:06+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965376" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #91 Solution: Smart Pointer Parameters" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+	<title>GotW #91 Solution: Smart Pointer Parameters &#8211; Sutter’s Mill</title>
+		<link rel="canonical" href="https://herbsutter.com/2013/06/05/gotw-91-solution-smart-pointer-parameters/" />
+	<script src="https://cdn.ampproject.org/v0.js" async></script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic">	<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+		<script type="application/ld+json">{"@context":"http:\/\/schema.org","@type":"BlogPosting","mainEntityOfPage":"https:\/\/herbsutter.com\/2013\/06\/05\/gotw-91-solution-smart-pointer-parameters\/","publisher":{"@type":"Organization","name":"Sutter\u2019s Mill","logo":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=60&d=https%3A%2F%2Fs0.wp.com%2Fi%2Ffavicons%2Fapple-touch-icon-60x60.png","width":60,"height":60}},"headline":"GotW #91 Solution: Smart Pointer Parameters","datePublished":"2013-06-05T06:42:12+00:00","dateModified":"2013-12-03T09:01:06+00:00","author":{"@type":"Person","name":"Herb Sutter"},"image":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=200","width":200,"height":200}}</script>
+	<meta name="generator" content="AMP Plugin v0.6.2" />	<style amp-custom>
+		/* Generic WP styling */
+
+.alignright {
+	float: right;
+}
+
+.alignleft {
+	float: left;
+}
+
+.aligncenter {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.amp-wp-enforced-sizes {
+	/** Our sizes fallback is 100vw, and we have a padding on the container; the max-width here prevents the element from overflowing. **/
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+.amp-wp-unknown-size img {
+	/** Worst case scenario when we can't figure out dimensions for an image. **/
+	/** Force the image into a box of fixed dimensions and use object-fit to scale. **/
+	object-fit: contain;
+}
+
+/* Template Styles */
+
+.amp-wp-content,
+.amp-wp-title-bar div {
+		margin: 0 auto;
+	max-width: 500px;
+	}
+
+html {
+	background: #0a89c0;
+}
+
+body {
+	background: #fff;
+	color: #353535;
+	font-family: 'Merriweather', 'Times New Roman', Times, Serif;
+	font-weight: 300;
+	line-height: 1.75em;
+}
+
+p,
+ol,
+ul,
+figure {
+	margin: 0 0 1em;
+	padding: 0;
+}
+
+a,
+a:visited {
+	color: #0a89c0;
+}
+
+a:hover,
+a:active,
+a:focus {
+	color: #353535;
+}
+
+/* Quotes */
+
+blockquote {
+	color: #353535;
+	background: rgba(127,127,127,.125);
+	border-left: 2px solid #0a89c0;
+	margin: 8px 0 24px 0;
+	padding: 16px;
+}
+
+blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+/* UI Fonts */
+
+.amp-wp-meta,
+.amp-wp-header div,
+.amp-wp-title,
+.wp-caption-text,
+.amp-wp-tax-category,
+.amp-wp-tax-tag,
+.amp-wp-comments-link,
+.amp-wp-footer p,
+.back-to-top {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen-Sans", "Ubuntu", "Cantarell", "Helvetica Neue", sans-serif;
+}
+
+/* Header */
+
+.amp-wp-header {
+	background-color: #0a89c0;
+}
+
+.amp-wp-header div {
+	color: #fff;
+	font-size: 1em;
+	font-weight: 400;
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: .875em 16px;
+	position: relative;
+}
+
+.amp-wp-header a {
+	color: #fff;
+	text-decoration: none;
+}
+
+/* Site Icon */
+
+.amp-wp-header .amp-wp-site-icon {
+	/** site icon is 32px **/
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 50%;
+	position: absolute;
+	right: 18px;
+	top: 10px;
+}
+
+/* Article */
+
+.amp-wp-article {
+	color: #353535;
+	font-weight: 400;
+	margin: 1.5em auto;
+	max-width: 840px;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+}
+
+/* Article Header */
+
+.amp-wp-article-header {
+	align-items: center;
+	align-content: stretch;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin: 1.5em 16px 0;
+}
+
+.amp-wp-title {
+	color: #353535;
+	display: block;
+	flex: 1 0 100%;
+	font-weight: 900;
+	margin: 0 0 .625em;
+	width: 100%;
+}
+
+/* Article Meta */
+
+.amp-wp-meta {
+	color: #696969;
+	display: inline-block;
+	flex: 2 1 50%;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0 0 1.5em;
+	padding: 0;
+}
+
+.amp-wp-article-header .amp-wp-meta:last-of-type {
+	text-align: right;
+}
+
+.amp-wp-article-header .amp-wp-meta:first-of-type {
+	text-align: left;
+}
+
+.amp-wp-byline amp-img,
+.amp-wp-byline .amp-wp-author {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.amp-wp-byline amp-img {
+	border: 1px solid #0a89c0;
+	border-radius: 50%;
+	position: relative;
+	margin-right: 6px;
+}
+
+.amp-wp-posted-on {
+	text-align: right;
+}
+
+/* Featured image */
+
+.amp-wp-article-featured-image {
+	margin: 0 0 1em;
+}
+.amp-wp-article-featured-image amp-img {
+	margin: 0 auto;
+}
+.amp-wp-article-featured-image.wp-caption .wp-caption-text {
+	margin: 0 18px;
+}
+
+/* Article Content */
+
+.amp-wp-article-content {
+	margin: 0 16px;
+}
+
+.amp-wp-article-content ul,
+.amp-wp-article-content ol {
+	margin-left: 1em;
+}
+
+.amp-wp-article-content amp-img {
+	margin: 0 auto;
+}
+
+.amp-wp-article-content amp-img.alignright {
+	margin: 0 0 1em 16px;
+}
+
+.amp-wp-article-content amp-img.alignleft {
+	margin: 0 16px 1em 0;
+}
+
+/* Captions */
+
+.wp-caption {
+	padding: 0;
+}
+
+.wp-caption.alignleft {
+	margin-right: 16px;
+}
+
+.wp-caption.alignright {
+	margin-left: 16px;
+}
+
+.wp-caption .wp-caption-text {
+	border-bottom: 1px solid #c2c2c2;
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0;
+	padding: .66em 10px .75em;
+}
+
+/* AMP Media */
+
+amp-carousel {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+amp-iframe,
+amp-youtube,
+amp-instagram,
+amp-vine {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+
+.amp-wp-article-content amp-carousel amp-img {
+	border: none;
+}
+
+amp-carousel > amp-img > img {
+	object-fit: contain;
+}
+
+.amp-wp-iframe-placeholder {
+	background: #c2c2c2 url( https://s2.wp.com/wp-content/plugins/amp/assets/images/placeholder-icon.png ) no-repeat center 40%;
+	background-size: 48px 48px;
+	min-height: 48px;
+}
+
+/* Article Footer Meta */
+
+.amp-wp-article-footer .amp-wp-meta {
+	display: block;
+}
+
+.amp-wp-tax-category,
+.amp-wp-tax-tag {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 1.5em 16px;
+}
+
+.amp-wp-comments-link {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	text-align: center;
+	margin: 2.25em 0 1.5em;
+}
+
+.amp-wp-comments-link a {
+	border-style: solid;
+	border-color: #c2c2c2;
+	border-width: 1px 1px 2px;
+	border-radius: 4px;
+	background-color: transparent;
+	color: #0a89c0;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 18px;
+	margin: 0 auto;
+	max-width: 200px;
+	padding: 11px 16px;
+	text-decoration: none;
+	width: 50%;
+	-webkit-transition: background-color 0.2s ease;
+			transition: background-color 0.2s ease;
+}
+
+/* AMP Footer */
+
+.amp-wp-footer {
+	border-top: 1px solid #c2c2c2;
+	margin: calc(1.5em - 1px) 0 0;
+}
+
+.amp-wp-footer div {
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: 1.25em 16px 1.25em;
+	position: relative;
+}
+
+.amp-wp-footer h2 {
+	font-size: 1em;
+	line-height: 1.375em;
+	margin: 0 0 .5em;
+}
+
+.amp-wp-footer p {
+	color: #696969;
+	font-size: .8em;
+	line-height: 1.5em;
+	margin: 0 85px 0 0;
+}
+
+.amp-wp-footer a {
+	text-decoration: none;
+}
+
+.back-to-top {
+	bottom: 1.275em;
+	font-size: .8em;
+	font-weight: 600;
+	line-height: 2em;
+	position: absolute;
+	right: 16px;
+}
+		/* Inline styles */
+.amp-wp-inline-e118b89cb574341583297a20935ac54c{color:#2e74b5;}.amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b{color:#5a5a5a;}	</style>
+</head>
+
+<body class="">
+
+<header id="top" class="amp-wp-header">
+	<div>
+		<a href="https://herbsutter.com">
+									<span class="amp-site-title">
+				Sutter’s Mill			</span>
+		</a>
+	</div>
+</header>
+
+<article class="amp-wp-article">
+	<header class="amp-wp-article-header">
+		<h1 class="amp-wp-title">GotW #91 Solution: Smart Pointer Parameters</h1>
+			<div class="amp-wp-meta amp-wp-byline">
+					<amp-img src="https://secure.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=24&#038;d=identicon&#038;r=g" width="24" height="24" layout="fixed"></amp-img>
+				<span class="amp-wp-author author vcard">Herb Sutter</span>
+	</div>
+<div class="amp-wp-meta amp-wp-posted-on">
+	<time datetime="2013-06-05T06:42:12+00:00">
+		5 years ago	</time>
+</div>
+	</header>
+
+	
+	<div class="amp-wp-article-content">
+		<blockquote><p><strong>NOTE:</strong> Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn’t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is the updated version of what was GotW #105.</p></blockquote><p><span class="amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b"><em>How should you prefer to pass smart pointers, and why?<br/></em></span></p><h1>Problem</h1><h2>JG Question</h2><p>1. What are the <em>performance</em> implications of the following function declaration? Explain.</p><pre><code>void f( shared_ptr&lt;widget&gt; );&#13;
+</code></pre><h2>Guru Questions</h2><p>2. What are the <em>correctness</em> implications of the function declaration in #1? Explain with clear examples.</p><p>3. A colleague is writing a function <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span> that takes an existing object of type <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span> as a required input-only parameter, and trying to decide among the following basic ways to take the parameter (omitting <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>):</p><pre><code>void f( widget* );              (a)&#13;
+void f( widget&amp; );              (b)&#13;
+void f( unique_ptr&lt;widget&gt; );   (c)&#13;
+void f( unique_ptr&lt;widget&gt;&amp; );  (d)&#13;
+void f( shared_ptr&lt;widget&gt; );   (e)&#13;
+void f( shared_ptr&lt;widget&gt;&amp; );  (f)&#13;
+</code></pre><p>Under what circumstances is each appropriate? Explain your answer, including where <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> should or should not be added anywhere in the parameter type.</p><p>(There are other ways to pass the parameter, but we will consider only the ones shown above.)</p><h1>Solution</h1><h2>1. What are the <em>performance</em> implications of the following function declaration? Explain.</h2><pre><code>void f( shared_ptr&lt;widget&gt; );&#13;
+</code></pre><p>A <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> stores strong and weak reference counts (see GotW #89). When you pass by value, you have to copy the argument (usually) on entry to the function, and then destroy it (always) on function exit. Let’s dig into what this means.</p><p>When you enter the function, the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> is copy-constructed, and this requires incrementing the strong reference count. (Yes, if the caller passes a temporary <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>, you <em>move</em>-construct and so don’t have to update the count. But: (a) it’s quite rare to get a temporary <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> in normal code, other than taking one function’s return value and immediately passing that to a second function; and (b) besides as we’ll see most of the expense is on the destruction of the parameter anyway.)</p><p>When exiting the function, the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> is destroyed, and this requires decrementing its internal reference count.</p><p>What’s so bad about a “shared reference count increment and decrement?” Two things, one related to the “shared reference count” and one related to the “increment and decrement.” It’s good to be aware of how this can incur performance costs for two reasons: one major and common, and one less likely in well-designed code and so probably more minor.</p><p>First, the major reason is the performance cost of the “increment and decrement”: Because the reference count is an <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">atomic</span> shared variable (or equivalent), incrementing and decrementing it are internally-synchronized read-modify-write shared memory operations.</p><p>Second, the less-likely minor reason is the potentially scalability-bustingly contentious nature of the “shared reference count”: Both increment and decrement update the reference count, which means that at the processor and memory level only one core at a time can be executing such an instruction on the same reference count because it needs exclusive access to the count’s cache line. The net result is that this causes some contention on the count’s cache line, which can affect scalability if it’s a popular cache line being touched by multiple threads in tight loops—such as if two threads are calling functions like this one in tight loops and accessing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>s that own the same object. “So don’t do that, thou heretic caller!” we might righteously say. Well and good, but the caller doesn’t always know when two <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>s used on two different threads refer to the same object, so let’s not be quick to pile the wood around his stake just yet.</p><p>As we will see, an essential best practice for any reference-counted smart pointer type is to <i>avoid copying it unless you really mean to add a new reference</i>. This cannot be stressed enough. This directly addresses both of these costs and pushes their performance impact down into the noise for most applications, and especially eliminates the second cost because it is an antipattern to add and remove references in tight loops.</p><p>At this point, we will be tempted to solve the problem by passing the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> by reference. But is that really the right thing to do? It depends.</p><h2>2. What are the <em>correctness</em> implications of the function declaration in #1?</h2><p>The only correctness implication is that the function advertises in a clear type-enforced way that it will (or could) retain a copy of the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>.</p><p>That this is the only correctness implication might surprise some people, because there would seem to be one other major correctness benefit to taking a copy of the argument, namely lifetime: Assuming the pointer is not already null, taking a copy of the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> guarantees that the function itself holds a strong refcount on the owned object, and that therefore the object will remain alive for the duration of the function body, or until the function itself chooses to modify its parameter.</p><p>However, we already get this for free—thanks to structured lifetimes, the called function’s lifetime is a strict subset of the calling function’s call expression. Even if we passed the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> by reference, our function would as good as hold a strong refcount because <em>the caller already has one</em>—he passed us the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> in the first place, and won’t release it until we return. (Note this assumes the pointer is not aliased. You have to be careful if the smart pointer parameter could be aliased, but in this respect it’s no different than any other aliased object.)</p><blockquote><p><strong>Guideline:</strong> Don’t pass a smart pointer as a function parameter unless you want to use or manipulate the smart pointer itself, such as to share or transfer ownership.</p></blockquote><blockquote><p><strong>Guideline: </strong>Prefer passing objects by value, <strong>*</strong>, or <strong>&amp;</strong>, not by smart pointer.</p></blockquote><p>If you’re saying, “hey, aren’t raw pointers evil?”, that’s excellent, because we’ll address that next.</p><h2>3. A colleague is writing a function f that takes an existing object of type widget as a required input-only parameter, and trying to decide among the following basic ways to take the parameter (omitting const). Under what circumstances is each appropriate? Explain your answer, including where const should or should not be added anywhere in the parameter type.</h2><h3>(a) and (b): Prefer passing parameters by * or &amp;.</h3><pre><code>void f( widget* );              (a)&#13;
+void f( widget&amp; );              (b)&#13;
+</code></pre><p>These are the preferred way to pass normal object parameters, because they stay agnostic of whatever lifetime policy the caller happens to be using.</p><p>Non-owning raw <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">*</span> pointers and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span> references are okay to observe an object whose lifetime we know exceeds that of the pointer or reference, which is usually true for function parameters. Thanks to structured lifetimes, by default arguments passed to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span> in the caller outlive <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span>‘s function call lifetime, which is extremely useful (not to mention efficient) and makes non-owning <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">*</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span> appropriate for parameters.</p><p>Pass by <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">*</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span> to accept a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span> independently of how the caller is managing its lifetime. Most of the time, we don’t want to commit to a lifetime policy in the parameter type, such as requiring the object be held by a specific smart pointer, because this is usually needlessly restrictive. As usual, use a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">*</span> if you need to express null (no <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span>), otherwise prefer to use a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span>; and if the object is input-only, write <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const widget*</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const widget&amp;</span>.</p><h3>(c) Passing unique_ptr by value means “sink.”</h3><pre><code>void f( unique_ptr&lt;widget&gt; );   (c)&#13;
+</code></pre><p>This is the preferred way to express a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span>-consuming function, also known as a “sink.”</p><p>Passing a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span> by value is only possible by moving the object and its unique ownership from the caller to the callee. Any function like (c) takes ownership of the object away from the caller, and either destroys it or moves it onward to somewhere else.</p><p>Note that, unlike some of the other options below, this use of a by-value <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span> parameter actually doesn’t limit the kind of object that can be passed to those managed by a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span>. Why not? Because any pointer can be explicitly converted to a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span>. If we didn’t use a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span> here we would still have to express “sink” semantics, just in a more brittle way such as by accepting a raw <em>owning</em> pointer (anathema!) and documenting the semantics in comments. Using (c) is vastly superior because it documents the semantics in code, and requires the caller to explicitly move ownership.</p><p>Consider the major alternative:</p><pre><code>// Smelly 20th-century alternative&#13;
+void bad_sink( widget* p );  // will destroy p; PLEASE READ THIS COMMENT&#13;
+&#13;
+// Sweet self-documenting self-enforcing modern version (c)&#13;
+void good_sink( unique_ptr&lt;widget&gt; p );&#13;
+</code></pre><p>And how much better (c) is:</p><pre><code>// Older calling code that calls the new good_sink is safer, because&#13;
+// it's clearer in the calling code that ownership transfer is going on&#13;
+// (this older code has an owning * which we shouldn't do in new code)&#13;
+//&#13;
+widget* pw = ... ; &#13;
+&#13;
+bad_sink ( pw );             // compiles: remember not to use pw again!&#13;
+&#13;
+good_sink( pw );             // error: good&#13;
+good_sink( unique_ptr&lt;widget&gt;{pw} );  // need explicit conversion: good&#13;
+&#13;
+// Modern calling code that calls good_sink is safer, and cleaner too&#13;
+//&#13;
+unique_ptr&lt;widget&gt; pw = ... ;&#13;
+&#13;
+bad_sink ( pw.get() );       // compiles: icky! doesn't reset pw&#13;
+bad_sink ( pw.release() );   // compiles: must remember to use this way&#13;
+&#13;
+good_sink( pw );             // error: good!&#13;
+good_sink( move(pw) );       // compiles: crystal clear what's going on&#13;
+</code></pre><blockquote><p><strong>Guideline:</strong> Express a “sink” function using a by-value <strong>unique_ptr</strong> parameter.</p></blockquote><p>Because the callee will now own the object, usually there should be no <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> on the parameter because the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> should be irrelevant.</p><h3>(d) Passing unique_ptr by reference is for in/out unique_ptr parameters.</h3><pre><code>void f( unique_ptr&lt;widget&gt;&amp; );  (d)&#13;
+</code></pre><p>This should only be used to accept an in/out <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span>, when the function is supposed to actually accept an existing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span> and potentially modify it to refer to a different object. It is a bad way to just accept a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span>, because it is restricted to a particular lifetime strategy in the caller.</p><blockquote><p><strong>Guideline:</strong> Use a non-const <strong>unique_ptr&amp;</strong> parameter only to modify the <strong>unique_ptr</strong>.</p></blockquote><p>Passing a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const unique_ptr&lt;widget&gt;&amp;</span> is strange because it can accept only either null or a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span> whose lifetime happens to be managed in the calling code via a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span>, and the callee generally shouldn’t care about the caller’s lifetime management choice. Passing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget*</span> covers a strict superset of these cases and can accept “null or a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span>” regardless of the lifetime policy the caller happens to be using.</p><blockquote><p><strong>Guideline:</strong> Don’t use a <strong>const unique_ptr&amp;</strong> as a parameter; use <strong>widget*</strong> instead.</p></blockquote><p>I mention <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget*</span> because that doesn’t change the (nullable) semantics; if you’re being tempted to pass <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const shared_ptr&lt;widget&gt;&amp;</span>, what you really meant was <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget*</span> which expresses the same information. If you additionally know it can’t be null, though, of course use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget&amp;</span>.</p><h3>(e) Passing shared_ptr by value implies taking shared ownership.</h3><pre><code>void f( shared_ptr&lt;widget&gt; );   (e)&#13;
+</code></pre><p>As we saw in #2, this is recommended only when the function wants to retain a copy of the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> and share ownership. In that case, a copy is needed anyway so the copying cost is fine. If the local scope is not the final destination, just <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">std::move</span> the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> onward to wherever it needs to go.</p><blockquote><p><strong>Guideline:</strong> Express that a function will store and share ownership of a heap object using a by-value <strong>shared_ptr</strong> parameter.</p></blockquote><p>Otherwise, prefer passing a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">*</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span> (possibly to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>) instead, since that doesn’t restrict the function to only objects that happen to be owned by <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>s.</p><h3>(f) Passing shared_ptr&amp; is useful for in/out shared_ptr manipulation.</h3><pre><code>void f( shared_ptr&lt;widget&gt;&amp; );  (f)&#13;
+</code></pre><p>Similarly to (d), this should mainly be used to accept an in/out <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>, when the function is supposed to actually modify the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> itself. It’s usually a bad way to accept a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span>, because it is restricted to a particular lifetime strategy in the caller.</p><p>Note that per (e) we pass a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> by value if the function will share ownership. In the special case where the function <em>might</em> share ownership, but doesn’t necessarily take a copy of its parameter on a given call, then pass a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const shared_ptr&amp;</span> to avoid the copy on the calls that don’t need it, and take a copy of the parameter if and when needed.</p><blockquote><p><strong>Guideline:</strong> Use a non-const <strong>shared_ptr&amp;</strong> parameter only to modify the <strong>shared_ptr</strong>. Use a <strong>const shared_ptr&amp;</strong> as a parameter only if you’re not sure whether or not you’ll take a copy and share ownership; otherwise use <strong>widget*</strong> instead (or if not nullable, a <strong>widget&amp;</strong>).</p></blockquote><h2>Acknowledgments</h2><p>Thanks in particular to the following for their feedback to improve this article: mttpd, zahirtezcan, Jon, GregM, Andrei Alexandrescu.</p>	</div>
+
+	<footer class="amp-wp-article-footer">
+			<div class="amp-wp-meta amp-wp-tax-category">
+		Categories: <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a>	</div>
+
+		<div class="amp-wp-meta amp-wp-comments-link">
+		<a href="https://herbsutter.com/2013/06/05/gotw-91-solution-smart-pointer-parameters/#comments">
+			View Comments		</a>
+	</div>
+	</footer>
+</article>
+
+<footer class="amp-wp-footer">
+	<div>
+		<h2>Sutter’s Mill</h2>
+		<p>
+			<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a>
+		</p>
+		<a href="#top" class="back-to-top">Back to top</a>
+	</div>
+</footer>
+
+
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;host=herbsutter.com&#038;ref=DOCUMENT_REFERRER&#038;amp=1&#038;blog=3379246&#038;v=wpcom&#038;tz=-8&#038;user_id=0&#038;post=2090&#038;subd=herbsutter"></amp-pixel>
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;v=wpcom-no-pv&#038;crypt=UE40eW5QN0p8M2Y%2FRE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29%2BSmw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8%2FMkNtblkvY1d1TjBELytHc0k%2FMXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNGdONE9GczNGJkhCfGxfSzIsTTFVZWlnc0ZuY2gxOWx5cjdVaF0%2FTFA5c0pUeHpGYS9pL1BFeTE1al1hcFZyLFM9JXNjM24tais1N1NYOUg5OUYueG02Y21OMy5aT1UzcSV4"></amp-pixel>
+	
+</body>
+</html>

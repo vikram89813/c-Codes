@@ -1,0 +1,658 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Concurrency | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965327&amp;back=https%3A%2F%2Fherbsutter.com%2Fcategory%2Fconcurrency%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Concurrency Category Feed" href="https://herbsutter.com/category/concurrency/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJyNkN1uwjAMhV9onrUN1qtpz5K0JpjmT4kj1LfHpeoEglXcROck53Ns4zlDn6JQFAwNsm+OY0XPI1U8kWTTj3B1732tb/g8zvHAkWX6Ey+F5UhBf8nNYuAqk09p3AL7VEjvQzYyJwINbMhrjShbWMjfKzXLo060Ocw5axqszYVqBT0DtwBLsw/cCrmm1lJxMHeJtrEf0Pp03Z4tpkw4T0gPBZ4t4Z/obY88OJKKkjLkVFW9jNTUs/HAGrk3C8wYkyyPq9iq6iiBTmmEU7wzcPCGyxZaSPfjVDrU1I2dod/w87HffXZf3W7fnS4bTgAo?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s2.wp.com/_static/??-eJyF0G0KwjAMBuAL2dXJxP0Rz1Lr60hdP2zaDT29FSYiVIVAIHkISeQcBDk95hNYmhLXjHhbUmN4JX8BYWmIKqGx5F5Ye5fg0tNaf6QRIjOiGkqtDDr7iguekwVzQZXu50rkJsL8lxmkoPRFRDDdUTuEw3vn7x9Y1MHu267fbfp2263NA675cvs='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Posts about Concurrency written by Herb Sutter" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="archive category category-concurrency category-214618 mp6 customizer-styles-applied highlander-enabled highlander-light infinite-scroll neverending">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+	              <h2 class="pagetitle">Archive for the &#8216;Concurrency&#8217; Category</h2>
+      		
+			<div class="post-2367 post type-post status-publish format-standard hentry category-concurrency" id="post-2367">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2013/12/05/reader-qa-book-recommendations/" rel="bookmark">Reader Q&amp;A: Book&nbsp;recommendations</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a> on 2013-12-05|
+													<a href="https://herbsutter.com/2013/12/05/reader-qa-book-recommendations/#comments">8 Comments &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p>Vigen Isayan emailed me today to ask:</p>
+<blockquote><p>What book(s) you would recommend for learning</p>
+<p>1. design patterns, and</p>
+<p>2. concurrency programming.</p></blockquote>
+<p>Off the top of my head:</p>
+<p>1. For Design Patterns, the greatest is still the original <a href="http://en.wikipedia.org/wiki/Design_Patterns">&#8220;Gang of Four&#8221; Design Patterns book</a>. The design patterns are mostly universal, and the implementations happen to focus on OO techniques (dynamic run-time virtual dispatch etc.) but you can also express many of the patterns using generic programming (static compile-time templates etc.) – for example <a href="http://www.drdobbs.com/cpp/generalizing-observer/184403873?queryText=sutter%2B%2522generalizing%2Bobserver%2522">Observer</a> becomes really simple. The book is almost two decades old, has inspired huge numbers of follow-on patterns books, and there&#8217;s still none better of its kind that I know of.</p>
+<p>2. For concurrency (and parallelism), check out my <a href="https://herbsutter.com/2010/09/24/effective-concurrency-know-when-to-use-an-active-object-instead-of-a-mutex/">33 articles on Effective Concurrency</a>. I hope to assemble them into a book in the near future. In the meantime they’re all out there online freely available.</p>
+<p>If you have additional recommendations, please post them in the comments. Thanks.</p>
+<h3>On a personal note</h3>
+<p>Speaking of the Gang of Four, here&#8217;s a personal story I don&#8217;t know if I&#8217;ve shared on the blog before:</p>
+<p>At the time it first came out, I was working in downtown Toronto. We had a really excellent local bookstore that specialized in programming books and magazines (alas, it&#8217;s long gone now). On lunch breaks, I would go there to browse and get new books to absorb. Note that this was before I was a published author myself, and I had no idea about major new books coming out, so I had no warning of what was about to happen.</p>
+<p>On one day that at first seemed like any other, at lunchtime I was browsing the shelves as usual, and I saw copies of a white and blue hardcover book I&#8217;d never seen before. Curious, I picked up a copy. It had an unusual title, <em>Design Patterns</em>. I had never heard of the book or its authors before, knew nothing about it at all, and so was quite unsuspecting when I opened it and something happened that I had never experienced before and haven&#8217;t experienced since (so far):</p>
+<p>I opened that book for the first time, stood there paging through it for less than five minutes, <em>and knew immediately and profoundly that I was holding a classic in my hands</em>. The realization was so unexpected and surprising, it hit me almost physically. At first sight, it was as easy to recognize this book as an important leap forward as the first you see an airplane flying in the sky. Scales fell from my eyes: Cataloguing OO design problems and their known solutions! Imagine!</p>
+<p>I had already learned a few of the patterns on my own here and there, some through hard work and experience, others by combining ideas from various articles, many by working with experienced colleagues. But suddenly I found myself standing there in the bookstore aisle just absorbing one problem and solution after another after another, and feeling my understanding begin expanding. Even the patterns I sort of knew about were explained with concise clarity: Motivation, the problem <em>and the specific constraints on the solution</em> which are so important because they affect the design. Known solutions. Variations with tradeoffs.</p>
+<p>Bliss! No, more than bliss &#8212; treasure.</p>
+<p>This must be what explorers and hunters feel like when one day unexpectedly they discover an unopened and unransacked tomb of a young Egyptian Pharaoh, a sunken treasure galleon filled with precious cargo and artifacts, or a cave near the West Bank containing well-preserved two-thousand-year-old scrolls of important literature.</p>
+<p>And <em>Design Patterns</em> was language-agnostic, to boot.</p>
+<p>Nineteen years later, it&#8217;s still at the top of my list of design books to recommend.</p>
+<p>Disclaimer: Something this profound inspires a whole new subculture. Later &#8220;pattern&#8221; wannabe books often went way, way, <em>way</em> overboard, some of them almost to the border of quasi-mysticism. Ignore most (not all, but most) of the follow-on pattern books. Only a few are worth your time; read the reviews carefully first.</p>
+					<p><a href="https://herbsutter.com/2013/12/05/reader-qa-book-recommendations/" rel="bookmark" title="Permanent Link to Reader Q&amp;A: Book&nbsp;recommendations">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+			<div class="post-2346 post type-post status-publish format-standard hentry category-c category-concurrency" id="post-2346">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2013/10/28/reader-qa-acquirerelease-and-sequential-consistency/" rel="bookmark">Reader Q&amp;A: Acquire/release and sequential&nbsp;consistency</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a> on 2013-10-28|
+													<a href="https://herbsutter.com/2013/10/28/reader-qa-acquirerelease-and-sequential-consistency/#comments">5 Comments &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p>Reader Ernie Cohen emailed me this morning to ask a question about one slide in my <a href="https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/">atomic&lt;&gt; Weapons talk</a> from last year&#8217;s <em>C++ and Beyond</em>:</p>
+<blockquote><p>In your atomic weapons talk (part 1) (updated 2/15/2013) ,page 18, titled &#8220;Sc &gt; Acq/Rel Alone: Some examples&#8221;, the first example listed &#8220;transitivity/causality&#8221;:<!--?xml:namespace prefix = "o" ns = "urn:schemas-microsoft-com:office:office" /--></p>
+<p>T0: g = 1; x = 1;</p>
+<p>T1: if (x == 1) y = 1;</p>
+<p>T2: if (y == 1) assert(g == 1);</p>
+<p>I understood you to mean that the assertion might fail if the loads were simple C++11 acquires and the stores were simple C++ releases. But this works just fine with the weaker memory order; the operations in each thread are related by sequenced-before, the communications between the threads create happens-before, and without consumes happens-before is transitive, so there is a happens-before edge from g = 1 to the assertion. Am I missing something?</p></blockquote>
+<p>[Note: g is an ordinary variable, x and y are std::atomic, and all initially zero as usual.] The motivation behind this example, and the other example on the same slide, was to show that when we specified the C++ memory model and atomics, we had to consider more than individual acquire-release pairs in isolation, but also provide additional guarantees to ensure that the whole program was sequentially consistent (SC).</p>
+<p>In the above example, yes, we guarantee that the assertion cannot fail with C++ acquire and release semantics, and making sure the memory model required this transitivity is exactly one of the two key points of this example. As you point out, it requires getting the &#8220;right&#8221; answer when combining sequenced-before and happens-before.</p>
+<p>The second point illustrated here is that it was essential to support cases where the programmer could depend on reasoning based on tests of whether <i>a particular write</i> was read and then making SC assumptions based on the outcome of the test, otherwise the whole program wouldn&#8217;t be SC.</p>
+<p>For completeness, the other example on the slide showed an additional case where individual pairwise acquire/release alone was insufficient to guarantee SC outcomes unless we added requirements. Here is the example, with x and y std::atomic and initially zero:</p>
+<p>T1: x = 1;</p>
+<p>T2: y = 1;</p>
+<p>T3: if( x == 1 &amp;&amp; y == 0 ) print( &#8220;x first&#8221; );</p>
+<p>T4: if( y == 1 &amp;&amp; x == 0 ) print( &#8220;y first&#8221; );</p>
+<p>This illustrates the total store order requirement: It must be impossible to print both messages, else the result wouldn&#8217;t be SC.</p>
+<p>Note that in most cases using (non-SC) memory_order_acquire and memory_order_release explicitly happens to give you SC results, except when they don&#8217;t (e.g., Dekker&#8217;s fails, and I think the second example above fails as well). And of course other relaxed atomics can allow non-SC results at the drop of a hat.</p>
+					<p><a href="https://herbsutter.com/2013/10/28/reader-qa-acquirerelease-and-sequential-consistency/" rel="bookmark" title="Permanent Link to Reader Q&amp;A: Acquire/release and sequential&nbsp;consistency">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+			<div class="post-1784 post type-post status-publish format-standard hentry category-c category-concurrency category-talks-events" id="post-1784">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/" rel="bookmark">atomic Weapons: The C++ Memory Model and Modern&nbsp;Hardware</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/talks-events/" rel="category tag">Talks &amp; Events</a> on 2013-02-11|
+													<a href="https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/#comments">16 Comments &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p>[ETA: Updated OneDrive <a href="https://1drv.ms/b/s!Aq0V7yDPsIZOgcI0y2P8R-VifbnTtw">slides link</a>]</p>
+<p><img src="https://herbsutter.files.wordpress.com/2013/02/021113_1851_atomicweapo1.png?w=500" alt="" align="right" />Most of the talks I gave at <a href="http://cppandbeyond.com"><em>C++ and Beyond 2012</em></a> last summer are already online at Channel 9. Here are two more.</p>
+<p>This is a two-part talk that covers the C++ memory model, how locks and atomics and fences interact and map to hardware, and more. Even though we&#8217;re talking about C++, much of this is also applicable to Java and .NET which have similar memory models, but not all the features of C++ (such as relaxed atomics).</p>
+<p>Note: This is about the basic structure and tools, not how to write lock-free algorithms using atomics. That next-level topic may be on deck for this year&#8217;s <a href="http://cppandbeyond.com/2013/02/11/cb-2013-dates-finalized-december-9-12-2013/"><em>C++ and Beyond</em> in December</a>, we&#8217;ll see…</p>
+<h2>atomic&lt;&gt; Weapons: The C++ Memory Model and Modern Hardware</h2>
+<ul style="margin-left:72pt;">
+<li><a href="http://channel9.msdn.com/Shows/Going+Deep/Cpp-and-Beyond-2012-Herb-Sutter-atomic-Weapons-1-of-2"><span style="background-color:yellow;"><strong>Part 1:</strong></span> Optimizations, races, and the memory model; acquire and release ordering; mutexes vs. atomics vs. fences</a></li>
+<li><a href="http://channel9.msdn.com/Shows/Going+Deep/Cpp-and-Beyond-2012-Herb-Sutter-atomic-Weapons-2-of-2"><span style="background-color:yellow;"><strong>Part 2:</strong></span> Restrictions on compilers and hardware (incl. common bugs); code generation and performance on x86/x64, IA64, POWER, ARM, and more; relaxed atomics; volatile</a></li>
+</ul>
+<p>This session in one word: <em><strong>Deep.</strong><br />
+</em></p>
+<p style="margin-left:36pt;">It&#8217;s a session that includes topics I&#8217;ve publicly said for years is Stuff You Shouldn&#8217;t Need To Know and I Just Won&#8217;t Teach, but it&#8217;s becoming achingly clear that people do need to know about it. Achingly, heartbreakingly clear, because some hardware incents you to pull out the big guns to achieve top performance, and C++ programmers just are so addicted to full performance that they&#8217;ll reach for the big red levers with the flashing warning lights. Since we can&#8217;t keep people from pulling the big red levers, we&#8217;d better document the A to Z of what the levers actually do, so that people don&#8217;t <a href="http://en.wikipedia.org/wiki/Scram"><em>SCRAM</em></a> unless they really, really, really meant to.<em><br />
+</em></p>
+<p style="margin-left:36pt;"><strong>Topics Covered:</strong></p>
+<ul style="margin-left:72pt;">
+<li><strong>The facts: </strong>The C++11 memory model and what it requires you to do to make sure your code is correct and stays correct. We&#8217;ll include clear answers to several FAQs: &#8220;how do the compiler and hardware cooperate to remember how to respect these rules?&#8221;, &#8220;what is a race condition?&#8221;, and the ageless one-hand-clapping question &#8220;how is a race condition like a debugger?&#8221;</li>
+<li><strong>The tools:</strong> The deep interrelationships and fundamental tradeoffs among mutexes, atomics, and fences/barriers. I&#8217;ll try to convince you why standalone memory barriers are bad, and why barriers should always be associated with a specific load or store.</li>
+<li><strong>The unspeakables: </strong>I&#8217;ll grudgingly and reluctantly talk about the Thing I Said I&#8217;d Never Teach That Programmers Should Never Need To Now: relaxed atomics. Don&#8217;t use them! If you can avoid it. But here&#8217;s what you need to know, even though it would be nice if you didn&#8217;t need to know it.</li>
+<li><strong>The rapidly-changing hardware reality: </strong>How locks and atomics map to hardware instructions on ARM and x86/x64, and throw in POWER and Itanium for good measure – and I&#8217;ll cover how and why the answers are actually different last year and this year, and how they will likely be different again a few years from now. We&#8217;ll cover how the latest CPU and GPU hardware memory models are rapidly evolving, and how this directly affects C++ programmers.</li>
+</ul>
+					<p><a href="https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/" rel="bookmark" title="Permanent Link to atomic Weapons: The C++ Memory Model and Modern&nbsp;Hardware">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+			<div class="post-1679 post type-post status-publish format-standard hentry category-concurrency category-software-development" id="post-1679">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2012/11/30/256-cores-by-2013/" rel="bookmark">&ldquo;256 cores by&nbsp;2013&rdquo;?</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a> on 2012-11-30|
+													<a href="https://herbsutter.com/2012/11/30/256-cores-by-2013/#comments">8 Comments &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p>I just saw a tweet that’s worth commenting on:</p>
+<p><a href="https://herbsutter.files.wordpress.com/2012/11/image3.png"><img title="image" style="border-top:0;border-right:0;background-image:none;border-bottom:0;float:none;padding-top:0;padding-left:0;margin:0 auto 10px;border-left:0;display:block;padding-right:0;" border="0" alt="image" src="https://herbsutter.files.wordpress.com/2012/11/image_thumb.png?w=513&#038;h=146" width="513" height="146" /></a></p>
+<p>Almost right, and we have already reached that.</p>
+<p>I said something similar to the above, but with two important differences:</p>
+<ol>
+<li>I said hardware “threads,” not only hardware “cores” – it was about the <strong>amount of hardware parallelism </strong>available on a mainstream system. </li>
+<li>What I gave was a min/max <strong>range estimate of roughly 16 to 256 (the latter being threads)</strong> under different sets of assumptions. </li>
+</ol>
+<p>So: Was I was right about 2013 estimates?</p>
+<p>Yes, pretty much, and in fact we already reached or exceeded that in 2011 and 2012:</p>
+<ul>
+<li>Lower estimate line: In 2011 and 2012 parts, Intel Core i7 Sandy Bridge and Ivy Bridge are delivering almost the expected lower baseline, and offering 8-way and 12-way parallelism = 4-6 cores x 2 hardware threads per core. </li>
+<li>Upper estimate line: In 2012, as mentioned in the article (which called it Larrabee, now known as MIC or Xeon Phi) is delivering 200-way to 256-way parallelism = 50-64 cores x 4 hardware threads per core. Also, in 2011 and 2012, GPUs have since emerged into more mainstream use for computation (GPGPU), and likewise offer massive compute parallelism, such as 1,536-way parallelism on a machine having a single NVidia Tesla card. </li>
+</ul>
+<p>Yes, mainstream machines do in fact have examples of both ends of the “16 to 256 way parallelism” range. And beyond the upper end of the range, in fact, for those with higher-end graphics cards.</p>
+<p>For more on these various kinds of compute cores and threads, see also my article <strong><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the Jungle</a></strong>.</p>
+<p>&#160;</p>
+<p>Longer answer follows:</p>
+<p>Here’s the main part from article, <a href="http://www.drdobbs.com/parallel/design-for-manycore-systems/219200099?pgno=3"><strong>“Design for Manycore Systems”</strong></a> (August 11, 2009). Remember this was written over three years ago – in the Time Before iPad, when Android was under a year old:</p>
+<blockquote>
+<h3><font style="font-weight:normal;">How Much Scalability Does Your Application Need?</font></h3>
+<p>So how much parallel scalability should you aim to support in the application you‘re working on today, assuming that it&#8217;s compute-bound already or you can add killer features that are compute-bound and also amenable to parallel execution? The answer is that <strong>you want to match your application&#8217;s scalability to the amount of hardware parallelism in the target hardware that will be available during your application&#8217;s expected production or shelf lifetime. As shown in Figure 4, that equates to the number of hardware threads you expect to have on your end users&#8217; machines.</strong> </p>
+<p align="center"><img src="https://i0.wp.com/twimgs.com/ddj/images/article/2009/0908/090811ec_f4.gif" /></p>
+<p align="center"><b>Figure 4</b>: How much concurrency does your program need in order to exploit given hardware? </p>
+<p>Let&#8217;s say that YourCurrentApplication 1.0 will ship next year (mid-2010), and you expect that it&#8217;ll be another 18 months until you ship the 2.0 release (early 2012) and probably another 18 months after that before most users will have upgraded (mid-2013). Then you&#8217;d be interested in judging what will be the likely mainstream hardware target up to mid-2013. </p>
+<p><strong>If we stick with &quot;just more of the same&quot;</strong> as in Figure 2&#8217;s extrapolation, we&#8217;d expect aggressive early hardware adopters to be running 16-core machines (possibly double that if they&#8217;re aggressive enough to run dual-CPU workstations with two sockets), and <strong>we&#8217;d likely expect most general mainstream users to have 4-, 8- or maybe a smattering of 16-core machines</strong> (accounting for the time for new chips to be adopted in the marketplace). <em><font color="#c0504d">[[Note: I often get lazy and say “core” to mean all hardware parallelism. In context above and below, it’s clear we’re talking about “cores and threads.”]]</font></em></p>
+<p>But what if the gating factor, parallel-ready software, goes away? Then CPU vendors would be free to take advantage of <strong>options like the one-time 16-fold hardware parallelism jump</strong> illustrated in Figure 3, and we get an envelope like that shown in Figure 5. </p>
+<p><img style="float:none;margin-left:auto;display:block;margin-right:auto;" src="https://i2.wp.com/twimgs.com/ddj/images/article/2009/0908/090811ec_f5.gif" /></p>
+<p align="center"><b>Figure 5</b>: Extrapolation of “more of the same big cores” and “possible one-time switch to 4x smaller cores plus 4x threads per core” (not counting some transistors being used for other things like on-chip GPUs). </p>
+</blockquote>
+<p>First, let’s look at the lower baseline, ‘most general mainstream users to have [4-16 way parallelism] machines in 2013’? So where are were in 2012 today for mainstream CPU hardware parallelism? Well, Intel Core i7 (e.g., Sandy Bridge, Ivy Bridge) are typically in the 4 to 6 core range – which, <strong>with hyperthreading == hardware threads, means 8 to 12 hardware threads</strong>.</p>
+<p>Second, what about the higher potential line for 2013? As noted above:</p>
+<ul>
+<li>Intel’s Xeon Phi (then Larrabee) is now delivering 50-64 cores x 4 threads = 200 to 256-way parallelism. That’s no surprise, because this article’s upper line was based on exactly the Larrabee data point (see quote below). </li>
+<li>GPUs already blow the 256 upper bound away – any machine with a two-year-old Tesla has 1,536-way parallelism for programs (including mainstream programs like DVD encoders) that can harness the GPU. </li>
+</ul>
+<p>So not only did we already reach the 2013 upper line early, in 2012, but we already exceeded it for applications that can harness the GPU for computation.</p>
+<p>As I said in the article:</p>
+<blockquote>
+<p>I don&#8217;t believe either the bottom line or the top line is the exact truth, but as long as sufficient parallel-capable software comes along, the truth will probably be somewhere in between, especially if we have processors that offer a mix of large- and small-core chips, or that use some chip real estate to bring GPUs or other devices on-die. That&#8217;s more hardware parallelism, and sooner, than most mainstream developers I&#8217;ve encountered expect. </p>
+<p>Interestingly, though, we already noted two current examples: Sun&#8217;s Niagara, and Intel&#8217;s Larrabee, already provide double-digit parallelism in mainstream hardware via smaller cores with four or eight hardware threads each. <strong>&quot;Manycore&quot; chips, or perhaps more correctly &quot;manythread&quot; chips, are just waiting to enter the mainstream</strong>. Intel could have built a nice 100-core part in 2006. The gating factor is the software that can exploit the hardware parallelism; that is, the gating factor is you and me. </p>
+</blockquote>
+					<p><a href="https://herbsutter.com/2012/11/30/256-cores-by-2013/" rel="bookmark" title="Permanent Link to &ldquo;256 cores by&nbsp;2013&rdquo;?">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+			<div class="post-1599 post type-post status-publish format-standard hentry category-c category-concurrency" id="post-1599">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2012/08/31/reader-qa-how-to-write-a-cas-loop-using-stdatomics/" rel="bookmark">Reader Q&amp;A: How to write a CAS loop using&nbsp;std::atomics</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a> on 2012-08-31|
+													<a href="https://herbsutter.com/2012/08/31/reader-qa-how-to-write-a-cas-loop-using-stdatomics/#comments">13 Comments &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p>The following is not intended to be a complete treatise on atomics, but just an answer to a specific question.</p>
+<p>A colleague asked:</p>
+<blockquote>
+<p>How should one write the following “conditional interlocked” function in the new C++ atomic&lt;&gt; style?</p>
+<pre class="brush: cpp; auto-links: true; collapse: false; first-line: 1; gutter: false; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true;">// if (*plValue &gt;= 0) *plValue += lAdd  ; return the original value
+
+LONG MpInterlockedAddNonNegative(__inout LONG volatile* plValue,  __in  LONG const  lAdd) 
+{ 
+    LONG lValue = 0; 
+    for (;;)  {
+
+        lValue = *plValue; // volatile plValue suppress compile optimizations in which</pre>
+<p>&#160;</p>
+<pre class="brush: cpp; auto-links: true; collapse: false; first-line: 1; gutter: false; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true;">                           // lValue is optimized out hence MT correctness is broken
+
+        if (lValue &lt; 0)   break;
+
+        if (lValue == InterlockedCompareExchange(plValue, lValue + lAdd, lValue)) { 
+            break; 
+        } 
+    }
+
+    return lValue; 
+}</pre>
+</blockquote>
+<p>Note: ISO C/C++ volatile is not for inter-thread communication,[*] but this is legacy code that predates std::atomics and was using a combination of platform-specific volatile semantics and Windows InterlockedXxx APIs.</p>
+<p>The answer is to use a CAS loop (see code at top), which for std::atomics is spelled compare_exchange:</p>
+<ul>
+<li>Use compare_exchange_weak by default when looping on this which generally naturally tolerates spurious failures. </li>
+<li>Use compare_exchange_strong for single tests when you generally don’t want spurious failures. </li>
+<li>Usage note: In the code at top we save an explicit reload from ‘a’ in the loop because compare_exchange helpfully (or “helpfully” – this took me a while to discover and remember) stores the actual value in the ‘expected’ value slot on failure. This actually makes loops simpler, though some of us are still have different feelings on different days about whether this subtlety was a good idea… anyway, it’s in the standard. </li>
+</ul>
+<p>For the std::atomic version, roughly (compiling in my head), and generalizing to any numeric type just because I’m in the habit, and renaming for symmetry with atomic&lt;T&gt;::fetch_add(), I think this is what you want:</p>
+<pre class="brush: cpp; auto-links: true; collapse: false; first-line: 1; gutter: false; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true;">template&lt;typename T&gt;
+T fetch_add_if_nonnegative( std::atomic&lt;T&gt;&amp; a,  T val ) {
+    T old = a;
+    while( old &gt;= 0 &amp;&amp; !a.compare_exchange_weak( old, old+val ) )
+        { }
+    return old;
+}</pre>
+<p>Because the only test in your loop was to break on negative values, it naturally migrated into the loop condition. If you want to do more work, then follow the general pattern which is the following (pasting from the standard, 29.6.5/23 – and note that the explicit “.load()” is unnecessary but some people including the author of this clause of the standard prefer to be pedantically explicit :) ):</p>
+<blockquote>
+<p>[ <em>Example: </em>the expected use of the compare-and-exchange operations is as follows.</p>
+<p>The compare-and-exchange operations will update expected when another iteration of the loop is needed.</p>
+<p>expected = current.load();</p>
+<p>do {</p>
+<p>desired = function(expected);</p>
+<p>} while (!current.compare_exchange_weak(expected, desired));</p>
+<p><em>—end example </em>]</p>
+</blockquote>
+<p>So the direct implementation of your function in the general pattern would be:</p>
+<pre class="brush: cpp; auto-links: true; collapse: false; first-line: 1; gutter: false; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true;">T old = a; 
+do { 
+    if( old &lt; 0 ) break; 
+} while(!a.compare_exchange_weak( old, old+val ) )</pre>
+<p>
+  <br />but since that easily moves into the loop test I just did this instead in the code at top:</p>
+<p></p>
+<pre class="brush: cpp; auto-links: true; collapse: false; first-line: 1; gutter: false; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true;">T old = a; 
+while( old &gt;= 0 &amp;&amp; !a.compare_exchange_weak( old, old+val ) ) 
+    { }</pre>
+<p>and hoping that no one will discover and point out that I’ve somehow written a subtle bug by trying to make the code cuter just before leaving for a holiday weekend.</p>
+<p>&#160;</p>
+<p>[*] Here’s the difference between <strong>ISO C/C++ volatile vs. std::atomic&lt;T&gt;/atomic_T:</strong> ISO C/C++ volatile is intended to be used only for things like hardware access and setjmp/longjmp safety, to express that the variable is in storage that is not guaranteed to follow the C++11 memory model (e.g., the compiler can’t make any assumptions about it). It has nothing to do with inter-thread communication – the proper tool for that is std::atomic&lt;T&gt; which for C compatibility can also be spelled atomic_T (note that in Java and C# this is called volatile which adds to the confusion). For more, see my article <a href="https://herbsutter.com/2009/01/12/effective-concurrency-volatile-vs-volatile/">“volatile vs. volatile”</a> and Hans Boehm’s ISO C++ paper <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n2016.html">“Should volatile Acquire Atomicity and Thread Visibility Semantics?”</a>.</p>
+					<p><a href="https://herbsutter.com/2012/08/31/reader-qa-how-to-write-a-cas-loop-using-stdatomics/" rel="bookmark" title="Permanent Link to Reader Q&amp;A: How to write a CAS loop using&nbsp;std::atomics">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+			<div class="post-1596 post type-post status-publish format-standard hentry category-c category-concurrency category-software-development category-talks-events" id="post-1596">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2012/08/21/cb-panel/" rel="bookmark">C&amp;B Panel: Alexandrescu, Meyers, Sutter on Static If, C++11, and&nbsp;Metaprogramming</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a>, <a href="https://herbsutter.com/category/talks-events/" rel="category tag">Talks &amp; Events</a> on 2012-08-21|
+													<a href="https://herbsutter.com/2012/08/21/cb-panel/#comments">3 Comments &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p><a href="http://channel9.msdn.com/Shows/Going+Deep/Alexandrescu-Meyers-Sutter-On-Static-If-C11-in-2012-Modern-Libraries-and-Metaprogramming"><img data-attachment-id="1597" data-permalink="https://herbsutter.com/2012/08/21/cb-panel/cnb2012-panel/" data-orig-file="https://herbsutter.files.wordpress.com/2012/08/cnb2012-panel.png?w=500" data-orig-size="431,288" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;}" data-image-title="C&amp;amp;B 2012 Panel" data-image-description="" data-medium-file="https://herbsutter.files.wordpress.com/2012/08/cnb2012-panel.png?w=500?w=300" data-large-file="https://herbsutter.files.wordpress.com/2012/08/cnb2012-panel.png?w=500?w=431" class="alignright size-full wp-image-1597" title="C&amp;B 2012 Panel" src="https://herbsutter.files.wordpress.com/2012/08/cnb2012-panel.png?w=500" alt="" srcset="https://herbsutter.files.wordpress.com/2012/08/cnb2012-panel.png 431w, https://herbsutter.files.wordpress.com/2012/08/cnb2012-panel.png?w=150 150w, https://herbsutter.files.wordpress.com/2012/08/cnb2012-panel.png?w=300 300w" sizes="(max-width: 431px) 100vw, 431px"   /></a>The first panel from C++ and Beyond 2012 is now available on Channel 9:</p>
+<blockquote><p><a href="http://s151836.gridserver.com/?URL=http%3A%2F%2Fchannel9.msdn.com%2FShows%2FGoing%2BDeep%2FAlexandrescu-Meyers-Sutter-On-Static-If-C11-in-2012-Modern-Libraries-and-Metaprogramming">On Static If, C++11 in 2012, Modern Libraries, and Metaprogramming</a></p>
+<h4>Andrei Alexandrescu, Scott Meyers, Herb Sutter</h4>
+<p>Channel 9 was invited to this year&#8217;s <a href="http://s151836.gridserver.com/?URL=http%3A%2F%2Fcppandbeyond.com%2F">C++ and Beyond</a> to film some sessions (that will appear on C9 over the coming months!)&#8230;</p>
+<p>At the end of day 2, Andrei, Herb and Scott graciously agreed to spend some time discussing various modern C++ topics and, even better, <a href="http://s151836.gridserver.com/?URL=http%3A%2F%2Fchannel9.msdn.com%2FForums%2FTechOff%2FAndrei-Herb-and-Scott-Got-C11-Questions">answering questions from the community</a>. In fact, the questions from Niners (and <a href="http://s151836.gridserver.com/?URL=http%3A%2F%2Fwww.reddit.com%2Fr%2Fcpp%2Fcomments%2Fxknfr%2Fandrei_herb_and_scott_got_c11_questions%2F">a conversation on reddit/r/cpp</a>) drove the conversation.</p>
+<p>Here&#8217;s what happened&#8230;</p>
+<p><a href="http://s151836.gridserver.com/?URL=http%3A%2F%2Fchannel9.msdn.com%2FShows%2FGoing%2BDeep%2FAlexandrescu-Meyers-Sutter-On-Static-If-C11-in-2012-Modern-Libraries-and-Metaprogramming">[more]</a></p></blockquote>
+					<p><a href="https://herbsutter.com/2012/08/21/cb-panel/" rel="bookmark" title="Permanent Link to C&amp;B Panel: Alexandrescu, Meyers, Sutter on Static If, C++11, and&nbsp;Metaprogramming">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+			<div class="post-1590 post type-post status-publish format-standard hentry category-c-net category-c category-concurrency category-hardware category-java category-talks-events" id="post-1590">
+				<div class="posttitle">
+					<h2><a href="https://herbsutter.com/2012/08/02/strong-and-weak-hardware-memory-models/" rel="bookmark">&ldquo;Strong&rdquo; and &ldquo;weak&rdquo; hardware memory&nbsp;models</a></h2>
+					<p class="post-info">
+					Posted in <a href="https://herbsutter.com/category/c-net/" rel="category tag">C# / .NET</a>, <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/hardware/" rel="category tag">Hardware</a>, <a href="https://herbsutter.com/category/java/" rel="category tag">Java</a>, <a href="https://herbsutter.com/category/talks-events/" rel="category tag">Talks &amp; Events</a> on 2012-08-02|
+													<a href="https://herbsutter.com/2012/08/02/strong-and-weak-hardware-memory-models/#comments">10 Comments &#187;</a>											</p>
+				</div>
+
+				<div class="entry">
+					<p>In <a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the Jungle</a>, I predicted that “weak” hardware memory models will disappear. This is true, and it’s happening before our eyes:</p>
+<ul>
+<li>x86 has always been considered a “strong” hardware memory model that supports sequentially consistent atomics efficiently.</li>
+<li>The other major architecture, ARM, recently announced that they are now adding strong memory ordering in ARMv8 with the new sequentially consistent <em>ldra </em>and <em>strl </em>instructions, as I predicted they would. (Actually, Hans Boehm and I influenced ARM in this direction, so it was an ever-so-slightly disingenuous prediction&#8230;)</li>
+</ul>
+<p>However, at least two people have been confused by what I meant by “weak” hardware memory models, so let me clarify what “weak” means – it means something different for hardware memory models and software memory models, so perhaps those aren’t the clearest terms to use.</p>
+<p>By &#8220;weak <strong><em>(hardware)</em></strong> memory model&#8221; CPUs I mean specifically ones that do not natively support efficient sequentially consistent (SC) atomics, because on the <strong><em>software</em></strong> side programming languages have converged on &#8220;sequential consistency for data-race-free programs&#8221; (SC-DRF, roughly aka DRF0 or RCsc) as the default (C11, C++11) or only (Java 5+) supported software memory model for software. POWER and ARMv7 notoriously do not support SC atomics efficiently.</p>
+<p>Hardware that supports only hardware memory models weaker than SC-DRF, <em>meaning that they do not support SC-DRF efficiently</em>, are permanently disadvantaged and will either become stronger or atrophy. As I mentioned specifically in the article, the two main current hardware architectures with what I called &#8220;weak&#8221; memory models were current ARM (ARMv7) and POWER:</p>
+<ul>
+<li>ARM recently announced ARMv8 which, as I predicted, is upgrading to SC acquire/release by adding new SC acquire/release instructions ldra and strl that are mandatory in both 32-bit and 64-bit mode. In fact, this is something of an industry first &#8212; ARMv8 is the first major CPU architecture to support SC acquire/release instructions directly like this. (Note: That’s for CPUs, but the roadmap for ARM GPUs is similar. ARM GPUs currently have a stronger memory model, namely fully SC; ARM has announced their GPU future roadmap has the GPUs fully coherent with the CPUs, and will likely add “SC load acquire” and “SC store release” to GPUs as well.)</li>
+<li>It remains to be seen whether POWER will adapt similarly, or die out.</li>
+</ul>
+<p>Note that I&#8217;ve seen some people call x86 &#8220;weak&#8221;, but x86 has always been the poster child for a <strong><em>strong (hardware) </em></strong>memory model in all of our <strong><em>software</em></strong> memory model discussions for Java, C, and C++ during the 2000s. Therefore perhaps &#8220;weak&#8221; and &#8220;strong&#8221; are not useful terms if they mean different things to some people, and I&#8217;ve updated the WttJ text to make this clearer.</p>
+<p>I will be discussing this in detail in my <a href="https://herbsutter.com/2012/06/29/cb-session-atomic-weapons-the-c11-memory-model-and-modern-hardware/">atomic&lt;&gt; Weapons</a> talk at C&amp;B next week, which I hope to make freely available online in the near future (as I do most of my talks). I’ll post a link on this blog when I can make it available online.</p>
+					<p><a href="https://herbsutter.com/2012/08/02/strong-and-weak-hardware-memory-models/" rel="bookmark" title="Permanent Link to &ldquo;Strong&rdquo; and &ldquo;weak&rdquo; hardware memory&nbsp;models">Read Full Post &raquo;</a></p>
+				</div>
+							</div>
+
+		
+		<p align="center"><a href="https://herbsutter.com/category/concurrency/page/2/" >Older Posts &raquo;</a></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/category/concurrency/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618 current-cat"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+		<script type="text/javascript">
+		//<![CDATA[
+		var infiniteScroll = {"settings":{"id":"content-main","ajaxurl":"https:\/\/herbsutter.com\/?infinity=scrolling","type":"scroll","wrapper":true,"wrapper_class":"infinite-wrap","footer":true,"click_handle":"1","text":"Older posts","totop":"Scroll back to top","currentday":"02.08.12","order":"DESC","scripts":[],"styles":[],"google_analytics":false,"offset":0,"history":{"host":"herbsutter.com","path":"\/category\/concurrency\/page\/%d\/","use_trailing_slashes":true,"parameters":""},"query_args":{"category_name":"concurrency","error":"","m":"","p":0,"post_parent":"","subpost":"","subpost_id":"","attachment":"","attachment_id":0,"name":"","pagename":"","page_id":0,"second":"","minute":"","hour":"","day":0,"monthnum":0,"year":0,"w":0,"tag":"","cat":214618,"tag_id":"","author":"","author_name":"","feed":"","tb":"","paged":0,"meta_key":"","meta_value":"","preview":"","s":"","sentence":"","title":"","fields":"","menu_order":"","embed":"","category__in":[],"category__not_in":[],"category__and":[],"post__in":[],"post__not_in":[],"post_name__in":[],"tag__in":[],"tag__not_in":[],"tag__and":[],"tag_slug__in":[],"tag_slug__and":[],"post_parent__in":[],"post_parent__not_in":[],"author__in":[],"author__not_in":[],"posts_per_page":7,"ignore_sticky_posts":false,"suppress_filters":false,"cache_results":false,"update_post_term_cache":true,"lazy_load_term_meta":true,"update_post_meta_cache":true,"post_type":"","nopaging":false,"comments_per_page":"50","no_found_rows":false,"order":"DESC"},"last_post_date":"2012-08-02 03:26:37","stats":"blog=3379246&v=wpcom&tz=-8&user_id=0&subd=herbsutter&x_pagetype=infinite"}};
+		//]]>
+		</script>
+		<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	</div>
+		<div id="infinite-footer">
+			<div class="container">
+				<div class="blog-info">
+					<a id="infinity-blog-title" href="https://herbsutter.com/" rel="home">
+						Sutter’s Mill					</a>
+				</div>
+				<div class="blog-credits">
+					<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a> 				</div>
+			</div>
+		</div><!-- #infinite-footer -->
+		
+	<div id="carousel-reblog-box">
+		<form action="#" name="carousel-reblog">
+			<textarea id="carousel-reblog-content" name="carousel-reblog-content" placeholder="Add your thoughts here... (optional)"></textarea>
+			<label for="carousel-reblog-to-blog-id" id="carousel-reblog-lblogid">Post to</label>
+			<select name="carousel-reblog-to-blog-id" id="carousel-reblog-to-blog-id">
+						</select>
+
+			<div class="submit">
+				<span class="canceltext"><a href="#" class="cancel">Cancel</a></span>
+				<input type="submit" name="carousel-reblog-submit" class="button" id="carousel-reblog-submit" value="Reblog Post" />
+				<input type="hidden" id="carousel-reblog-blog-id" value="3379246" />
+				<input type="hidden" id="carousel-reblog-blog-url" value="https://herbsutter.com" />
+				<input type="hidden" id="carousel-reblog-blog-title" value="Sutter’s Mill" />
+				<input type="hidden" id="carousel-reblog-post-url" value="" />
+				<input type="hidden" id="carousel-reblog-post-title" value="" />
+			</div>
+
+			<input type="hidden" id="_wpnonce" name="_wpnonce" value="c0f0a72e87" /><input type="hidden" name="_wp_http_referer" value="/category/concurrency/" />		</form>
+
+		<div class="arrow"></div>
+	</div>
+<link rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/carousel/jetpack-carousel.css?m=1524699534h&cssminify=yes' type='text/css' media='all' />
+<!--[if lte IE 8]>
+<link rel='stylesheet' id='jetpack-carousel-ie8fix-css'  href='https://s1.wp.com/wp-content/mu-plugins/carousel/jetpack-carousel-ie8fix.css?m=1412618825h&#038;ver=20121024' type='text/css' media='all' />
+<![endif]-->
+<link rel='stylesheet' id='all-css-2-2' href='https://s2.wp.com/wp-content/mu-plugins/tiled-gallery/tiled-gallery.css?m=1443731146h&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F12%2F05%2Freader-qa-book-recommendations%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/category\/concurrency\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2Fcategory%2Fconcurrency%2F","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F12%2F05%2Freader-qa-book-recommendations%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var jetpackCarouselStrings = {"widths":[370,700,1000,1200,1400,2000],"is_logged_in":"","lang":"en","ajaxurl":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"665015e67f","display_exif":"1","display_geo":"1","single_image_gallery":"1","single_image_gallery_media_file":"","background_color":"black","comment":"Comment","post_comment":"Post Comment","write_comment":"Write a Comment...","loading_comments":"Loading Comments...","download_original":"View full size <span class=\"photo-size\">{0}<span class=\"photo-size-times\">\u00d7<\/span>{1}<\/span>","no_comment_text":"Please be sure to submit some text with your comment.","no_comment_email":"Please provide an email address to comment.","no_comment_author":"Please provide your name to comment.","comment_post_error":"Sorry, but there was an error posting your comment. Please try again later.","comment_approved":"Your comment was approved.","comment_unapproved":"Your comment is in moderation.","camera":"Camera","aperture":"Aperture","shutter_speed":"Shutter Speed","focal_length":"Focal Length","copyright":"Copyright","comment_registration":"0","require_name_email":"1","login_url":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2012%2F08%2F21%2Fcb-panel%2F","blog_id":"3379246","meta_data":["camera","aperture","shutter_speed","focal_length","copyright"],"local_comments_commenting_as":"<fieldset><label for=\"email\">Email (Required)<\/label> <input type=\"text\" name=\"email\" class=\"jp-carousel-comment-form-field jp-carousel-comment-form-text-field\" id=\"jp-carousel-comment-form-email-field\" \/><\/fieldset><fieldset><label for=\"author\">Name (Required)<\/label> <input type=\"text\" name=\"author\" class=\"jp-carousel-comment-form-field jp-carousel-comment-form-text-field\" id=\"jp-carousel-comment-form-author-field\" \/><\/fieldset><fieldset><label for=\"url\">Website<\/label> <input type=\"text\" name=\"url\" class=\"jp-carousel-comment-form-field jp-carousel-comment-form-text-field\" id=\"jp-carousel-comment-form-url-field\" \/><\/fieldset>","reblog":"Reblog","reblogged":"Reblogged","reblog_add_thoughts":"Add your thoughts here... (optional)","reblogging":"Reblogging...","post_reblog":"Post Reblog","stats_query_args":"blog=3379246&v=wpcom&tz=-8&user_id=0&subd=herbsutter","is_public":"1","reblog_enabled":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVUdFuwyAM/KFSt5q6Pk37FkqcxpQYhk3S/H1JpURTq0XaA9JxvrPPAGMyLrIiK3iBBgdymO57Lzv4VeqLSaFciQUC3VDgp2DBznITMG+IiVti0mkFr9pFKBOrvXd07UI9ivmd2Rhjm57YXGyG3kqVVmTigDlTU7Ou3D87aLbuJlsmpxR5Nq1oQ+1sjkUwgEdNtbNZiMVD7EKZA9ePkLGNF49O/3qwoa4WwYqgPg3Pe8ooc+Dv/ut4+vg8ns+H08E/AITttzI='></script>
+<script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVy0sOQEAMANALqcYvYSHOgmkmpWoyirg9WyuxfIuHZ4BxVSM1XHYIsnvWDe1kM4owSD/OA0cHgQmVDoqkjtWn05bgnxu+Hws58L0IxeutZ3VLm1V5WRVlU+fTDQ0qQ9Y='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script type="text/javascript">
+			jQuery.extend( infiniteScroll.settings.scripts, ["jquery-core","jquery-migrate","jquery","mobile-useragent-info","postmessage","jquery_inview","jetpack_resize","spin","jquery.spin","grofiles-cards","wpgroho","devicepx","jetpack_likes_queuehandler","the-neverending-homepage","syntaxhighlighter","wpcom-masterbar-js","wpcom-masterbar-tracks-js","wpcom-actionbar-bar","jetpack-carousel","swfobject","videopress","twitter-widgets","twitter-widgets-infinity","twitter-widgets-pending","tiled-gallery"] );
+			jQuery.extend( infiniteScroll.settings.styles, ["jetpack_likes","the-neverending-homepage","infinity-mistylook","wpcom-core-compat-playlist-styles","mp6hacks","wpcom-bbpress2-staff-css","wp-block-library","mistylook","jetpack-top-posts-widget","jetpack-widget-social-icons-styles","noticons","geo-location-flair","reblogging","a8c-global-print","wpcom-actionbar-bar","h4-global","jetpack-carousel","tiled-gallery","jetpack-carousel-ie8fix"] );
+		</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sQm1OdTJWSXY4eHZWRXg0Umw4al9dZlFCN1pwSkxVeHEyTXpbUld0Wm05LmcxV3lIXXQmUyZpPXgsa11+ay1qM3Z8XzR5RWMrNi9ILXI4M1hFUnE9SHpmflBWYnBRS3xMXUdJcG14OUMmLUlRNytlMTdCMGZhTW1qMWRNYXRfK1l4JjdGcTNKXUlafiZlZHJRMnlHXU9kbi9wX1RdOCZNdSVseXRqY0QsaXxpaTN0NVpYemJS'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '0' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

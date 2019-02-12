@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: Reader Q&#038;A: Acquire/release and sequential consistency	</title>
+	<atom:link href="https://herbsutter.com/2013/10/28/reader-qa-acquirerelease-and-sequential-consistency/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/10/28/reader-qa-acquirerelease-and-sequential-consistency/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Tony Van Eerd				</title>
+				<link>https://herbsutter.com/2013/10/28/reader-qa-acquirerelease-and-sequential-consistency/#comment-14087</link>
+		<dc:creator><![CDATA[Tony Van Eerd]]></dc:creator>
+		<pubDate>Wed, 08 Jan 2014 19:51:30 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2346#comment-14087</guid>
+					<description><![CDATA[I think the important case is when b and c are global variables, possibly side-by-side in memory.
+
+Herb says &quot;it’s fine because all modern processors have single-byte reads so no need even to inject alignment/padding&quot;
+
+Bjarne says (in the FAQ) &quot;However, most modern processors cannot read or write a single character, it must read or write a whole word&quot;
+
+I think the answer @Fernando is looking for is that, with concurrency now in the standard, it is up to the compiler to make sure it works.  Typically that means either the processor can do single-byte reads _or_ the chars are padded/aligned.  Or whatever else the compiler thinks is best (but almost definitely not locks, I hope!).
+
+I wonder what a compiler would do on a machine that doesn&#039;t have single-byte reads, but you set alignment/packing to 1?...]]></description>
+		<content:encoded><![CDATA[<p>I think the important case is when b and c are global variables, possibly side-by-side in memory.</p>
+<p>Herb says &#8220;it’s fine because all modern processors have single-byte reads so no need even to inject alignment/padding&#8221;</p>
+<p>Bjarne says (in the FAQ) &#8220;However, most modern processors cannot read or write a single character, it must read or write a whole word&#8221;</p>
+<p>I think the answer @Fernando is looking for is that, with concurrency now in the standard, it is up to the compiler to make sure it works.  Typically that means either the processor can do single-byte reads _or_ the chars are padded/aligned.  Or whatever else the compiler thinks is best (but almost definitely not locks, I hope!).</p>
+<p>I wonder what a compiler would do on a machine that doesn&#8217;t have single-byte reads, but you set alignment/packing to 1?&#8230;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/10/28/reader-qa-acquirerelease-and-sequential-consistency/#comment-13048</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 31 Oct 2013 19:40:21 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2346#comment-13048</guid>
+					<description><![CDATA[@Fernando: C++98 didn&#039;t cover this case because there was no notion of threads or other concurrency in the standard. Implementations generally did the right thing. Then when the standard introduced concurrency it also had to specify a memory model for concurrency.]]></description>
+		<content:encoded><![CDATA[<p>@Fernando: C++98 didn&#8217;t cover this case because there was no notion of threads or other concurrency in the standard. Implementations generally did the right thing. Then when the standard introduced concurrency it also had to specify a memory model for concurrency.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Fernando Pelliccioni				</title>
+				<link>https://herbsutter.com/2013/10/28/reader-qa-acquirerelease-and-sequential-consistency/#comment-13047</link>
+		<dc:creator><![CDATA[Fernando Pelliccioni]]></dc:creator>
+		<pubDate>Thu, 31 Oct 2013 19:10:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2346#comment-13047</guid>
+					<description><![CDATA[Herb, thanks for your answer.
+This means that in C++98 we are also protected against such cases?
+I think that the code is correct because &#039;disjoint stacks&#039; even in pre-C++11. (Leaving out &#039;escape analysis and constant propagation&#039;)
+Why is mentioned as something fixed in C++11 Memory Model?
+I remember  an Effective Concurrency article ( I don&#039;t remember exactly which ) which deals with the same subject, is it possible?]]></description>
+		<content:encoded><![CDATA[<p>Herb, thanks for your answer.<br />
+This means that in C++98 we are also protected against such cases?<br />
+I think that the code is correct because &#8216;disjoint stacks&#8217; even in pre-C++11. (Leaving out &#8216;escape analysis and constant propagation&#8217;)<br />
+Why is mentioned as something fixed in C++11 Memory Model?<br />
+I remember  an Effective Concurrency article ( I don&#8217;t remember exactly which ) which deals with the same subject, is it possible?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/10/28/reader-qa-acquirerelease-and-sequential-consistency/#comment-13046</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 31 Oct 2013 18:47:00 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2346#comment-13046</guid>
+					<description><![CDATA[@Fernando: That code is fine and needs no special code generation for many reasons (disjoint stacks so those locals won&#039;t be adjacent; escape analysis and constant propagation would eliminate c and b outright; even if c and b were &lt;strong&gt;static &lt;/strong&gt; and laid out adjacent in memory it&#039;s fine because all modern processors have single-byte reads so no need even to inject alignment/padding, etc.). Ah, and now I see Bjarne already answered this right in that FAQ. :)]]></description>
+		<content:encoded><![CDATA[<p>@Fernando: That code is fine and needs no special code generation for many reasons (disjoint stacks so those locals won&#8217;t be adjacent; escape analysis and constant propagation would eliminate c and b outright; even if c and b were <strong>static </strong> and laid out adjacent in memory it&#8217;s fine because all modern processors have single-byte reads so no need even to inject alignment/padding, etc.). Ah, and now I see Bjarne already answered this right in that FAQ. :)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Fernando Pelliccioni				</title>
+				<link>https://herbsutter.com/2013/10/28/reader-qa-acquirerelease-and-sequential-consistency/#comment-13045</link>
+		<dc:creator><![CDATA[Fernando Pelliccioni]]></dc:creator>
+		<pubDate>Thu, 31 Oct 2013 18:18:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2346#comment-13045</guid>
+					<description><![CDATA[Hi Herb,
+
+I&#039;ve seen the Atomics Weapons (1 and 2) videos, I found great, thanks!
+I have one doubt...
+
+In all examples where you explain the Memory Model you&#039;re using atomic declarations, right?
+
+My question is: 
+How C++11 protects us from case like the following? (Extracted from Bjarne FAQ - http://www.stroustrup.com/C++11FAQ.html#memory-model )
+
+	// thread 1:
+	char c;
+	c = 1;
+	int x = c;
+
+	// thread 2:
+	char b;
+	b = 1;
+	int y = b;
+
+	...
+	&quot;So, C++11 guarantees that no such problems occur for ``separate memory locations.&#039;&#039; More precisely: A memory location cannot be safely accessed by two threads without some form of locking unless they are both read accesses.&quot;
+	...
+
+Does this mean that a C++11 compliance compiler must insert &quot;lock&quot; instructions (barrier, fences, adquire/release, etc...) to protect NON-Shared NON-atomic memory?
+Or... is this solved assuming that there must be &#039;Cache Coherency&#039; implementation? 
+Or....the Standard imposes the existence of &#039;Cache Coherency&#039;?
+
+Thanks and regards,
+Fernando Pelliccioni,]]></description>
+		<content:encoded><![CDATA[<p>Hi Herb,</p>
+<p>I&#8217;ve seen the Atomics Weapons (1 and 2) videos, I found great, thanks!<br />
+I have one doubt&#8230;</p>
+<p>In all examples where you explain the Memory Model you&#8217;re using atomic declarations, right?</p>
+<p>My question is:<br />
+How C++11 protects us from case like the following? (Extracted from Bjarne FAQ &#8211; <a href="http://www.stroustrup.com/C++11FAQ.html#memory-model" rel="nofollow">http://www.stroustrup.com/C++11FAQ.html#memory-model</a> )</p>
+<p>	// thread 1:<br />
+	char c;<br />
+	c = 1;<br />
+	int x = c;</p>
+<p>	// thread 2:<br />
+	char b;<br />
+	b = 1;<br />
+	int y = b;</p>
+<p>	&#8230;<br />
+	&#8220;So, C++11 guarantees that no such problems occur for &#8220;separate memory locations.&#8221; More precisely: A memory location cannot be safely accessed by two threads without some form of locking unless they are both read accesses.&#8221;<br />
+	&#8230;</p>
+<p>Does this mean that a C++11 compliance compiler must insert &#8220;lock&#8221; instructions (barrier, fences, adquire/release, etc&#8230;) to protect NON-Shared NON-atomic memory?<br />
+Or&#8230; is this solved assuming that there must be &#8216;Cache Coherency&#8217; implementation?<br />
+Or&#8230;.the Standard imposes the existence of &#8216;Cache Coherency&#8217;?</p>
+<p>Thanks and regards,<br />
+Fernando Pelliccioni,</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

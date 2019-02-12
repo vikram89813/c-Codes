@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #6b: Const-Correctness, Part 2	</title>
+	<atom:link href="https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Amali				</title>
+				<link>https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/#comment-10519</link>
+		<dc:creator><![CDATA[Amali]]></dc:creator>
+		<pubDate>Mon, 27 May 2013 23:23:00 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2002#comment-10519</guid>
+					<description><![CDATA[As mentioned in GotW#4 Class Mechanics solution, operator + can be changed to:
+[code]
+// add const&#038; to rhs, remove  const&#038; from lhs
+polygon operator+( polygon lhs, const polygon&#038; rhs ) {
+    auto last = rhs.get_num_points();
+    for( auto i = 0; i &#060; last; ++i ) // concatenate
+        lhs.add_point( rhs.get_point(i) );
+    return lhs;
+}
+[/code]
+to avoid unnecessary copy auto ret = lhs;, if you&#039;re going to do the copy anyway.]]></description>
+		<content:encoded><![CDATA[<p>As mentioned in GotW#4 Class Mechanics solution, operator + can be changed to:</p>
+<pre class="brush: plain; title: ; notranslate">
+// add const&amp; to rhs, remove  const&amp; from lhs
+polygon operator+( polygon lhs, const polygon&amp; rhs ) {
+    auto last = rhs.get_num_points();
+    for( auto i = 0; i &lt; last; ++i ) // concatenate
+        lhs.add_point( rhs.get_point(i) );
+    return lhs;
+}
+</pre>
+<p>to avoid unnecessary copy auto ret = lhs;, if you&#8217;re going to do the copy anyway.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Chris				</title>
+				<link>https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/#comment-10518</link>
+		<dc:creator><![CDATA[Chris]]></dc:creator>
+		<pubDate>Mon, 27 May 2013 22:04:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2002#comment-10518</guid>
+					<description><![CDATA[[code]polygon() : area{-1} {}[/code]
+
+I would rather initialise area with 0 or, even better, completely remove the area member from the class since its usefulness is discussable. Constructors may be left to be synthesised by the compiler (and they probably will be synthesised due to non-trivial constructors of the points member). This will save sizeof(double) of memory per object as well.
+
+[code]void add_point( const point pt ) { area = -1;
+                                       points.push_back(pt); }
+[/code]
+
+Function argument is passed by copy anyway, moreover it may be copied to the vector once again. I think that constness of pt will not affect the push_back behaviour. I would suggest to pass const point&#038; pt or use pt&#039;s move constructor to &quot;move&quot; the pt&#039;s memory to the vector (please correct me if it is not really possible).
+
+[code]point get_point( const int i ) { return points[i]; }[/code]
+
+The value of the i may be out of bounds, this should be checked first. Const on fundamental type does nothing I suppose, it may be removed freely. Getter in general should be non-modifying, so with const modifier on a member function. Having getter in const context the points member needs to be mutable and guarded with a mutex. I wonder what is really returned from this member function, is this a &quot;moved&quot; item from the points vector (destructive read?) or a real copy of the points[i] item. I would try to return a const&#038; rather than an object, but it may be pre-C++11 way of doing things...
+
+[code]int get_num_points() { return points.size(); }[/code]
+
+I would suggest to change return type to size_t, make above getter const modified and protect the points vector with a mutex (c.f. my comment on get_point and mutable).
+
+[code]double get_area() {[/code]
+
+I wonder how caching of a value calculated at some time is valid when multiple threads operates on the same object. I think it is not a good idea to do caching. It may break function &quot;re-entrancy&quot; since now such function does not depend on the actual state of the points vector solely.
+
+By the way, public member function calls private member function - this recalls me the rule to make virtuals private and call them through non-virtual public interface, unfortunately calc_area is not a virtual function.
+
+[code]void calc_area() {[/code]
+
+This member function has read-only access to the points vector, so it should be const modified and the points member access should be protected with a mutex. Anyway, I would use std::accumulate (or custom functor) with const iterators and return the calculated value to the caller.
+
+[code]polygon operator+( polygon&#038; lhs, polygon&#038; rhs ) {
+    auto ret = lhs;
+[/code]
+
+I suppose we don&#039;t want to modify lhs, so let&#039;s make it const&#038;. It may be quite good to add a check that will prevent from adding to itself. I would define operator+= as well. I wonder what is really stored under the auto type for ret. Is this simply a polygon type (without &#038;)?
+
+[code]    const_cast&#060;polygon&#038;&#062;(poly).add_point( {0,0} );[/code]
+
+This code will not pass a code review round :-)
+
+[code]void g( polygon&#038; const poly ) { poly.add_point( {1,1} ); }[/code]
+
+I think that &#038;const is redundant here since reference by definition is const &quot;pointer&quot; already.
+
+The g() looks like a better way to write h().]]></description>
+		<content:encoded><![CDATA[<pre class="brush: plain; title: ; notranslate">polygon() : area{-1} {}</pre>
+<p>I would rather initialise area with 0 or, even better, completely remove the area member from the class since its usefulness is discussable. Constructors may be left to be synthesised by the compiler (and they probably will be synthesised due to non-trivial constructors of the points member). This will save sizeof(double) of memory per object as well.</p>
+<pre class="brush: plain; title: ; notranslate">void add_point( const point pt ) { area = -1;
+                                       points.push_back(pt); }
+</pre>
+<p>Function argument is passed by copy anyway, moreover it may be copied to the vector once again. I think that constness of pt will not affect the push_back behaviour. I would suggest to pass const point&amp; pt or use pt&#8217;s move constructor to &#8220;move&#8221; the pt&#8217;s memory to the vector (please correct me if it is not really possible).</p>
+<pre class="brush: plain; title: ; notranslate">point get_point( const int i ) { return points[i]; }</pre>
+<p>The value of the i may be out of bounds, this should be checked first. Const on fundamental type does nothing I suppose, it may be removed freely. Getter in general should be non-modifying, so with const modifier on a member function. Having getter in const context the points member needs to be mutable and guarded with a mutex. I wonder what is really returned from this member function, is this a &#8220;moved&#8221; item from the points vector (destructive read?) or a real copy of the points[i] item. I would try to return a const&amp; rather than an object, but it may be pre-C++11 way of doing things&#8230;</p>
+<pre class="brush: plain; title: ; notranslate">int get_num_points() { return points.size(); }</pre>
+<p>I would suggest to change return type to size_t, make above getter const modified and protect the points vector with a mutex (c.f. my comment on get_point and mutable).</p>
+<pre class="brush: plain; title: ; notranslate">double get_area() {</pre>
+<p>I wonder how caching of a value calculated at some time is valid when multiple threads operates on the same object. I think it is not a good idea to do caching. It may break function &#8220;re-entrancy&#8221; since now such function does not depend on the actual state of the points vector solely.</p>
+<p>By the way, public member function calls private member function &#8211; this recalls me the rule to make virtuals private and call them through non-virtual public interface, unfortunately calc_area is not a virtual function.</p>
+<pre class="brush: plain; title: ; notranslate">void calc_area() {</pre>
+<p>This member function has read-only access to the points vector, so it should be const modified and the points member access should be protected with a mutex. Anyway, I would use std::accumulate (or custom functor) with const iterators and return the calculated value to the caller.</p>
+<pre class="brush: plain; title: ; notranslate">polygon operator+( polygon&amp; lhs, polygon&amp; rhs ) {
+    auto ret = lhs;
+</pre>
+<p>I suppose we don&#8217;t want to modify lhs, so let&#8217;s make it const&amp;. It may be quite good to add a check that will prevent from adding to itself. I would define operator+= as well. I wonder what is really stored under the auto type for ret. Is this simply a polygon type (without &amp;)?</p>
+<pre class="brush: plain; title: ; notranslate">    const_cast&lt;polygon&amp;&gt;(poly).add_point( {0,0} );</pre>
+<p>This code will not pass a code review round :-)</p>
+<pre class="brush: plain; title: ; notranslate">void g( polygon&amp; const poly ) { poly.add_point( {1,1} ); }</pre>
+<p>I think that &amp;const is redundant here since reference by definition is const &#8220;pointer&#8221; already.</p>
+<p>The g() looks like a better way to write h().</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Justin Simon				</title>
+				<link>https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/#comment-10487</link>
+		<dc:creator><![CDATA[Justin Simon]]></dc:creator>
+		<pubDate>Mon, 27 May 2013 07:29:55 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2002#comment-10487</guid>
+					<description><![CDATA[muxecoid: ret is a copy of, not a reference to, lhs. When you&#039;re using auto you still need to specify a reference qualifier (&#038;) if that&#039;s what you want]]></description>
+		<content:encoded><![CDATA[<p>muxecoid: ret is a copy of, not a reference to, lhs. When you&#8217;re using auto you still need to specify a reference qualifier (&amp;) if that&#8217;s what you want</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: muxecoid				</title>
+				<link>https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/#comment-10456</link>
+		<dc:creator><![CDATA[muxecoid]]></dc:creator>
+		<pubDate>Sun, 26 May 2013 12:37:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2002#comment-10456</guid>
+					<description><![CDATA[At first glance:
+Apparently operator+ modifies lhs which is not good. Adding const to lhs in function definition should cause it to fail to compile.
+area should be mutable. calc_area can become const (and gets a lock at start of function body).
+The overload of f that accepts const reference should not exist.
+get_point obviously needs const.
+In h it is the value of the pointer which is const, not the actual poly.]]></description>
+		<content:encoded><![CDATA[<p>At first glance:<br />
+Apparently operator+ modifies lhs which is not good. Adding const to lhs in function definition should cause it to fail to compile.<br />
+area should be mutable. calc_area can become const (and gets a lock at start of function body).<br />
+The overload of f that accepts const reference should not exist.<br />
+get_point obviously needs const.<br />
+In h it is the value of the pointer which is const, not the actual poly.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: JL				</title>
+				<link>https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/#comment-10434</link>
+		<dc:creator><![CDATA[JL]]></dc:creator>
+		<pubDate>Sat, 25 May 2013 15:29:45 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2002#comment-10434</guid>
+					<description><![CDATA[- change add_point() signature to add_point(const point &#038;pt)
+- change get_point(), get_num_points() and get_area() to be const members functions
+- change calc_area() to const member function and change area member variable to be mutable since it&#039;s cached value
+- in calc_area() change i to be const_iterator
+- change parameters to operator+() to be passed by const reference
+- change polygon to be passed to f() by non-const reference and remove const_cast from impl. since passing by const violates the contract of non-mutable argument
+- change g(polygon&#038; const poly) to g(polygon&#038;)
+- change polygon to h() be passed by non-const reference since impl. expect non-null pointer
+- f(cpoly); behavior is undefined since cpoly may be allocated from immutable protected const store that can&#039;t be modified.
+
+additional notes:
+- depending on the expected usage pattern, it might be good idea to calculate area in add_point() function instead of using the lazy caching mechanism. this would make access to get_area() faster since there is no if() branching required and then area variable wouldn&#039;t need to be mutable (it&#039;s only changed in non-const add_point() function). e.g. if add_point() for a polygon is expected to be called only ~10 times while get_area() is expected to be called ~100000 times, it&#039;s better not to use the lazy area caching mechanism. Furthermore, it would be good idea in this case to add add_points() which takes multiple points in one go and updates the area only once to enable client side optimizations.
+- calc_area() could just return the calculated area and not update the area member variable. the update of the variable could be done in get_area() instead. this keeps calc_area() truly const and limits the mutability of the object only to get_area() function.]]></description>
+		<content:encoded><![CDATA[<p>&#8211; change add_point() signature to add_point(const point &amp;pt)<br />
+&#8211; change get_point(), get_num_points() and get_area() to be const members functions<br />
+&#8211; change calc_area() to const member function and change area member variable to be mutable since it&#8217;s cached value<br />
+&#8211; in calc_area() change i to be const_iterator<br />
+&#8211; change parameters to operator+() to be passed by const reference<br />
+&#8211; change polygon to be passed to f() by non-const reference and remove const_cast from impl. since passing by const violates the contract of non-mutable argument<br />
+&#8211; change g(polygon&amp; const poly) to g(polygon&amp;)<br />
+&#8211; change polygon to h() be passed by non-const reference since impl. expect non-null pointer<br />
+&#8211; f(cpoly); behavior is undefined since cpoly may be allocated from immutable protected const store that can&#8217;t be modified.</p>
+<p>additional notes:<br />
+&#8211; depending on the expected usage pattern, it might be good idea to calculate area in add_point() function instead of using the lazy caching mechanism. this would make access to get_area() faster since there is no if() branching required and then area variable wouldn&#8217;t need to be mutable (it&#8217;s only changed in non-const add_point() function). e.g. if add_point() for a polygon is expected to be called only ~10 times while get_area() is expected to be called ~100000 times, it&#8217;s better not to use the lazy area caching mechanism. Furthermore, it would be good idea in this case to add add_points() which takes multiple points in one go and updates the area only once to enable client side optimizations.<br />
+&#8211; calc_area() could just return the calculated area and not update the area member variable. the update of the variable could be done in get_area() instead. this keeps calc_area() truly const and limits the mutability of the object only to get_area() function.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Nathan Ridge				</title>
+				<link>https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/#comment-10420</link>
+		<dc:creator><![CDATA[Nathan Ridge]]></dc:creator>
+		<pubDate>Sat, 25 May 2013 04:35:16 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2002#comment-10420</guid>
+					<description><![CDATA[add_point() should take a point by nonconst value, and move it into the vector.
+
+get_point() should be const. Its parameter needn&#039;t be const.
+
+get_num_points() should be const and should return size_t.
+
+get_area() should be const. area should be mutable.
+
+calc_area() should be const and should use const iterators into the vector.
+
+operator+ should take lhs by nonconst value (and then not copy it again into &#039;ret&#039;), and rhs by reference-to-const.
+
+f should take its argument by reference-to-nonconst, since it modifies it. Of course there&#039;s no need for the const_cast then.
+
+g has a const in a place where it&#039;s implied (and not allowed explicitly) - after a reference. That should be removed. Otherwise it&#039;s fine.
+
+h is fine, the toplevel const just means h promises not to change its argument poly to point to a different object. However, as with get_point(), there is little point (no pun intended) to making a parameter toplevel const.]]></description>
+		<content:encoded><![CDATA[<p>add_point() should take a point by nonconst value, and move it into the vector.</p>
+<p>get_point() should be const. Its parameter needn&#8217;t be const.</p>
+<p>get_num_points() should be const and should return size_t.</p>
+<p>get_area() should be const. area should be mutable.</p>
+<p>calc_area() should be const and should use const iterators into the vector.</p>
+<p>operator+ should take lhs by nonconst value (and then not copy it again into &#8216;ret&#8217;), and rhs by reference-to-const.</p>
+<p>f should take its argument by reference-to-nonconst, since it modifies it. Of course there&#8217;s no need for the const_cast then.</p>
+<p>g has a const in a place where it&#8217;s implied (and not allowed explicitly) &#8211; after a reference. That should be removed. Otherwise it&#8217;s fine.</p>
+<p>h is fine, the toplevel const just means h promises not to change its argument poly to point to a different object. However, as with get_point(), there is little point (no pun intended) to making a parameter toplevel const.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Zenju				</title>
+				<link>https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/#comment-10405</link>
+		<dc:creator><![CDATA[Zenju]]></dc:creator>
+		<pubDate>Fri, 24 May 2013 17:51:58 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2002#comment-10405</guid>
+					<description><![CDATA[Buffering &quot;area&quot; looks like premature optimization. One could &quot;fix&quot; the code, make it mutable, add a mutable mutex, but - without further demand - the cleaner solution would be to get rid of it and offer a non-member &quot;double calc_area(const polygon&#038;)&quot; function to keep the polygon interface &quot;minimal and complete&quot;. Interface design would be improved and thread-safety comes as an additional &quot;present&quot;.]]></description>
+		<content:encoded><![CDATA[<p>Buffering &#8220;area&#8221; looks like premature optimization. One could &#8220;fix&#8221; the code, make it mutable, add a mutable mutex, but &#8211; without further demand &#8211; the cleaner solution would be to get rid of it and offer a non-member &#8220;double calc_area(const polygon&amp;)&#8221; function to keep the polygon interface &#8220;minimal and complete&#8221;. Interface design would be improved and thread-safety comes as an additional &#8220;present&#8221;.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mttpd				</title>
+				<link>https://herbsutter.com/2013/05/24/gotw-6b-const-correctness-part-2/#comment-10398</link>
+		<dc:creator><![CDATA[mttpd]]></dc:creator>
+		<pubDate>Fri, 24 May 2013 16:03:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2002#comment-10398</guid>
+					<description><![CDATA[This is definitely uncompilable (always, regardless of the function&#039;s body), since there&#039;s no such thing as a const-reference (only a reference-to-const), as the reference-referee binding is always invariant:
+[code]void g( polygon&#038; const poly )[/code] 
+
+This would also be uncompilable, but this time solely due to the actual body of the function &quot;g&quot; being in violation of the const-contract (which we&#039;ve promised by using the reference-to-const):
+[code]void g( polygon const &#038; poly ) { poly.add_point( {1,1} ); }[/code]
+
+Hence, to fix the uncompilable aspect (not commenting on the other aspects here), we can start with:
+[code]void g( polygon &#038; poly ) { poly.add_point( {1,1} ); }[/code]]]></description>
+		<content:encoded><![CDATA[<p>This is definitely uncompilable (always, regardless of the function&#8217;s body), since there&#8217;s no such thing as a const-reference (only a reference-to-const), as the reference-referee binding is always invariant:</p>
+<pre class="brush: plain; title: ; notranslate">void g( polygon&amp; const poly )</pre>
+<p>This would also be uncompilable, but this time solely due to the actual body of the function &#8220;g&#8221; being in violation of the const-contract (which we&#8217;ve promised by using the reference-to-const):</p>
+<pre class="brush: plain; title: ; notranslate">void g( polygon const &amp; poly ) { poly.add_point( {1,1} ); }</pre>
+<p>Hence, to fix the uncompilable aspect (not commenting on the other aspects here), we can start with:</p>
+<pre class="brush: plain; title: ; notranslate">void g( polygon &amp; poly ) { poly.add_point( {1,1} ); }</pre>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: When is a zero-length array okay?	</title>
+	<atom:link href="https://herbsutter.com/2009/09/02/when-is-a-zero-length-array-okay/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2009/09/02/when-is-a-zero-length-array-okay/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: doug				</title>
+				<link>https://herbsutter.com/2009/09/02/when-is-a-zero-length-array-okay/#comment-1537</link>
+		<dc:creator><![CDATA[doug]]></dc:creator>
+		<pubDate>Fri, 23 Oct 2009 14:04:36 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/02/when-is-a-zero-length-array-okay/#comment-1537</guid>
+					<description><![CDATA[Why would the standard not allow zero length stack based arrays?  This completely breaks my design.
+
+struct Validator {
+  int location;
+  char contents;
+};
+
+static const Validator VALID[] = 
+{
+  {0, {&#039;a&#039;, &#039;b&#039;, &#039;c&#039;}},
+  {3, {&#039;d&#039;, &#039;e&#039;}},
+  {6, {}},
+  {7, {&#039;v&#039;, &#039;w&#039;, &#039;x&#039;, &#039;y&#039;, &#039;z&#039;}},
+};
+
+template inline size_t ARRAY_SIZE(const T (&#038;array)[N])
+{
+  return N;
+}
+
+int main(int, char**) {
+  for (int i = 0; i &#060; ARRAY_SIZE(VALID); i++) 
+  {
+    cout &#060;&#060; &#034;The Contents at location &#034; &#060;&#060; VALID[i].location &#060;&#060; &#034; are:&#034;;
+    for (int j = 0; j &#060; ARRAY_SIZE(VALID[i].contents; j++)
+    {
+      cout &#060;&#060; VALID[i].contents[j] &#060;&#060; &#034;, &#034;;
+    }
+    cout &#060;&#060; endl;
+  }
+}
+
+There are good scenarios where you would want 0 length stack based arrays.]]></description>
+		<content:encoded><![CDATA[<p>Why would the standard not allow zero length stack based arrays?  This completely breaks my design.</p>
+<p>struct Validator {<br />
+  int location;<br />
+  char contents;<br />
+};</p>
+<p>static const Validator VALID[] =<br />
+{<br />
+  {0, {&#8216;a&#8217;, &#8216;b&#8217;, &#8216;c&#8217;}},<br />
+  {3, {&#8216;d&#8217;, &#8216;e&#8217;}},<br />
+  {6, {}},<br />
+  {7, {&#8216;v&#8217;, &#8216;w&#8217;, &#8216;x&#8217;, &#8216;y&#8217;, &#8216;z&#8217;}},<br />
+};</p>
+<p>template inline size_t ARRAY_SIZE(const T (&amp;array)[N])<br />
+{<br />
+  return N;<br />
+}</p>
+<p>int main(int, char**) {<br />
+  for (int i = 0; i &lt; ARRAY_SIZE(VALID); i++)<br />
+  {<br />
+    cout &lt;&lt; &quot;The Contents at location &quot; &lt;&lt; VALID[i].location &lt;&lt; &quot; are:&quot;;<br />
+    for (int j = 0; j &lt; ARRAY_SIZE(VALID[i].contents; j++)<br />
+    {<br />
+      cout &lt;&lt; VALID[i].contents[j] &lt;&lt; &quot;, &quot;;<br />
+    }<br />
+    cout &lt;&lt; endl;<br />
+  }<br />
+}</p>
+<p>There are good scenarios where you would want 0 length stack based arrays.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: litb				</title>
+				<link>https://herbsutter.com/2009/09/02/when-is-a-zero-length-array-okay/#comment-1480</link>
+		<dc:creator><![CDATA[litb]]></dc:creator>
+		<pubDate>Sun, 20 Sep 2009 21:09:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/02/when-is-a-zero-length-array-okay/#comment-1480</guid>
+					<description><![CDATA[You can safely do (A+N), but theoretically, i think there are problems with &#038;A[N] because A[N] is evaluated as an lvalue but it isn&#039;t guaranteed to refer to an object. But &quot;An lvalue refers to an object or function.&quot; and there is no &quot;empty lvalue&quot;. If C++ had a rule like C that says in a &#038;*X, the *X expression isn&#039;t evaluated (like in a sizeof, where *(int*)0 of course is perfectly legal), this would be different.]]></description>
+		<content:encoded><![CDATA[<p>You can safely do (A+N), but theoretically, i think there are problems with &amp;A[N] because A[N] is evaluated as an lvalue but it isn&#8217;t guaranteed to refer to an object. But &#8220;An lvalue refers to an object or function.&#8221; and there is no &#8220;empty lvalue&#8221;. If C++ had a rule like C that says in a &amp;*X, the *X expression isn&#8217;t evaluated (like in a sizeof, where *(int*)0 of course is perfectly legal), this would be different.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Pavel Minaev				</title>
+				<link>https://herbsutter.com/2009/09/02/when-is-a-zero-length-array-okay/#comment-1478</link>
+		<dc:creator><![CDATA[Pavel Minaev]]></dc:creator>
+		<pubDate>Fri, 18 Sep 2009 18:20:52 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/02/when-is-a-zero-length-array-okay/#comment-1478</guid>
+					<description><![CDATA[&#062; AFAIK, you can’t do it with an actual array of size 0 either.
+
+You should be able to, since the Standard specifically allows to have a pointer one past the end of an array. I.e. for an array A of N elements, &#038;A[N] is valid, even though dereferencing it is not. I don&#039;t see why it should suddenly be invalid for N=0.]]></description>
+		<content:encoded><![CDATA[<p>&gt; AFAIK, you can’t do it with an actual array of size 0 either.</p>
+<p>You should be able to, since the Standard specifically allows to have a pointer one past the end of an array. I.e. for an array A of N elements, &amp;A[N] is valid, even though dereferencing it is not. I don&#8217;t see why it should suddenly be invalid for N=0.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Bill McGann				</title>
+				<link>https://herbsutter.com/2009/09/02/when-is-a-zero-length-array-okay/#comment-1467</link>
+		<dc:creator><![CDATA[Bill McGann]]></dc:creator>
+		<pubDate>Thu, 10 Sep 2009 07:13:02 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/02/when-is-a-zero-length-array-okay/#comment-1467</guid>
+					<description><![CDATA[Re: Alex, no, you can&#039;t do that.
+AFAIK, you can&#039;t do it with an actual array of size 0 either.
+
+If you really want to write that memcpy line, you should do:
+memcpy(pDest, vec.empty()?0:&#038;vec[0], vec.size());
+
+...but you could also just use std::copy ;)]]></description>
+		<content:encoded><![CDATA[<p>Re: Alex, no, you can&#8217;t do that.<br />
+AFAIK, you can&#8217;t do it with an actual array of size 0 either.</p>
+<p>If you really want to write that memcpy line, you should do:<br />
+memcpy(pDest, vec.empty()?0:&amp;vec[0], vec.size());</p>
+<p>&#8230;but you could also just use std::copy ;)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: alex				</title>
+				<link>https://herbsutter.com/2009/09/02/when-is-a-zero-length-array-okay/#comment-1466</link>
+		<dc:creator><![CDATA[alex]]></dc:creator>
+		<pubDate>Tue, 08 Sep 2009 17:46:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/02/when-is-a-zero-length-array-okay/#comment-1466</guid>
+					<description><![CDATA[Does this also apply to a vector of size 0?  So, for example is this code correct if the vector is empty?
+
+    memcpy(pDest, &#038;vec[0], vec.size());
+
+VC++ throws an SEH if checked iterators are turned on.  It makes code more cumbersome by having to check the size of vec before dereferencing it.]]></description>
+		<content:encoded><![CDATA[<p>Does this also apply to a vector of size 0?  So, for example is this code correct if the vector is empty?</p>
+<p>    memcpy(pDest, &amp;vec[0], vec.size());</p>
+<p>VC++ throws an SEH if checked iterators are turned on.  It makes code more cumbersome by having to check the size of vec before dereferencing it.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: tom				</title>
+				<link>https://herbsutter.com/2009/09/02/when-is-a-zero-length-array-okay/#comment-1464</link>
+		<dc:creator><![CDATA[tom]]></dc:creator>
+		<pubDate>Fri, 04 Sep 2009 02:43:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.wordpress.com/2009/09/02/when-is-a-zero-length-array-okay/#comment-1464</guid>
+					<description><![CDATA[Thanks for the explanation. I&#039;ve happened to used zero-length array before. It compiled(with VC++) and worked. So I never thought it could fail until I read this blog. 
+
+Now I recall that it was used something like this way, 
+void f(size_t n)
+{
+  boost::shared_array si(new int[n]); 
+//...
+}
+
+It feels good that you realize you safely passed an edge only afterwards.]]></description>
+		<content:encoded><![CDATA[<p>Thanks for the explanation. I&#8217;ve happened to used zero-length array before. It compiled(with VC++) and worked. So I never thought it could fail until I read this blog. </p>
+<p>Now I recall that it was used something like this way,<br />
+void f(size_t n)<br />
+{<br />
+  boost::shared_array si(new int[n]);<br />
+//&#8230;<br />
+}</p>
+<p>It feels good that you realize you safely passed an edge only afterwards.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

@@ -1,0 +1,533 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Effective Concurrency: Prefer Futures to Baked-In &ldquo;Async APIs&rdquo; | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965693&amp;back=https%3A%2F%2Fherbsutter.com%2F2010%2F01%2F17%2Feffective-concurrency-prefer-futures-to-baked-in-async-apis%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Effective Concurrency: Prefer Futures to Baked-In &ldquo;Async&nbsp;APIs&rdquo; Comments Feed" href="https://herbsutter.com/2010/01/17/effective-concurrency-prefer-futures-to-baked-in-async-apis/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='C++ and Beyond:  Summer 2010, Vote the&nbsp;Date' href='https://herbsutter.com/2010/01/11/c-and-beyond-summer-2010-vote-the-date/' />
+<link rel='next' title='Igor Ostrovsky and the Seven Cache&nbsp;Effects' href='https://herbsutter.com/2010/02/15/igor-ostrovsky-and-the-seven-cache-effects/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2010/01/17/effective-concurrency-prefer-futures-to-baked-in-async-apis/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-5k' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2010%2F01%2F17%2Feffective-concurrency-prefer-futures-to-baked-in-async-apis%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2010%2F01%2F17%2Feffective-concurrency-prefer-futures-to-baked-in-async-apis%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Effective Concurrency: Prefer Futures to Baked-In &ldquo;Async APIs&rdquo;" />
+<meta property="og:url" content="https://herbsutter.com/2010/01/17/effective-concurrency-prefer-futures-to-baked-in-async-apis/" />
+<meta property="og:description" content="This month’s Effective Concurrency column, Prefer Futures to Baked-In “Async APIs”, is now live on DDJ’s website. From the article: When designing concurrent APIs, separate &quot;what&quot; from &amp;q…" />
+<meta property="article:published_time" content="2010-01-18T02:25:00+00:00" />
+<meta property="article:modified_time" content="2010-01-18T02:25:59+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965693" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Effective Concurrency: Prefer Futures to Baked-In &ldquo;Async&nbsp;APIs&rdquo;" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="This month’s Effective Concurrency column, Prefer Futures to Baked-In “Async APIs”, is now live on DDJ’s website. From the article: When designing concurrent APIs, separate &quot;what&quot; from &quot;how&quot; Let&#039;s say you have an existing synchronous API function [called DoSomething]… Because DoSomething could take a long time to execute (whether it keeps a CPU core busy&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2010/01/17/effective-concurrency-prefer-futures-to-baked-in-async-apis/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-330 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2010/01/11/c-and-beyond-summer-2010-vote-the-date/" rel="prev">C++ and Beyond:  Summer 2010, Vote the&nbsp;Date</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2010/02/15/igor-ostrovsky-and-the-seven-cache-effects/" rel="next">Igor Ostrovsky and the Seven Cache&nbsp;Effects</a> &raquo;</div>
+			</div>
+			
+			<div class="post-330 post type-post status-publish format-standard hentry category-c-net category-c category-concurrency category-software-development" id="post-330">
+				<div class="posttitle">
+					<h2>Effective Concurrency: Prefer Futures to Baked-In &ldquo;Async&nbsp;APIs&rdquo;</h2>
+					<p class="post-info">2010-01-17 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>This month’s <strong>Effective Concurrency</strong> column, <a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=222301165">Prefer Futures to Baked-In “Async APIs”</a>, is now live on DDJ’s website.</p>
+<p>From the article:</p>
+<blockquote>
+<p><em>When designing concurrent APIs, separate &quot;what&quot; from &quot;how&quot;</em></p>
+<p>Let&#8217;s say you have an existing synchronous API function [called <strong>DoSomething</strong>]… Because <strong>DoSomething </strong>could take a long time to execute (whether it keeps a CPU core busy or not), and might be independent of other work the caller is doing, naturally the caller might want to execute <strong>DoSomething </strong>asynchronously. … </p>
+<p>The question is, how should we enable that? There is a simple and correct answer, but because many interfaces have opted for a more complex answer let&#8217;s consider that one first. </p>
+</blockquote>
+<p>I hope you enjoy it. Finally, here are links to previous Effective Concurrency columns:</p>
+<blockquote>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/200001985">The Pillars of Concurrency</a> (Aug 2007) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/201202924">How Much Scalability Do You Have or Need?</a> (Sep 2007) </p>
+<p><a href="http://ddj.com/cpp/201804238">Use Critical Sections (Preferably Locks) to Eliminate Races</a> (Oct 2007) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/202401098">Apply Critical Sections Consistently</a> (Nov 2007) </p>
+<p><a href="http://ddj.com/architect/202802983">Avoid Calling Unknown Code While Inside a Critical Section</a> (Dec 2007) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/204801163">Use Lock Hierarchies to Avoid Deadlock</a> (Jan 2008) </p>
+<p><a href="http://www.ddj.com/cpp/205900309">Break Amdahl’s Law!</a> (Feb 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/206100542">Going Superlinear</a> (Mar 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/206903306">Super Linearity and the Bigger Machine</a> (Apr 2008) </p>
+<p><a href="http://ddj.com/architect/207100682">Interrupt Politely</a> (May 2008) </p>
+<p><a href="http://ddj.com/architect/208200273">Maximize Locality, Minimize Contention</a> (Jun 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/208801371">Choose Concurrency-Friendly Data Structures</a> (Jul 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/209900973">The Many Faces of Deadlock</a> (Aug 2008) </p>
+<p><a href="http://www.ddj.com/cpp/210600279">Lock-Free Code: A False Sense of Security</a> (Sep 2008) </p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/210604448">Writing Lock-Free Code: A Corrected Queue</a> (Oct 2008) </p>
+<p><a href="http://www.ddj.com/cpp/211601363">Writing a Generalized Concurrent Queue</a> (Nov 2008) </p>
+<p><a href="http://www.ddj.com/cpp/211800538">Understanding Parallel Performance</a> (Dec 2008)</p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/212201163">Measuring Parallel Performance: Optimizing a Concurrent Queue</a> (Jan 2009)</p>
+<p><a href="http://www.ddj.com/hpc-high-performance-computing/212701484">volatile vs. volatile</a> (Feb 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=214100002">Sharing Is the Root of All Contention</a> (Mar 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=215900465">Use Threads Correctly = Isolation + Asynchronous Messages</a> (Apr 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=216500409">Use Thread Pools Correctly: Keep Tasks Short and Nonblocking</a> (Apr 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=217500206">Eliminate False Sharing</a> (May 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=217801299">Break Up and Interleave Work to Keep Threads Responsive</a> (Jun 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=218401447">The Power of “In Progress”</a> (Jul 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=219200099">Design for Manycore Systems</a> (Aug 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=220600388">Avoid Exposing Concurrency – Hide It Inside Synchronous Methods</a> (Oct 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=221601309">Prefer structured lifetimes – local, nested, bounded, deterministic</a> (Nov 2009)</p>
+<p><a href="http://www.ddj.com/go-parallel/article/showArticle.jhtml?articleID=222301165">Prefer Futures to Baked-In “Async APIs”</a> (Jan 2010)</p>
+</blockquote>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c-net/" rel="category tag">C# / .NET</a>, <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/concurrency/" rel="category tag">Concurrency</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a> | 											11 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">11 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-2059">
+		<div id="div-comment-2059">
+		<div class="cmtinfo"><em> on <a href="#comment-2059" title="">2010-04-29 at 12:39 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2059"></div><p>I&#8217;m working on it. :) Specifically, the EC articles are drafts of Items for the book.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2033">
+		<div id="div-comment-2033">
+		<div class="cmtinfo"><em> on <a href="#comment-2033" title="">2010-04-19 at 11:33 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/20e32b25f792600f43ccff7ee4d07f08?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Olle</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2033"></div><p>Any news on the Effective Concurrency book?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-1877">
+		<div id="div-comment-1877">
+		<div class="cmtinfo"><em> on <a href="#comment-1877" title="">2010-03-28 at 6:25 am</a></em>  <cite><a href='http://okolovich.info/c-standard-c0x-thread-library/' rel='external nofollow' class='url'>C++ Standard (C++0x) Thread Library | Roman&#39;s knowledgebase</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1877"></div><p>[&#8230;] Effective Concurrency: Prefer Futures to Baked-In “Async APIs” VN:F [1.8.6_1065]Rating: 0.0/10 (0 votes cast) [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1857">
+		<div id="div-comment-1857">
+		<div class="cmtinfo"><em> on <a href="#comment-1857" title="">2010-03-22 at 7:29 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e4ed93a0541353be3d9e9d0ba9e584dc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.planetmarshall.co.uk/feed' rel='external nofollow' class='url'>Andrew Marshall</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1857"></div><p>I like the idea of separating the &#8216;What&#8217; from the &#8216;How&#8217;, but I think that the Begin/End pattern still has its place if the &#8216;What&#8217; and the &#8216;How&#8217; are inextricably linked. </p>
+<p>For example, here at Leica we have a lot of hardware control code for our microscopes, which is, at the lowest level, inherently asynchronous. Generally, that is how we want the API to be used. If a user wants synchronous hardware control, he can implement his own wrapper on top of our API &#8211; I prefer this approach because synchronous execution would be the exception, rather than the rule.</p>
+<p>I&#8217;d be interested in your thoughts on this.</p>
+<p>Regards,<br />
+Andrew.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1703">
+		<div id="div-comment-1703">
+		<div class="cmtinfo"><em> on <a href="#comment-1703" title="">2010-01-26 at 6:18 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/4c2463d70b429c56a47e39d4dd18d70c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mohan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1703"></div><p>I was reading the article &#8216; Prefer futures to baked in async API&#8217;. I could see one advantage of using BeginXXX, EndXXX pattern like .net. For example, if i have a class where only few of its methods can be async then i can explicitly expose them with BeginXXX/EndXXX.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1692">
+		<div id="div-comment-1692">
+		<div class="cmtinfo"><em> on <a href="#comment-1692" title="">2010-01-19 at 2:46 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e00f14822d221c3f98ff3e5f08c3626e?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mogur</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1692"></div><p>Great column.</p>
+<p>Am I the only one that cannot see correctly the code of examples 4 and 5? At least it is done on purpose , the local vars declaration are missing, and I think this is the key part of the code, where the future is used :)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1691">
+		<div id="div-comment-1691">
+		<div class="cmtinfo"><em> on <a href="#comment-1691" title="">2010-01-18 at 12:38 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/09db625490bbe367c4cb8bad064e6725?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://luminance.org/' rel='external nofollow' class='url'>Kevin Gadd</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1691"></div><p>An architecture based on Futures is equally capable of hooking into IOCP, as long as you factor things correctly. The Win32 API for IOCP is actually closer in structure to Futures than it is to Begin/End &#8211; you perform an IO and pass in an OVERLAPPED that either specifies an event to signal or a callback to invoke on completion. You&#8217;re never actually required to call any sort of &#8216;End&#8217; function, and the OVERLAPPED always represents a single IO at any given time. It&#8217;s basically a reusable Future.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1690">
+		<div id="div-comment-1690">
+		<div class="cmtinfo"><em> on <a href="#comment-1690" title="">2010-01-18 at 3:17 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/95e28ac250c4604a6f9d7e34705c3259?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://blog.rjcox.co.uk' rel='external nofollow' class='url'>Richard</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1690"></div><p>@Barry Kelly: coincidentally just opened this for a read: <a href="http://blogs.msdn.com/dsyme/archive/2010/01/09/async-and-parallel-design-patterns-in-f-parallelizing-cpu-and-i-o-computations.aspx" rel="nofollow">http://blogs.msdn.com/dsyme/archive/2010/01/09/async-and-parallel-design-patterns-in-f-parallelizing-cpu-and-i-o-computations.aspx</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1689">
+		<div id="div-comment-1689">
+		<div class="cmtinfo"><em> on <a href="#comment-1689" title="">2010-01-18 at 3:15 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/95e28ac250c4604a6f9d7e34705c3259?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://blog.rjcox.co.uk' rel='external nofollow' class='url'>Richard</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1689"></div><p>One (slightly pedantic) correction: you don&#8217;t need to call ar.AsyncWaitHandle.WaitOne() before calling EndZZZ(&#8230;) for correctly implemented Begin/End pair. The pattern states that EndZZZ will block if the operation has not completed.</p>
+<p>This does not really alter the point, and general mechanisms using something like futures are certainly easier (in general) for both implementer and consumer of an API. (The exceptions are where something like Begin/End can hook into lower level abstractions like IO Completion.)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1688">
+		<div id="div-comment-1688">
+		<div class="cmtinfo"><em> on <a href="#comment-1688" title="">2010-01-17 at 9:30 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/2facd380c5bdfbaa1a1e9c657578f135?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://blog.barrkel.com/' rel='external nofollow' class='url'>Barry Kelly</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1688"></div><p>I&#8217;ll make my comment here, as it doesn&#8217;t require me to create an account.</p>
+<p>Async programming is useful for minimizing the number of threads while simultaneously having many concurrent IO operations in flight. Going with a task parallelism library for the same operation means you&#8217;re going to sacrifice one of those goals, typically the many concurrent IOs.</p>
+<p>The annoying thing is that the Begin/End async pattern in .NET is programmable (and with the AsyncCallback, more or less designed to be programmed) in continuation passing style. But CPS is a mechanical translation of straight-line normal imperative code.</p>
+<p>So my position is rather different. Compiler / language tooling should be improved in this area, so that straight-line code, in the right context (e.g. F#-style async workflow) can be mechanically transformed into a a monadic nesting of continuations. That way you get to have your cake and eat it too.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1687">
+		<div id="div-comment-1687">
+		<div class="cmtinfo"><em> on <a href="#comment-1687" title="">2010-01-17 at 8:03 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/09db625490bbe367c4cb8bad064e6725?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://luminance.org/' rel='external nofollow' class='url'>Kevin Gadd</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1687"></div><p>One nice enhancement to the Future model is being able to add callbacks directly to a future, like in Twisted. It makes it straightforward to attach work to the end of a deferred computation without having to modify the call site. Doing that also means that you can attach a continuation to the Future instead of suspending your thread by blocking on an event.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2010/01/17/effective-concurrency-prefer-futures-to-baked-in-async-apis/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-20e32b25f792600f43ccff7ee4d07f08">
+	</div>
+	<div class="grofile-hash-map-e4ed93a0541353be3d9e9d0ba9e584dc">
+	</div>
+	<div class="grofile-hash-map-4c2463d70b429c56a47e39d4dd18d70c">
+	</div>
+	<div class="grofile-hash-map-e00f14822d221c3f98ff3e5f08c3626e">
+	</div>
+	<div class="grofile-hash-map-09db625490bbe367c4cb8bad064e6725">
+	</div>
+	<div class="grofile-hash-map-95e28ac250c4604a6f9d7e34705c3259">
+	</div>
+	<div class="grofile-hash-map-2facd380c5bdfbaa1a1e9c657578f135">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_2059={"id":468178,"unique_id":"wp-comment-2059","title":"I%26%23039%3Bm%20working%20on%20it.%20%3A%29%20Specifically%2C%20the%20EC%20articles%20are%20drafts%20of%20Items%20for%20the%20book....","permalink":"https:\/\/herbsutter.com\/2010\/01\/17\/effective-concurrency-prefer-futures-to-baked-in-async-apis\/#comment-2059","item_id":"_comm_2059"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2059 == 'undefined' ){PDRTJS_468178_comm_2059 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2059 );}}PDRTJS_settings_468178_comm_2033={"id":468178,"unique_id":"wp-comment-2033","title":"Any%20news%20on%20the%20Effective%20Concurrency%20book%3F...","permalink":"https:\/\/herbsutter.com\/2010\/01\/17\/effective-concurrency-prefer-futures-to-baked-in-async-apis\/#comment-2033","item_id":"_comm_2033"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2033 == 'undefined' ){PDRTJS_468178_comm_2033 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2033 );}}PDRTJS_settings_468178_comm_1877={"id":468178,"unique_id":"wp-comment-1877","title":"%26%23091%3B...%26%23093%3B%20Effective%20Concurrency%3A%20Prefer%20Futures%20to%20Baked-In%20Async%20APIs%20VN%3AF%20%26%23091%3B1.8.6_1065%26%23093%3BRating%3A%200.0%2F10%20%280%20votes%20cast%29%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2010\/01\/17\/effective-concurrency-prefer-futures-to-baked-in-async-apis\/#comment-1877","item_id":"_comm_1877"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1877 == 'undefined' ){PDRTJS_468178_comm_1877 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1877 );}}PDRTJS_settings_468178_comm_1857={"id":468178,"unique_id":"wp-comment-1857","title":"I%20like%20the%20idea%20of%20separating%20the%20%26%23039%3BWhat%26%23039%3B%20from%20the%20%26%23039%3BHow%26%23039%3B%2C%20but%20I%20think%20that%20the%20Begin%2FEnd%20pattern%20still%20has%20its%20place%20if%20the%20%26%23039%3BWhat%26%23039%3B%20and%20the%20%26%23039%3BHow%26%23039%3B%20are%20inextricably%20linked.%20For%20example%2C%20here%20at%20Leica...","permalink":"https:\/\/herbsutter.com\/2010\/01\/17\/effective-concurrency-prefer-futures-to-baked-in-async-apis\/#comment-1857","item_id":"_comm_1857"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1857 == 'undefined' ){PDRTJS_468178_comm_1857 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1857 );}}PDRTJS_settings_468178_comm_1703={"id":468178,"unique_id":"wp-comment-1703","title":"I%20was%20reading%20the%20article%20%26%23039%3B%20Prefer%20futures%20to%20baked%20in%20async%20API%26%23039%3B.%20I%20could%20see%20one%20advantage%20of%20using%20BeginXXX%2C%20EndXXX%20pattern%20like%20.net.%20For%20example%2C%20if%20i%20have%20a%20class%20where%20only%20few%20of%20its%20meth...","permalink":"https:\/\/herbsutter.com\/2010\/01\/17\/effective-concurrency-prefer-futures-to-baked-in-async-apis\/#comment-1703","item_id":"_comm_1703"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1703 == 'undefined' ){PDRTJS_468178_comm_1703 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1703 );}}PDRTJS_settings_468178_comm_1692={"id":468178,"unique_id":"wp-comment-1692","title":"Great%20column.Am%20I%20the%20only%20one%20that%20cannot%20see%20correctly%20the%20code%20of%20examples%204%20and%205%3F%20At%20least%20it%20is%20done%20on%20purpose%20%2C%20the%20local%20vars%20declaration%20are%20missing%2C%20and%20I%20think%20this%20is%20the%20key%20part%20of...","permalink":"https:\/\/herbsutter.com\/2010\/01\/17\/effective-concurrency-prefer-futures-to-baked-in-async-apis\/#comment-1692","item_id":"_comm_1692"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1692 == 'undefined' ){PDRTJS_468178_comm_1692 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1692 );}}PDRTJS_settings_468178_comm_1691={"id":468178,"unique_id":"wp-comment-1691","title":"An%20architecture%20based%20on%20Futures%20is%20equally%20capable%20of%20hooking%20into%20IOCP%2C%20as%20long%20as%20you%20factor%20things%20correctly.%20The%20Win32%20API%20for%20IOCP%20is%20actually%20closer%20in%20structure%20to%20Futures%20than%20it%20is%20to%20B...","permalink":"https:\/\/herbsutter.com\/2010\/01\/17\/effective-concurrency-prefer-futures-to-baked-in-async-apis\/#comment-1691","item_id":"_comm_1691"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1691 == 'undefined' ){PDRTJS_468178_comm_1691 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1691 );}}PDRTJS_settings_468178_comm_1690={"id":468178,"unique_id":"wp-comment-1690","title":"%40Barry%20Kelly%3A%20coincidentally%20just%20opened%20this%20for%20a%20read%3A%20http%3A%2F%2Fblogs.msdn.com%2Fdsyme%2Farchive%2F2010%2F01%2F09%2Fasync-and-parallel-design-patterns-in-f-parallelizing-cpu-and-i-o-computations.aspx...","permalink":"https:\/\/herbsutter.com\/2010\/01\/17\/effective-concurrency-prefer-futures-to-baked-in-async-apis\/#comment-1690","item_id":"_comm_1690"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1690 == 'undefined' ){PDRTJS_468178_comm_1690 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1690 );}}PDRTJS_settings_468178_comm_1689={"id":468178,"unique_id":"wp-comment-1689","title":"One%20%28slightly%20pedantic%29%20correction%3A%20you%20don%26%23039%3Bt%20need%20to%20call%20ar.AsyncWaitHandle.WaitOne%28%29%20before%20calling%20EndZZZ%28...%29%20for%20correctly%20implemented%20Begin%2FEnd%20pair.%20The%20pattern%20states%20that%20EndZZZ%20will%20bl...","permalink":"https:\/\/herbsutter.com\/2010\/01\/17\/effective-concurrency-prefer-futures-to-baked-in-async-apis\/#comment-1689","item_id":"_comm_1689"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1689 == 'undefined' ){PDRTJS_468178_comm_1689 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1689 );}}PDRTJS_settings_468178_comm_1688={"id":468178,"unique_id":"wp-comment-1688","title":"I%26%23039%3Bll%20make%20my%20comment%20here%2C%20as%20it%20doesn%26%23039%3Bt%20require%20me%20to%20create%20an%20account.Async%20programming%20is%20useful%20for%20minimizing%20the%20number%20of%20threads%20while%20simultaneously%20having%20many%20concurrent%20IO%20operations...","permalink":"https:\/\/herbsutter.com\/2010\/01\/17\/effective-concurrency-prefer-futures-to-baked-in-async-apis\/#comment-1688","item_id":"_comm_1688"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1688 == 'undefined' ){PDRTJS_468178_comm_1688 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1688 );}}PDRTJS_settings_468178_comm_1687={"id":468178,"unique_id":"wp-comment-1687","title":"One%20nice%20enhancement%20to%20the%20Future%20model%20is%20being%20able%20to%20add%20callbacks%20directly%20to%20a%20future%2C%20like%20in%20Twisted.%20It%20makes%20it%20straightforward%20to%20attach%20work%20to%20the%20end%20of%20a%20deferred%20computation%20with...","permalink":"https:\/\/herbsutter.com\/2010\/01\/17\/effective-concurrency-prefer-futures-to-baked-in-async-apis\/#comment-1687","item_id":"_comm_1687"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1687 == 'undefined' ){PDRTJS_468178_comm_1687 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1687 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2010%2F01%2F17%2Feffective-concurrency-prefer-futures-to-baked-in-async-apis%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2010\/01\/17\/effective-concurrency-prefer-futures-to-baked-in-async-apis\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2010%2F01%2F17%2Feffective-concurrency-prefer-futures-to-baked-in-async-apis%2F","postID":"330","shortlink":"https:\/\/wp.me\/peb5Y-5k","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/330","statsLink":"https:\/\/wordpress.com\/stats\/post\/330\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2010%2F01%2F17%2Feffective-concurrency-prefer-futures-to-baked-in-async-apis%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'330','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLm1vcWhtTi1+a1NEZ35rPzFBRlVTJVNUWnNGZTRDMmRmK3lmMVBhUzc3NUZ8Z1JnbUZVLz9vJTMwWy8sJVpQMFNkcTZYVzVpLFRFTSVbcnE1SzEwYVJBUn5zY2xSUmFyanordHVxVmg3UGtiZ1dCY2JdZmM2VUREK2NYLXpSW1hvLVV0NDQvXXQ/Y0Zwa2dPbllDUWtsVS5wLE8lbTVjTmRpdVRzMzN4dFAlK1JZUWNzPzBuVGNWVGxiWHNFfjhKaG5DMWIyOA=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '330' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

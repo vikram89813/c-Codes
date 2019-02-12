@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: My talk at CppCon	</title>
+	<atom:link href="https://herbsutter.com/2015/09/27/my-talk-at-cppcon/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2015/09/27/my-talk-at-cppcon/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Juergen Busch				</title>
+				<link>https://herbsutter.com/2015/09/27/my-talk-at-cppcon/#comment-37856</link>
+		<dc:creator><![CDATA[Juergen Busch]]></dc:creator>
+		<pubDate>Tue, 13 Oct 2015 14:58:39 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2566#comment-37856</guid>
+					<description><![CDATA[I really was electrified by Bjarne&#039;s and your talk. Resource and type safety is definitely an issue. I have seen many libraries where even a quick view into the code easily revealed at least the one or other resource leak. What might be in there too - but hidden much &quot;better&quot;?
+
+So, I like the idea of owner to ease the work for an analysis tool (compiler or external based) and I liked to see how far you already got with such a tool. But I found no information how that might work with non-pointer resources or if it is even planned to extend it in that direction. You know, we have HANDLE-s and int-s as resources too.
+
+I would like to have a unique_owner and shared_owner for such resources somewhat like unique_ptr and shared_ptr for pointers. When I tried to sketch such a unique_owner class following the guidelines I wondered how to signal the &quot;deleter&quot; (CloseHandle or such) for the owned resource to the analysis tool.
+
+Did I miss something in the GSL documentation and/or your or Bjarne&#039;s talk? Or would we need a deleter wrapper too that signals a function object to be the equivalent of delete for a non-pointer resource type T? Or is that idea of non-pointer resources owners a bad one?
+
+Comments appreciated!]]></description>
+		<content:encoded><![CDATA[<p>I really was electrified by Bjarne&#8217;s and your talk. Resource and type safety is definitely an issue. I have seen many libraries where even a quick view into the code easily revealed at least the one or other resource leak. What might be in there too &#8211; but hidden much &#8220;better&#8221;?</p>
+<p>So, I like the idea of owner to ease the work for an analysis tool (compiler or external based) and I liked to see how far you already got with such a tool. But I found no information how that might work with non-pointer resources or if it is even planned to extend it in that direction. You know, we have HANDLE-s and int-s as resources too.</p>
+<p>I would like to have a unique_owner and shared_owner for such resources somewhat like unique_ptr and shared_ptr for pointers. When I tried to sketch such a unique_owner class following the guidelines I wondered how to signal the &#8220;deleter&#8221; (CloseHandle or such) for the owned resource to the analysis tool.</p>
+<p>Did I miss something in the GSL documentation and/or your or Bjarne&#8217;s talk? Or would we need a deleter wrapper too that signals a function object to be the equivalent of delete for a non-pointer resource type T? Or is that idea of non-pointer resources owners a bad one?</p>
+<p>Comments appreciated!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Daniel Teske				</title>
+				<link>https://herbsutter.com/2015/09/27/my-talk-at-cppcon/#comment-37836</link>
+		<dc:creator><![CDATA[Daniel Teske]]></dc:creator>
+		<pubDate>Mon, 05 Oct 2015 10:05:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2566#comment-37836</guid>
+					<description><![CDATA[So I looked through the paper in the core guidelines paper and all of that looks pretty fantastic. I&#039;d love to try that out on Qt to see if the rules and the tool are suffiecently smart that the effort is reasonable. 
+
+One pattern, that is very common in Qt, is that parents take ownership of their children. To give a concrete but example, imagine a class like this: (Drastically simplified to only the memory management.)
+
+class Thing
+{
+  Thing(Thing *parent = 0)
+  {
+    if (parent)
+      parent-&#062;children.append(this);
+  }
+  ~Thing()
+  {
+    for (auto child, children)
+      delete child;
+  }
+  vector children;
+};
+
+Now the semantics of that are, pretty obvious. If a thing has a parent, then that parent takes care of deleting its children. Otherwise the user has to take care of that Thing. 
+
+In pratice, for e.g. widgets in windows, pretty much everything has a parent and thus is automatically deleted, except for top level windows. So it does actually work pretty well.
+
+Now, since Qt values source and binary compability a lot, we can&#039;t really change the API, but still I would like to change it so that the tools can detect memory errors in Qt code.
+
+The first step would probably to uses two constructors:
+Thing() // needs to be assigned to a owner, or stack allocated.
+Thing(NotNull) // needs to be assigend to a raw pointer
+
+Looking at the paper I couldn&#039;t find any way to express the comments in code or annotations for the tools though. 
+
+Any thoughs on this?]]></description>
+		<content:encoded><![CDATA[<p>So I looked through the paper in the core guidelines paper and all of that looks pretty fantastic. I&#8217;d love to try that out on Qt to see if the rules and the tool are suffiecently smart that the effort is reasonable. </p>
+<p>One pattern, that is very common in Qt, is that parents take ownership of their children. To give a concrete but example, imagine a class like this: (Drastically simplified to only the memory management.)</p>
+<p>class Thing<br />
+{<br />
+  Thing(Thing *parent = 0)<br />
+  {<br />
+    if (parent)<br />
+      parent-&gt;children.append(this);<br />
+  }<br />
+  ~Thing()<br />
+  {<br />
+    for (auto child, children)<br />
+      delete child;<br />
+  }<br />
+  vector children;<br />
+};</p>
+<p>Now the semantics of that are, pretty obvious. If a thing has a parent, then that parent takes care of deleting its children. Otherwise the user has to take care of that Thing. </p>
+<p>In pratice, for e.g. widgets in windows, pretty much everything has a parent and thus is automatically deleted, except for top level windows. So it does actually work pretty well.</p>
+<p>Now, since Qt values source and binary compability a lot, we can&#8217;t really change the API, but still I would like to change it so that the tools can detect memory errors in Qt code.</p>
+<p>The first step would probably to uses two constructors:<br />
+Thing() // needs to be assigned to a owner, or stack allocated.<br />
+Thing(NotNull) // needs to be assigend to a raw pointer</p>
+<p>Looking at the paper I couldn&#8217;t find any way to express the comments in code or annotations for the tools though. </p>
+<p>Any thoughs on this?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Germán Diago				</title>
+				<link>https://herbsutter.com/2015/09/27/my-talk-at-cppcon/#comment-37820</link>
+		<dc:creator><![CDATA[Germán Diago]]></dc:creator>
+		<pubDate>Wed, 30 Sep 2015 11:16:26 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2566#comment-37820</guid>
+					<description><![CDATA[This is easily the best c++ news since I started to use it. And that was by 2002. So it is not a light assertion. Boost, C++11 and much, much more has happened since then. But this is... simply unbelievable. Great thanks to everyone, and thanks for pushing this forward.]]></description>
+		<content:encoded><![CDATA[<p>This is easily the best c++ news since I started to use it. And that was by 2002. So it is not a light assertion. Boost, C++11 and much, much more has happened since then. But this is&#8230; simply unbelievable. Great thanks to everyone, and thanks for pushing this forward.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Anon				</title>
+				<link>https://herbsutter.com/2015/09/27/my-talk-at-cppcon/#comment-37818</link>
+		<dc:creator><![CDATA[Anon]]></dc:creator>
+		<pubDate>Tue, 29 Sep 2015 17:55:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2566#comment-37818</guid>
+					<description><![CDATA[Great presentation. Your talk and the demos with Neil brought a lot of excitement to C++. The ability to be guaranteed memory safety in C++, really takes the wind out of a lot of competitors (I am looking at you Rust) and helps with introducing C++ into new areas. Great work. Looking forward to trying out the tools when they are released.]]></description>
+		<content:encoded><![CDATA[<p>Great presentation. Your talk and the demos with Neil brought a lot of excitement to C++. The ability to be guaranteed memory safety in C++, really takes the wind out of a lot of competitors (I am looking at you Rust) and helps with introducing C++ into new areas. Great work. Looking forward to trying out the tools when they are released.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Craig Henderson				</title>
+				<link>https://herbsutter.com/2015/09/27/my-talk-at-cppcon/#comment-37815</link>
+		<dc:creator><![CDATA[Craig Henderson]]></dc:creator>
+		<pubDate>Mon, 28 Sep 2015 16:23:53 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2566#comment-37815</guid>
+					<description><![CDATA[Compile times are a serious problem in large scale C++ projects. Loading the compiler with all the diagnostics will slow compilation down even further. An external tool might be a better home for such code analysis.]]></description>
+		<content:encoded><![CDATA[<p>Compile times are a serious problem in large scale C++ projects. Loading the compiler with all the diagnostics will slow compilation down even further. An external tool might be a better home for such code analysis.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: alexmatto				</title>
+				<link>https://herbsutter.com/2015/09/27/my-talk-at-cppcon/#comment-37809</link>
+		<dc:creator><![CDATA[alexmatto]]></dc:creator>
+		<pubDate>Sun, 27 Sep 2015 23:40:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2566#comment-37809</guid>
+					<description><![CDATA[Your presentation was fantastic, currently is my favorite one on CppCon2015.
+
+Type and Memory Safety, without verbosity or heavy annotations, in current C++ is great!]]></description>
+		<content:encoded><![CDATA[<p>Your presentation was fantastic, currently is my favorite one on CppCon2015.</p>
+<p>Type and Memory Safety, without verbosity or heavy annotations, in current C++ is great!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Lilian				</title>
+				<link>https://herbsutter.com/2015/09/27/my-talk-at-cppcon/#comment-37807</link>
+		<dc:creator><![CDATA[Lilian]]></dc:creator>
+		<pubDate>Sun, 27 Sep 2015 20:47:47 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2566#comment-37807</guid>
+					<description><![CDATA[Thank you guys for the effort.
+Last monday I cross-compiled Rust for our ARM target and was planning on how to try to introduce it in our company.
+Now my priority has changed for tommorow(monday), I have to introduce GSL in production. We use GCC 4.4.1 but with &quot;experimental&quot; C++11 we could use at least the non_null implementation with minor changes to replace nullptr. As you see by the compiler version, people in that big company are not very accepting to changes, hopefully to introduce a library will be a lot easier than to introduce another programming language.]]></description>
+		<content:encoded><![CDATA[<p>Thank you guys for the effort.<br />
+Last monday I cross-compiled Rust for our ARM target and was planning on how to try to introduce it in our company.<br />
+Now my priority has changed for tommorow(monday), I have to introduce GSL in production. We use GCC 4.4.1 but with &#8220;experimental&#8221; C++11 we could use at least the non_null implementation with minor changes to replace nullptr. As you see by the compiler version, people in that big company are not very accepting to changes, hopefully to introduce a library will be a lot easier than to introduce another programming language.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

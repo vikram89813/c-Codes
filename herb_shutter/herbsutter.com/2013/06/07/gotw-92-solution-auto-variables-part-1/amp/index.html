@@ -1,0 +1,511 @@
+<!doctype html>
+<html amp lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+	
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #92 Solution: Auto Variables, Part 1" />
+<meta property="og:url" content="https://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/" />
+<meta property="og:description" content="What does auto do on variable declarations, exactly? And how should we think about auto? In this GotW, we&#8217;ll start taking a look at C++&#8217;s oldest new feature.  Problem JG Questions 1. Wh…" />
+<meta property="article:published_time" content="2013-06-07T13:34:05+00:00" />
+<meta property="article:modified_time" content="2013-06-10T17:27:54+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://herbsutter.files.wordpress.com/2013/06/061013_1727_gotw92solut1.png" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #92 Solution: Auto Variables, Part 1" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+	<title>GotW #92 Solution: Auto Variables, Part 1 &#8211; Sutter’s Mill</title>
+		<link rel="canonical" href="https://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/" />
+	<script src="https://cdn.ampproject.org/v0.js" async></script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic">	<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+		<script type="application/ld+json">{"@context":"http:\/\/schema.org","@type":"BlogPosting","mainEntityOfPage":"https:\/\/herbsutter.com\/2013\/06\/07\/gotw-92-solution-auto-variables-part-1\/","publisher":{"@type":"Organization","name":"Sutter\u2019s Mill","logo":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=60&d=https%3A%2F%2Fs0.wp.com%2Fi%2Ffavicons%2Fapple-touch-icon-60x60.png","width":60,"height":60}},"headline":"GotW #92 Solution: Auto Variables, Part 1","datePublished":"2013-06-07T05:34:05+00:00","dateModified":"2013-06-10T09:27:54+00:00","author":{"@type":"Person","name":"Herb Sutter"},"image":{"@type":"ImageObject","url":"https:\/\/herbsutter.files.wordpress.com\/2013\/06\/061013_1727_gotw92solut1.png","width":500,"height":163}}</script>
+	<meta name="generator" content="AMP Plugin v0.6.2" />	<style amp-custom>
+		/* Generic WP styling */
+
+.alignright {
+	float: right;
+}
+
+.alignleft {
+	float: left;
+}
+
+.aligncenter {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.amp-wp-enforced-sizes {
+	/** Our sizes fallback is 100vw, and we have a padding on the container; the max-width here prevents the element from overflowing. **/
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+.amp-wp-unknown-size img {
+	/** Worst case scenario when we can't figure out dimensions for an image. **/
+	/** Force the image into a box of fixed dimensions and use object-fit to scale. **/
+	object-fit: contain;
+}
+
+/* Template Styles */
+
+.amp-wp-content,
+.amp-wp-title-bar div {
+		margin: 0 auto;
+	max-width: 500px;
+	}
+
+html {
+	background: #0a89c0;
+}
+
+body {
+	background: #fff;
+	color: #353535;
+	font-family: 'Merriweather', 'Times New Roman', Times, Serif;
+	font-weight: 300;
+	line-height: 1.75em;
+}
+
+p,
+ol,
+ul,
+figure {
+	margin: 0 0 1em;
+	padding: 0;
+}
+
+a,
+a:visited {
+	color: #0a89c0;
+}
+
+a:hover,
+a:active,
+a:focus {
+	color: #353535;
+}
+
+/* Quotes */
+
+blockquote {
+	color: #353535;
+	background: rgba(127,127,127,.125);
+	border-left: 2px solid #0a89c0;
+	margin: 8px 0 24px 0;
+	padding: 16px;
+}
+
+blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+/* UI Fonts */
+
+.amp-wp-meta,
+.amp-wp-header div,
+.amp-wp-title,
+.wp-caption-text,
+.amp-wp-tax-category,
+.amp-wp-tax-tag,
+.amp-wp-comments-link,
+.amp-wp-footer p,
+.back-to-top {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen-Sans", "Ubuntu", "Cantarell", "Helvetica Neue", sans-serif;
+}
+
+/* Header */
+
+.amp-wp-header {
+	background-color: #0a89c0;
+}
+
+.amp-wp-header div {
+	color: #fff;
+	font-size: 1em;
+	font-weight: 400;
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: .875em 16px;
+	position: relative;
+}
+
+.amp-wp-header a {
+	color: #fff;
+	text-decoration: none;
+}
+
+/* Site Icon */
+
+.amp-wp-header .amp-wp-site-icon {
+	/** site icon is 32px **/
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 50%;
+	position: absolute;
+	right: 18px;
+	top: 10px;
+}
+
+/* Article */
+
+.amp-wp-article {
+	color: #353535;
+	font-weight: 400;
+	margin: 1.5em auto;
+	max-width: 840px;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+}
+
+/* Article Header */
+
+.amp-wp-article-header {
+	align-items: center;
+	align-content: stretch;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin: 1.5em 16px 0;
+}
+
+.amp-wp-title {
+	color: #353535;
+	display: block;
+	flex: 1 0 100%;
+	font-weight: 900;
+	margin: 0 0 .625em;
+	width: 100%;
+}
+
+/* Article Meta */
+
+.amp-wp-meta {
+	color: #696969;
+	display: inline-block;
+	flex: 2 1 50%;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0 0 1.5em;
+	padding: 0;
+}
+
+.amp-wp-article-header .amp-wp-meta:last-of-type {
+	text-align: right;
+}
+
+.amp-wp-article-header .amp-wp-meta:first-of-type {
+	text-align: left;
+}
+
+.amp-wp-byline amp-img,
+.amp-wp-byline .amp-wp-author {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.amp-wp-byline amp-img {
+	border: 1px solid #0a89c0;
+	border-radius: 50%;
+	position: relative;
+	margin-right: 6px;
+}
+
+.amp-wp-posted-on {
+	text-align: right;
+}
+
+/* Featured image */
+
+.amp-wp-article-featured-image {
+	margin: 0 0 1em;
+}
+.amp-wp-article-featured-image amp-img {
+	margin: 0 auto;
+}
+.amp-wp-article-featured-image.wp-caption .wp-caption-text {
+	margin: 0 18px;
+}
+
+/* Article Content */
+
+.amp-wp-article-content {
+	margin: 0 16px;
+}
+
+.amp-wp-article-content ul,
+.amp-wp-article-content ol {
+	margin-left: 1em;
+}
+
+.amp-wp-article-content amp-img {
+	margin: 0 auto;
+}
+
+.amp-wp-article-content amp-img.alignright {
+	margin: 0 0 1em 16px;
+}
+
+.amp-wp-article-content amp-img.alignleft {
+	margin: 0 16px 1em 0;
+}
+
+/* Captions */
+
+.wp-caption {
+	padding: 0;
+}
+
+.wp-caption.alignleft {
+	margin-right: 16px;
+}
+
+.wp-caption.alignright {
+	margin-left: 16px;
+}
+
+.wp-caption .wp-caption-text {
+	border-bottom: 1px solid #c2c2c2;
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0;
+	padding: .66em 10px .75em;
+}
+
+/* AMP Media */
+
+amp-carousel {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+amp-iframe,
+amp-youtube,
+amp-instagram,
+amp-vine {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+
+.amp-wp-article-content amp-carousel amp-img {
+	border: none;
+}
+
+amp-carousel > amp-img > img {
+	object-fit: contain;
+}
+
+.amp-wp-iframe-placeholder {
+	background: #c2c2c2 url( https://s2.wp.com/wp-content/plugins/amp/assets/images/placeholder-icon.png ) no-repeat center 40%;
+	background-size: 48px 48px;
+	min-height: 48px;
+}
+
+/* Article Footer Meta */
+
+.amp-wp-article-footer .amp-wp-meta {
+	display: block;
+}
+
+.amp-wp-tax-category,
+.amp-wp-tax-tag {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 1.5em 16px;
+}
+
+.amp-wp-comments-link {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	text-align: center;
+	margin: 2.25em 0 1.5em;
+}
+
+.amp-wp-comments-link a {
+	border-style: solid;
+	border-color: #c2c2c2;
+	border-width: 1px 1px 2px;
+	border-radius: 4px;
+	background-color: transparent;
+	color: #0a89c0;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 18px;
+	margin: 0 auto;
+	max-width: 200px;
+	padding: 11px 16px;
+	text-decoration: none;
+	width: 50%;
+	-webkit-transition: background-color 0.2s ease;
+			transition: background-color 0.2s ease;
+}
+
+/* AMP Footer */
+
+.amp-wp-footer {
+	border-top: 1px solid #c2c2c2;
+	margin: calc(1.5em - 1px) 0 0;
+}
+
+.amp-wp-footer div {
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: 1.25em 16px 1.25em;
+	position: relative;
+}
+
+.amp-wp-footer h2 {
+	font-size: 1em;
+	line-height: 1.375em;
+	margin: 0 0 .5em;
+}
+
+.amp-wp-footer p {
+	color: #696969;
+	font-size: .8em;
+	line-height: 1.5em;
+	margin: 0 85px 0 0;
+}
+
+.amp-wp-footer a {
+	text-decoration: none;
+}
+
+.back-to-top {
+	bottom: 1.275em;
+	font-size: .8em;
+	font-weight: 600;
+	line-height: 2em;
+	position: absolute;
+	right: 16px;
+}
+		/* Inline styles */
+.amp-wp-inline-e118b89cb574341583297a20935ac54c{color:#2e74b5;}.amp-wp-inline-a6ec8840dd8107f0c4f9cbd7d00cece0{text-align:center;}.amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe{background:#ffffcc;margin-left:14pt;}.amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b{color:#5a5a5a;}	</style>
+</head>
+
+<body class="">
+
+<header id="top" class="amp-wp-header">
+	<div>
+		<a href="https://herbsutter.com">
+									<span class="amp-site-title">
+				Sutter’s Mill			</span>
+		</a>
+	</div>
+</header>
+
+<article class="amp-wp-article">
+	<header class="amp-wp-article-header">
+		<h1 class="amp-wp-title">GotW #92 Solution: Auto Variables, Part 1</h1>
+			<div class="amp-wp-meta amp-wp-byline">
+					<amp-img src="https://secure.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=24&#038;d=identicon&#038;r=g" width="24" height="24" layout="fixed"></amp-img>
+				<span class="amp-wp-author author vcard">Herb Sutter</span>
+	</div>
+<div class="amp-wp-meta amp-wp-posted-on">
+	<time datetime="2013-06-07T05:34:05+00:00">
+		5 years ago	</time>
+</div>
+	</header>
+
+	
+	<div class="amp-wp-article-content">
+		<p><span class="amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b"><em>What does auto do on variable declarations, exactly? And how should we think about auto? In this GotW, we’ll start taking a look at C++’s oldest new feature.<br/></em></span></p><p>
+ </p><h1>Problem<br/></h1><h2>JG Questions<br/></h2><p>1. What is the oldest C++11 feature? Explain.
+</p><p>2. What does <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> mean when declaring a local variable?
+</p><h2>Guru Questions<br/></h2><p>3. In the following code, what is the type of variables <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">a</span> through <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">k</span>, and why? Explain.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>int         val = 0;<br/>auto        a   = val;<br/>auto&amp;       b   = val;<br/>const auto  c   = val;<br/>const auto&amp; d   = val;<br/><br/>int&amp;        ir  = val;<br/>auto        e   = ir;<br/><br/>int*        ip  = &amp;val; <br/>auto        f   = ip;<br/><br/>const int   ci  = val;<br/>auto        g   = ci;<br/><br/>const int&amp;  cir = val;<br/>auto        h   = cir;<br/><br/>const int*  cip = &amp;val;<br/>auto        i   = cip;<br/><br/>int* const  ipc = &amp;val;<br/>auto        j   = ipc;<br/><br/>const int* const cipc = &amp;val;<br/>auto             k    = cipc;
+</code></pre><p>4. In the following code, what type does <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> deduce for variables <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">a</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">b</span>, and why? Explain.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>int val = 0;<br/><br/>auto a { val };<br/>auto b = { val };
+</code></pre><p>
+ </p><h1>Solution<br/></h1><h2>1. What is the oldest C++11 feature? Explain.<br/></h2><p><span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto x = something;</span> to declare a new local variable whose type is deduced from <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">something</span>, and isn’t just always <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>.
+</p><p>Bjarne Stroustrup likes to point out that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> for deducing the type of local variables is the oldest feature added in the 2011 release of the C++ standard. He implemented it in C++ 28 years earlier, in 1983—which incidentally was the same year the language’s name was changed to C++ from C with Classes (the new name was unveiled publicly on January 1, 1984), and the same year Stroustrup added other fundamental features including <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> (later adopted by C), <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">virtual</span> functions, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span> references, and BCPL-style <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">//</span> comments.
+</p><p>Alas, Stroustrup was forced to remove <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> because of compatibility concerns with C’s then-existing implicit <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span> rule, which has since been abandoned in C. We’re glad <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> is now back and here to stay.
+</p><h2>2. What does auto mean when declaring a local variable?<br/></h2><p>It means to deduce the type from the expression used to initialize the new variable. In particular, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> local variables deduction is exactly the same as type deduction for parameters of function templates—by specification, the rule for <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> variables says “do what function templates are required to do”—plus they can capture <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">initializer_list</span> as a type. For example:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>template&lt;class T&gt; void f( T ) { }<br/><br/>int val = 0;<br/><br/>f( val );                // deduces T == int, calls f&lt;int&gt;( val )<br/>auto x = val;            // deduces T == int, x is of type int
+</code></pre><p>When you’re new to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span>, the key thing to remember is that you really are declaring your own new local variable. That is, “what’s on the left” is my new variable, and “what’s on the right” is just its initial value:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>auto my_new_variable = its_initial_value;
+</code></pre><p>You want <em>your new variable</em> to be just like <em>some existing variable</em> or expression over there, and be initialized from it, but that only means that you want the same basic type, not necessarily that other variable’s own personal secondary attributes such as top-level <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>– or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">volatile</span>-ness and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span>/<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;&amp;</span> reference-ness which are per-variable. For example, just because he’s <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> doesn’t mean you’re <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>, and vice versa.
+</p><p>It’s kind of like being identical twins: Andy may be genetically <em>just like</em> his brother Bobby and is part of the same family, but he’s not the same person; he’s a distinct person and can make his own choice of clothes and/or jewelry, go to be seen on the scene in different parts of town, and so forth. So your new variable will be <em>just like</em> that other one and be part of the same type family, but it’s not the same variable; it’s a distinct variable with its own choice of whether it wants to be dressed with <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">volatile</span>, and/or a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;&amp;</span> reference, may be visible to different threads, and so forth.
+</p><p>Remembering this will let us easily answer the rest of our questions.
+</p><h2>3. In the following code, what is the type of variables a through k, and why? Explain.<br/></h2><p>Quick reminder: <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> means “take exactly the type on the right-hand side, but strip off top-level <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>/<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">volatile</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span>/<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;&amp;</span>.” Armed with that, these are mostly pretty easy.
+</p><p>For simplicity, these examples use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span>. The rules for adding or removing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">volatile</span> are the same, and the rules for adding or removing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;&amp;</span> are the same.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>int         val = 0;<br/>auto        a   = val;<br/>auto&amp;       b   = val;<br/>const auto  c   = val;<br/>const auto&amp; d   = val;
+</code></pre><p>For <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">a</span> through <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">d</span>, the type is what you get from replacing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> with <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>: <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int&amp;</span>, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const int</span>, and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const int&amp;</span>, respectively. The same ability to add <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> applies to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">volatile</span>, and the same ability to add <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span> applies to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;&amp;</span>. (Note that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;&amp;</span> will be what Scott Meyers calls a universal reference, just as with templates, and does in some cases bring across the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>-ness if it’s binding to something <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>.)
+</p><p>Now that we’ve exercised adding top-level <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> (or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">volatile</span>) and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span> (or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;&amp;</span>) on the left, let’s consider how they’re removed on the right. Note that the left hand side of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">a</span> through <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">d</span> can be used in any combination with the right hand side of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">e</span> through <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">k</span>.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>int&amp;        ir  = val;<br/>auto        e   = ir;
+</code></pre><p>The type of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">e</span> is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>. Because <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">ir</span> is a reference to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">val</span>, which makes <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">ir</span> just another name for <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">val</span>, it’s exactly the same as if we had written <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto e = val;</span> here.
+</p><p>Remember, just because <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">ir</span> is a reference (another name for the existing variable <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">val</span>) doesn’t have any bearing on whether we want <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">e</span> to be a reference. If we wanted <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">e</span> to be a reference, we would have said <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto&amp;</span> as we did in case <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">b</span> above, and it would have been a reference irrespective of whether <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">ir</span> happened to be a reference or not.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>int*        ip  = &amp;val; <br/>auto        f   = ip;
+</code></pre><p>The type of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span> is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int*</span>.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>const int   ci  = val;<br/>auto        g   = ci;
+</code></pre><p>The type of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">g</span> is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>.
+</p><p>Remember, just because <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">ci</span> is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> (read-only) doesn’t have any bearing on whether we want <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">g</span> to be <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>. It’s a separate variable. If we wanted <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">g</span> to be const, we would have said <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const auto</span> as we did in case <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">c</span> above, and it would have been <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> irrespective of whether <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">ci</span> happened to be <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> or not.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>const int&amp;  cir = val;<br/>auto        h   = cir;
+</code></pre><p>The type of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">h</span> is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>.
+</p><p>Again, remember we just drop top-level <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span> to get the basic type. If we wanted <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">h</span> to be <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> and/or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&amp;</span>, we could just add it as shown with <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">b</span>, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">c</span>, and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">d</span> above.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>const int*  cip = &amp;val;<br/>auto        i   = cip;
+</code></pre><p>The type of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">i</span> is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const int*</span>.
+</p><p>Note that this isn’t a top-level <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>, so we don’t drop it. We pronounce <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">cip</span>‘s declaration right to left: The type of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">cip</span> is “pointer to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const int</span>,” not “<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> pointer to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>.” What’s <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> is not <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">cip</span>, but rather <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">*cip</span>, the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span> it’s pointing to.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>int* const  ipc = &amp;val;<br/>auto        j   = ipc;
+</code></pre><p>The type of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">j</span> is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int*</span>. This <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> is a top-level <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>, and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">ipc</span>‘s being <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> is immaterial to whether we want <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">j</span> to be <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>.
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>const int* const cipc = &amp;val;<br/>auto             k    = cipc;
+</code></pre><p>The type of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">k</span> is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const int*</span>.
+</p><h2>4. In the following code, what type does auto deduce for variables a and b, and why? Explain.<br/></h2><p>As we noted in #2, the only place where an <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> variable deduces anything different from a template parameter is that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> deduces an <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">initializer_list</span>. This brings us to the final cases:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>int val = 0;<br/><br/>auto a { val };<br/>auto b = { val };
+</code></pre><p>The type of both <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">a</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">b</span> is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">std::initializer_list&lt;int&gt;</span>.
+</p><p>That’s the only difference between <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> variable deduction and template parameter deduction—by specification, because auto deduction is defined in the standard as “follow those rules over there in the templates clause, plus deduce <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">initializer_list</span>.”
+</p><p>If you’re familiar with templates and curious how <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> deduction and template deduction map to each other, the table below lists the main cases and shows the equivalent syntax between the two features. For the left column, I’ll put the variable and the initialization on separate lines to emphasize how they correspond to the separated template parameter and call site on the right.
+</p><p class="amp-wp-inline-a6ec8840dd8107f0c4f9cbd7d00cece0"><amp-img src="https://herbsutter.files.wordpress.com/2013/06/061013_1727_gotw92solut1.png?w=500" alt="" width="500" height="163" sizes="(min-width: 500px) 500px, 100vw" class="amp-wp-enforced-sizes"></amp-img></p><p>Not only are the cases equivalent in expressive power, but you might even feel that some of the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> versions feel even slicker to you than their template counterparts.
+</p><h2>Summary<br/></h2><p>Having <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> variables really brings a feature we already had (template deduction) to an even wider audience. But so far we’ve only seen what <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> does. The even more interesting question is how to use it. Which brings us to our next GotW…
+</p><h2>Acknowledgments<br/></h2><p>Thanks in particular to the following for their feedback to improve this article: davidphilliposter, Phil Barila, Ralph Tandetzky, Marcel Wild.</p>	</div>
+
+	<footer class="amp-wp-article-footer">
+			<div class="amp-wp-meta amp-wp-tax-category">
+		Categories: <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a>	</div>
+
+		<div class="amp-wp-meta amp-wp-comments-link">
+		<a href="https://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/#comments">
+			View Comments		</a>
+	</div>
+	</footer>
+</article>
+
+<footer class="amp-wp-footer">
+	<div>
+		<h2>Sutter’s Mill</h2>
+		<p>
+			<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a>
+		</p>
+		<a href="#top" class="back-to-top">Back to top</a>
+	</div>
+</footer>
+
+
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;host=herbsutter.com&#038;ref=DOCUMENT_REFERRER&#038;amp=1&#038;blog=3379246&#038;v=wpcom&#038;tz=-8&#038;user_id=0&#038;post=2109&#038;subd=herbsutter"></amp-pixel>
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;v=wpcom-no-pv&#038;crypt=UE40eW5QN0p8M2Y%2FRE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29%2BSmw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8%2FMkNtblkvY1d1TjBELytHc0k%2FMXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNGo4ZExTfG1BMDcrTywlJnx%2BY0NacnNtLS1hRSxJaFI9L18sS1lKUTktUHBfbkdFN0UxbXkrQWY0d29yMnZIfjdiUnJsYUptTDlnaTR4em1RK2RtODNiQXErZiY9aC1pLFdFRw%3D%3D"></amp-pixel>
+	
+</body>
+</html>

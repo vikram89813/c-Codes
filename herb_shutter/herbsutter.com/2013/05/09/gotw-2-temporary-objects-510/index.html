@@ -1,0 +1,1366 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #2: Temporary Objects | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965416&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F09%2Fgotw-2-temporary-objects-510%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #2: Temporary&nbsp;Objects Comments Feed" href="https://herbsutter.com/2013/05/09/gotw-2-temporary-objects-510/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #1 Solution: Variable Initialization – or Is&nbsp;It?' href='https://herbsutter.com/2013/05/09/gotw-1-solution/' />
+<link rel='next' title='GotW #2 Solution: Temporary&nbsp;Objects' href='https://herbsutter.com/2013/05/13/gotw-2-solution-temporary-objects/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/05/09/gotw-2-temporary-objects-510/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-tV' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F09%2Fgotw-2-temporary-objects-510%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F09%2Fgotw-2-temporary-objects-510%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #2: Temporary Objects" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/09/gotw-2-temporary-objects-510/" />
+<meta property="og:description" content="Unnecessary and/or temporary objects are frequent culprits that can throw all your hard work — and your program&#8217;s performance — right out the window. How can you spot them and avoid them?  Pr…" />
+<meta property="article:published_time" content="2013-05-09T16:42:09+00:00" />
+<meta property="article:modified_time" content="2013-05-19T17:37:38+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965416" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #2: Temporary&nbsp;Objects" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Unnecessary and/or temporary objects are frequent culprits that can throw all your hard work — and your program&#039;s performance — right out the window. How can you spot them and avoid them?  Problem JG Question 1. What is a temporary object? Guru Question 2. You are doing a code review. A programmer has written the&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/05/09/gotw-2-temporary-objects-510/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-1855 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/05/09/gotw-1-solution/" rel="prev">GotW #1 Solution: Variable Initialization – or Is&nbsp;It?</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/05/13/gotw-2-solution-temporary-objects/" rel="next">GotW #2 Solution: Temporary&nbsp;Objects</a> &raquo;</div>
+			</div>
+			
+			<div class="post-1855 post type-post status-publish format-standard hentry category-gotw" id="post-1855">
+				<div class="posttitle">
+					<h2>GotW #2: Temporary&nbsp;Objects</h2>
+					<p class="post-info">2013-05-09 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>Unnecessary and/or temporary objects are frequent culprits that can throw all your hard work — and your program&#8217;s performance — right out the window. How can you spot them and avoid them?<br />
+</em></span></p>
+<p>
+ </p>
+<h1>Problem<br />
+</h1>
+<h2>JG Question<br />
+</h2>
+<p>1. What is a temporary object?
+</p>
+<h2>Guru Question<br />
+</h2>
+<p>2. You are doing a code review. A programmer has written the following function, which uses unnecessary temporary objects in at least three places. How many can you identify, and how should the programmer fix them?
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>string find_addr( list&lt;employee&gt; emps, string name ) {<br />    for( auto i = begin(emps); i != end(emps); i++ ) {<br />        if( *i == name ) {<br />            return i-&gt;addr;<br />        }<br />    }<br />    return "";<br />}
+</code></pre>
+</p>
+<p>Do not change the operational semantics of this function, even though they could be improved.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											56 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">56 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-10035">
+		<div id="div-comment-10035">
+		<div class="cmtinfo"><em> on <a href="#comment-10035" title="">2013-05-13 at 10:09 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d6438991d6d292ab415d698d8345b942?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Roger</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10035"></div><p>@Robert,<br />
+No, we don&#8217;t want to write code that depends on the caller knowing that they have to store the data differently than how it is returned. That way lies madness.</p>
+<p>There is no reason not to return by value. We have move semantics, we have compiler optimizations if move semantics is not enabled. Anything other than return by value is unsafe.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10003">
+		<div id="div-comment-10003">
+		<div class="cmtinfo"><em> on <a href="#comment-10003" title="">2013-05-13 at 12:30 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/8178ad708278f7bcc8f0cfddbf73e0c3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Magnus</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10003"></div><p>The return value should never be const std::string&amp; as so many has suggested. In C++11 we have move constructors. The data will be &#8220;moved&#8221; so there is no copying. All data should as of C++11 be returned by value, as long as you have implemented a move constructor. Also the parameter should be const reference.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10002">
+		<div id="div-comment-10002">
+		<div class="cmtinfo"><em> on <a href="#comment-10002" title="">2013-05-12 at 7:38 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/21e08c9dc5723cb8cd946ea149610656?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/thematto' rel='external nofollow' class='url'>TheMatto</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10002"></div><p>Tested with VS2012CTP:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr( const list&lt;employee&gt; &amp; emps, const string &amp; name ) {
+    for ( auto &amp;&amp; i : emps ) {
+        if ( i.name == name ) {
+            return {i.addr};
+        }
+    }
+    return {&quot;&quot;};
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-10001">
+		<div id="div-comment-10001">
+		<div class="cmtinfo"><em> on <a href="#comment-10001" title="">2013-05-12 at 7:18 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/a4ef27c3a914f203a7ae67bd7df56c4b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://terrainformatica.com' rel='external nofollow' class='url'>c-smile</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10001"></div><p>Keeping original semantic and behavior intact :</p>
+<pre class="brush: plain; title: ; notranslate" title="">string find_addr( const list&lt;employee&gt;&amp; emps, const string&amp; name ) {
+    for( auto i = begin(emps), e = end(emps); i != e; ++i )
+      if( i-&gt;name == name )
+        return i-&gt;addr;
+    return string();
+}</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-10000">
+		<div id="div-comment-10000">
+		<div class="cmtinfo"><em> on <a href="#comment-10000" title="">2013-05-12 at 1:42 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/6bcbddbd9c7b31aaff8cf25a356bc96c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Gonzalo BG</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_10000"></div><p>Taking the parameters by const reference and using boost::find_if solves all the &#8220;sought&#8221; problems:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+auto find_addr(const list&lt;employee&gt;&amp; emps, const string&amp; name) {
+    const auto pos = find_if(emps, [&amp;](const auto&amp; e){ return e.name == name; });
+    return pos != end(emps) ? pos-&gt;addr : string();
+}
+</pre>
+<p>In code review I would probably complain that with the find_addr function you get an empty string if:<br />
+  &#8211; the employee does not exist, _and_<br />
+  &#8211; the employee exists but its adress has not been set yet (e.g. addr was default constructed to an empty string).</p>
+<p>If the function is required I&#8217;d recommend using boost::optional for the return type. However I would _strongly_ recommend that the best way to improve this function is not to write it in the first place. Is just a one-liner call to find_if. And by using find_if directly the semantics of not found are crystal clear.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9999">
+		<div id="div-comment-9999">
+		<div class="cmtinfo"><em> on <a href="#comment-9999" title="">2013-05-12 at 11:32 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/42b7f3bd598f7f211c3097d5d09812ec?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>John</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9999"></div><p>Since const is nowhere to be found, it&#8217;s possible that the implementation of operator==(Employee,string) takes non-const refs as args. In that case, there isn&#8217;t much room for improvement. </p>
+<p>Assuming operator== is better than the sample code, then I see 5 temporaries: the two args, the return val, the value returned by end() and the expression i++.</p>
+<p>I&#8217;d fix the args and the 2nd return statement, leaving the rest as-is.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9984">
+		<div id="div-comment-9984">
+		<div class="cmtinfo"><em> on <a href="#comment-9984" title="">2013-05-11 at 4:06 am</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/100000883453352/picture?q=type%3Dlarge&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/Z.Fernando.Moreira' rel='external nofollow' class='url'>Fernando Moreira</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9984"></div><p>Clarification: returning a std::string() may create the object in-place if the function is called in the declaration/initialization &#8211; i.e. auto res = find_string(my_strings, lookup_string);</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9983">
+		<div id="div-comment-9983">
+		<div class="cmtinfo"><em> on <a href="#comment-9983" title="">2013-05-11 at 3:58 am</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/100000883453352/picture?q=type%3Dlarge&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/Z.Fernando.Moreira' rel='external nofollow' class='url'>Fernando Moreira</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9983"></div><p>Please note: If you return string(), you are creating a temporary object.<br />
+returning &#8220;&#8221; will invoke either the const char* assignment operator or the [CODE]const char*[CODE] constructor &#8211; i.e. doesn&#8217;t create any temporary object. Also, returning something different than the original &#8220;&#8221; might seem innocuous, but you should never make assumptions &#8211; let&#8217;s say in the future an uninitialized std::string is not the same as empty string/zero-length string, or if you decide to replace std::string for an [CODE]std::optional[/CODE], or (very common) decide to use a better string manipulation class that treats empty strings differently&#8230; </p>
+<p>If you use the old [b]for[/b], you need a temporary iterator. Use the C++ range [b]for[/b] with a reference, i.e. for( auto&amp; refval : emps) instead.</p>
+<p>Although the original code suggests there is a [CODE]bool employee::operator==(const std::string&amp;)[/CODE] prefer a more explicit code: i.e. [CODE]emp.name == lookup_name[/CODE] (Isn&#8217;t that much more obvious?) comparing a string to a user defined object might be confusing &#8211; i.e. lead the reviewer to make wrong assumptions or check the implementation of the object&#8217;s class to try to understand what is really doing.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9982">
+		<div id="div-comment-9982">
+		<div class="cmtinfo"><em> on <a href="#comment-9982" title="">2013-05-11 at 2:51 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/142027a0b07e81734c147c3d3ff0a1ac?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>borishr</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9982"></div><p>Here&#8217;s my take.<br />
+<code><br />
+string find_addr( list emps, string name ) {   // pass by value - 2 temporaries<br />
+    for( auto i = begin(emps); i != end(emps); i++ ) { // auto instead of auto&amp; (1 temp), end(emps) possibly emps.size()  temps, in practice probably one; i++ possibly emps.size()  temps, probably none.<br />
+        if( *i == name ) {    // Here we don't know enough details. (maybe there's operator==(const employee&amp; , const string&amp;)). In any case, if temporary is created, it can't be avoided</p>
+<p>            return i-&gt;addr;  // same here, if addr is not string (or const char*) temporary cannot be avoided.<br />
+        }<br />
+    }<br />
+    return "";<br />
+}<br />
+</code></p>
+<p>My solution<br />
+<code><br />
+string find_addr( const list&amp; emps, const string&amp; name ) {<br />
+    for( auto&amp; emp: emps) {<br />
+       if( emp == name ) {<br />
+            return emp.addr;<br />
+        }<br />
+    }<br />
+    return string{};<br />
+}<br />
+</code></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-ronag89 odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9981">
+		<div id="div-comment-9981">
+		<div class="cmtinfo"><em> on <a href="#comment-9981" title="">2013-05-11 at 2:24 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/952334e44219669082ca6658db2e2e26?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>ronag89</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9981"></div><pre class="brush: cpp; title: ; notranslate" title="">
+string find_addr(const list&lt;employee&gt;&amp; emps, const string&amp; name ) {
+	auto it = find_if(begin(emps), end(emps), [&amp;](const employee&amp; emp) {
+		return emp.name == name;
+	});
+	return it != end(emps) ? it-&gt;name : string();
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9975">
+		<div id="div-comment-9975">
+		<div class="cmtinfo"><em> on <a href="#comment-9975" title="">2013-05-10 at 2:35 pm</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/100004054812229/picture?q=type%3Dlarge&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/profile.php?id=100004054812229' rel='external nofollow' class='url'>Róbert Dávid</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9975"></div><p>@Roger: True. The solution for that is to *store* the result as a value, what is not-so-tightly coupled with the return type being value or ref.</p>
+<p>My problem with returning a value is that you have to pay for the copy even if you don&#8217;t need it. If you return reference, you still have the choice to save the result in a (non-ref) string, avoiding that error you told, but if you know you are not changing the container, you have a faster code. Yes, you can shoot yourself in the foot if you are reckless. But the whole function almost the same as a find_if and just using it-&gt;addr after (tbh, I would drop the whole function because of this!). And if you are using iterators, you are aware they can/will be invalidated if you change the container, aren&#8217;t you.</p>
+<p>Question is what do you prefer: Want best performance+possibility of error for reckless users, or absolute safety+performance penalty (necessary evil note: why don&#8217;t you write Java or C# or .. then?)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9974">
+		<div id="div-comment-9974">
+		<div class="cmtinfo"><em> on <a href="#comment-9974" title="">2013-05-10 at 1:51 pm</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/100000883453352/picture?q=type%3Dlarge%26_md5%3Db67f184116ced793db7255152c287232&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/Z.Fernando.Moreira' rel='external nofollow' class='url'>Fernando Moreira</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9974"></div><p>@Herb:Sutter: Have you considered creating a Google+ Community page? (or facebook if you don&#8217;t the spam) :) </p>
+<p>(Probably your boss wouldn&#8217;t like that, right?)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9973">
+		<div id="div-comment-9973">
+		<div class="cmtinfo"><em> on <a href="#comment-9973" title="">2013-05-10 at 1:43 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/45eb253e73a0c9ec7042d218fca8a96f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Fernando Moreira</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9973"></div><p>Thanks for the tip David! :) (Unfortunatelly I don&#8217;e find a way to edit my last post, so&#8230;)</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+// assuming Herb's intention was:
+// employee{std::string name; std::string address};
+
+//....
+string find_addr( const list&lt;employee&gt;&amp; emps, const string&amp; name ) {
+   for( const auto&amp; emp : emps) {
+       if( emp.name == name ) {
+           return emp.addr;
+       }
+   }
+   return “”;
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9972">
+		<div id="div-comment-9972">
+		<div class="cmtinfo"><em> on <a href="#comment-9972" title="">2013-05-10 at 1:36 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c424bc91d1f61783db5d2f74a99e5e9b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>David</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9972"></div><p>[ code ]    you code  [ / code ]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9971">
+		<div id="div-comment-9971">
+		<div class="cmtinfo"><em> on <a href="#comment-9971" title="">2013-05-10 at 1:16 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/45eb253e73a0c9ec7042d218fca8a96f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Fernando Moreira</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9971"></div><p>list template arg  was stripped by the site :P</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9970">
+		<div id="div-comment-9970">
+		<div class="cmtinfo"><em> on <a href="#comment-9970" title="">2013-05-10 at 12:54 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/45eb253e73a0c9ec7042d218fca8a96f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Fernando Moreira</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9970"></div><p>Assume struct employee{std::string name; std::string address};</p>
+<p>string find_addr( const list&amp; emps, const string&amp; name ) {<br />
+    for( const auto&amp; emp : emps) {<br />
+        if( emp.name == name ) {<br />
+            return emp.addr;<br />
+        }<br />
+    }<br />
+    return &#8220;&#8221;;<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9969">
+		<div id="div-comment-9969">
+		<div class="cmtinfo"><em> on <a href="#comment-9969" title="">2013-05-10 at 11:25 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/104f551992742d3bf67ae2e559bfe584?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/thefloatingbrain' rel='external nofollow' class='url'>thefloatingbrain</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9969"></div><p>string&amp; find_addr( const list&amp; emps, const string&amp; name ) {<br />
+    for( auto i = begin(emps); i != end(emps); i++ ) {<br />
+        if( *i == name ) {<br />
+            return i-&gt;addr;<br />
+        }<br />
+    }<br />
+    return std::string{ &#8220;&#8221; };<br />
+}<br />
+Changed:<br />
+    * : The return type to a reference<br />
+    * : The parameters to be a const reference<br />
+    * : The last return statement to return a constant.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9968">
+		<div id="div-comment-9968">
+		<div class="cmtinfo"><em> on <a href="#comment-9968" title="">2013-05-10 at 10:10 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d6438991d6d292ab415d698d8345b942?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Roger</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9968"></div><p>@Robert, the concern about returning a reference is not limited to the case where the list is a temporary. The concern is that the caller can store and attempt to use the returned value far past the lifetime of the object:</p>
+<p>const string&amp; addr = find_addr (emp, name);<br />
+&#8230;. sometime later&#8230;.<br />
+cout &lt;&lt; addr;   //BOOM if emp has been deleted.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9967">
+		<div id="div-comment-9967">
+		<div class="cmtinfo"><em> on <a href="#comment-9967" title="">2013-05-10 at 10:06 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d6438991d6d292ab415d698d8345b942?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Roger</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9967"></div><p>@brandon</p>
+<p>end(emps) is valid C++11 code, and is the preferred idiom. Why? Because it is a template function which you can specialize for any type that does not provide an end() member function. </p>
+<p>I personally see no reason to create a local variable to hold end(emps). Any compiler will optimize that call away anyways, and getting &#8216;clever&#8217; like this just adds more code, makes things less readable, and makes it more likely that you confuse the compiler&#8217;s optimization stage. And, of course the find_if solutions also optimize the multiple calss.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9966">
+		<div id="div-comment-9966">
+		<div class="cmtinfo"><em> on <a href="#comment-9966" title="">2013-05-10 at 9:27 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c5b07bc797d8141bed5e3eff48c65d1c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://iconic-software.com' rel='external nofollow' class='url'>Brandon</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9966"></div><p>1.) A temporary is a variable that is implicitly created during execution of a function. one example this happens in </p>
+<p>is when returning by value.</p>
+<p>2.) The function parameters should be passed by const reference to eliminate two potentially large variables (although they are not &#8220;temporaries&#8221; strictly speaking ) to preventing deep copying of the list or string.</p>
+<p>end(emps) (I presume you meant emps.end() ) returns an iterator object into a temporary for comparison with i. It could be put into a const named variable instead of building that temporary each iteration.</p>
+<p>return &#8220;&#8221; will possibly construct a string object (implicitly) and then assign to the return temporary, unless the compiler optimizes. This can be explicitly avoided by returning string() ( or string(&#8220;&#8221;) if you prefer ). This utilizes the &#8220;return value optimization&#8221;</p>
+<p>string find_addr( const list &amp;emps, const string &amp;name ) {<br />
+    const auto the_end = emps.end();<br />
+    for( auto i = emps.begin(); i != the_end; i++ ) {<br />
+        if( *i == name ) {<br />
+            return i-&gt;addr;<br />
+        }<br />
+    }<br />
+    return string(&#8220;&#8221;);<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9960">
+		<div id="div-comment-9960">
+		<div class="cmtinfo"><em> on <a href="#comment-9960" title="">2013-05-10 at 7:47 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/048b60040ffdd00df1aa43d3caa5fceb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Tom</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9960"></div><pre class="brush: plain; title: ; notranslate" title="">
+//	first temporary list&lt;employee&gt; emps the biggest one	
+//	second temporary string name --	| -----------
+//									\/			\/
+string find_addr( list&lt;employee&gt; emps, string name ) {
+	for( auto i = begin(emps); i != end(emps); i++ ) {
+		// third temporary employee 
+		// if we assume then employee::employee(const string &amp;name) exist
+		// and we only have bool employee::operator==(const employee&amp; other)
+		//			\/
+		if( *i == name ) {
+			return i-&gt;addr;
+		}
+	}
+	return &quot;&quot;;
+}
+</pre>
+<p>Now the question is if bool employee::operator==(const employee&amp; other) compares every employee member and not only name then this code will not find anything at all.</p>
+<p>@Chris:  you are returning address of local variable string() !<br />
+I would change it like this but think that range based for loop is still easier to read.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr(const list&lt;employee&gt;&amp; emps, const string&amp; name)
+{
+	const auto found = find(cbegin(emps), cend(emps), name); //temporal employee object !
+	if(found == cend(emps)) return string();
+	else return found-&gt;addr;
+}
+</pre>
+<p>So I would still prefer to use this one.<br />
+Assuming name is not protected.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr(const list&lt;employee&gt; &amp;emps, const string &amp;name) {
+	for(const auto&amp; emp : emps) {
+		if( emp.name == name ) { return emp.addr; }
+	}
+	return string();
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9958">
+		<div id="div-comment-9958">
+		<div class="cmtinfo"><em> on <a href="#comment-9958" title="">2013-05-10 at 5:31 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0c3fda5be62c1c1f0bc6f6a534273ac2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>pillsy</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9958"></div><p>I would use `std::find_if` on the grounds that it&#8217;s more immediately obvious what you&#8217;re trying to do with your loop. I agree with all the folks who object to returning a `const string &amp;`; it&#8217;s asking for trouble and is pretty pointless, performance-wise, in the presence of RVO.</p>
+<p>    string find_addr(const list &amp; emps, const string &amp; name)<br />
+    {<br />
+         auto has_same_name = [&amp;name] (const employee &amp; e) {<br />
+               return e.name == name;<br />
+         };</p>
+<p>         auto found = find_if(begin(emps), end(emps), has_same_name);</p>
+<p>         return found != end(emps) ? found-&gt;addr : string{};<br />
+     }</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9957">
+		<div id="div-comment-9957">
+		<div class="cmtinfo"><em> on <a href="#comment-9957" title="">2013-05-10 at 5:31 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/cace27c63213de418be47ff0c71f9bc2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://insooth.i365.pl/insooth/' rel='external nofollow' class='url'>Chris</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9957"></div><p>Well, it might violate &#8220;do not change the operational semantics of this function&#8221; rule, but&#8230; how about this:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+const string&amp; find_addr(const list&lt;employee&gt;&amp; emps, const string&amp; name)
+{
+    const auto found = find(cbegin(emps), cend(emps), name);
+    return (found == cend(emps)) ? string() : found-&gt;addr;
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9955">
+		<div id="div-comment-9955">
+		<div class="cmtinfo"><em> on <a href="#comment-9955" title="">2013-05-10 at 4:28 am</a></em> <img alt='' src='https://i0.wp.com/a0.twimg.com/profile_images/242635332/Klaim_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/MJKlaim' rel='external nofollow' class='url'>Klaim - Joel Lamotte (@MJKlaim)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9955"></div><p>@Roger I am not sure exactly what this explains. Isn&#8217;t the case we have here totally different as it is about function arguments, not function return type? Or maybe I was not clear that I was talking about the arguments?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9953">
+		<div id="div-comment-9953">
+		<div class="cmtinfo"><em> on <a href="#comment-9953" title="">2013-05-10 at 3:05 am</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/100004054812229/picture?q=type%3Dlarge&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/profile.php?id=100004054812229' rel='external nofollow' class='url'>Róbert Dávid</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9953"></div><p>Meh. Why can&#8217;t I edit, and how to make quotes here? :-/ Change the end object to endit..</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9952">
+		<div id="div-comment-9952">
+		<div class="cmtinfo"><em> on <a href="#comment-9952" title="">2013-05-10 at 3:02 am</a></em> <img alt='' src='https://i2.wp.com/graph.facebook.com/100004054812229/picture?q=type%3Dlarge%26_md5%3D9e5f827892523ff7a319a1687be4b4dd&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/profile.php?id=100004054812229' rel='external nofollow' class='url'>Róbert Dávid</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9952"></div><p>Still no solution with std::find_if ? Come on people! That&#8217;s the first thing that fails when I do the review, even before temporaries.</p>
+<p>Otherwise &#8211; if employee passed code review, this code didn&#8217;t even compile :) : What does operator==(employee, string) mean? Or, why isn&#8217;t employee::employee(string) explicit? This is a problem borderline to changing operational semantics, but it actually creates a temporary employee object, so..</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+namespace {
+        static string empty_string;
+};
+const string&amp; find_addr( const list&lt;employee&gt;&amp; emps, const string&amp; name ) {
+    auto end = end(emps);
+    auto it = std::find_if(begin(emps), end, [&amp;name](const employee&amp; emp) {
+        return name == emp.name;
+    });
+    if (it == end)
+    {
+        return empty_string;
+    }
+    return it-&gt;addr;
+}
+</pre>
+<p>There was some concerns about returning a reference instead of a value (because we have no control over the list&#8217;s lifetime here &#8211; well, if the first parameter is a temporary, it will still exist when we return: [quote]A temporary bound to a reference parameter in a function call (5.2.2) persists until the completion of the full expression containing the call.[/quote]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9951">
+		<div id="div-comment-9951">
+		<div class="cmtinfo"><em> on <a href="#comment-9951" title="">2013-05-10 at 2:19 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/68f403eb5e6fef229e3c19a5d5f7fea6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mikhail Belyaev</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9951"></div><p>Just putting my upper comment to a proper code-blocks (I just didn&#8217;t know how to do it).</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr(const list&amp; emps, const string&amp; name ) {
+    for( const auto&amp; emp : emps) 
+        if( emp.name == name ) return emp.addr;
+    static const string empty;
+    return empty;
+}
+</pre>
+<p>return {}; seems much better to me now, but inserting it would not be &#8220;just putting previous code inside code-blocks&#8221;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9946">
+		<div id="div-comment-9946">
+		<div class="cmtinfo"><em> on <a href="#comment-9946" title="">2013-05-09 at 4:25 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d88bce1465e86998c54bf6bf3457cf71?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bgb</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9946"></div><p>In the loop it should have been<br />
+if( i == name ) instead of if ( *i == name )<br />
+and i.addr instead of i-&gt;addr</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9945">
+		<div id="div-comment-9945">
+		<div class="cmtinfo"><em> on <a href="#comment-9945" title="">2013-05-09 at 4:22 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d88bce1465e86998c54bf6bf3457cf71?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>bgb</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9945"></div><p>2) Easy question first:</p>
+<p>&#8220;Do not change the operational semantics of this function&#8221; -&gt; I&#8217;ll try but I am a bit drunk (2am over here, but Ive never trusted myself to answer a guru question here so thanks alcohol, ducks!).</p>
+<p>const string&amp; find_addr( const list&amp; emps, const string&amp; name ) { // #1 #3<br />
+    for( const auto&amp;&amp; i : emps ) { // #2<br />
+        if( *i == name ) {<br />
+            return i-&gt;addr; // #3<br />
+        }<br />
+    }<br />
+    return &#8220;&#8221;;<br />
+}</p>
+<p>#1<br />
+&#8211;  taking a list by value is a _bad_ idea: it will be copied if its not a temporary, and list of employees sounds like something potentially pretty big.<br />
+&#8211; taking the name by value it&#8217;s ok I guess (I wouldn&#8217;t kill that on code review). If it&#8217;s a temporary it will be moved (so no problem). If it&#8217;s not a temporary it will be copied. Anyways it&#8217;s just a string, if the function is not a hotspot it&#8217;ll be ok. I would use const tho, it expresses intent. The lvalue reference might save a copy which would help if the function is a hotspot. So let&#8217;s not pessimize and make it const lvalue reference.</p>
+<p>#2 end() was being called at every iteration, and the &#8220;i&#8221; string was being copied at every iteration.</p>
+<p>#3 Const lvalue reference avoid a copy in the return type: addr is a member of the list, its not a temporary, it will trigger a copy. &#8220;&#8221; was fine I guess. If it constructs a string it&#8217;ll just trigger a move or some fancy compiler optimization later. </p>
+<p>So that makes hopefully three of them, if only I could count the amount of beers I&#8217;ve had&#8230;</p>
+<p>1) Now the hard question What is a temporary object?<br />
+&#8211; My answer: you don&#8217;t want to know. As a rule of thumb:<br />
+&#8211; if you cannot refer to an object by a name, then it&#8217;s a temporary.<br />
+&#8211; If you can refer to an object by it&#8217;s name, and the name was declared with const&amp; or T&amp;&amp; then it might be a temporary.<br />
+&#8211; otherwise, it _probably_ isn&#8217;t a temporary (i&#8217;m actually not too sure about the probably).</p>
+<p>If you want the truth, I guess the real truth is that no-one should need to know about glvalues, rvalues, lvalues, xvalues, prvalues&#8230; I&#8217;d can recommend <a href="http://stackoverflow.com/questions/3106110/what-are-move-semantics" rel="nofollow">http://stackoverflow.com/questions/3106110/what-are-move-semantics</a> There is a nice answer by FredOverflow reviewed by Stephan that is pretty detailed and one that gives an overview. Read the overview, fight through the detailed one. Then watch Scott&#8217;s videos about universal references. Then read the detailed one again. And if you ever feel lost with the terminology here is a nice reference: <a href="http://stackoverflow.com/questions/3601602/what-are-rvalues-lvalues-xvalues-glvalues-and-prvalues" rel="nofollow">http://stackoverflow.com/questions/3601602/what-are-rvalues-lvalues-xvalues-glvalues-and-prvalues</a> and <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3055.pdf" rel="nofollow">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3055.pdf</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9944">
+		<div id="div-comment-9944">
+		<div class="cmtinfo"><em> on <a href="#comment-9944" title="">2013-05-09 at 3:42 pm</a></em> <img alt='' src='https://i1.wp.com/a0.twimg.com/profile_images/1661690017/YinYang_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/pepper_chico' rel='external nofollow' class='url'>Francisco Lopes (@pepper_chico)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9944"></div><pre class="brush: plain; title: ; notranslate" title="">
+string find_addr(const list&lt;employee&gt; &amp;emps,const string &amp;name ) {
+    for(const auto&amp; emp : emps) {
+        if( emp == name ) { return emp.addr; } //copy of addr will be made.
+    }
+    return {}; // use copy-list-initialization, resolves like direct-initialization.
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9943">
+		<div id="div-comment-9943">
+		<div class="cmtinfo"><em> on <a href="#comment-9943" title="">2013-05-09 at 3:40 pm</a></em> <img alt='' src='https://i1.wp.com/a0.twimg.com/profile_images/1661690017/YinYang_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/pepper_chico' rel='external nofollow' class='url'>Francisco Lopes (@pepper_chico)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9943"></div><p>I&#8217;m with Tom, just an slight detail:</p>
+<p>string find_addr(const list &amp;emps,const string &amp;name ) {<br />
+    for(const auto&amp; emp : emps) {<br />
+        if( emp == name ) { return emp.addr; }<br />
+    }<br />
+    return {}; // use copy-list-initialization, resolves like direct-initialization.<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-kjellkod odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9942">
+		<div id="div-comment-9942">
+		<div class="cmtinfo"><em> on <a href="#comment-9942" title="">2013-05-09 at 3:24 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/0ba3dff2713f82030e7f0fcbd719325a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://kjellkod.wordpress.com' rel='external nofollow' class='url'>kjellkod</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9942"></div><p>@Tom. Nice,. of course, it makes more sence in your code example (<a href="http://rise4fun.com/Vcpp/1F" rel="nofollow">http://rise4fun.com/Vcpp/1F</a>).<br />
+You have my vote!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9941">
+		<div id="div-comment-9941">
+		<div class="cmtinfo"><em> on <a href="#comment-9941" title="">2013-05-09 at 2:43 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/048b60040ffdd00df1aa43d3caa5fceb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Tom</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9941"></div><p>Here is the proper way to use range based for loop.<br />
+emp need to be reference to avoid unnecessary copy.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr(const list&lt;employee&gt; &amp;emps,const string &amp;name ) {
+	for(const auto&amp; emp : emps) {
+		if( emp == name ) { return emp.addr; } //copy of addr will be made.
+	}
+	return string(); //default empty constructor will be called.
+}
+</pre>
+<p>Please use &#8220;[&#8220;code&#8221;]&#8221; &#8220;[&#8220;/code&#8221;]&#8221; tags.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9939">
+		<div id="div-comment-9939">
+		<div class="cmtinfo"><em> on <a href="#comment-9939" title="">2013-05-09 at 2:05 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d674f37ef9e63de2db6c16d854394b25?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Masse Nicolas</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9939"></div><p>Wow, seems my code was broken (probably due to the &lt;).<br />
+here again:<br />
+const string&amp; find_addr(const list&amp; emps, const string&amp; name )<br />
+{<br />
+    for(int i = 0; emps.size() &gt; i; ++i) {<br />
+        if( emps[i] == name ) { //here no copy happens<br />
+            return i-&gt;addr;<br />
+        }<br />
+   }<br />
+   return “”;<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9938">
+		<div id="div-comment-9938">
+		<div class="cmtinfo"><em> on <a href="#comment-9938" title="">2013-05-09 at 2:00 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d674f37ef9e63de2db6c16d854394b25?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Masse Nicolas</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9938"></div><p>Something few people seems to note is the copy who happens when i is dereferenced :</p>
+<p>string find_addr( list emps, string name ) {<br />
+    for( auto i = begin(emps); i != end(emps); i++ ) {<br />
+        if( *i == name ) { //here *i will create a copy of the employe contained in the vector.<br />
+            return i-&gt;addr;<br />
+        }<br />
+    }<br />
+    return &#8220;&#8221;;<br />
+}</p>
+<p>Using a const iterator could fix this, but I suspect that this depend of the implementation of std::vector.<br />
+Another more reliable solution is to use the [] operator. Since it returns a reference, we are sure that no extra copies will be done.<br />
+So, the code becomes:</p>
+<p>const string&amp; find_addr(const list&amp; emps, const string&amp; name ) {<br />
+    for( int i = 0; i addr;<br />
+        }<br />
+    }<br />
+    return &#8220;&#8221;;<br />
+}</p>
+<p>Also Note that I do return a reference because I consider that it is up to the caller to know about the life time of the parameters he gives me and the return value, so it&#8217;s up to him to know if a copy of the returned value is necessary or not.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9936">
+		<div id="div-comment-9936">
+		<div class="cmtinfo"><em> on <a href="#comment-9936" title="">2013-05-09 at 1:22 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/048b60040ffdd00df1aa43d3caa5fceb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Tom</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9936"></div><p>How about this?</p>
+<p><a href="http://rise4fun.com/Vcpp/1F" rel="nofollow">http://rise4fun.com/Vcpp/1F</a></p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr(const list&lt;employee&gt; &amp;emps,const string &amp;name ) {
+	for( auto i = emps.cbegin(); i != emps.cend(); ++i ) {
+		if( *i == name ) { return i-&gt;addr; }
+	}
+	return string();
+}
+</pre>
+<p>The funny thing is that this code call string destructor for every iteration at least if using VS2012CTP.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+string find_addr(const list&lt;employee&gt; &amp;emps,const string &amp;name ) {
+	for(auto emp : emps) {
+		if( emp == name ) { return emp.addr; }
+	}
+	return string();
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9934">
+		<div id="div-comment-9934">
+		<div class="cmtinfo"><em> on <a href="#comment-9934" title="">2013-05-09 at 12:32 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/18afd5485cf7f169a22cb51d64531c54?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/muxecoid' rel='external nofollow' class='url'>muxecoid</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9934"></div><p>JG1:<br />
+Used by older ANSI C89 zealots to prove that C++ language is bad and only C (better asm) never does tricks behind the scenes.<br />
+2:<br />
+The list and the string should be passed with const reference. ANSI C89 zealots (when you force them to use STL) will use a pointer here because references are evil. </p>
+<p>The loop iteration could be better. prefix increment would help. Making iterator const with cbegin will help. Range based for loop is the recommended solution.</p>
+<p>It is possible (see GotW#1) to use<br />
+   return {};<br />
+to return default constructed string. This avoids running constructor that accepts const char*. This will aggravate ANSI C89 zealots seriously enough to make them never touch your C++14 project again.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9929">
+		<div id="div-comment-9929">
+		<div class="cmtinfo"><em> on <a href="#comment-9929" title="">2013-05-09 at 11:40 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/39dc26f088d8eeda05e6d415cc95c10a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>F. Almeida</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9929"></div><p>string find_addr(const list&amp; emps, const string&amp; name ) {<br />
+    for( auto i = begin(emps); i != end(emps); ++i ) {<br />
+        if( *i == name )<br />
+        {<br />
+            return i-&gt;addr;<br />
+        }<br />
+    }<br />
+    return &#8220;&#8221;;<br />
+}</p>
+<p>My vote also goes to passing const refs (not returning one), and simply turning the post-increment into a pre-increment (although the impact there should really be minimal).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9928">
+		<div id="div-comment-9928">
+		<div class="cmtinfo"><em> on <a href="#comment-9928" title="">2013-05-09 at 11:34 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d6438991d6d292ab415d698d8345b942?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Roger</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9928"></div><p>@Klaim,</p>
+<p>consider:<br />
+const string&amp; address = find_addr (employees, &#8220;joe&#8221;);<br />
+fire_employee (employees, &#8220;joe&#8221;); // deletes joe from employees<br />
+print_final_check (&#8220;joe&#8221;, address); // KABOOM</p>
+<p>The problem is that what &#8216;address&#8217; is referring no longer exists after fire_employee is called, so it is no longer valid to refer to it. </p>
+<p>Besides, all decent compilers implement return copy optimization (<a href="http://en.wikipedia.org/wiki/Return_value_optimization" rel="nofollow">http://en.wikipedia.org/wiki/Return_value_optimization</a>), so in practice no temporary will be created.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9927">
+		<div id="div-comment-9927">
+		<div class="cmtinfo"><em> on <a href="#comment-9927" title="">2013-05-09 at 11:16 am</a></em> <img alt='' src='https://i0.wp.com/a0.twimg.com/profile_images/242635332/Klaim_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/MJKlaim' rel='external nofollow' class='url'>Klaim - Joel Lamotte (@MJKlaim)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9927"></div><p>Oups, some did suggest for-range-loops, didn&#8217;t see them with my cached page. My bad.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9926">
+		<div id="div-comment-9926">
+		<div class="cmtinfo"><em> on <a href="#comment-9926" title="">2013-05-09 at 11:15 am</a></em> <img alt='' src='https://i0.wp.com/a0.twimg.com/profile_images/242635332/Klaim_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/MJKlaim' rel='external nofollow' class='url'>Klaim - Joel Lamotte (@MJKlaim)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9926"></div><p>Why is nobody suggesting using a for-range-loop? AFAIK it&#8217;s the exact same semantic but will make sure to avoid unnecessary copies.</p>
+<p>Also, I am not sure about the const refs because in multi-threaded context it might be voluntary that the semantic of the function is to copy the list before working on it. I suppose Herb would answer that const suggests that the access is safe, but still I&#8217;m not sure it doesn&#8217;t change the semantic.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-pindragon odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9925">
+		<div id="div-comment-9925">
+		<div class="cmtinfo"><em> on <a href="#comment-9925" title="">2013-05-09 at 10:59 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/20f3a5c1e83e75b2585df9e4dbca0b05?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>pindragon</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9925"></div><p>OK, one that REALLY keeps the operational semantics and DOES NOT produce any new temporary objects)))</p>
+<p>string find_addr(const list&amp; emps, const string&amp; name ) {<br />
+for( const auto&amp; emp : emps) {<br />
+if( emp.name == name ) {<br />
+return emp.addr;<br />
+}<br />
+}<br />
+static const string empty; // I usually have one of these already somewhere in util.hpp<br />
+return empty;<br />
+}</p>
+<p>I would also suggest a version based on find_if and for_each, but I’m really lazy.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-pindragon even thread-even depth-1 highlander-comment" id="comment-9924">
+		<div id="div-comment-9924">
+		<div class="cmtinfo"><em> on <a href="#comment-9924" title="">2013-05-09 at 10:57 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/20f3a5c1e83e75b2585df9e4dbca0b05?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>pindragon</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9924"></div><p>OK, one that REALLY keeps the operational semantics</p>
+<p>string find_addr(const list&amp; emps, const string&amp; name ) {<br />
+     for( auto emp : emps) {<br />
+        if( emp.name == name ) {<br />
+           return emp.addr;<br />
+        }<br />
+}<br />
+static const string empty; // I usually have one of these already somewhere in util.hpp<br />
+      return empty;<br />
+}</p>
+<p>I would also suggest a version based on find_if and for_each, but I&#8217;m really lazy.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9923">
+		<div id="div-comment-9923">
+		<div class="cmtinfo"><em> on <a href="#comment-9923" title="">2013-05-09 at 10:33 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/4ded5709dc21389ecbb4fbbbb3ad0e38?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>kyle</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9923"></div><p>Guys, please &#8230; dont return by reference from this function. It DOES change operational semantics of this function and _will_ lead to UB.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-kjellkod even thread-even depth-1 highlander-comment" id="comment-9922">
+		<div id="div-comment-9922">
+		<div class="cmtinfo"><em> on <a href="#comment-9922" title="">2013-05-09 at 10:32 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0ba3dff2713f82030e7f0fcbd719325a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://kjellkod.wordpress.com' rel='external nofollow' class='url'>kjellkod</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9922"></div><p>1) i++<br />
+2) employee == string (see why below)<br />
+3) return value can be written {&#8220;&#8221;}<br />
+4) const reference to the arguments<br />
+5) why not just use for(auto&amp; employee : emps) instead of for(begin, !=end, ++) to avoid temp iterators</p>
+<p>see code example at: <a href="http://ideone.com/d54ARz" rel="nofollow">http://ideone.com/d54ARz</a></p>
+<p>Explanation of operator ==<br />
+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;<br />
+This depends a little on employee: if it for example is defined as</p>
+<p>struct employee {<br />
+  string addr;<br />
+  // no explicit keyword makes the implicit conversion possible<br />
+  employee(std::string str) : addr(str) {}<br />
+  bool operator==(const employee&amp; other) const { return (addr.compare(other.addr) == 0); }<br />
+};</p>
+<p>In this case the == operator will trigger an implicit conversion to a temporary employee object</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9921">
+		<div id="div-comment-9921">
+		<div class="cmtinfo"><em> on <a href="#comment-9921" title="">2013-05-09 at 10:24 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d6438991d6d292ab415d698d8345b942?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Roger</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9921"></div><p>Returning const string&amp; seems like a very bad idea. We have no guarantee on the lifetime of the emps data that is passed in. Returning a reference could end up with the caller trying to use a reference to data that has been deleted.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9919">
+		<div id="div-comment-9919">
+		<div class="cmtinfo"><em> on <a href="#comment-9919" title="">2013-05-09 at 10:12 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/56fcb2c98bd1ccf4fd6b7d94bcf2bf70?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/celeborn2bealive' rel='external nofollow' class='url'>Laurent</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9919"></div><p>I&#8217;m not sure that returning a const ref to a static string is a good idea: it removes the temporary value that is returned from the function but also introduce a test in the function to ensure that the string is initialized only the first time the function is called, but I maybe wrong&#8230;<br />
+I would write:</p>
+<p>string find_addr(const list&amp; emps, const string&amp; name) {<br />
+    for(auto emp: emps) {<br />
+        if(emp.name == name) {<br />
+            return emp.addr;<br />
+        }<br />
+    }<br />
+    return string();<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9916">
+		<div id="div-comment-9916">
+		<div class="cmtinfo"><em> on <a href="#comment-9916" title="">2013-05-09 at 9:56 am</a></em> <img alt='' src='https://i1.wp.com/graph.facebook.com/655112128/picture?q=type%3Dlarge&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/rep.movsd' rel='external nofollow' class='url'>Vivek Na</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9916"></div><p>Caching the end() iterator or returning a static string seem like things that are of dubious value. Any decent compiler will recognize that end() cannot change since no non-const functions on emps are called within the loop, and emps is not volatile.<br />
+Similarly returning a string by value, even a C++98 compiler will optimize out a copy by RVO</p>
+<p>The only semantically guaranteed improvements are by using const&amp; and preincrement.</p>
+<p>If any compiler makes a foreach loop faster than a regular loop, the compiler writers need to change their line of work.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9912">
+		<div id="div-comment-9912">
+		<div class="cmtinfo"><em> on <a href="#comment-9912" title="">2013-05-09 at 9:35 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c424bc91d1f61783db5d2f74a99e5e9b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>David</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9912"></div><pre class="brush: plain; title: ; notranslate" title="">
+struct employee {
+	string name;
+	string addr;
+};
+const string&amp; find_addr(const list&lt;employee&gt;&amp; emps, const string&amp; name ) {
+	auto emps_end   = emps.cend();
+	for( auto i = emps.cbegin(); i != emps_end; ++i ) {
+		if( i-&gt;name == name ) { return i-&gt;addr; }
+	}
+	static const string s_empty_string;
+	return s_empty_string;
+}
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9911">
+		<div id="div-comment-9911">
+		<div class="cmtinfo"><em> on <a href="#comment-9911" title="">2013-05-09 at 9:33 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c424bc91d1f61783db5d2f74a99e5e9b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>David</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9911"></div><p>ok another try:</p>
+<p>struct employee {<br />
+	string name;<br />
+	string addr;<br />
+};</p>
+<p>const string&amp; find_addr(const list&amp; emps, const string&amp; name )  {<br />
+	auto emps_end   = cend(emps);<br />
+	for( auto i = emps.cbegin(); i != emps_end; ++i ) {<br />
+		if( i-&gt;name == name ) { return i-&gt;addr; }<br />
+	}<br />
+	static const string s_empty_string;<br />
+	return s_empty_string;<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9908">
+		<div id="div-comment-9908">
+		<div class="cmtinfo"><em> on <a href="#comment-9908" title="">2013-05-09 at 9:22 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c424bc91d1f61783db5d2f74a99e5e9b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>David</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9908"></div><p>const string&amp; find_addr(const list&amp; emps, cont string&amp; name ) {<br />
+  for( auto i = cbegin(emps); i != cend(emps); i++ ) {<br />
+    if( *i == name ) { return i-&gt;addr; }<br />
+  }<br />
+  static const string s_empty_string;<br />
+  return s_empty_string;<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9907">
+		<div id="div-comment-9907">
+		<div class="cmtinfo"><em> on <a href="#comment-9907" title="">2013-05-09 at 9:19 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/68f403eb5e6fef229e3c19a5d5f7fea6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mikhail Belyaev</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9907"></div><p>1. A temporary object is an object that is created implicitly to be destroyed immerdiatelly after the reason for its creation has faded. The examples are: tos created by implicit conversions, by receiving a function argument by value, by returning object from function by value (usually thrown out by the compiler). They can also be created explicitly by the programmer by creating an unnamed object.<br />
+2.<br />
+1) accepting emps by value;<br />
+2) accepting name by value;<br />
+3) i++ returns and immediatelly discards a temporary;<br />
+4) *i == name creates a temporary employee from string (or maybe a string from employee?);<br />
+5) employee::addr is not a string, returning it results in an additional temp object;<br />
+6) a temporary object created by returning the char[1] implicitly converted to string;<br />
+7) the very string that is returned by value creates a temp object at the place the func is called;<br />
+8) calling begin() and end() creates temp iterators, but they are designed for this so the effect is miniscure;</p>
+<p>If the contract of the function can accept returning reference (it almost always can as it is immediatelly copied to a variable):<br />
+const string&amp; find_addr(const list&amp; emps, const string&amp; name ) {<br />
+    for( auto emp : emps) {<br />
+        if( emp.name == name ) {<br />
+            return emp.addr;<br />
+        }<br />
+    }<br />
+    static const  string empty; // I usually have one of these already somewhere in util.hpp<br />
+    return empty;<br />
+}</p>
+<p>or, for people allergic to &#8220;for each&#8221; loop:</p>
+<p>const string&amp; find_addr(const list&amp; emps, const string&amp; name ) {<br />
+  auto eend = emps.end();<br />
+  auto ebegin = emps.begin();<br />
+    for( auto i =ebegin ; i !=eend ;++i ) {<br />
+        if( i-&gt;name == name ) {<br />
+            return i-&gt;addr;<br />
+        }<br />
+    }<br />
+    static const  string empty; // I usually have one of these already somewhere in util.hpp<br />
+    return empty;<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mmocny even thread-even depth-1 highlander-comment" id="comment-9905">
+		<div id="div-comment-9905">
+		<div class="cmtinfo"><em> on <a href="#comment-9905" title="">2013-05-09 at 9:17 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/05aa36ab5c7d2c620d27d86415ba2eb7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://mmocny.wordpress.com' rel='external nofollow' class='url'>Michal Mocny</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9905"></div><p>string find_addr( list emps, string name ) {<br />
+    for( auto i = begin(emps); i != end(emps); i++ ) {<br />
+        if( *i == name ) {<br />
+            return i-&gt;addr;<br />
+        }<br />
+    }<br />
+    return &#8220;&#8221;;<br />
+}</p>
+<p>(1) Pass parameters by const ref<br />
+(2) cache end iterator<br />
+(3) ++i<br />
+(4) return {}  &lt;- likely trivial difference, if any</p>
+<p>However, best yet might be to just use std::find_if with a lambda.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9904">
+		<div id="div-comment-9904">
+		<div class="cmtinfo"><em> on <a href="#comment-9904" title="">2013-05-09 at 9:14 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/721203e2ee8c3d1e907b5f7c74273f06?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Programmer</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9904"></div><p>string const &amp;find_addr(list const &amp;emps, string const &amp;name)<br />
+{<br />
+    auto const last = end(emps);<br />
+    for (auto i = begin(emps); last != i; ++i) {<br />
+        if (name == *i) {<br />
+            return i-&gt;addr;<br />
+        }<br />
+    }<br />
+    static string const empty_string;<br />
+    return empty_string;<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-9903">
+		<div id="div-comment-9903">
+		<div class="cmtinfo"><em> on <a href="#comment-9903" title="">2013-05-09 at 9:03 am</a></em> <img alt='' src='https://i1.wp.com/graph.facebook.com/655112128/picture?q=type%3Dlarge%26_md5%3D7fd7d523d56183b4cf9157252e655e8b&#038;resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.facebook.com/rep.movsd' rel='external nofollow' class='url'>Vivek Na</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9903"></div><p>The two parameters should be passed by const reference, for efficiency as well as specifying that the function does not change anything.</p>
+<p>i++ may result in a temporary, ideally we write ++i  although I think most compilers will realize the temporary return value from the postincrement version is unused and remove it.</p>
+<p>Both these should be reflex action for a C++ programmer, always be eager to use const and always eager to use const references. Always use pre-increment and pre-decrement unless you specifically need the old value.</p>
+<p>It might make sense to </p>
+<p>return string();</p>
+<p>rather than </p>
+<p>return &#8220;&#8221;;</p>
+<p>if this function is being called billions of times with unknown peoples names.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-9901">
+		<div id="div-comment-9901">
+		<div class="cmtinfo"><em> on <a href="#comment-9901" title="">2013-05-09 at 8:50 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/405757382c5e6e2a296fc0ea8fa7be46?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Yuriy</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_9901"></div><p>const string&amp; find_addr(const list&amp; emps, cont string&amp; name ) {<br />
+    for( auto i = begin(emps); i != end(emps); i++ ) {<br />
+        if( *i == name ) {<br />
+            return i-&gt;addr;<br />
+        }<br />
+    }<br />
+    static const string empty_string;<br />
+    return empty_string;<br />
+}</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/05/09/gotw-2-temporary-objects-510/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-d6438991d6d292ab415d698d8345b942">
+	</div>
+	<div class="grofile-hash-map-8178ad708278f7bcc8f0cfddbf73e0c3">
+	</div>
+	<div class="grofile-hash-map-21e08c9dc5723cb8cd946ea149610656">
+	</div>
+	<div class="grofile-hash-map-a4ef27c3a914f203a7ae67bd7df56c4b">
+	</div>
+	<div class="grofile-hash-map-6bcbddbd9c7b31aaff8cf25a356bc96c">
+	</div>
+	<div class="grofile-hash-map-42b7f3bd598f7f211c3097d5d09812ec">
+	</div>
+	<div class="grofile-hash-map-45eb253e73a0c9ec7042d218fca8a96f">
+	</div>
+	<div class="grofile-hash-map-142027a0b07e81734c147c3d3ff0a1ac">
+	</div>
+	<div class="grofile-hash-map-952334e44219669082ca6658db2e2e26">
+	</div>
+	<div class="grofile-hash-map-322cf2e150d5cd84275b131184731c0a">
+	</div>
+	<div class="grofile-hash-map-c424bc91d1f61783db5d2f74a99e5e9b">
+	</div>
+	<div class="grofile-hash-map-104f551992742d3bf67ae2e559bfe584">
+	</div>
+	<div class="grofile-hash-map-c5b07bc797d8141bed5e3eff48c65d1c">
+	</div>
+	<div class="grofile-hash-map-048b60040ffdd00df1aa43d3caa5fceb">
+	</div>
+	<div class="grofile-hash-map-0c3fda5be62c1c1f0bc6f6a534273ac2">
+	</div>
+	<div class="grofile-hash-map-cace27c63213de418be47ff0c71f9bc2">
+	</div>
+	<div class="grofile-hash-map-2d62de19319092e658a1b403adc6b03d">
+	</div>
+	<div class="grofile-hash-map-68f403eb5e6fef229e3c19a5d5f7fea6">
+	</div>
+	<div class="grofile-hash-map-d88bce1465e86998c54bf6bf3457cf71">
+	</div>
+	<div class="grofile-hash-map-01425f5b1ccf55bad1be27753e475dd1">
+	</div>
+	<div class="grofile-hash-map-0ba3dff2713f82030e7f0fcbd719325a">
+	</div>
+	<div class="grofile-hash-map-d674f37ef9e63de2db6c16d854394b25">
+	</div>
+	<div class="grofile-hash-map-18afd5485cf7f169a22cb51d64531c54">
+	</div>
+	<div class="grofile-hash-map-39dc26f088d8eeda05e6d415cc95c10a">
+	</div>
+	<div class="grofile-hash-map-20f3a5c1e83e75b2585df9e4dbca0b05">
+	</div>
+	<div class="grofile-hash-map-4ded5709dc21389ecbb4fbbbb3ad0e38">
+	</div>
+	<div class="grofile-hash-map-56fcb2c98bd1ccf4fd6b7d94bcf2bf70">
+	</div>
+	<div class="grofile-hash-map-9167d52e6cf674d8af8f4280a5c9e059">
+	</div>
+	<div class="grofile-hash-map-05aa36ab5c7d2c620d27d86415ba2eb7">
+	</div>
+	<div class="grofile-hash-map-721203e2ee8c3d1e907b5f7c74273f06">
+	</div>
+	<div class="grofile-hash-map-405757382c5e6e2a296fc0ea8fa7be46">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_10035={"id":468178,"unique_id":"wp-comment-10035","title":"%40Robert%2CNo%2C%20we%20don%26%23039%3Bt%20want%20to%20write%20code%20that%20depends%20on%20the%20caller%20knowing%20that%20they%20have%20to%20store%20the%20data%20differently%20than%20how%20it%20is%20returned.%20That%20way%20lies%20madness.There%20is%20no%20reason%20not%20to%20re...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-10035","item_id":"_comm_10035"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10035 == 'undefined' ){PDRTJS_468178_comm_10035 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10035 );}}PDRTJS_settings_468178_comm_10003={"id":468178,"unique_id":"wp-comment-10003","title":"The%20return%20value%20should%20never%20be%20const%20std%3A%3Astring%26amp%3B%20as%20so%20many%20has%20suggested.%20In%20C%2B%2B11%20we%20have%20move%20constructors.%20The%20data%20will%20be%20%26quot%3Bmoved%26quot%3B%20so%20there%20is%20no%20copying.%20All%20data%20should%20as%20of%20C%2B%2B11%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-10003","item_id":"_comm_10003"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10003 == 'undefined' ){PDRTJS_468178_comm_10003 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10003 );}}PDRTJS_settings_468178_comm_10002={"id":468178,"unique_id":"wp-comment-10002","title":"Tested%20with%20VS2012CTP%3A%26%23091%3Bcode%26%23093%3Bstring%20find_addr%28%20const%20list%26lt%3Bemployee%26gt%3B%20%26amp%3B%20emps%2C%20const%20string%20%26amp%3B%20name%20%29%20%7B%20%20%20%20for%20%28%20auto%20%26amp%3B%26amp%3B%20i%20%3A%20emps%20%29%20%7B%20%20%20%20%20%20%20%20if%20%28%20i.name%20%3D%3D%20name%20%29%20%7B%20%20%20%20%20%20%20%20%20%20%20%20re...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-10002","item_id":"_comm_10002"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10002 == 'undefined' ){PDRTJS_468178_comm_10002 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10002 );}}PDRTJS_settings_468178_comm_10001={"id":468178,"unique_id":"wp-comment-10001","title":"Keeping%20original%20semantic%20and%20behavior%20intact%20%3A%26%23091%3Bcode%26%23093%3Bstring%20find_addr%28%20const%20list%26lt%3Bemployee%26gt%3B%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7B%20%20%20%20for%28%20auto%20i%20%3D%20begin%28emps%29%2C%20e%20%3D%20end%28emps%29%3B%20i%20%21%3D%20e%3B%20%2B%2Bi%20%29%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-10001","item_id":"_comm_10001"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10001 == 'undefined' ){PDRTJS_468178_comm_10001 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10001 );}}PDRTJS_settings_468178_comm_10000={"id":468178,"unique_id":"wp-comment-10000","title":"Taking%20the%20parameters%20by%20const%20reference%20and%20using%20boost%3A%3Afind_if%20solves%20all%20the%20%26quot%3Bsought%26quot%3B%20problems%3A%26%23091%3Bcode%26%23093%3Bauto%20find_addr%28const%20list%26lt%3Bemployee%26gt%3B%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%29%20%7B%20%20%20%20const%20au...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-10000","item_id":"_comm_10000"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_10000 == 'undefined' ){PDRTJS_468178_comm_10000 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_10000 );}}PDRTJS_settings_468178_comm_9999={"id":468178,"unique_id":"wp-comment-9999","title":"Since%20const%20is%20nowhere%20to%20be%20found%2C%20it%26%23039%3Bs%20possible%20that%20the%20implementation%20of%20operator%3D%3D%28Employee%2Cstring%29%20takes%20non-const%20refs%20as%20args.%20In%20that%20case%2C%20there%20isn%26%23039%3Bt%20much%20room%20for%20improvement.%20Assumin...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9999","item_id":"_comm_9999"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9999 == 'undefined' ){PDRTJS_468178_comm_9999 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9999 );}}PDRTJS_settings_468178_comm_9984={"id":468178,"unique_id":"wp-comment-9984","title":"Clarification%3A%20returning%20a%20std%3A%3Astring%28%29%20may%20create%20the%20object%20in-place%20if%20the%20function%20is%20called%20in%20the%20declaration%2Finitialization%20-%20i.e.%20auto%20res%20%3D%20find_string%28my_strings%2C%20lookup_string%29%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9984","item_id":"_comm_9984"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9984 == 'undefined' ){PDRTJS_468178_comm_9984 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9984 );}}PDRTJS_settings_468178_comm_9983={"id":468178,"unique_id":"wp-comment-9983","title":"Please%20note%3A%20If%20you%20return%20string%28%29%2C%20you%20are%20creating%20a%20temporary%20object.%20returning%20%26quot%3B%26quot%3B%20will%20invoke%20either%20the%20const%20char%2A%20assignment%20operator%20or%20the%20%26%23091%3BCODE%26%23093%3Bconst%20char%2A%26%23091%3BCODE%26%23093%3B%20constructor%20-%20i.e.%20doe...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9983","item_id":"_comm_9983"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9983 == 'undefined' ){PDRTJS_468178_comm_9983 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9983 );}}PDRTJS_settings_468178_comm_9982={"id":468178,"unique_id":"wp-comment-9982","title":"Here%26%23039%3Bs%20my%20take.%26lt%3Bcode%26gt%3Bstring%20find_addr%28%20list%20emps%2C%20string%20name%20%29%20%7B%20%20%20%2F%2F%20pass%20by%20value%20-%202%20temporaries%20%20%20%20for%28%20auto%20i%20%3D%20begin%28emps%29%3B%20i%20%21%3D%20end%28emps%29%3B%20i%2B%2B%20%29%20%7B%20%2F%2F%20auto%20instead%20of%20auto%26amp%3B%20%281%20temp%29%2C%20e...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9982","item_id":"_comm_9982"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9982 == 'undefined' ){PDRTJS_468178_comm_9982 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9982 );}}PDRTJS_settings_468178_comm_9981={"id":468178,"unique_id":"wp-comment-9981","title":"%26%23091%3Bcode%20language%3D%26quot%3Bcpp%26quot%3B%26%23093%3Bstring%20find_addr%28const%20list%26lt%3Bemployee%26gt%3B%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7Bauto%20it%20%3D%20find_if%28begin%28emps%29%2C%20end%28emps%29%2C%20%26%23091%3B%26amp%3B%26%23093%3B%28const%20employee%26amp%3B%20emp%29%20%7Breturn%20emp.name%20%3D...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9981","item_id":"_comm_9981"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9981 == 'undefined' ){PDRTJS_468178_comm_9981 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9981 );}}PDRTJS_settings_468178_comm_9975={"id":468178,"unique_id":"wp-comment-9975","title":"%40Roger%3A%20True.%20The%20solution%20for%20that%20is%20to%20%2Astore%2A%20the%20result%20as%20a%20value%2C%20what%20is%20not-so-tightly%20coupled%20with%20the%20return%20type%20being%20value%20or%20ref.My%20problem%20with%20returning%20a%20value%20is%20that%20you%20have%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9975","item_id":"_comm_9975"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9975 == 'undefined' ){PDRTJS_468178_comm_9975 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9975 );}}PDRTJS_settings_468178_comm_9974={"id":468178,"unique_id":"wp-comment-9974","title":"%40Herb%3ASutter%3A%20Have%20you%20considered%20creating%20a%20Google%2B%20Community%20page%3F%20%28or%20facebook%20if%20you%20don%26%23039%3Bt%20the%20spam%29%20%3A%29%20%28Probably%20your%20boss%20wouldn%26%23039%3Bt%20like%20that%2C%20right%3F%29...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9974","item_id":"_comm_9974"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9974 == 'undefined' ){PDRTJS_468178_comm_9974 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9974 );}}PDRTJS_settings_468178_comm_9973={"id":468178,"unique_id":"wp-comment-9973","title":"Thanks%20for%20the%20tip%20David%21%20%3A%29%20%28Unfortunatelly%20I%20don%26%23039%3Be%20find%20a%20way%20to%20edit%20my%20last%20post%2C%20so...%29%26%23091%3Bcode%26%23093%3B%2F%2F%20assuming%20Herb%26%23039%3Bs%20intention%20was%3A%2F%2F%20employee%7Bstd%3A%3Astring%20name%3B%20std%3A%3Astring%20address%7D%3B%2F%2F....string%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9973","item_id":"_comm_9973"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9973 == 'undefined' ){PDRTJS_468178_comm_9973 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9973 );}}PDRTJS_settings_468178_comm_9972={"id":468178,"unique_id":"wp-comment-9972","title":"%26%23091%3B%20code%20%26%23093%3B%20%20%20%20you%20code%20%20%26%23091%3B%20%2F%20code%20%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9972","item_id":"_comm_9972"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9972 == 'undefined' ){PDRTJS_468178_comm_9972 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9972 );}}PDRTJS_settings_468178_comm_9971={"id":468178,"unique_id":"wp-comment-9971","title":"list%20template%20arg%20%20was%20stripped%20by%20the%20site%20%3AP...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9971","item_id":"_comm_9971"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9971 == 'undefined' ){PDRTJS_468178_comm_9971 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9971 );}}PDRTJS_settings_468178_comm_9970={"id":468178,"unique_id":"wp-comment-9970","title":"Assume%20struct%20employee%7Bstd%3A%3Astring%20name%3B%20std%3A%3Astring%20address%7D%3Bstring%20find_addr%28%20const%20list%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7B%20%20%20%20for%28%20const%20auto%26amp%3B%20emp%20%3A%20emps%29%20%7B%20%20%20%20%20%20%20%20if%28%20emp.name%20%3D%3D%20name%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9970","item_id":"_comm_9970"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9970 == 'undefined' ){PDRTJS_468178_comm_9970 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9970 );}}PDRTJS_settings_468178_comm_9969={"id":468178,"unique_id":"wp-comment-9969","title":"string%26amp%3B%20find_addr%28%20const%20list%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7B%20%20%20%20for%28%20auto%20i%20%3D%20begin%28emps%29%3B%20i%20%21%3D%20end%28emps%29%3B%20i%2B%2B%20%29%20%7B%20%20%20%20%20%20%20%20if%28%20%2Ai%20%3D%3D%20name%20%29%20%7B%20%20%20%20%20%20%20%20%20%20%20%20return%20i-%26gt%3Baddr%3B%20%20%20%20%20%20%20%20%7D%20%20%20%20%7D...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9969","item_id":"_comm_9969"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9969 == 'undefined' ){PDRTJS_468178_comm_9969 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9969 );}}PDRTJS_settings_468178_comm_9968={"id":468178,"unique_id":"wp-comment-9968","title":"%40Robert%2C%20the%20concern%20about%20returning%20a%20reference%20is%20not%20limited%20to%20the%20case%20where%20the%20list%20is%20a%20temporary.%20The%20concern%20is%20that%20the%20caller%20can%20store%20and%20attempt%20to%20use%20the%20returned%20value%20far%20past%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9968","item_id":"_comm_9968"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9968 == 'undefined' ){PDRTJS_468178_comm_9968 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9968 );}}PDRTJS_settings_468178_comm_9967={"id":468178,"unique_id":"wp-comment-9967","title":"%40brandonend%28emps%29%20is%20valid%20C%2B%2B11%20code%2C%20and%20is%20the%20preferred%20idiom.%20Why%3F%20Because%20it%20is%20a%20template%20function%20which%20you%20can%20specialize%20for%20any%20type%20that%20does%20not%20provide%20an%20end%28%29%20member%20function.%20I%20p...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9967","item_id":"_comm_9967"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9967 == 'undefined' ){PDRTJS_468178_comm_9967 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9967 );}}PDRTJS_settings_468178_comm_9966={"id":468178,"unique_id":"wp-comment-9966","title":"1.%29%20A%20temporary%20is%20a%20variable%20that%20is%20implicitly%20created%20during%20execution%20of%20a%20function.%20one%20example%20this%20happens%20in%20is%20when%20returning%20by%20value.2.%29%20The%20function%20parameters%20should%20be%20passed%20by%20con...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9966","item_id":"_comm_9966"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9966 == 'undefined' ){PDRTJS_468178_comm_9966 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9966 );}}PDRTJS_settings_468178_comm_9960={"id":468178,"unique_id":"wp-comment-9960","title":"%26%23091%3Bcode%26%23093%3B%2F%2Ffirst%20temporary%20list%26lt%3Bemployee%26gt%3B%20emps%20the%20biggest%20one%2F%2Fsecond%20temporary%20string%20name%20--%7C%20-----------%2F%2F%2F%2Fstring%20find_addr%28%20list%26lt%3Bemployee%26gt%3B%20emps%2C%20string%20name%20%29%20%7Bfor%28%20auto%20i%20%3D%20begi...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9960","item_id":"_comm_9960"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9960 == 'undefined' ){PDRTJS_468178_comm_9960 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9960 );}}PDRTJS_settings_468178_comm_9958={"id":468178,"unique_id":"wp-comment-9958","title":"I%20would%20use%20%60std%3A%3Afind_if%60%20on%20the%20grounds%20that%20it%26%23039%3Bs%20more%20immediately%20obvious%20what%20you%26%23039%3Bre%20trying%20to%20do%20with%20your%20loop.%20I%20agree%20with%20all%20the%20folks%20who%20object%20to%20returning%20a%20%60const%20string%20%26amp%3B%60%3B%20it...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9958","item_id":"_comm_9958"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9958 == 'undefined' ){PDRTJS_468178_comm_9958 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9958 );}}PDRTJS_settings_468178_comm_9957={"id":468178,"unique_id":"wp-comment-9957","title":"Well%2C%20it%20might%20violate%20%26quot%3Bdo%20not%20change%20the%20operational%20semantics%20of%20this%20function%26quot%3B%20rule%2C%20but...%20how%20about%20this%3A%26%23091%3Bcode%20language%3D%26quot%3Bcpp%26quot%3B%26%23093%3Bconst%20string%26amp%3B%20find_addr%28const%20list%26lt%3Bemployee%26gt%3B%26amp%3B%20emps...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9957","item_id":"_comm_9957"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9957 == 'undefined' ){PDRTJS_468178_comm_9957 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9957 );}}PDRTJS_settings_468178_comm_9955={"id":468178,"unique_id":"wp-comment-9955","title":"%40Roger%20I%20am%20not%20sure%20exactly%20what%20this%20explains.%20Isn%26%23039%3Bt%20the%20case%20we%20have%20here%20totally%20different%20as%20it%20is%20about%20function%20arguments%2C%20not%20function%20return%20type%3F%20Or%20maybe%20I%20was%20not%20clear%20that%20I%20was%20tal...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9955","item_id":"_comm_9955"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9955 == 'undefined' ){PDRTJS_468178_comm_9955 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9955 );}}PDRTJS_settings_468178_comm_9953={"id":468178,"unique_id":"wp-comment-9953","title":"Meh.%20Why%20can%26%23039%3Bt%20I%20edit%2C%20and%20how%20to%20make%20quotes%20here%3F%20%3A-%2F%20Change%20the%20end%20object%20to%20endit.....","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9953","item_id":"_comm_9953"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9953 == 'undefined' ){PDRTJS_468178_comm_9953 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9953 );}}PDRTJS_settings_468178_comm_9952={"id":468178,"unique_id":"wp-comment-9952","title":"Still%20no%20solution%20with%20std%3A%3Afind_if%20%3F%20Come%20on%20people%21%20That%26%23039%3Bs%20the%20first%20thing%20that%20fails%20when%20I%20do%20the%20review%2C%20even%20before%20temporaries.Otherwise%20-%20if%20employee%20passed%20code%20review%2C%20this%20code%20didn%26%23039%3Bt%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9952","item_id":"_comm_9952"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9952 == 'undefined' ){PDRTJS_468178_comm_9952 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9952 );}}PDRTJS_settings_468178_comm_9951={"id":468178,"unique_id":"wp-comment-9951","title":"Just%20putting%20my%20upper%20comment%20to%20a%20proper%20code-blocks%20%28I%20just%20didn%26%23039%3Bt%20know%20how%20to%20do%20it%29.%26%23091%3Bcode%26%23093%3Bstring%20find_addr%28const%20list%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7B%20%20%20%20for%28%20const%20auto%26amp%3B%20emp%20%3A%20emps%29...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9951","item_id":"_comm_9951"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9951 == 'undefined' ){PDRTJS_468178_comm_9951 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9951 );}}PDRTJS_settings_468178_comm_9946={"id":468178,"unique_id":"wp-comment-9946","title":"In%20the%20loop%20it%20should%20have%20been%20if%28%20i%20%3D%3D%20name%20%29%20instead%20of%20if%20%28%20%2Ai%20%3D%3D%20name%20%29and%20i.addr%20instead%20of%20i-%26gt%3Baddr...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9946","item_id":"_comm_9946"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9946 == 'undefined' ){PDRTJS_468178_comm_9946 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9946 );}}PDRTJS_settings_468178_comm_9945={"id":468178,"unique_id":"wp-comment-9945","title":"2%29%20Easy%20question%20first%3A%26quot%3BDo%20not%20change%20the%20operational%20semantics%20of%20this%20function%26quot%3B%20-%26gt%3B%20I%26%23039%3Bll%20try%20but%20I%20am%20a%20bit%20drunk%20%282am%20over%20here%2C%20but%20Ive%20never%20trusted%20myself%20to%20answer%20a%20guru%20question%20here%20s...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9945","item_id":"_comm_9945"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9945 == 'undefined' ){PDRTJS_468178_comm_9945 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9945 );}}PDRTJS_settings_468178_comm_9944={"id":468178,"unique_id":"wp-comment-9944","title":"%26%23091%3Bcode%26%23093%3Bstring%20find_addr%28const%20list%26lt%3Bemployee%26gt%3B%20%26amp%3Bemps%2Cconst%20string%20%26amp%3Bname%20%29%20%7B%20%20%20%20for%28const%20auto%26amp%3B%20emp%20%3A%20emps%29%20%7B%20%20%20%20%20%20%20%20if%28%20emp%20%3D%3D%20name%20%29%20%7B%20return%20emp.addr%3B%20%7D%20%2F%2Fcopy%20of%20addr%20will%20be%20ma...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9944","item_id":"_comm_9944"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9944 == 'undefined' ){PDRTJS_468178_comm_9944 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9944 );}}PDRTJS_settings_468178_comm_9943={"id":468178,"unique_id":"wp-comment-9943","title":"I%26%23039%3Bm%20with%20Tom%2C%20just%20an%20slight%20detail%3Astring%20find_addr%28const%20list%20%26amp%3Bemps%2Cconst%20string%20%26amp%3Bname%20%29%20%7B%20%20%20%20for%28const%20auto%26amp%3B%20emp%20%3A%20emps%29%20%7B%20%20%20%20%20%20%20%20if%28%20emp%20%3D%3D%20name%20%29%20%7B%20return%20emp.addr%3B%20%7D%20%20%20%20%7D%20%20%20%20ret...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9943","item_id":"_comm_9943"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9943 == 'undefined' ){PDRTJS_468178_comm_9943 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9943 );}}PDRTJS_settings_468178_comm_9942={"id":468178,"unique_id":"wp-comment-9942","title":"%40Tom.%20Nice%2C.%20of%20course%2C%20it%20makes%20more%20sence%20in%20your%20code%20example%20%28http%3A%2F%2Frise4fun.com%2FVcpp%2F1F%29.%20You%20have%20my%20vote%21...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9942","item_id":"_comm_9942"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9942 == 'undefined' ){PDRTJS_468178_comm_9942 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9942 );}}PDRTJS_settings_468178_comm_9941={"id":468178,"unique_id":"wp-comment-9941","title":"Here%20is%20the%20proper%20way%20to%20use%20range%20based%20for%20loop.emp%20need%20to%20be%20reference%20to%20avoid%20unnecessary%20copy.%26%23091%3Bcode%26%23093%3Bstring%20find_addr%28const%20list%26lt%3Bemployee%26gt%3B%20%26amp%3Bemps%2Cconst%20string%20%26amp%3Bname%20%29%20%7Bfor%28con...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9941","item_id":"_comm_9941"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9941 == 'undefined' ){PDRTJS_468178_comm_9941 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9941 );}}PDRTJS_settings_468178_comm_9939={"id":468178,"unique_id":"wp-comment-9939","title":"Wow%2C%20seems%20my%20code%20was%20broken%20%28probably%20due%20to%20the%20%26lt%3B%29.here%20again%3Aconst%20string%26amp%3B%20find_addr%28const%20list%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7B%20%20%20%20for%28int%20i%20%3D%200%3B%20emps.size%28%29%20%26gt%3B%20i%3B%20%2B%2Bi%29%20%7B%20%20%20%20%20%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9939","item_id":"_comm_9939"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9939 == 'undefined' ){PDRTJS_468178_comm_9939 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9939 );}}PDRTJS_settings_468178_comm_9938={"id":468178,"unique_id":"wp-comment-9938","title":"Something%20few%20people%20seems%20to%20note%20is%20the%20copy%20who%20happens%20when%20i%20is%20dereferenced%20%3Astring%20find_addr%28%20list%20emps%2C%20string%20name%20%29%20%7B%20%20%20%20for%28%20auto%20i%20%3D%20begin%28emps%29%3B%20i%20%21%3D%20end%28emps%29%3B%20i%2B%2B%20%29%20%7B%20%20%20%20%20%20%20%20if%28%20%2Ai...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9938","item_id":"_comm_9938"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9938 == 'undefined' ){PDRTJS_468178_comm_9938 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9938 );}}PDRTJS_settings_468178_comm_9936={"id":468178,"unique_id":"wp-comment-9936","title":"How%20about%20this%3Fhttp%3A%2F%2Frise4fun.com%2FVcpp%2F1F%26%23091%3Bcode%26%23093%3Bstring%20find_addr%28const%20list%26lt%3Bemployee%26gt%3B%20%26amp%3Bemps%2Cconst%20string%20%26amp%3Bname%20%29%20%7Bfor%28%20auto%20i%20%3D%20emps.cbegin%28%29%3B%20i%20%21%3D%20emps.cend%28%29%3B%20%2B%2Bi%20%29%20%7Bif%28%20%2Ai%20%3D%3D%20nam...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9936","item_id":"_comm_9936"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9936 == 'undefined' ){PDRTJS_468178_comm_9936 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9936 );}}PDRTJS_settings_468178_comm_9934={"id":468178,"unique_id":"wp-comment-9934","title":"JG1%3AUsed%20by%20older%20ANSI%20C89%20zealots%20to%20prove%20that%20C%2B%2B%20language%20is%20bad%20and%20only%20C%20%28better%20asm%29%20never%20does%20tricks%20behind%20the%20scenes.2%3AThe%20list%20and%20the%20string%20should%20be%20passed%20with%20const%20reference.%20A...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9934","item_id":"_comm_9934"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9934 == 'undefined' ){PDRTJS_468178_comm_9934 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9934 );}}PDRTJS_settings_468178_comm_9929={"id":468178,"unique_id":"wp-comment-9929","title":"string%20find_addr%28const%20list%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7B%20%20%20%20for%28%20auto%20i%20%3D%20begin%28emps%29%3B%20i%20%21%3D%20end%28emps%29%3B%20%2B%2Bi%20%29%20%7B%20%20%20%20%20%20%20%20if%28%20%2Ai%20%3D%3D%20name%20%29%20%20%20%20%20%20%20%20%7B%20%20%20%20%20%20%20%20%20%20%20%20return%20i-%26gt%3Baddr%3B%20%20%20%20%20%20%20%20%7D%20%20%20%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9929","item_id":"_comm_9929"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9929 == 'undefined' ){PDRTJS_468178_comm_9929 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9929 );}}PDRTJS_settings_468178_comm_9928={"id":468178,"unique_id":"wp-comment-9928","title":"%40Klaim%2Cconsider%3Aconst%20string%26amp%3B%20address%20%3D%20find_addr%20%28employees%2C%20%26quot%3Bjoe%26quot%3B%29%3Bfire_employee%20%28employees%2C%20%26quot%3Bjoe%26quot%3B%29%3B%20%2F%2F%20deletes%20joe%20from%20employeesprint_final_check%20%28%26quot%3Bjoe%26quot%3B%2C%20address%29%3B%20%2F%2F%20KABOOMThe%20problem%20is...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9928","item_id":"_comm_9928"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9928 == 'undefined' ){PDRTJS_468178_comm_9928 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9928 );}}PDRTJS_settings_468178_comm_9927={"id":468178,"unique_id":"wp-comment-9927","title":"Oups%2C%20some%20did%20suggest%20for-range-loops%2C%20didn%26%23039%3Bt%20see%20them%20with%20my%20cached%20page.%20My%20bad....","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9927","item_id":"_comm_9927"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9927 == 'undefined' ){PDRTJS_468178_comm_9927 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9927 );}}PDRTJS_settings_468178_comm_9926={"id":468178,"unique_id":"wp-comment-9926","title":"Why%20is%20nobody%20suggesting%20using%20a%20for-range-loop%3F%20AFAIK%20it%26%23039%3Bs%20the%20exact%20same%20semantic%20but%20will%20make%20sure%20to%20avoid%20unnecessary%20copies.Also%2C%20I%20am%20not%20sure%20about%20the%20const%20refs%20because%20in%20multi-thread...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9926","item_id":"_comm_9926"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9926 == 'undefined' ){PDRTJS_468178_comm_9926 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9926 );}}PDRTJS_settings_468178_comm_9925={"id":468178,"unique_id":"wp-comment-9925","title":"OK%2C%20one%20that%20REALLY%20keeps%20the%20operational%20semantics%20and%20DOES%20NOT%20produce%20any%20new%20temporary%20objects%29%29%29string%20find_addr%28const%20list%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7Bfor%28%20const%20auto%26amp%3B%20emp%20%3A%20em...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9925","item_id":"_comm_9925"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9925 == 'undefined' ){PDRTJS_468178_comm_9925 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9925 );}}PDRTJS_settings_468178_comm_9924={"id":468178,"unique_id":"wp-comment-9924","title":"OK%2C%20one%20that%20REALLY%20keeps%20the%20operational%20semanticsstring%20find_addr%28const%20list%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7B%20%20%20%20%20for%28%20auto%20emp%20%3A%20emps%29%20%7B%20%20%20%20%20%20%20%20if%28%20emp.name%20%3D%3D%20name%20%29%20%7B%20%20%20%20%20%20%20%20%20%20%20return%20e...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9924","item_id":"_comm_9924"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9924 == 'undefined' ){PDRTJS_468178_comm_9924 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9924 );}}PDRTJS_settings_468178_comm_9923={"id":468178,"unique_id":"wp-comment-9923","title":"Guys%2C%20please%20...%20dont%20return%20by%20reference%20from%20this%20function.%20It%20DOES%20change%20operational%20semantics%20of%20this%20function%20and%20_will_%20lead%20to%20UB....","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9923","item_id":"_comm_9923"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9923 == 'undefined' ){PDRTJS_468178_comm_9923 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9923 );}}PDRTJS_settings_468178_comm_9922={"id":468178,"unique_id":"wp-comment-9922","title":"1%29%20i%2B%2B2%29%20employee%20%3D%3D%20string%20%28see%20why%20below%293%29%20return%20value%20can%20be%20written%20%7B%26quot%3B%26quot%3B%7D4%29%20const%20reference%20to%20the%20arguments%205%29%20why%20not%20just%20use%20for%28auto%26amp%3B%20employee%20%3A%20emps%29%20instead%20of%20for%28begin%2C%20%21%3Dend%2C%20%2B...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9922","item_id":"_comm_9922"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9922 == 'undefined' ){PDRTJS_468178_comm_9922 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9922 );}}PDRTJS_settings_468178_comm_9921={"id":468178,"unique_id":"wp-comment-9921","title":"Returning%20const%20string%26amp%3B%20seems%20like%20a%20very%20bad%20idea.%20We%20have%20no%20guarantee%20on%20the%20lifetime%20of%20the%20emps%20data%20that%20is%20passed%20in.%20Returning%20a%20reference%20could%20end%20up%20with%20the%20caller%20trying%20to%20use%20a...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9921","item_id":"_comm_9921"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9921 == 'undefined' ){PDRTJS_468178_comm_9921 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9921 );}}PDRTJS_settings_468178_comm_9919={"id":468178,"unique_id":"wp-comment-9919","title":"I%26%23039%3Bm%20not%20sure%20that%20returning%20a%20const%20ref%20to%20a%20static%20string%20is%20a%20good%20idea%3A%20it%20removes%20the%20temporary%20value%20that%20is%20returned%20from%20the%20function%20but%20also%20introduce%20a%20test%20in%20the%20function%20to%20ensure%20th...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9919","item_id":"_comm_9919"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9919 == 'undefined' ){PDRTJS_468178_comm_9919 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9919 );}}PDRTJS_settings_468178_comm_9916={"id":468178,"unique_id":"wp-comment-9916","title":"Caching%20the%20end%28%29%20iterator%20or%20returning%20a%20static%20string%20seem%20like%20things%20that%20are%20of%20dubious%20value.%20Any%20decent%20compiler%20will%20recognize%20that%20end%28%29%20cannot%20change%20since%20no%20non-const%20functions%20on%20emp...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9916","item_id":"_comm_9916"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9916 == 'undefined' ){PDRTJS_468178_comm_9916 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9916 );}}PDRTJS_settings_468178_comm_9912={"id":468178,"unique_id":"wp-comment-9912","title":"%26%23091%3Bcode%26%23093%3Bstruct%20employee%20%7Bstring%20name%3Bstring%20addr%3B%7D%3Bconst%20string%26amp%3B%20find_addr%28const%20list%26lt%3Bemployee%26gt%3B%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%7Bauto%20emps_end%20%20%20%3D%20emps.cend%28%29%3Bfor%28%20auto%20i%20%3D%20emps.cbegi...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9912","item_id":"_comm_9912"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9912 == 'undefined' ){PDRTJS_468178_comm_9912 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9912 );}}PDRTJS_settings_468178_comm_9911={"id":468178,"unique_id":"wp-comment-9911","title":"ok%20another%20try%3Astruct%20employee%20%7Bstring%20name%3Bstring%20addr%3B%7D%3Bconst%20string%26amp%3B%20find_addr%28const%20list%26amp%3B%20emps%2C%20const%20string%26amp%3B%20name%20%29%20%20%7Bauto%20emps_end%20%20%20%3D%20cend%28emps%29%3Bfor%28%20auto%20i%20%3D%20emps.cbegin%28%29%3B%20i%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9911","item_id":"_comm_9911"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9911 == 'undefined' ){PDRTJS_468178_comm_9911 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9911 );}}PDRTJS_settings_468178_comm_9908={"id":468178,"unique_id":"wp-comment-9908","title":"const%20string%26amp%3B%20find_addr%28const%20list%26amp%3B%20emps%2C%20cont%20string%26amp%3B%20name%20%29%20%7B%20%20for%28%20auto%20i%20%3D%20cbegin%28emps%29%3B%20i%20%21%3D%20cend%28emps%29%3B%20i%2B%2B%20%29%20%7B%20%20%20%20if%28%20%2Ai%20%3D%3D%20name%20%29%20%7B%20return%20i-%26gt%3Baddr%3B%20%7D%20%20%7D%20%20static%20const%20strin...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9908","item_id":"_comm_9908"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9908 == 'undefined' ){PDRTJS_468178_comm_9908 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9908 );}}PDRTJS_settings_468178_comm_9907={"id":468178,"unique_id":"wp-comment-9907","title":"1.%20A%20temporary%20object%20is%20an%20object%20that%20is%20created%20implicitly%20to%20be%20destroyed%20immerdiatelly%20after%20the%20reason%20for%20its%20creation%20has%20faded.%20The%20examples%20are%3A%20tos%20created%20by%20implicit%20conversions%2C%20by%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9907","item_id":"_comm_9907"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9907 == 'undefined' ){PDRTJS_468178_comm_9907 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9907 );}}PDRTJS_settings_468178_comm_9905={"id":468178,"unique_id":"wp-comment-9905","title":"string%20find_addr%28%20list%20emps%2C%20string%20name%20%29%20%7B%20%20%20%20for%28%20auto%20i%20%3D%20begin%28emps%29%3B%20i%20%21%3D%20end%28emps%29%3B%20i%2B%2B%20%29%20%7B%20%20%20%20%20%20%20%20if%28%20%2Ai%20%3D%3D%20name%20%29%20%7B%20%20%20%20%20%20%20%20%20%20%20%20return%20i-%26gt%3Baddr%3B%20%20%20%20%20%20%20%20%7D%20%20%20%20%7D%20%20%20%20return%20%26quot%3B%26quot%3B%3B%7D%281%29%20Pass%20par...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9905","item_id":"_comm_9905"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9905 == 'undefined' ){PDRTJS_468178_comm_9905 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9905 );}}PDRTJS_settings_468178_comm_9904={"id":468178,"unique_id":"wp-comment-9904","title":"string%20const%20%26amp%3Bfind_addr%28list%20const%20%26amp%3Bemps%2C%20string%20const%20%26amp%3Bname%29%7B%20%20%20%20auto%20const%20last%20%3D%20end%28emps%29%3B%20%20%20%20for%20%28auto%20i%20%3D%20begin%28emps%29%3B%20last%20%21%3D%20i%3B%20%2B%2Bi%29%20%7B%20%20%20%20%20%20%20%20if%20%28name%20%3D%3D%20%2Ai%29%20%7B%20%20%20%20%20%20%20%20%20%20%20%20retu...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9904","item_id":"_comm_9904"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9904 == 'undefined' ){PDRTJS_468178_comm_9904 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9904 );}}PDRTJS_settings_468178_comm_9903={"id":468178,"unique_id":"wp-comment-9903","title":"The%20two%20parameters%20should%20be%20passed%20by%20const%20reference%2C%20for%20efficiency%20as%20well%20as%20specifying%20that%20the%20function%20does%20not%20change%20anything.i%2B%2B%20may%20result%20in%20a%20temporary%2C%20ideally%20we%20write%20%2B%2Bi%20%20althou...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9903","item_id":"_comm_9903"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9903 == 'undefined' ){PDRTJS_468178_comm_9903 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9903 );}}PDRTJS_settings_468178_comm_9901={"id":468178,"unique_id":"wp-comment-9901","title":"const%20string%26amp%3B%20find_addr%28const%20list%26amp%3B%20emps%2C%20cont%20string%26amp%3B%20name%20%29%20%7B%20%20%20%20for%28%20auto%20i%20%3D%20begin%28emps%29%3B%20i%20%21%3D%20end%28emps%29%3B%20i%2B%2B%20%29%20%7B%20%20%20%20%20%20%20%20if%28%20%2Ai%20%3D%3D%20name%20%29%20%7B%20%20%20%20%20%20%20%20%20%20%20%20return%20i-%26gt%3Baddr%3B%20%20%20%20%20%20%20%20%7D%20...","permalink":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/#comment-9901","item_id":"_comm_9901"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_9901 == 'undefined' ){PDRTJS_468178_comm_9901 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_9901 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMo6aBzgUFQOPsc20NTYyMjE2MDI1NsgB4yV92'></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F09%2Fgotw-2-temporary-objects-510%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/05\/09\/gotw-2-temporary-objects-510\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F05%2F09%2Fgotw-2-temporary-objects-510%2F","postID":"1855","shortlink":"https:\/\/wp.me\/peb5Y-tV","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/1855","statsLink":"https:\/\/wordpress.com\/stats\/post\/1855\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F05%2F09%2Fgotw-2-temporary-objects-510%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'1855','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sQmpbUGtpJkIyNlYtRjRmfHo2NVIvMjldVjlQUCV6JWwsXUlyR3VFTVRNZ1lLT1VKdkg/OVg5cmg4NFFmaF10ZlZVST0mWWpTeEJXOSxoMiZlbGJoLkN+SWsrYXk/TmV3YTFzRVB8aWZRV0xkUEpWNU4teE9BfFEtL24mVD9fd2JadkdjTCxCL3BSSkhILGFFcHB5aXJ6bEZqOC44dkp0cXlTY0JvWzQwakpMVFVlK25NfCxqK1lzU2RsfDlPeHlqNVp0VS9aRg=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '1855' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

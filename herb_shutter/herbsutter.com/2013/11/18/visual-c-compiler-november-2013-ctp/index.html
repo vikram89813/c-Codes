@@ -1,0 +1,943 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Visual C++ Compiler November 2013 CTP | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965516&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F11%2F18%2Fvisual-c-compiler-november-2013-ctp%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Visual C++ Compiler November 2013&nbsp;CTP Comments Feed" href="https://herbsutter.com/2013/11/18/visual-c-compiler-november-2013-ctp/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='(V)C++ recorded talks at VS 2013&nbsp;Launch' href='https://herbsutter.com/2013/11/13/vc-recorded-talks-at-vs-2013-launch/' />
+<link rel='next' title='Reader Q&amp;A: Book&nbsp;recommendations' href='https://herbsutter.com/2013/12/05/reader-qa-book-recommendations/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/11/18/visual-c-compiler-november-2013-ctp/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-C5' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F11%2F18%2Fvisual-c-compiler-november-2013-ctp%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F11%2F18%2Fvisual-c-compiler-november-2013-ctp%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Visual C++ Compiler November 2013 CTP" />
+<meta property="og:url" content="https://herbsutter.com/2013/11/18/visual-c-compiler-november-2013-ctp/" />
+<meta property="og:description" content="We just shipped Visual C++2013 last month, but I announced at GoingNative in September that there would be more soon: another CTP (compiler preview) containing another batch of C++11/14 features, s…" />
+<meta property="article:published_time" content="2013-11-18T23:25:42+00:00" />
+<meta property="article:modified_time" content="2013-11-18T23:25:42+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965516" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Visual C++ Compiler November 2013&nbsp;CTP" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="We just shipped Visual C++2013 last month, but I announced at GoingNative in September that there would be more soon: another CTP (compiler preview) containing another batch of C++11/14 features, sometime in the fourth quarter. I&#039;m happy to report that today we shipped the promised CTP. Compared to the &quot;high probability in CTP&quot; feature set I mentioned&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/11/18/visual-c-compiler-november-2013-ctp/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2361 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/11/13/vc-recorded-talks-at-vs-2013-launch/" rel="prev">(V)C++ recorded talks at VS 2013&nbsp;Launch</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/12/05/reader-qa-book-recommendations/" rel="next">Reader Q&amp;A: Book&nbsp;recommendations</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2361 post type-post status-publish format-standard hentry category-c category-microsoft" id="post-2361">
+				<div class="posttitle">
+					<h2>Visual C++ Compiler November 2013&nbsp;CTP</h2>
+					<p class="post-info">2013-11-18 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>We just shipped Visual C++2013 last month, but I announced at GoingNative in September that there would be more soon: another CTP (compiler preview) containing another batch of C++11/14 features, sometime in the fourth quarter.</p>
+<p>I&#8217;m happy to report that <a href="http://blogs.msdn.com/b/vcblog/archive/2013/11/18/announcing-the-visual-c-compiler-november-2013-ctp.aspx">today we shipped the promised CTP</a>. Compared to the &#8220;high probability in CTP&#8221; feature set I mentioned in my GoingNative talk, one of those features I mentioned didn&#8217;t quite make it (C++14 generalized lambda capture, a.k.a. move capture and more), but to compensate, both medium-probability features made it (C++14 generic lambdas and C++11 inheriting constructors) plus, as a bonus, also alignof and alignas which we didn&#8217;t think would make it for the CTP but did. Here&#8217;s the full set of new features, pasting from the announcement:</p>
+<ul>
+<li>Implicit move special member function generation (thus also completing <em>=default</em>)</li>
+<li>Reference qualifiers on member functions (a.k.a. &#8220;<em>&amp;</em> and <em>&amp;&amp;</em> for <em>*this</em>&#8220;)</li>
+<li>Thread-safe function local static initialization (a.k.a. &#8220;magic statics&#8221;)</li>
+<li>Inheriting constructors</li>
+<li><em>alignof</em>/<em>alignas</em></li>
+<li><em>__func__</em></li>
+<li>Extended <em>sizeof</em></li>
+<li><em>constexpr</em> (except for member functions)</li>
+<li><em>noexcept</em> (unconditional)</li>
+<li>C++14 <em>decltype(auto)</em></li>
+<li>C++14 <em>auto</em> function return type deduction</li>
+<li>C++14 generic lambdas (with explicit lambda capture list)</li>
+<li>(Proposed for C++17) Resumable functions and <em>await</em></li>
+</ul>
+<p>The most-requested feature of C++14, and the one I&#8217;ve personally been anticipating the most, is generic lambdas &#8212; it is sweet to see it working right within Visual Studio 2013, as the CTP installs as a selectable toolset you can use within the shipping product to edit and build (no Intellisense or red squiggles though). Note that for this CTP, your lambda can be either generic (have an auto parameter type) or have a default capture list (e.g., [=] or [&amp;]), but not both &#8212; of course we&#8217;ll support both together in the future as the feature makes a future release.</p>
+<p>As far as I know, this Visual C++ CTP is the first shipping (albeit CTP quality) C++ compiler to offer generic lambdas, though I expect Clang and gcc to also make them available soon &#8212; joy for C++ developers everywhere!</p>
+<p>Once again, thank you very much again to the great Visual C++ team for producing this CTP; even as we speak, they&#8217;re hard at work on more. Thanks again also to the other members of the ISO C++ committee for producing a great and high-quality C++11 and soon-to-be-not-draft C++14.</p>
+<p>I hope you enjoy trying out this CTP.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/microsoft/" rel="category tag">Microsoft</a> | 											41 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">41 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-36675">
+		<div id="div-comment-36675">
+		<div class="cmtinfo"><em> on <a href="#comment-36675" title="">2015-03-17 at 6:52 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/42970f32e100239dd7b13f829f3ef861?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.e7if.com/' rel='external nofollow' class='url'>&#22825;&#40857;&#20843;&#37096;&#24320;&#31169;&#26381;&#19968;&#26465;&#40857;&#26381;&#21153;</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_36675"></div><p>&#39118;&#20113;&#38596;&#38712;&#22825;&#19979;&#26381;&#21153;&#31471;&#22825;&#20043;&#28860;&#29425;&#19968;&#26465;&#40857;&#22823;&#35805;&#35199;&#28216;&#26381;&#21153;&#31471;&#31934;&#28789;&#22797;&#20852;&#26381;&#21153;&#31471;<br />
+&#21170;&#33310;&#22242;&#31169;&#26381;&#24320;&#26381;&#28909;&#34880;&#27743;&#28246;&#31169;&#26381;&#24320;&#26381;&#20506;&#22825;I&#31169;&#26381;&#24320;&#26381;&#32593;&#39029;&#28216;&#25103;&#31169;&#26381;&#24320;&#26381;&#22825;&#22530;2&#31169;&#26381;&#24320;&#26381;<br />
+&#39569;&#22763;&#24320;&#21306;&#19968;&#26465;&#40857;&#22825;&#19978;&#30865;&#24320;&#21306;&#19968;&#26465;&#40857;&#32654;&#20029;&#19990;&#30028;&#24320;&#21306;&#19968;&#26465;&#40857;&#31185;&#27931;&#26031;&#24320;&#21306;&#19968;&#26465;&#40857;&#30707;&#22120;&#26102;&#20195;&#24320;&#21306;&#19968;&#26465;&#40857;<br />
+&#22825;&#40857;&#20843;&#37096;&#24320;&#31169;&#26381;&#19968;&#26465;&#40857;&#26381;&#21153; <a href="http://www.e7if.com/" rel="nofollow">http://www.e7if.com/</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-36539">
+		<div id="div-comment-36539">
+		<div class="cmtinfo"><em> on <a href="#comment-36539" title="">2015-03-04 at 8:40 pm</a></em>  <cite><a href='http://www.52sourcecode.com/post-168453.html' rel='external nofollow' class='url'>Ref-qualifiers in Visual C++ | 我爱源码网</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_36539"></div><p>[&#8230;] the other hand, this says they made it into a CTP back in [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-33070">
+		<div id="div-comment-33070">
+		<div class="cmtinfo"><em> on <a href="#comment-33070" title="">2014-12-02 at 4:45 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/21b12504b0bd64bc3061327cb4e82d35?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Karl Niu</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_33070"></div><p>@Christian:</p>
+<p>The bug you described here (defaulted move constructors don&#8217;t get generated if the class member doesn&#8217;t implement move semantics) has been fixed and the fix will be included in a future release of Visual Studio. Thanks for bringing the issue to our attention.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-20351">
+		<div id="div-comment-20351">
+		<div class="cmtinfo"><em> on <a href="#comment-20351" title="">2014-05-20 at 6:37 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_20351"></div><p>This CTP is a &#8220;compiler-only&#8221; CTP. As I mentioned in my past couple of Build talks, it&#8217;s intended to give a &#8220;P&#8221;review of new features but is primarily about the batch compiler. You&#8217;ll see oddities/discrepancies in the IDE, such as that Intellisense will be unchanged so the batch compiler using the CTP toolset will accept code that the IDE still gives red squigglies for.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-19879">
+		<div id="div-comment-19879">
+		<div class="cmtinfo"><em> on <a href="#comment-19879" title="">2014-05-11 at 11:59 pm</a></em> <img alt='' src='https://i1.wp.com/pbs.twimg.com/profile_images/1580601325/croacia_normal.jpg?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/JVG_BCN' rel='external nofollow' class='url'>Javier Vera Gómez (@JVG_BCN)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_19879"></div><p>Hi,<br />
+Is there any plan to make the debugger work properly with this CTP? I really like cool features of this CTP but its a pain trying to use the debugger. Visual Studio crashes always when deferencing a nullptr</p>
+<p>Thanks</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-18126">
+		<div id="div-comment-18126">
+		<div class="cmtinfo"><em> on <a href="#comment-18126" title="">2014-04-04 at 6:18 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/20abda9bae5114b1aec60dec4eb98d10?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://cppwindowsapi.codeplex.com' rel='external nofollow' class='url'>unituniverse2</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_18126"></div><p>Additional words of the previous post:<br />
+1. Using the &#8216;forward&#8217; in the previous post is only for convenient for discuss. Usually it should be a function that makes an rvalue-reference as the return value from itself.<br />
+2. When an rvalue-reference is actually a lvalue, it should be okay for all situation so far, let the coder fix any bad case he made. See the code bellow:<br />
+void ftest(C1 &amp;&amp; val)<br />
+{<br />
+    local1 &amp; a = val; // okay</p>
+<p>    &#8230;<br />
+    std::cout &lt;&lt; val.m &lt;&lt; std::endl;// OK. Access to the content of the &#039;val&#039; directly.<br />
+    std::cout &lt;&lt; a.m &lt;&lt; std::endl;// OK. Access to the content of the &#039;val&#039; through a reference to it.<br />
+}<br />
+The commented lines are different from the &#039;C1 &amp;&amp; i3 = std::forward(C1());&#039;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-17872">
+		<div id="div-comment-17872">
+		<div class="cmtinfo"><em> on <a href="#comment-17872" title="">2014-03-29 at 1:52 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/20abda9bae5114b1aec60dec4eb98d10?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://cppwindowsapi.codeplex.com' rel='external nofollow' class='url'>unituniverse2</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_17872"></div><p>Sorry for bothering you after months your doc being posted, Sutter. May I ask several question here? Okay I just post my first question to see if it&#8217;s noticed :) (and sorry about that again&#8230;)<br />
+Is it realy necessary to Allow the lifetime of the xvalue being expanded by allowing it to initialize a local rvalue reference? I think it may be the bad code formal in most of the time, isn&#8217;t it?<br />
+See the code below:</p>
+<p>C1 i1{ std::forward(C1()) }; //OK. xv to lv.<br />
+C1 &amp; i2 = std::forward(C1());//Error. Forbidden to initialize a lv-ref with rv-ref.</p>
+<p>// Here is what i mention about[1]:<br />
+C1 &amp;&amp; i3 = std::forward(C1());//xv to named rv-ref. Allowed to compile but meaningless and cause UB.<br />
+// But this is NOT included:<br />
+C1 &amp;&amp; i4 = C1{} // prv to named rv-ref[2]. I think it&#8217;s still fine. because the rv the i4 catched is available in the full scopes.<br />
+I think the [1] should have been rejected by the compiler.<br />
+You may ask me about that, well, if it was realy true, Would be many stuffs not work? Like, how about the &#8216;forward&#8217;/&#8217;move&#8217;/other bunch of things themselves? No no no, what i wrote before doesn&#8217;t include these situations:<br />
+void_or_sth_2_ret foo(C1 &amp;&amp; val);<br />
+&#8230;</p>
+<p>foo(C1());//OK.<br />
+foo(std::forward(C1()));// Note this. What I said DOESN&#8217;T include this situation.<br />
+foo(std::forward(i4));// Note this. What I said DOESN&#8217;T include this situation either.<br />
+foo(std::move(i1));// Note this. What I said DOESN&#8217;T include this situation either.</p>
+<p>Here is the point:<br />
+1. Comparison to the existing C++11 compiler, the only different is when an xvalue is to initialize an rvalue-reference, checks if that rv-ref(receiver) is a function&#8217;s argument. if not, then:<br />
+2. Either one of the following solution: [Forbidden the project from being compiled] OR [Force to make a copy of the xvalue(to let it becomes to situation [2]), or report compiling error if the copy-constructor of the type has been disabled(=delete/made &#8216;private&#8217;/&#8217;protected&#8217;)].<br />
+The same solution can be applied to [When an xvalue is used to initialize a constant lvalue-reference].<br />
+Shortly word: An xvalue can be used to initialize an rvalue-reference without copy only when that rvalue-reference is an argument of a function.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-17228">
+		<div id="div-comment-17228">
+		<div class="cmtinfo"><em> on <a href="#comment-17228" title="">2014-03-18 at 4:44 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_17228"></div><p>@xmllmx: Yes, that&#8217;s a bug and we do intend to fix it. I&#8217;ll see if we can say so better on the Connect bug itself. Thanks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-17183">
+		<div id="div-comment-17183">
+		<div class="cmtinfo"><em> on <a href="#comment-17183" title="">2014-03-17 at 11:13 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c7fe4b419ef78796ae89e40665c4394b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>xmllmx</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_17183"></div><p>Hi, Sutter, The following code cannot be compiled by VC++ 2013 CTP, but it can be corretly compiled by GCC and CLang. struct A<br />
+{<br />
+    // error C2216: &#8216;explicit&#8217; cannot be used with &#8216;virtual&#8217;<br />
+    virtual explicit operator bool() const<br />
+    {<br />
+        return true;<br />
+    }<br />
+};</p>
+<p>struct B : A<br />
+{<br />
+    // error C2216: &#8216;explicit&#8217; cannot be used with &#8216;override&#8217;<br />
+    explicit operator bool() const override<br />
+    {<br />
+        return false;<br />
+    }<br />
+};</p>
+<p>int main()<br />
+{<br />
+    if (A())<br />
+    {}</p>
+<p>    if (B())<br />
+    {}<br />
+}</p>
+<p>I have submitted a bug at connect.microsoft.com; however, the handler seemed not considering this as a bug and ignored it. I eagerly hope VC++ can become more robust.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-16027">
+		<div id="div-comment-16027">
+		<div class="cmtinfo"><em> on <a href="#comment-16027" title="">2014-02-28 at 4:07 pm</a></em>  <cite><a href='http://stephangarbin.wordpress.com/2014/02/18/iso-cpp-meeting-report/' rel='external nofollow' class='url'>ISO CPP Meeting Report | Stephan Garbin</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_16027"></div><p>[&#8230;] Herb Sutter has just posted these awesome news about C++ 14&#8230; the proposals look VERY exciting! Cannot wait for polymorphic Lambdas:)And its awesome that everyone can try out that stuff already! [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-strandmark even thread-even depth-1 highlander-comment" id="comment-13896">
+		<div id="div-comment-13896">
+		<div class="cmtinfo"><em> on <a href="#comment-13896" title="">2013-12-21 at 8:12 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/dc5f7c3937e6844cb776d2004b903578?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://strandmark.wordpress.com' rel='external nofollow' class='url'>Petter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13896"></div><p>The generic lambdas are great! They allow really cool interfaces to optimizers. For example:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+auto lambda =
+	[](auto x)
+	{
+		auto d0 =  x[1] - x[0]*x[0];
+		auto d1 =  1 - x[0];
+		return 100 * d0*d0 + d1*d1;
+	};
+
+auto differentiable = make_differentiable&lt;2&gt;(lambda);
+</pre>
+<p>This was not possible before,because the automatic differentiation must be able to pass different types into the lambda. This works very well.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13863">
+		<div id="div-comment-13863">
+		<div class="cmtinfo"><em> on <a href="#comment-13863" title="">2013-12-16 at 10:11 pm</a></em> <img alt='' src='https://i1.wp.com/pbs.twimg.com/profile_images/378800000530789180/eddcade438212f5c216446ed94cef2a2_normal.jpeg?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/rasharm_' rel='external nofollow' class='url'>Raman Sharma (@rasharm_)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13863"></div><p>Here is an example of using resumable/await in a C++ Windows Store app while using SQLite:</p>
+<p><a href="http://stackoverflow.com/questions/19309508/using-sqlite-winrt-from-a-c-windows-store-app" rel="nofollow">http://stackoverflow.com/questions/19309508/using-sqlite-winrt-from-a-c-windows-store-app</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-13734">
+		<div id="div-comment-13734">
+		<div class="cmtinfo"><em> on <a href="#comment-13734" title="">2013-12-08 at 7:29 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13734"></div><p>@Aaron: See <a href="http://isocpp.org/std/submit-a-proposal" rel="nofollow">http://isocpp.org/std/submit-a-proposal</a>.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13732">
+		<div id="div-comment-13732">
+		<div class="cmtinfo"><em> on <a href="#comment-13732" title="">2013-12-08 at 7:23 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/89d71f5ce0c487e3ea89f934a88f4f85?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Aaron</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13732"></div><p>@JC_Yang: Until recently, the standard didn&#8217;t acknowledge the existence of threads either &#8211; hence my query.  &#8220;Thanks for the standard thread support!  Can we please get a little love for processes?&#8221;  &#8220;&#8230;Just a teeny, tiny bit?&#8221;  </p>
+<p>I&#8217;m fairly certain I&#8217;m not the guy to submit a proposal.  I just don&#8217;t know the right place to make a suggestion/request, or to add my voice to those which must certainly have already been made.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-13670">
+		<div id="div-comment-13670">
+		<div class="cmtinfo"><em> on <a href="#comment-13670" title="">2013-12-05 at 6:40 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/be1457e4b025846ecfdddb323d90b869?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>JC_Yang</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13670"></div><p>@Aaron: forget to mention Boost::Interprocess, it probably can help you atm.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13669">
+		<div id="div-comment-13669">
+		<div class="cmtinfo"><em> on <a href="#comment-13669" title="">2013-12-05 at 6:36 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/be1457e4b025846ecfdddb323d90b869?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>JC_Yang</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13669"></div><p>@Aaron: I haven&#8217;t read the C++ standard through, but IIRC, process as a term does not exist in the standard. One C++ program as a whole running in the abstract machine described by the standard might be somehow resemble a process, but still, it&#8217;s not process.<br />
+So adding any cross-process/multi-process stuff require significant change in the standard, wording, terms&#8230;etc and many subtle details.<br />
+Yes, I&#8217;d like to see some standardized IPC library, too. but probably not in the near future afaik.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-13665">
+		<div id="div-comment-13665">
+		<div class="cmtinfo"><em> on <a href="#comment-13665" title="">2013-12-05 at 4:23 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/89d71f5ce0c487e3ea89f934a88f4f85?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Aaron</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13665"></div><p>Sorry I haven&#8217;t found a better place/way to ask but&#8230;</p>
+<p>Is there (or can there please be) a plan for standard C++ *process* synchronization?  I&#8217;m thinking something like Windows&#8217; Mutex (cross-process, create locked, released by OS on process termination), but supporting shared locking as well.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13617">
+		<div id="div-comment-13617">
+		<div class="cmtinfo"><em> on <a href="#comment-13617" title="">2013-12-03 at 4:16 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6b8ea4c791bb1f2ac4643584130c5c44?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/pachesantiago' rel='external nofollow' class='url'>pachesantiago</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13617"></div><p>Can somebody give me an example of how await/resumable work? I cant find any example that compiles</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-13591">
+		<div id="div-comment-13591">
+		<div class="cmtinfo"><em> on <a href="#comment-13591" title="">2013-12-02 at 1:49 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/dfeed0cb9f18492e11306e5b1acb497c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://qmodeler.com' rel='external nofollow' class='url'>henrikvallgrenHenrik Vallgren</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13591"></div><p>It&#8217;s great to be able to use the C++ compiler for C++ AMP. How about using C++ AMP for the C++ compiler?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13558">
+		<div id="div-comment-13558">
+		<div class="cmtinfo"><em> on <a href="#comment-13558" title="">2013-11-29 at 12:54 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13558"></div><p>C++11. Note that in the roadmap update C++14 generalized constexpr is a separate box on the right.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-13557">
+		<div id="div-comment-13557">
+		<div class="cmtinfo"><em> on <a href="#comment-13557" title="">2013-11-29 at 12:05 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d51a7cc9d8eb6aebd1f1fc6133111b8f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/rhalbersma' rel='external nofollow' class='url'>rhalbersma</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13557"></div><p>But inside those free functions, is the full C++14 relaxed constexpr syntax available (i.e for-loop and switch-statement) or only the single-return C++11 subset (i.e. recursion and ternary operator)?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13556">
+		<div id="div-comment-13556">
+		<div class="cmtinfo"><em> on <a href="#comment-13556" title="">2013-11-29 at 9:03 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13556"></div><p>@tomasu82: You should be able to use constexpr on variable declarations and free functions, but not on member functions yet. That will be implemented eventually but did not make it into this CTP.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-13555">
+		<div id="div-comment-13555">
+		<div class="cmtinfo"><em> on <a href="#comment-13555" title="">2013-11-29 at 12:15 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/59a826e690c0641c589c626ea0113de1?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/tomasu82' rel='external nofollow' class='url'>tomasu82</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13555"></div><p>With the new constexpr support, what exactly /is/ supported? I have some code that uses constexpr on some static class methods and const static member variables. Would that be supported? And if so, is there a way I can check that it is supported? say with a macro #if VER &gt; ?? </p>
+<p>Thanks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13544">
+		<div id="div-comment-13544">
+		<div class="cmtinfo"><em> on <a href="#comment-13544" title="">2013-11-28 at 5:43 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/f8c2819d2b9303b6905aaac52c333881?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Devid</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13544"></div><p>Great that we have 2013 CPT already.<br />
+It would be even better if  <a href="http://rise4fun.com/Vcpp" rel="nofollow">http://rise4fun.com/Vcpp</a>  will support VS 2013 RTM and CTP them too.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-13395">
+		<div id="div-comment-13395">
+		<div class="cmtinfo"><em> on <a href="#comment-13395" title="">2013-11-24 at 11:41 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13395"></div><p>@HGH: Good questions, see <a href="http://channel9.msdn.com/Events/Build/2013/2-306" rel="nofollow">http://channel9.msdn.com/Events/Build/2013/2-306</a>.</p>
+<p>Summarizing: There are two streams, release and CTP, and by default you should expect new features to show up in the CTP stream and then in the next major release, not in Updates which are more about stability improvements. We do ship other kinds of features in Updates, such as IDE features that don&#8217;t break customers, but the compiler is widely depended upon and changes there can cause source breaking changes, so we normally do not ship compiler changes in Updates. This is especially true now as the source base is undergoing high rate of change both for new features and for AST and other rejuvenation; shipping constexpr would require shipping a major compiler source diff which is fine on a major release when people are expecting to tweak their sources in adopting a new compiler, but it would likely surprise a lot of people that they have to treat an Update that way.</p>
+<p>Re date: We have not announced a date by which we&#8217;ll be fully compliant, in part because we don&#8217;t know :), and because we think reporting actual progress regularly is probably better than promises. So we have published a roadmap and have been updating it (most recently on the linked post) to share what we know when we know it. This way, you can extrapolate speed and expectations yourself based on the rate at which we actually ship features.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13327">
+		<div id="div-comment-13327">
+		<div class="cmtinfo"><em> on <a href="#comment-13327" title="">2013-11-21 at 4:22 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c8ceaf522aae8cf6c3777968107c5810?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>HGH</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13327"></div><p>Interesting but.. Will all these features and the full C++11/14 support you&#8217;ve talked about be as a VS 2013 update or they will be released as VS2014/VS2015?<br />
+Will complete support for the specifications (compiler and library support) happen in 2014 or the year after?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-13314">
+		<div id="div-comment-13314">
+		<div class="cmtinfo"><em> on <a href="#comment-13314" title="">2013-11-20 at 10:13 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13314"></div><p>@Christian: In the CTP, =default should now work for move special member functions, and generate what the compiler would have generated implicitly had the implicit generation not been suppressed (for example by declaring a copy operation or a destructor). In VS2013 RTM we didn&#8217;t yet allow =default for move ctor/op= because that compiler didn&#8217;t have the compiler-generated ones yet, so there was nothing for =default to do &#8212; now that the CTP has the compiler-generated ones, this also let us finish =default for move ctor/op=.</p>
+<p>Edited to add: Your example is a bug in our compiler, logged. Thanks for the repro! As a workaround, you can =default the move operations of class Y (but you shouldn&#8217;t have to, we&#8217;ll fix it, just giving one possible workaround in the meantime).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13313">
+		<div id="div-comment-13313">
+		<div class="cmtinfo"><em> on <a href="#comment-13313" title="">2013-11-20 at 9:06 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0b5271f5d7c8715641d16515f7c7a8a9?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Christian</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13313"></div><p>This demonstrated the issue. Works with e.g. GCC 4.8.0, but not CTP.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+#include &lt;vector&gt;
+
+int main()
+{
+   class Y
+   {
+   public:
+      Y() {};
+
+      Y(const Y&amp;) {};
+      Y&amp; operator=(const Y&amp;) 
+      {
+         return *this;
+      };
+   };
+
+   class X
+   {
+   public:
+      Y y;
+
+      X() {};
+
+      // Not copyable
+      X(const X&amp;) = delete;
+      X&amp; operator=(const X&amp;) = delete;
+
+#if 1
+      // Doesn't compile
+      X(X&amp;&amp;) = default;
+      X&amp; operator=(X&amp;&amp; rhs) = default;
+#else
+      // Compiles
+      X(X&amp;&amp; rhs)
+      {
+         y = std::move(rhs.y);
+      };
+      X&amp; operator=(X&amp;&amp; rhs)
+      {
+         y = std::move(rhs.y);
+         return *this;
+      };
+#endif
+   };
+
+   std::vector&lt;X&gt; cs;
+   cs.push_back(X());
+
+   return 0;
+}
+</pre>
+<p>If CTP is right, what is the best way to avoid having to explicitly maintain the move constructor/assignment functions as new members are added to the class? Having to do this explicitly seems like a potential source for bugs (easy to forget to amend the move constructor/assignment).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-13312">
+		<div id="div-comment-13312">
+		<div class="cmtinfo"><em> on <a href="#comment-13312" title="">2013-11-20 at 8:03 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0b5271f5d7c8715641d16515f7c7a8a9?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Christian</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13312"></div><p>Hi Herb,</p>
+<p>Could you clarify this for me: what is the behaviour of the =default move constructor/assignment operator? The CTP seems to silently not generate them if one of the class members doesn&#8217;t implement move semantics (i.e. has C(C&amp;&amp;) and/or C&amp; operator=(C&amp;&amp;)), whereas GCC-4.8.0 appears to do this (and instead copies the members in question).</p>
+<p>[1] says &#8220;For a move, =default means member-wise move of each element, if possible, otherwise a compile-time<br />
+error is immediately given&#8221; but I have no idea if that document is current/official. This seems to match the CTP&#8217;s behaviour, but not GCC&#8217;s. Which one is right?</p>
+<p>I was hoping to be able to use =default move-constructors/assignment instead of writing my own (where I have to move/copy each member in turn, and remember to also add any new members added later), but since some of the types I use doesn&#8217;t implement move semantics (they are from a library) it doesn&#8217;t appear I&#8217;m able to do this using the CTP &#8212; whereas GCC handles this fine.</p>
+<p>Thanks in advance.</p>
+<p>[1] <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2009/n2904.pdf" rel="nofollow">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2009/n2904.pdf</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-faisalvali odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13306">
+		<div id="div-comment-13306">
+		<div class="cmtinfo"><em> on <a href="#comment-13306" title="">2013-11-19 at 10:30 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/89156947cded556005aac7ca29498ccc?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>faisalvali</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13306"></div><p>wow – generic lambdas in VC++ already – yay!! What a fun time to be a C++ programmer :)<br />
+Thanks Herb (and of course to the VC++ Team)!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-13300">
+		<div id="div-comment-13300">
+		<div class="cmtinfo"><em> on <a href="#comment-13300" title="">2013-11-19 at 1:24 pm</a></em>  <cite><a href='http://cboard.cprogramming.com/general-discussions/160409-source-based-distros-awful-tipsy-blog-post.html#post1186395' rel='external nofollow' class='url'>Source-based distros are awful (tipsy blog post)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13300"></div><p>[&#8230;] up pretty good. The current release (CTP) is going to cover roughly 70% of C++11/14 (source: Visual C++ Compiler November 2013 CTP | Sutter’s Mill). C++ is accelerating. There is no doubt about [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13297">
+		<div id="div-comment-13297">
+		<div class="cmtinfo"><em> on <a href="#comment-13297" title="">2013-11-19 at 8:00 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e79ce9b4a8f96291d88217102ba10ed2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/fabiofracassi' rel='external nofollow' class='url'>Fabio</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13297"></div><p>Is there any ETA on a SP for the RTM? It contains a bunch of reproduceble ICEs (8 that I am aware of at connect) This really hinders us moving on to 2013</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-13296">
+		<div id="div-comment-13296">
+		<div class="cmtinfo"><em> on <a href="#comment-13296" title="">2013-11-19 at 7:20 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13296"></div><p>@Pal: It is a separate stream, think of it as (usually) an early preview of the next major release that&#8217;s worked on in a different branch from the current release&#8217;s servicing branch. Then it&#8217;s the usual decision for each bug fix as to whether to apply it to the current release via Updates, to the next release which would appear in CTP, or both branches. HTH</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13292">
+		<div id="div-comment-13292">
+		<div class="cmtinfo"><em> on <a href="#comment-13292" title="">2013-11-19 at 2:51 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9eca1e1d1ed34abe3b3a9b3f896bb9e3?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Balog Pal</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13292"></div><p>Please clarify the update thing. I get it&#8217;s a separate stream, but that leaves the update policy open. If the RTM gets a service pack released fixing bugs will the relevant changes merged over to the CTP stream creating an update of that too within some reasonable time? Or we can consider it isolated from mainstream fixes?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-13290">
+		<div id="div-comment-13290">
+		<div class="cmtinfo"><em> on <a href="#comment-13290" title="">2013-11-19 at 12:08 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/dc5f7c3937e6844cb776d2004b903578?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Petter</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13290"></div><p>Congratulations! It is great to see rapid progress!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13287">
+		<div id="div-comment-13287">
+		<div class="cmtinfo"><em> on <a href="#comment-13287" title="">2013-11-18 at 10:34 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/466d72deba2523c861323a956cd51a8f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/ricardoglc' rel='external nofollow' class='url'>Ricardo Costa</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13287"></div><p>Great news, Herb.</p>
+<p>Does operator new return memory aligned in accordance to the alignas specification? The MSDN documentation for __declspec(align()) explicitly states that it doesn&#8217;t, but __declspec(align()) is not a real language feature, unlike alignas, so I&#8217;m wondering if that restriction has changed. Thanks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-13283">
+		<div id="div-comment-13283">
+		<div class="cmtinfo"><em> on <a href="#comment-13283" title="">2013-11-18 at 5:30 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13283"></div><p>@JC_Yang: Bug fixes will go into Updates as they are available. The CTP is a separate stream.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13282">
+		<div id="div-comment-13282">
+		<div class="cmtinfo"><em> on <a href="#comment-13282" title="">2013-11-18 at 5:05 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/be1457e4b025846ecfdddb323d90b869?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>JC_Yang</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13282"></div><p>Are there any bugfixes for the VS2013 RTM compiler included in this CTP or they will be only available in the coming VS2013 supported-updates? There&#8217;re 6 bugs I know of(I&#8217;m tracking 5 of them, 1 is reported by me which is about wrong template instantiation point).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-13280">
+		<div id="div-comment-13280">
+		<div class="cmtinfo"><em> on <a href="#comment-13280" title="">2013-11-18 at 4:10 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13280"></div><p>@anon: Thanks for the pointer!</p>
+<p>@Sometime: This is a compiler-only CTP to give a preview of new compiler features, it does not include library updates. Of course, when these features hit the full product in a future release, they&#8217;ll be complete including library support (among other library updates).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-13279">
+		<div id="div-comment-13279">
+		<div class="cmtinfo"><em> on <a href="#comment-13279" title="">2013-11-18 at 4:03 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d01b7d0f9cccc3e1cedcfe09c428a4c7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>SometimeSomewhere</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13279"></div><p>@Herb: Thats excellent news and it&#8217;s nice to see a more rapid release schedule from the C++ visual studio team.</p>
+<p>That said will there be any library updates along with the CTP, my understanding/experience is that there are a number areas that need tending to with regards to the most recent VS2013 release.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-13278">
+		<div id="div-comment-13278">
+		<div class="cmtinfo"><em> on <a href="#comment-13278" title="">2013-11-18 at 3:58 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/20d7616cf2d1db66dbf2f4c95e3e4f53?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>anonymous</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_13278"></div><p>clang has had &#8220;some&#8221; generic lambdas support for a while but since a couple of weeks it seems like really robust. They are awesome, in particular when combined with boost fusion:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+auto tuple = std::make_tuple(1, 2.0, &quot;hello!&quot;);
+boost::fusion::for_each(tuple, [](auto i) { std::out &lt;&lt; i &lt;&lt; &quot;, &quot;; });  // 1, 2.0, hello! :) 
+</pre>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/11/18/visual-c-compiler-november-2013-ctp/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-42970f32e100239dd7b13f829f3ef861">
+	</div>
+	<div class="grofile-hash-map-21b12504b0bd64bc3061327cb4e82d35">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-6edae66d783e2ff6eaf771b3fa00b938">
+	</div>
+	<div class="grofile-hash-map-20abda9bae5114b1aec60dec4eb98d10">
+	</div>
+	<div class="grofile-hash-map-c7fe4b419ef78796ae89e40665c4394b">
+	</div>
+	<div class="grofile-hash-map-dc5f7c3937e6844cb776d2004b903578">
+	</div>
+	<div class="grofile-hash-map-89d2225720a1e0592bac2221fe54a546">
+	</div>
+	<div class="grofile-hash-map-89d71f5ce0c487e3ea89f934a88f4f85">
+	</div>
+	<div class="grofile-hash-map-be1457e4b025846ecfdddb323d90b869">
+	</div>
+	<div class="grofile-hash-map-6b8ea4c791bb1f2ac4643584130c5c44">
+	</div>
+	<div class="grofile-hash-map-dfeed0cb9f18492e11306e5b1acb497c">
+	</div>
+	<div class="grofile-hash-map-d51a7cc9d8eb6aebd1f1fc6133111b8f">
+	</div>
+	<div class="grofile-hash-map-59a826e690c0641c589c626ea0113de1">
+	</div>
+	<div class="grofile-hash-map-f8c2819d2b9303b6905aaac52c333881">
+	</div>
+	<div class="grofile-hash-map-c8ceaf522aae8cf6c3777968107c5810">
+	</div>
+	<div class="grofile-hash-map-0b5271f5d7c8715641d16515f7c7a8a9">
+	</div>
+	<div class="grofile-hash-map-89156947cded556005aac7ca29498ccc">
+	</div>
+	<div class="grofile-hash-map-e79ce9b4a8f96291d88217102ba10ed2">
+	</div>
+	<div class="grofile-hash-map-9eca1e1d1ed34abe3b3a9b3f896bb9e3">
+	</div>
+	<div class="grofile-hash-map-dc5f7c3937e6844cb776d2004b903578">
+	</div>
+	<div class="grofile-hash-map-466d72deba2523c861323a956cd51a8f">
+	</div>
+	<div class="grofile-hash-map-d01b7d0f9cccc3e1cedcfe09c428a4c7">
+	</div>
+	<div class="grofile-hash-map-20d7616cf2d1db66dbf2f4c95e3e4f53">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_36675={"id":468178,"unique_id":"wp-comment-36675","title":"%26%2339118%3B%26%2320113%3B%26%2338596%3B%26%2338712%3B%26%2322825%3B%26%2319979%3B%26%2326381%3B%26%2321153%3B%26%2331471%3B%26%2322825%3B%26%2320043%3B%26%2328860%3B%26%2329425%3B%26%2319968%3B%26%2326465%3B%26%2340857%3B%26%2322823%3B%26%2335805%3B%26%2335199%3B%26%2328216%3B%26%2326381%3B%26%2321153%3B%26%2331471%3B%26%2331934%3B%26amp%3B%232...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-36675","item_id":"_comm_36675"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_36675 == 'undefined' ){PDRTJS_468178_comm_36675 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_36675 );}}PDRTJS_settings_468178_comm_36539={"id":468178,"unique_id":"wp-comment-36539","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20the%20other%20hand%2C%20this%20says%20they%20made%20it%20into%20a%20CTP%20back%20in%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-36539","item_id":"_comm_36539"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_36539 == 'undefined' ){PDRTJS_468178_comm_36539 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_36539 );}}PDRTJS_settings_468178_comm_33070={"id":468178,"unique_id":"wp-comment-33070","title":"%40Christian%3AThe%20bug%20you%20described%20here%20%28defaulted%20move%20constructors%20don%26%23039%3Bt%20get%20generated%20if%20the%20class%20member%20doesn%26%23039%3Bt%20implement%20move%20semantics%29%20has%20been%20fixed%20and%20the%20fix%20will%20be%20included%20in%20a%20futur...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-33070","item_id":"_comm_33070"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_33070 == 'undefined' ){PDRTJS_468178_comm_33070 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_33070 );}}PDRTJS_settings_468178_comm_20351={"id":468178,"unique_id":"wp-comment-20351","title":"This%20CTP%20is%20a%20%26quot%3Bcompiler-only%26quot%3B%20CTP.%20As%20I%20mentioned%20in%20my%20past%20couple%20of%20Build%20talks%2C%20it%26%23039%3Bs%20intended%20to%20give%20a%20%26quot%3BP%26quot%3Breview%20of%20new%20features%20but%20is%20primarily%20about%20the%20batch%20compiler.%20You%26%23039%3Bll%20see%20odditie...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-20351","item_id":"_comm_20351"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_20351 == 'undefined' ){PDRTJS_468178_comm_20351 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_20351 );}}PDRTJS_settings_468178_comm_19879={"id":468178,"unique_id":"wp-comment-19879","title":"Hi%2CIs%20there%20any%20plan%20to%20make%20the%20debugger%20work%20properly%20with%20this%20CTP%3F%20I%20really%20like%20cool%20features%20of%20this%20CTP%20but%20its%20a%20pain%20trying%20to%20use%20the%20debugger.%20Visual%20Studio%20crashes%20always%20when%20deferen...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-19879","item_id":"_comm_19879"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_19879 == 'undefined' ){PDRTJS_468178_comm_19879 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_19879 );}}PDRTJS_settings_468178_comm_18126={"id":468178,"unique_id":"wp-comment-18126","title":"Additional%20words%20of%20the%20previous%20post%3A1.%20Using%20the%20%26%23039%3Bforward%26%23039%3B%20in%20the%20previous%20post%20is%20only%20for%20convenient%20for%20discuss.%20Usually%20it%20should%20be%20a%20function%20that%20makes%20an%20rvalue-reference%20as%20the%20return%20...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-18126","item_id":"_comm_18126"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_18126 == 'undefined' ){PDRTJS_468178_comm_18126 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_18126 );}}PDRTJS_settings_468178_comm_17872={"id":468178,"unique_id":"wp-comment-17872","title":"Sorry%20for%20bothering%20you%20after%20months%20your%20doc%20being%20posted%2C%20Sutter.%20May%20I%20ask%20several%20question%20here%3F%20Okay%20I%20just%20post%20my%20first%20question%20to%20see%20if%20it%26%23039%3Bs%20noticed%20%3A%29%20%28and%20sorry%20about%20that%20again...%29Is...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-17872","item_id":"_comm_17872"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_17872 == 'undefined' ){PDRTJS_468178_comm_17872 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_17872 );}}PDRTJS_settings_468178_comm_17228={"id":468178,"unique_id":"wp-comment-17228","title":"%40xmllmx%3A%20Yes%2C%20that%26%23039%3Bs%20a%20bug%20and%20we%20do%20intend%20to%20fix%20it.%20I%26%23039%3Bll%20see%20if%20we%20can%20say%20so%20better%20on%20the%20Connect%20bug%20itself.%20Thanks....","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-17228","item_id":"_comm_17228"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_17228 == 'undefined' ){PDRTJS_468178_comm_17228 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_17228 );}}PDRTJS_settings_468178_comm_17183={"id":468178,"unique_id":"wp-comment-17183","title":"Hi%2C%20Sutter%2C%20The%20following%20code%20cannot%20be%20compiled%20by%20VC%2B%2B%202013%20CTP%2C%20but%20it%20can%20be%20corretly%20compiled%20by%20GCC%20and%20CLang.%20struct%20A%7B%20%20%20%20%2F%2F%20error%20C2216%3A%20%26%23039%3Bexplicit%26%23039%3B%20cannot%20be%20used%20with%20%26%23039%3Bvirtual%26%23039%3B%20%20%20%20virt...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-17183","item_id":"_comm_17183"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_17183 == 'undefined' ){PDRTJS_468178_comm_17183 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_17183 );}}PDRTJS_settings_468178_comm_16027={"id":468178,"unique_id":"wp-comment-16027","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20Herb%20Sutter%20has%20just%20posted%20these%20awesome%20news%20about%20C%2B%2B%2014%26%238230%3B%20the%20proposals%20look%20VERY%20exciting%21%20Cannot%20wait%20for%20polymorphic%20Lambdas%3A%29And%20its%20awesome%20that%20everyone%20can%20try%20out%20that%20...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-16027","item_id":"_comm_16027"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_16027 == 'undefined' ){PDRTJS_468178_comm_16027 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_16027 );}}PDRTJS_settings_468178_comm_13896={"id":468178,"unique_id":"wp-comment-13896","title":"The%20generic%20lambdas%20are%20great%21%20They%20allow%20really%20cool%20interfaces%20to%20optimizers.%20For%20example%3A%26%23091%3Bcode%26%23093%3Bauto%20lambda%20%3D%26%23091%3B%26%23093%3B%28auto%20x%29%7Bauto%20d0%20%3D%20%20x%26%23091%3B1%26%23093%3B%20-%20x%26%23091%3B0%26%23093%3B%2Ax%26%23091%3B0%26%23093%3B%3Bauto%20d1%20%3D%20%201%20-%20x%26%23091%3B0%26%23093%3B%3Breturn%20100%20%2A%20d0%2Ad0%20%2B%20d1%2Ad...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13896","item_id":"_comm_13896"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13896 == 'undefined' ){PDRTJS_468178_comm_13896 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13896 );}}PDRTJS_settings_468178_comm_13863={"id":468178,"unique_id":"wp-comment-13863","title":"Here%20is%20an%20example%20of%20using%20resumable%2Fawait%20in%20a%20C%2B%2B%20Windows%20Store%20app%20while%20using%20SQLite%3Ahttp%3A%2F%2Fstackoverflow.com%2Fquestions%2F19309508%2Fusing-sqlite-winrt-from-a-c-windows-store-app...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13863","item_id":"_comm_13863"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13863 == 'undefined' ){PDRTJS_468178_comm_13863 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13863 );}}PDRTJS_settings_468178_comm_13734={"id":468178,"unique_id":"wp-comment-13734","title":"%40Aaron%3A%20See%20http%3A%2F%2Fisocpp.org%2Fstd%2Fsubmit-a-proposal....","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13734","item_id":"_comm_13734"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13734 == 'undefined' ){PDRTJS_468178_comm_13734 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13734 );}}PDRTJS_settings_468178_comm_13732={"id":468178,"unique_id":"wp-comment-13732","title":"%40JC_Yang%3A%20Until%20recently%2C%20the%20standard%20didn%26%23039%3Bt%20acknowledge%20the%20existence%20of%20threads%20either%20-%20hence%20my%20query.%20%20%26quot%3BThanks%20for%20the%20standard%20thread%20support%21%20%20Can%20we%20please%20get%20a%20little%20love%20for%20processe...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13732","item_id":"_comm_13732"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13732 == 'undefined' ){PDRTJS_468178_comm_13732 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13732 );}}PDRTJS_settings_468178_comm_13670={"id":468178,"unique_id":"wp-comment-13670","title":"%40Aaron%3A%20forget%20to%20mention%20Boost%3A%3AInterprocess%2C%20it%20probably%20can%20help%20you%20atm....","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13670","item_id":"_comm_13670"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13670 == 'undefined' ){PDRTJS_468178_comm_13670 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13670 );}}PDRTJS_settings_468178_comm_13669={"id":468178,"unique_id":"wp-comment-13669","title":"%40Aaron%3A%20I%20haven%26%23039%3Bt%20read%20the%20C%2B%2B%20standard%20through%2C%20but%20IIRC%2C%20process%20as%20a%20term%20does%20not%20exist%20in%20the%20standard.%20One%20C%2B%2B%20program%20as%20a%20whole%20running%20in%20the%20abstract%20machine%20described%20by%20the%20standard%20m...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13669","item_id":"_comm_13669"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13669 == 'undefined' ){PDRTJS_468178_comm_13669 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13669 );}}PDRTJS_settings_468178_comm_13665={"id":468178,"unique_id":"wp-comment-13665","title":"Sorry%20I%20haven%26%23039%3Bt%20found%20a%20better%20place%2Fway%20to%20ask%20but...Is%20there%20%28or%20can%20there%20please%20be%29%20a%20plan%20for%20standard%20C%2B%2B%20%2Aprocess%2A%20synchronization%3F%20%20I%26%23039%3Bm%20thinking%20something%20like%20Windows%26%23039%3B%20Mutex%20%28cross-proce...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13665","item_id":"_comm_13665"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13665 == 'undefined' ){PDRTJS_468178_comm_13665 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13665 );}}PDRTJS_settings_468178_comm_13617={"id":468178,"unique_id":"wp-comment-13617","title":"Can%20somebody%20give%20me%20an%20example%20of%20how%20await%2Fresumable%20work%3F%20I%20cant%20find%20any%20example%20that%20compiles...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13617","item_id":"_comm_13617"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13617 == 'undefined' ){PDRTJS_468178_comm_13617 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13617 );}}PDRTJS_settings_468178_comm_13591={"id":468178,"unique_id":"wp-comment-13591","title":"It%26%23039%3Bs%20great%20to%20be%20able%20to%20use%20the%20C%2B%2B%20compiler%20for%20C%2B%2B%20AMP.%20How%20about%20using%20C%2B%2B%20AMP%20for%20the%20C%2B%2B%20compiler%3F...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13591","item_id":"_comm_13591"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13591 == 'undefined' ){PDRTJS_468178_comm_13591 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13591 );}}PDRTJS_settings_468178_comm_13558={"id":468178,"unique_id":"wp-comment-13558","title":"C%2B%2B11.%20Note%20that%20in%20the%20roadmap%20update%20C%2B%2B14%20generalized%20constexpr%20is%20a%20separate%20box%20on%20the%20right....","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13558","item_id":"_comm_13558"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13558 == 'undefined' ){PDRTJS_468178_comm_13558 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13558 );}}PDRTJS_settings_468178_comm_13557={"id":468178,"unique_id":"wp-comment-13557","title":"But%20inside%20those%20free%20functions%2C%20is%20the%20full%20C%2B%2B14%20relaxed%20constexpr%20syntax%20available%20%28i.e%20for-loop%20and%20switch-statement%29%20or%20only%20the%20single-return%20C%2B%2B11%20subset%20%28i.e.%20recursion%20and%20ternary%20operat...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13557","item_id":"_comm_13557"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13557 == 'undefined' ){PDRTJS_468178_comm_13557 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13557 );}}PDRTJS_settings_468178_comm_13556={"id":468178,"unique_id":"wp-comment-13556","title":"%40tomasu82%3A%20You%20should%20be%20able%20to%20use%20constexpr%20on%20variable%20declarations%20and%20free%20functions%2C%20but%20not%20on%20member%20functions%20yet.%20That%20will%20be%20implemented%20eventually%20but%20did%20not%20make%20it%20into%20this%20CTP....","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13556","item_id":"_comm_13556"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13556 == 'undefined' ){PDRTJS_468178_comm_13556 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13556 );}}PDRTJS_settings_468178_comm_13555={"id":468178,"unique_id":"wp-comment-13555","title":"With%20the%20new%20constexpr%20support%2C%20what%20exactly%20%2Fis%2F%20supported%3F%20I%20have%20some%20code%20that%20uses%20constexpr%20on%20some%20static%20class%20methods%20and%20const%20static%20member%20variables.%20Would%20that%20be%20supported%3F%20And%20if%20s...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13555","item_id":"_comm_13555"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13555 == 'undefined' ){PDRTJS_468178_comm_13555 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13555 );}}PDRTJS_settings_468178_comm_13544={"id":468178,"unique_id":"wp-comment-13544","title":"Great%20that%20we%20have%202013%20CPT%20already.It%20would%20be%20even%20better%20if%20%20http%3A%2F%2Frise4fun.com%2FVcpp%20%20will%20support%20VS%202013%20RTM%20and%20CTP%20them%20too....","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13544","item_id":"_comm_13544"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13544 == 'undefined' ){PDRTJS_468178_comm_13544 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13544 );}}PDRTJS_settings_468178_comm_13395={"id":468178,"unique_id":"wp-comment-13395","title":"%40HGH%3A%20Good%20questions%2C%20see%20http%3A%2F%2Fchannel9.msdn.com%2FEvents%2FBuild%2F2013%2F2-306.Summarizing%3A%20There%20are%20two%20streams%2C%20release%20and%20CTP%2C%20and%20by%20default%20you%20should%20expect%20new%20features%20to%20show%20up%20in%20the%20CTP...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13395","item_id":"_comm_13395"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13395 == 'undefined' ){PDRTJS_468178_comm_13395 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13395 );}}PDRTJS_settings_468178_comm_13327={"id":468178,"unique_id":"wp-comment-13327","title":"Interesting%20but..%20Will%20all%20these%20features%20and%20the%20full%20C%2B%2B11%2F14%20support%20you%26%23039%3Bve%20talked%20about%20be%20as%20a%20VS%202013%20update%20or%20they%20will%20be%20released%20as%20VS2014%2FVS2015%3FWill%20complete%20support%20for%20the%20specific...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13327","item_id":"_comm_13327"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13327 == 'undefined' ){PDRTJS_468178_comm_13327 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13327 );}}PDRTJS_settings_468178_comm_13314={"id":468178,"unique_id":"wp-comment-13314","title":"%40Christian%3A%20In%20the%20CTP%2C%20%3Ddefault%20should%20now%20work%20for%20move%20special%20member%20functions%2C%20and%20generate%20what%20the%20compiler%20would%20have%20generated%20implicitly%20had%20the%20implicit%20generation%20not%20been%20suppressed%20...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13314","item_id":"_comm_13314"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13314 == 'undefined' ){PDRTJS_468178_comm_13314 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13314 );}}PDRTJS_settings_468178_comm_13313={"id":468178,"unique_id":"wp-comment-13313","title":"This%20demonstrated%20the%20issue.%20Works%20with%20e.g.%20GCC%204.8.0%2C%20but%20not%20CTP.%26%23091%3Bcode%26%23093%3B%23include%20%26lt%3Bvector%26gt%3Bint%20main%28%29%7B%20%20%20class%20Y%20%20%20%7B%20%20%20public%3A%20%20%20%20%20%20Y%28%29%20%7B%7D%3B%20%20%20%20%20%20Y%28const%20Y%26amp%3B%29%20%7B%7D%3B%20%20%20%20%20%20Y%26amp%3B%20operator%3D%28co...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13313","item_id":"_comm_13313"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13313 == 'undefined' ){PDRTJS_468178_comm_13313 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13313 );}}PDRTJS_settings_468178_comm_13312={"id":468178,"unique_id":"wp-comment-13312","title":"Hi%20Herb%2CCould%20you%20clarify%20this%20for%20me%3A%20what%20is%20the%20behaviour%20of%20the%20%3Ddefault%20move%20constructor%2Fassignment%20operator%3F%20The%20CTP%20seems%20to%20silently%20not%20generate%20them%20if%20one%20of%20the%20class%20members%20doesn%26%23039%3Bt%20...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13312","item_id":"_comm_13312"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13312 == 'undefined' ){PDRTJS_468178_comm_13312 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13312 );}}PDRTJS_settings_468178_comm_13306={"id":468178,"unique_id":"wp-comment-13306","title":"wow%20%20generic%20lambdas%20in%20VC%2B%2B%20already%20%20yay%21%21%20What%20a%20fun%20time%20to%20be%20a%20C%2B%2B%20programmer%20%3A%29Thanks%20Herb%20%28and%20of%20course%20to%20the%20VC%2B%2B%20Team%29%21...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13306","item_id":"_comm_13306"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13306 == 'undefined' ){PDRTJS_468178_comm_13306 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13306 );}}PDRTJS_settings_468178_comm_13300={"id":468178,"unique_id":"wp-comment-13300","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20up%20pretty%20good.%20The%20current%20release%20%28CTP%29%20is%20going%20to%20cover%20roughly%2070%25%20of%20C%2B%2B11%2F14%20%28source%3A%20Visual%20C%2B%2B%20Compiler%20November%202013%20CTP%20%7C%20Sutters%20Mill%29.%20C%2B%2B%20is%20accelerating.%20There%20is%20no%20doub...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13300","item_id":"_comm_13300"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13300 == 'undefined' ){PDRTJS_468178_comm_13300 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13300 );}}PDRTJS_settings_468178_comm_13297={"id":468178,"unique_id":"wp-comment-13297","title":"Is%20there%20any%20ETA%20on%20a%20SP%20for%20the%20RTM%3F%20It%20contains%20a%20bunch%20of%20reproduceble%20ICEs%20%288%20that%20I%20am%20aware%20of%20at%20connect%29%20This%20really%20hinders%20us%20moving%20on%20to%202013...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13297","item_id":"_comm_13297"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13297 == 'undefined' ){PDRTJS_468178_comm_13297 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13297 );}}PDRTJS_settings_468178_comm_13296={"id":468178,"unique_id":"wp-comment-13296","title":"%40Pal%3A%20It%20is%20a%20separate%20stream%2C%20think%20of%20it%20as%20%28usually%29%20an%20early%20preview%20of%20the%20next%20major%20release%20that%26%23039%3Bs%20worked%20on%20in%20a%20different%20branch%20from%20the%20current%20release%26%23039%3Bs%20servicing%20branch.%20Then%20it%26%23039%3Bs%20th...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13296","item_id":"_comm_13296"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13296 == 'undefined' ){PDRTJS_468178_comm_13296 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13296 );}}PDRTJS_settings_468178_comm_13292={"id":468178,"unique_id":"wp-comment-13292","title":"Please%20clarify%20the%20update%20thing.%20I%20get%20it%26%23039%3Bs%20a%20separate%20stream%2C%20but%20that%20leaves%20the%20update%20policy%20open.%20If%20the%20RTM%20gets%20a%20service%20pack%20released%20fixing%20bugs%20will%20the%20relevant%20changes%20merged%20over%20to...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13292","item_id":"_comm_13292"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13292 == 'undefined' ){PDRTJS_468178_comm_13292 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13292 );}}PDRTJS_settings_468178_comm_13290={"id":468178,"unique_id":"wp-comment-13290","title":"Congratulations%21%20It%20is%20great%20to%20see%20rapid%20progress%21...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13290","item_id":"_comm_13290"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13290 == 'undefined' ){PDRTJS_468178_comm_13290 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13290 );}}PDRTJS_settings_468178_comm_13287={"id":468178,"unique_id":"wp-comment-13287","title":"Great%20news%2C%20Herb.Does%20operator%20new%20return%20memory%20aligned%20in%20accordance%20to%20the%20alignas%20specification%3F%20The%20MSDN%20documentation%20for%20__declspec%28align%28%29%29%20explicitly%20states%20that%20it%20doesn%26%23039%3Bt%2C%20but%20__declsp...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13287","item_id":"_comm_13287"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13287 == 'undefined' ){PDRTJS_468178_comm_13287 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13287 );}}PDRTJS_settings_468178_comm_13283={"id":468178,"unique_id":"wp-comment-13283","title":"%40JC_Yang%3A%20Bug%20fixes%20will%20go%20into%20Updates%20as%20they%20are%20available.%20The%20CTP%20is%20a%20separate%20stream....","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13283","item_id":"_comm_13283"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13283 == 'undefined' ){PDRTJS_468178_comm_13283 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13283 );}}PDRTJS_settings_468178_comm_13282={"id":468178,"unique_id":"wp-comment-13282","title":"Are%20there%20any%20bugfixes%20for%20the%20VS2013%20RTM%20compiler%20included%20in%20this%20CTP%20or%20they%20will%20be%20only%20available%20in%20the%20coming%20VS2013%20supported-updates%3F%20There%26%23039%3Bre%206%20bugs%20I%20know%20of%28I%26%23039%3Bm%20tracking%205%20of%20them%2C%201%20...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13282","item_id":"_comm_13282"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13282 == 'undefined' ){PDRTJS_468178_comm_13282 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13282 );}}PDRTJS_settings_468178_comm_13280={"id":468178,"unique_id":"wp-comment-13280","title":"%40anon%3A%20Thanks%20for%20the%20pointer%21%40Sometime%3A%20This%20is%20a%20compiler-only%20CTP%20to%20give%20a%20preview%20of%20new%20compiler%20features%2C%20it%20does%20not%20include%20library%20updates.%20Of%20course%2C%20when%20these%20features%20hit%20the%20full%20p...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13280","item_id":"_comm_13280"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13280 == 'undefined' ){PDRTJS_468178_comm_13280 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13280 );}}PDRTJS_settings_468178_comm_13279={"id":468178,"unique_id":"wp-comment-13279","title":"%40Herb%3A%20Thats%20excellent%20news%20and%20it%26%23039%3Bs%20nice%20to%20see%20a%20more%20rapid%20release%20schedule%20from%20the%20C%2B%2B%20visual%20studio%20team.That%20said%20will%20there%20be%20any%20library%20updates%20along%20with%20the%20CTP%2C%20my%20understanding%2Fexp...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13279","item_id":"_comm_13279"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13279 == 'undefined' ){PDRTJS_468178_comm_13279 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13279 );}}PDRTJS_settings_468178_comm_13278={"id":468178,"unique_id":"wp-comment-13278","title":"clang%20has%20had%20%26quot%3Bsome%26quot%3B%20generic%20lambdas%20support%20for%20a%20while%20but%20since%20a%20couple%20of%20weeks%20it%20seems%20like%20really%20robust.%20They%20are%20awesome%2C%20in%20particular%20when%20combined%20with%20boost%20fusion%3A%26%23091%3Bcode%26%23093%3Bauto%20tuple%20...","permalink":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/#comment-13278","item_id":"_comm_13278"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_13278 == 'undefined' ){PDRTJS_468178_comm_13278 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_13278 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJzTLy/QTc7PK0nNK9EvyClNz8wr1i+uzCtJrMjITM/IAeKS1CJMEWP94uSizIISoOIM5/yiVL2sYh19yo1yKiotzgjISczMAxpon2traGJkZGxiZGhskgUAFHlAaw=='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s1.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s2.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+	// Infinite scroll support
+	if ( typeof( jQuery ) !== 'undefined' ) {
+		jQuery( function( $ ) {
+			$( document.body ).on( 'post-load', function() {
+				SyntaxHighlighter.highlight();
+			} );
+		} );
+	}
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F11%2F18%2Fvisual-c-compiler-november-2013-ctp%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/11\/18\/visual-c-compiler-november-2013-ctp\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F11%2F18%2Fvisual-c-compiler-november-2013-ctp%2F","postID":"2361","shortlink":"https:\/\/wp.me\/peb5Y-C5","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2361","statsLink":"https:\/\/wordpress.com\/stats\/post\/2361\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F11%2F18%2Fvisual-c-compiler-november-2013-ctp%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2361','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLmpvLVYrZG9bWy1RSmZoX0t4ZXpza01NL2lZRnJxazFbLVI4P2VuL0RUWU9iRXpqVHVxWnxUZj1beCtbW1ZKci1SfHdJZ2E3aCtGKzJmd05uJklMUGI4SzB2SEtkP1d4Rkt2Z2V6Qn5Wbix8dEhtcFJza0Z4eXNRTUpJXWJsa19NREtuOEwtN0VkZ3VGZjVjam5sXUFkYmN1PWp4VGNuR0c3VysvTFt3Y3B3c3pjOUpdX2s1c2FTbTFOQ2ljMk4mQm85WnV0Pw=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2361' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

@@ -1,0 +1,782 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Garbage Collection Synopsis, and C++ | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965449&amp;back=https%3A%2F%2Fherbsutter.com%2F2011%2F10%2F25%2Fgarbage-collection-synopsis-and-c%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Garbage Collection Synopsis, and&nbsp;C++ Comments Feed" href="https://herbsutter.com/2011/10/25/garbage-collection-synopsis-and-c/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='John McCarthy' href='https://herbsutter.com/2011/10/25/john-mccarthy/' />
+<link rel='next' title='Elements of Modern C++&nbsp;Style' href='https://herbsutter.com/2011/10/28/elements-of-modern-c-style/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2011/10/25/garbage-collection-synopsis-and-c/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-c8' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2011%2F10%2F25%2Fgarbage-collection-synopsis-and-c%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2011%2F10%2F25%2Fgarbage-collection-synopsis-and-c%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Garbage Collection Synopsis, and C++" />
+<meta property="og:url" content="https://herbsutter.com/2011/10/25/garbage-collection-synopsis-and-c/" />
+<meta property="og:description" content="In response to my note about John McCarthy’s inventing automatic (non ref-counted) garbage collection, rosen4obg asked: OK, GC was invented half a century ago. When it is going to land in the C++ w…" />
+<meta property="article:published_time" content="2011-10-25T23:44:51+00:00" />
+<meta property="article:modified_time" content="2011-10-26T21:12:28+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://herbsutter.files.wordpress.com/2011/10/image2.png" />
+<meta property="og:image:width" content="175" />
+<meta property="og:image:height" content="244" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Garbage Collection Synopsis, and&nbsp;C++" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="In response to my note about John McCarthy’s inventing automatic (non ref-counted) garbage collection, rosen4obg asked: OK, GC was invented half a century ago. When it is going to land in the C++ world? Here’s a short but detailed answer, which links to illuminating reading and videos. The Three Kinds of GC The three major&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2011/10/25/garbage-collection-synopsis-and-c/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-752 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2011/10/25/john-mccarthy/" rel="prev">John McCarthy</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2011/10/28/elements-of-modern-c-style/" rel="next">Elements of Modern C++&nbsp;Style</a> &raquo;</div>
+			</div>
+			
+			<div class="post-752 post type-post status-publish format-standard hentry category-c-net category-c category-software-development" id="post-752">
+				<div class="posttitle">
+					<h2>Garbage Collection Synopsis, and&nbsp;C++</h2>
+					<p class="post-info">2011-10-25 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><img style="background-image:none;padding-left:0;padding-right:0;display:inline;float:right;padding-top:0;border:0;" title="Insert your favorite &quot;stop the world&quot; joke here." src="https://herbsutter.files.wordpress.com/2011/10/image2.png?w=175&#038;h=244" alt="Insert your favorite &quot;stop the world&quot; joke here." width="175" height="244" align="right" border="0" /></p>
+<p>In response to my <a href="https://herbsutter.com/2011/10/25/john-mccarthy/">note about John McCarthy’s inventing automatic (non ref-counted) garbage collection</a>, rosen4obg asked:</p>
+<blockquote><p>OK, GC was invented half a century ago. When it is going to land in the C++ world?</p></blockquote>
+<p>Here’s a short but detailed answer, which links to illuminating reading and videos.</p>
+<h3>The Three Kinds of GC</h3>
+<p>The three major families of garbage collection are:</p>
+<ol>
+<li>Reference counting.</li>
+<li>Mark-sweep (aka non-moving) collectors, where objects are collected but live objects don&#8217;t move. This is what McCarthy first invented.</li>
+<li>Mark-compact (aka moving) collectors, where live objects are moved together to make allocated memory more compact. Note that doing this involves updating pointers&#8217; values on the fly. This category includes semispace collectors as well as the more efficient modern ones like the .NET CLR&#8217;s that don&#8217;t use up half your memory or address space.</li>
+</ol>
+<p>When I say &#8220;automatic GC&#8221; I mean #2 or #3.</p>
+<h3>GC and C++</h3>
+<p>C++ has always supported #1 well via reference counted smart pointers. Those are now standard in C++11 in the form of unique_ptr, shared_ptr, weak_ptr. C++98 had auto_ptr, but it was never great and has been deprecated.</p>
+<p>C++ has long supported #2, but less formally because the products were nonstandard, conservative, and not as portable. The major prior art is the Boehm (later Great Circle and Symantec) mark-sweep garbage collector. The new C++11 standard has just added a minimal GC ABI to more formally bless such non-moving collectors; see <a href="http://www2.research.att.com/~bs/C++0xFAQ.html#gc-abi">Stroustrup&#8217;s GC FAQ</a> for more.</p>
+<p>C++ cannot support #3 without at least a new pointer type, because C/C++ pointer values are required to be stable (not change their values), so that you can cast them to an int and back, or write them to a file and back; this is why we created the ^ pointer type for C++/CLI which can safely point into #3-style compacting GC heaps. See section 3.3 of my paper <a href="http://www.gotw.ca/publications/C++CLIRationale.pdf">A Design Rationale for C++/CLI</a> for more rationale about ^ and gcnew.</p>
+<h3>Other GC Resources</h3>
+<p>For a wonderful 57-minute conversation on garbage collection by one of the world&#8217;s top GC experts, run don&#8217;t walk to the <a href="http://channel9.msdn.com/Shows/Going+Deep/E2E-Erik-Meijer-and-Patrick-Dussud-Inside-Garbage-Collection">C9 “Inside Garbage Collection” interview with Patrick Dussud</a>. Patrick wrote the .NET CLR&#8217;s GC, and it was far from his first; before that he had deep experience implementing Lisp runtimes, and I&#8217;m sure has forgotten more about GC than I&#8217;ll ever know. He&#8217;s also a great guy to work with.</p>
+<p>For a great book on GC, I love <a href="http://www.amazon.com/Garbage-Collection-Algorithms-Automatic-Management/dp/0471941484"><em>Garbage Collection</em> by Jones and Lins</a>.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c-net/" rel="category tag">C# / .NET</a>, <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a> | 											34 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">34 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-4449">
+		<div id="div-comment-4449">
+		<div class="cmtinfo"><em> on <a href="#comment-4449" title="">2011-11-23 at 6:19 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/167b071c67d48ea95479b8e499806fc0?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>David Bradley</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4449"></div><p>I remain unconvinced that GC is a great sole solution for memory management. I&#8217;ve rarely needed it except in certain complex object graphs. It only addresses one leak point, references can still be leaked. Also having all objects with a non-deterministic lifetime is often inconvenient. From the systems I&#8217;ve worked on there are often unsavvory side effects that occur under certain conditions.</p>
+<p>I do want to be able to use it, but I want to dictate when and to what extent I want to use it. C# to some degree allows that with &#8220;using&#8221;. But that&#8217;s still a bit clumbsy. Maybe approached from the opposite direction would be better, where rather than default to GC you have an allocator/pointer that would allow you to indicate objects to be managed by GC.  But from my experience with JavaScript and XPCOM&#8217;s reference counting mechanism that might prove difficult.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4426">
+		<div id="div-comment-4426">
+		<div class="cmtinfo"><em> on <a href="#comment-4426" title="">2011-11-18 at 6:34 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e0583eeae32733b398f3d48eb98c4cad?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>John</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4426"></div><p>GC is for lazy programmers. C++ programmers dont need it.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4350">
+		<div id="div-comment-4350">
+		<div class="cmtinfo"><em> on <a href="#comment-4350" title="">2011-11-08 at 11:37 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/5b45540ae377ec54a071f313b7193a27?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://daveabrahams.com' rel='external nofollow' class='url'>David Abrahams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4350"></div><p>It seems to me that you&#8217;d want to be able to classify certain types as only managing memory, so they can be used in GC&#8217;d or non-GC&#8217;d code (with dtors skipped).  Of course we&#8217;d need to be able to propagate that information through the type system à la <code>noexcept</code>.  Probably that sort of propagation mechanism needs to be generalized.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4349">
+		<div id="div-comment-4349">
+		<div class="cmtinfo"><em> on <a href="#comment-4349" title="">2011-11-08 at 11:10 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a9e3ff5113a72d581d7124640ccd3374?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Gene Bushuyev</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4349"></div><p>If GC is ever added to the standard I strongly believe it should be limited only to the types with trivial destructors. There should be no change in the current syntax or new keywords or new type of pointers. That limits the useability but it also keeps programs from unholy interraction of GC with destructors. Trivial destructors will be consistent with infinite life time implied by GC, so the program will not be able to detect the difference. Compiler vendors can implement this behavior within the current standard, though adding it as a requirement will make code portable.</p>
+<p>On the positive side, I forsee new books coming about GC gotchas in C++, which makes life even more interesting &#8212; You did what? Added a destructor? Now your program leaks! Isn&#8217;t that sweet :-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4249">
+		<div id="div-comment-4249">
+		<div class="cmtinfo"><em> on <a href="#comment-4249" title="">2011-10-31 at 10:35 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/834ecf25ebbc609dd2dc4e0aaff099bb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Bob</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4249"></div><p>I designed a GC library for C++.  It&#8217;s not quite automatic, but it has a simple command for quickly going through and picking up unused memory references.  The command could be timed, put into some algorithm, or manually inputted at certain points in the code sequence that is natural for a GC sweep.  Overall it&#8217;s extremely efficient, though I can&#8217;t guarantee that is commercial grade since I got bored of it after design.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4161">
+		<div id="div-comment-4161">
+		<div class="cmtinfo"><em> on <a href="#comment-4161" title="">2011-10-28 at 1:17 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/5b45540ae377ec54a071f313b7193a27?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://daveabrahams.com' rel='external nofollow' class='url'>David Abrahams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4161"></div><p>If these questions are “just details” then you and I are having different discussions.  I&#8217;m trying to address the biggest challenge in achieving your goals (with which I don&#8217;t take issue): coming up with a coherent programming model that accomodates both GC and destructors.  To get there, you need to determine if/which things that used to be implementation details would subsequently have to be documented in interfaces, and these questions you&#8217;re calling “details” make a huge difference in the answers.</p>
+<p>Your goals to clean up shared_ptr cycles and support lock-free programming are great; my skepticism about achieving it with a GC language feature comes from the lack of good answers to questions about the programming model.  In my opinion there&#8217;s nothing interesting to say about GC in C++ until those questions are addressed.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-4159">
+		<div id="div-comment-4159">
+		<div class="cmtinfo"><em> on <a href="#comment-4159" title="">2011-10-28 at 11:06 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4159"></div><p>Whatever gc_new or make_gc etc. returns would be GC&#8217;d. It&#8217;s a separate design decision whether it would be better to call that thing a * or some other pointer type like gc_ptr or something (just as shared_ptr and unique_ptr and weak_ptr and * are all different standard pointer types). I can see benefits and drawbacks both ways, reusing */&amp; or not reusing */&amp;.</p>
+<p>These are interesting design questions that any specific proposal has to answer concretely and that have several promising potential design answers. But for the purposes of this discussion they are really just details that shouldn&#8217;t obscure the main goal, which is to not remove/replace any existing uses (e.g., uses of std:: smart pointers or *&#8217;s or change the programming model to want to gcnew everything, etc.), only to additionally solve those problems std:: smart pointers cannot (specifically shared_ptr cycles and ABA).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4156">
+		<div id="div-comment-4156">
+		<div class="cmtinfo"><em> on <a href="#comment-4156" title="">2011-10-28 at 9:57 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/5b45540ae377ec54a071f313b7193a27?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://daveabrahams.com' rel='external nofollow' class='url'>David Abrahams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4156"></div><p>Sorry, but that doesn&#8217;t answer the question.  Let me rephrase.  If I take a raw pointer or reference to an object allocated with gc_new, is the existence of that pointer enough to keep the object alive, or not?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-4155">
+		<div id="div-comment-4155">
+		<div class="cmtinfo"><em> on <a href="#comment-4155" title="">2011-10-28 at 7:20 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4155"></div><blockquote><p>You still haven’t said whether all pointers or only special pointers participate in refcounting.</p></blockquote>
+<p>My interest is in cleaning up cycles of shared_ptrs, and objects allocated with an explicit opt-in GC heap allocator (e.g., gc_new T or gc_allocator or some such). Only the cases std::*_ptr can&#8217;t deal with today.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4154">
+		<div id="div-comment-4154">
+		<div class="cmtinfo"><em> on <a href="#comment-4154" title="">2011-10-28 at 7:15 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4154"></div><p>Here are my answers to your main questions. I think Bjarne would give similar answers; he’s long been a proponent of optional GC (#2) for ISO C++.</p>
+<p>Briefly:</p>
+<blockquote>
+<p>Adding a new feature to a language should be based on good reasoning, such as:</p>
+<p>a) How likely will the feature be abused more than used well?<br />
+    <br />b) How often is the feature needed at all?</p>
+<p>c) What cost or how viral is the feature? (does it force itself on those who might not want it)</p>
+<p>@Herb, what are your answers to these a/b/c questions? Can I see your answers? </p>
+</blockquote>
+<p>The fundamental point is that something is worth standardizing iff it’s important to support in portable code, and pulls its weight including being worth whatever cost there might be. To evaluate that, the committee members consider issues like those above as input.</p>
+<p>The answers to the above could be different for different GC proposals, but for the one I have in mind (GC for shared_ptr cycles + memory allocated with an explicitly GC-requested allocator such as a gc_new T or gc_allocator&lt;T&gt;), I think the answers are:</p>
+<p>a) I think it would be used well and rarely, because we’d teach to never use it by default (shared_ptr et al. are and should continue to be the recommended default);</p>
+<p>b) The feature should be needed rarely, but is required for interesting and important cases that simply can’t be handled in portable C++ code today. It’s kind of like what Booch said about multiple inheritance: You rarely need it, but when you need it you really need it and nothing else will do.</p>
+<p>c) I would hope it would be contained and not viral at all. I don’t see why it couldn’t be done in a very targeted way.</p>
+<blockquote>
+<p>Secondly, are you sure your motivation is not more driven by the desire to make C++ play better with languages that already have pervasive GC, rather than by the value that GC brings to C++ itself?</p>
+</blockquote>
+<p>That’s a natural question, because I’m heavily involved in C++/CLI and C++/CX.</p>
+<p>Yes, I’m sure. My motivation here is not related to those, though I’ve learned a lot from doing them. C++/CLI and C++CX are a different topic because they are bindings to <strong>foreign </strong>object models and runtime systems. C++/CLI binds to .NET, which supports GC (#3 above). C++/CX binds to Windows 8 WinRT, which uses pure reference counting only (#1 above), cycle leaking and all, and here ^ and ref new can basically be thought of as a flavor of shared_ptr and make_shared baked into the compiler, plus COM details that shared_ptr and make_shared can&#8217;t handle which is why we couldn&#8217;t just use shared_ptr itself.</p>
+<p>In this post’s topic, I am only interested in what makes sense for <strong>native </strong>(and possibly standard) C++, and the value GC (specifically #2) brings there. My motivation is to be able to write portable C++ code that can deal with shared_ptr cycles, and portable code to express those relatively rare, but genuinely interesting and important, algorithms that actually do require GC, which include important high-performance lock-free algorithms.</p>
+<p>Note that for several years now I’ve been writing and teaching about Effective Concurrency in all the major languages &#8212; C++, Java, C#, and C+pthreads – and in the lock-free code section I keep having to add comments about how certain examples are easy/easier in Java and C#, and hand-wave about what it would take to do them in C++. I hate that.</p>
+<blockquote>
+<p>I mean, if the discussion continues as is, which seems to be roughly trying to answer the isolated question of:</p>
+<p>“what is the value of GC to C++?”</p>
+<p>then I suspsect the majority of C++ people will just conclude the answer is “GC offers insufficient value to warrant making it pervasive in the language”</p>
+</blockquote>
+<p>I was with you until the last sentence, which shifted to “pervasive.” I don’t know of anyone (including me) who is arguing for making it pervasive in the language; as I argued in my <a href="http://channel9.msdn.com/Events/BUILD/BUILD2011/TOOL-835T" rel="nofollow"><em>Writing Modern C++ Code </em>talk at Build</a>, C++ is doing very well with ref counting as its primary memory and resource management tool.</p>
+<p>The answer to “what is the value of GC to C++?” is “to handle the remaining important cases ref counting can’t, such as shared_ptr cycles and ABA problems in high-performance lock-free code,” not to replace any existing use of ref counting. GC should be purely additive.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-4147">
+		<div id="div-comment-4147">
+		<div class="cmtinfo"><em> on <a href="#comment-4147" title="">2011-10-27 at 9:40 am</a></em>  <cite><a href='http://www.devalot.com/articles/2011/10/cxx-gc' rel='external nofollow' class='url'>Garbage collection/reference counting in C++11 - Devalot</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4147"></div><p>[&#8230;] are plenty of people who criticize C++ for not having a standard garbage collector. Herb Sutter explains why C++ doesn&#039;t support automatic mark-compact garbage collection but does have a formal ABI for [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4136">
+		<div id="div-comment-4136">
+		<div class="cmtinfo"><em> on <a href="#comment-4136" title="">2011-10-26 at 7:46 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/d7aaf766b7091c5583ee189b116ecd6a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Glen</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4136"></div><p>Adding a new feature to a language should be based on good reasoning, such as:</p>
+<p>a) How likely will the feature be abused more than used well?<br />
+b) How often is the feature needed at all?<br />
+c) What cost or how viral is the feature? (does it force itself on those who might not want it)</p>
+<p>If a feature fails these tests, then the feature should most likely not be included, or be included in a mitigated way.</p>
+<p>In the case of adding the GC feature to C++, if these tests could be considered in isolation, I thoroughly (so far) fail to see enough value in adding GC to C++; because when I apply these tests to GC, I get these results:</p>
+<p>on point a), I think GC will be considered the &#8220;easy&#8221; option so will be used to excess as a magic bullet when it is not.<br />
+on point b), I rarely, if ever, find myself writing much code where I think &#8220;wow, if only I had GC right now&#8230;&#8221;<br />
+on point c), if point a) turns out to be true, I will find my application becoming the undesired &#8220;beneficiary&#8221; of a lot of garbage I didn&#8217;t create and can&#8217;t control.</p>
+<p>So given these are my answers, thus far (and I am open to being convinced), I strongly agree with @Frank Davis that adding GC to C++ will make GC virus like for C++, and quite likely to the detriment of C++&#8217;s own superior way of doing things.</p>
+<p>@Herb, what are your answers to these a/b/c questions? Can I see your answers? Secondly, are you sure your motivation is not more driven by the desire to make C++ play better with languages that already have pervasive GC, rather than by the value that GC brings to C++ itself?</p>
+<p>If that&#8217;s the real motivation, then @everybody, perhaps we should just deal to that question instead? If we try to justify (or not) GC and C++ on their own terms as the discussion seems to be framed thus far, I suspect we will get the wrong or limited answers. I think to get better answers we need to ask a broader question:</p>
+<p>I mean, if the discussion continues as is, which seems to be roughly trying to answer the isolated question of:</p>
+<p>&#8220;what is the value of GC to C++?&#8221;</p>
+<p>then I suspsect the majority of C++ people will just conclude the answer is &#8220;GC offers insufficient value to warrant making it pervasive in the language&#8221; and that will be that, for reasons very much like the ones I have given above.</p>
+<p>However, if the right question is really this:</p>
+<p>&#8220;Given that many other languages (possibly wrongly) have chosen to make GC pervasive, how can (or even should) C++ interoperate with those languages, and can it be done without destructing/debasing C++ itself? If we don&#8217;t allow such easy interoperability, are we doing more damage to C++ by marginalising C++ than by providing the choice?&#8221;</p>
+<p>If we ask that question, I think we&#8217;ll get different and possibly more useful answers?</p>
+<p>What says @others?</p>
+<p>I think what we are really talking about here is &#8220;should we, and how do we integrate c++ with C#, Java, and javascript etc and other languages.&#8221;</p>
+<p>Isn&#8217;t Herb&#8217;s answer to this (in the context of MS at least) already known, it&#8217;s C++/CX and C++/CLI?</p>
+<p>@others: Regardless of whether Herb convinces others of the value of GC, the question of if/how to integrate better with languages that have it still needs to be answered. Does it not? If one says simply C++ does not need GC (which I currently feel) are we not also saying C++ can&#8217;t easily integrate with those that already have GC? That part I&#8217;m not sure how I feel. I do feel both questions go together though.</p>
+<p>I think minds against GC should be aware of that when answering about saying no to it.</p>
+<p>Is C++/CLI or C++/CX the answer? Can we improve on it or mitigate it? and can/should it be part of ISO C++?</p>
+<p>@Dave, I&#8217;m keen to hear your thoughts on all this point of view and these questions. Thanks. :)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4133">
+		<div id="div-comment-4133">
+		<div class="cmtinfo"><em> on <a href="#comment-4133" title="">2011-10-26 at 7:17 pm</a></em> <img alt='' src='https://i0.wp.com/a3.twimg.com/sticky/default_profile_images/default_profile_0_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/K0metes' rel='external nofollow' class='url'>Kometes (@K0metes)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4133"></div><p>I&#8217;ve written a<br />
+<a href="https://github.com/Kometes/Honeycomb/blob/master/Honeycomb/Src/Common/Inc/Thread/Concur/List.h" rel="nofollow">lock-free doubly linked list</a> using portable C++11 style threads/atomics. The limitations of hazard pointers that I think you&#8217;re talking about can be patched up with <a href="https://github.com/Kometes/Honeycomb/blob/master/Honeycomb/Src/Common/Inc/Thread/Concur/Mem.h" rel="nofollow">what basically amounts to GC</a>, but it&#8217;s a GC optimized for the problem domain and turns out to be quite trivial, deterministic and lock-free.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4126">
+		<div id="div-comment-4126">
+		<div class="cmtinfo"><em> on <a href="#comment-4126" title="">2011-10-26 at 4:03 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/5b45540ae377ec54a071f313b7193a27?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://daveabrahams.com' rel='external nofollow' class='url'>David Abrahams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4126"></div><p>Final judgement reserved of course, but I&#8217;ve spent a lot of time thinking about this problem and haven&#8217;t seen or found anything that solves it yet, so forgive me if I&#8217;m skeptical.</p>
+<blockquote><p>
+If the calling code that owns the object wants it to be destroyed deterministically, and the object may participate in a cycle, then the code has to break the cycle. The object itself doesn’t and shouldn’t care so its code is unaffected.
+</p></blockquote>
+<p>Great; you insulate the object from the knowledge that it might be leaked.  But you don&#8217;t insulate client code from the knowledge that the object participates in a cycle or that its destructor (possibly indirectly) handles non-memory resources.  Now every class that might participate in a reference cycle or manage non-memory resources needs to advertise that fact; it can never be an implementation detail.</p>
+<p>You still haven&#8217;t said whether all pointers or only special pointers participate in refcounting.</p>
+<p>With regard to &#8220;relying on accurate GC,&#8221; I can&#8217;t imagine what visible effects would allow a program to determine that it has an accurate GC, and I can&#8217;t imagine what standard language you could write that would force an implementation to provide an accurate GC&#8230; or any GC for that matter.  For what it&#8217;s worth, I don&#8217;t have a position on accurate-vs-conservative GC; everything I&#8217;ve said about the programming model applies equally to both.</p>
+<p>Hazard pointers seem reasonably straighforward to me, and it doesn&#8217;t seem to me that merely having a GC is going to make the shark-infested waters of lockfree programming seem easy and safe to anyone.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-4120">
+		<div id="div-comment-4120">
+		<div class="cmtinfo"><em> on <a href="#comment-4120" title="">2011-10-26 at 1:09 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4120"></div><p>All I ask is that you reserve your judgment until hearing out a complete proposal. :)</p>
+<p>Briefly answering your questions:</p>
+<p>Ordered destructors must always get called deterministically (only), as today. They cannot be called while automatically/lazily cleaning up cycles because cycle cleanup is unordered. The natural tool for unordered cleanup is the unordered finalizer, if unordered cleanup is to be supported at all of course.</p>
+<p>It&#8217;s up to the calling code that owns a particular object to manage its lifetime. If the calling code that owns the object wants it to be destroyed deterministically, and the object may participate in a cycle, then the code has to break the cycle. The object itself doesn&#8217;t and shouldn&#8217;t care so its code is unaffected.</p>
+<p>All existing C++ garbage collectors, notably the Boehm collector, aren&#8217;t enough for many interesting uses for several reasons, the main one being that they&#8217;re conservative, not accurate. See Hans Boehm&#8217;s page <a href="http://www.hpl.hp.com/personal/Hans_Boehm/gc/issues.html" rel="nofollow">Advantages and Disadvantages of Conservative Garbage Collection</a> for more discussion of tradeoffs.</p>
+<p>As usual, there&#8217;s something to standardize iff we want to enable portability. So in this case the question is whether it&#8217;s interesting to enable portable programs that rely on GC &#8212; and note that typically if they rely on GC, they rely specifically on accurate GC, not conservative &#8220;maybe-GC.&#8221; For example, C++11 atomics enable writing many kinds of portable lock-free code, but not all; we need a standard for #2 [*] if we want to enable people to write portable lock-free singly-linked lists, where the only known practical algorithms require automatic (non-refcount) GC and so they cannot be implemented in portable C++ today without some nonportable platform-specific code underneath. [**]</p>
+<p>[*] Or #3, but that&#8217;s more invasive in the language. Normal pointers can handle #2, but not #3.</p>
+<p>[**] Again, appeals to hazard pointers fail because the obscure convolutions and limitations of hazard pointers only expose the limits of even the most heroic efforts to work around the lack of true automatic GC. The main contribution of hazard pointers, unfortunately, is that they thoroughly motivate why direct support for automatic GC is needed. It&#8217;s similar to how Boost.Lambda is wonderful for a few basic cases if: (a) you can live within the limitations (e.g., on member functions) and remember them every time and don&#8217;t accidentally reach for something they can&#8217;t do; and (b) spell everything correctly the first time so you avoid the undebuggable template error cascades. Both (a) and (b) are routinely violated even by developers familiar with the library, and so Boost.Lambda mostly serves as thorough motivation for why language support for lambdas is needed, and are cited as such in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n1968.pdf" rel="nofollow">the original C++0x lambda proposal</a> (see section 1.1).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4119">
+		<div id="div-comment-4119">
+		<div class="cmtinfo"><em> on <a href="#comment-4119" title="">2011-10-26 at 1:04 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/84274ef4a7b74bcf3eeab4c3a9df3078?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Harold Ancell</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4119"></div><p>Jones and Lins is indeed great but it&#8217;s a decade and a half old.  Jones just published an updated version with two different co-authors, Hosking and Moss, The Garbage Collection Handbook, <a href="http://www.amazon.com/gp/product/1420082795/" rel="nofollow">available here</a>.  I haven&#8217;t had time to really look at this new edition, although it comments that many foundational explanations are more concise in the new book and if they&#8217;re problematic you might want to look at the older one.</p>
+<p>Speaking of books, Mr. Cutter, when are you going to publish your&#8217;s on the fun of low level concurrency?  At the end, your superb column was the only reason I was still reading the paper magazine&#8230;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4116">
+		<div id="div-comment-4116">
+		<div class="cmtinfo"><em> on <a href="#comment-4116" title="">2011-10-26 at 11:41 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/e4c9652e58d33f02977db1ef0979e6d1?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/chilabot' rel='external nofollow' class='url'>chilabot</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4116"></div><p>GC type 2 and 3 would be a bad addition to the language. If those are needed for a *particular* type of application, then they sould be provided as libraries. Most kind of applications only need the first type.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4115">
+		<div id="div-comment-4115">
+		<div class="cmtinfo"><em> on <a href="#comment-4115" title="">2011-10-26 at 11:30 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/5b45540ae377ec54a071f313b7193a27?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://daveabrahams.com' rel='external nofollow' class='url'>David Abrahams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4115"></div><p>Some important details missing here: do regular C++ pointers refcount, or just some special GC/smart pointer (I presume the latter)?  Do you plan to call destructors during cycle reclamation (I presume not)?. </p>
+<p>Regardless of the answers, I think this approach is problematic.  It doesn&#8217;t matter what small fraction of objects get reclaimed by GC; as long as GC is in the system and a GC&#8217;d object can contain an object whose destructor matters, we&#8217;re breaking the implicit contract with class authors that destructors will be called, (or that they&#8217;ll work as designed if you <em>do</em> intend to call them).</p>
+<p>The basic programming model remains the same: if you leak stuff, it won&#8217;t (necessarily) get destroyed and its memory <em>might</em> eventually be reclaimed.  These are exactly the guarantees that the C++ standard gives you today.  Personally, I wouldn&#8217;t waste the cycles on refcounting if that&#8217;s all you&#8217;re getting.  To leak objects and get their destructors called, you need to know they don&#8217;t participate in any cycles, which is very difficult in general, even if you have a special GC pointer (because people will use it liberally).</p>
+<p>Any vendor who wants to support the programming model where leaking memory is (sometimes) harmless can ship the Boehm collector as part of their runtime.  I seriously don&#8217;t think there&#8217;s anything to standardize here.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4114">
+		<div id="div-comment-4114">
+		<div class="cmtinfo"><em> on <a href="#comment-4114" title="">2011-10-26 at 11:23 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/0d900c9053c4192fae92817cf57fe721?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>henrik</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4114"></div><p>and Apple added and promoted GC to Objective-C only to kind of back down. now not so promoted and iOS does not support it. besides ref counting is not very hard to do and works just fine. atleast in ObjC :)</p>
+<p><a href="http://arstechnica.com/apple/reviews/2011/07/mac-os-x-10-7.ars/10#arc" rel="nofollow">http://arstechnica.com/apple/reviews/2011/07/mac-os-x-10-7.ars/10#arc</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4112">
+		<div id="div-comment-4112">
+		<div class="cmtinfo"><em> on <a href="#comment-4112" title="">2011-10-26 at 10:37 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4112"></div><p>See other comments, but briefly: cleaning up cycles of shared_ptrs, which you can often design away but sometimes naturally arise; and lock-free coding to solve the ABA problem and other issues, where it really makes the code way simpler, and you really don&#8217;t want to dip into the murky waters of hazard pointers which are mainly useful to show the extent of the heroic efforts to deal with this problem without automatic non-RC GC.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-4111">
+		<div id="div-comment-4111">
+		<div class="cmtinfo"><em> on <a href="#comment-4111" title="">2011-10-26 at 10:35 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4111"></div><p>That&#8217;s not the only alternative. Destructors and finalizers are different and complementary (and you virtually always want the former, as mentioned in other comments below).</p>
+<p>Reference counting (#1) is often the best and it&#8217;s C++&#8217;s default form of GC. But there are reasons to also (not instead) want lazy mark-sweep (#2) garbage collection in C++ to deal with things ref counting can&#8217;t deal with, including when potential cycles are unavoidable (in some cases some objects may naturally be shared, but then might refer to each other) and lock-free ABA issues.</p>
+<p>My impression is that the best memory management model for future C++ will be reference counting nearly always (#1) plus mark-sweep GC (#2) to reclaim ref count cycles and enable important lock-free code styles that smart pointers alone can&#8217;t support.</p>
+<p>Using #2 as a backup for #1 in this way has been well explored in the past in other languages and systems. It is known to work well, it makes #2 faster because you have less memory to inspect (e.g., Bacon&#8217;s observation that you can&#8217;t get a cycle unless a ref count decrement results in a nonzero count, so you only add those to a root list), and you only need unordered finalizers (if at all) for the objects cleaned up by #2 (e.g., if there&#8217;s a cycle you have to pick a loser and break it somewhere, and for the non-cycle cases you typically can arrange for those objects to not own resources so no finalizer is necessary).</p>
+<p>So my current position is to support: (a) adding mark-sweep GC to a future C++ standard, but to use it only for cleaning up shared_ptr cycles and objects allocated with a separate &#8220;gcnew&#8221; or similar opt-in GC allocation to cover the lock-free uses; and (b) not support finalizers at all, which I think we can get away with &#8212; they&#8217;re strongly discouraged even in the systems like Java and .NET that have way more potential need for them because they lack any kind of standard reference counting to have a stronger deterministic destruction story.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4110">
+		<div id="div-comment-4110">
+		<div class="cmtinfo"><em> on <a href="#comment-4110" title="">2011-10-26 at 10:20 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.gotw.ca' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4110"></div><p>For example, see <a href="http://www.bluebytesoftware.com/blog/PermaLink.aspx?guid=88e62cdf-5919-4ac7-bc33-20c06ae539ae" rel="nofollow">this 2005 chapter from the .NET Design Guidelines</a>, especially the annotations I provided.</p>
+<p>C++/CLI has prior art showing an elegant way to expose finalizers in C++. It uses the T::!T() syntax. But yes, you should not rely on unordered finalizers, deterministic ordered destructors are much preferable in all languages including C# and Java, and C++ does them best including when using smart pointers.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4103">
+		<div id="div-comment-4103">
+		<div class="cmtinfo"><em> on <a href="#comment-4103" title="">2011-10-26 at 6:51 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/5b45540ae377ec54a071f313b7193a27?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://daveabrahams.com' rel='external nofollow' class='url'>David Abrahams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4103"></div><p>Ask any GC expert and they&#8217;ll tell you that confusing finalizers with destructors is a fatal error.  They&#8217;re really distinct beasts, in so many ways: finalizers have no ordering constraints, no guarantee they will ever get called, etc….  Read what the Josh Bloch has to say about finalizers in Java: his guideline is basically, &#8220;don&#8217;t use finalizers for anything that matters.&#8221;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4102">
+		<div id="div-comment-4102">
+		<div class="cmtinfo"><em> on <a href="#comment-4102" title="">2011-10-26 at 6:46 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/5b45540ae377ec54a071f313b7193a27?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://daveabrahams.com' rel='external nofollow' class='url'>David Abrahams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4102"></div><p>@Martin Vejnár: That is one argument that&#8217;s been made.  Last I heard, it helps in lock-free programming because nobody knows how to do deallocation efficiently without stopping the world.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4101">
+		<div id="div-comment-4101">
+		<div class="cmtinfo"><em> on <a href="#comment-4101" title="">2011-10-26 at 6:35 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c102cedf3c930e6c4079f52d8d261b8d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Paul</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4101"></div><p>Or you could have special destructors for releasing memory, and then you would know if its a GC type or non-GC type by checking if it has a non trivial destructor. If GC is disabled(I assume if it was built-in to C++ it would be optional), it would make the memory destructor part of the main destructor. So ultimately it would have a non trivial destructor with the GC disabled and a trivial destructor when the GC is enabled.</p>
+<p>Especially on multi-core machine, the GC generally has better performance than reference counting, because the collection can be done in separate thread.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4100">
+		<div id="div-comment-4100">
+		<div class="cmtinfo"><em> on <a href="#comment-4100" title="">2011-10-26 at 5:53 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6f64fce01ffa86130c3fae06b1fcadef?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Momchil Velikov</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4100"></div><p>Garbage collected object can still have a sort of destructors, traditionally called &#8220;finalizer&#8221;s, which could close files, etc, i.e. release non-memory resources. Finalizers have their own set of problems, though. For example, since the garbage collectors conservatively approximate object lifetime with object reachability, it&#8217;s not clear what do to when a finalizer is run on an unreachable object, but that finalizer makes the object reachable again (i.e. the reachability approximation of lifetime no longer holds. Oh well, one can always take the &#8220;undefined behavior&#8221; escape route :).  Another issue is triggering of collection &#8211; one can reasonably assume that a shortage of memory would cause unreachable, but not yet collected object to be collected, in effect releasing memory, whereas shortage of non-memory resources &#8230; well it will need to be integrated with the garbage collector somehow &#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4099">
+		<div id="div-comment-4099">
+		<div class="cmtinfo"><em> on <a href="#comment-4099" title="">2011-10-26 at 4:39 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/06154bf5d92bf692f3c02432510d053d?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Frank Davis</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4099"></div><p>I don&#8217;t want to come across as stubborn or stuck in my ways, but I really do not want to see a built in GC as a part of the C++ standard.</p>
+<p>I think memory can be managed easily if you are willing to learn the simple smart pointer abstractions. Shared pointer is basically a rudimentary GC which maintains constant execution time.</p>
+<p>Furthermore I know that if it was to be introduced, libraries would quickly introduce it and it would become be hard to build a non GC (therefore known execution time) out of component libraries. Look at Objective C and D as examples of to the metal languages with a GC, almost all of the code written for them usually the GC by default. They have a place but it isn&#8217;t the same as C++.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4098">
+		<div id="div-comment-4098">
+		<div class="cmtinfo"><em> on <a href="#comment-4098" title="">2011-10-26 at 3:29 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c4e926fdc0905d11899b69c6387f6ed7?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Achilleas Margaritis</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4098"></div><p>Reference counting covers a lot,, if not most of cases. It requires careful planning not to introduce cycles via subclasses, but it is quite ubiquitous in the C++ world nowadays, and therefore GC is not really required.</p>
+<p>In case someone is interested, I have a new idea regarding collection: instead of tracing objects from roots, let the roots be traced from objects. I&#8217;ve made an implementation here: <a href="https://github.com/axilmar/a5gc" rel="nofollow">https://github.com/axilmar/a5gc</a></p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4096">
+		<div id="div-comment-4096">
+		<div class="cmtinfo"><em> on <a href="#comment-4096" title="">2011-10-26 at 1:30 am</a></em> <img alt='' src='https://i1.wp.com/a2.twimg.com/sticky/default_profile_images/default_profile_3_normal.png?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/sim82' rel='external nofollow' class='url'>sim82 (@sim82)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4096"></div><p>&#8220;what anyone would use GC for&#8221;<br />
+I&#8217;ve come across one case where GC actually makes things easier: a data-structure for storing un-rooted trees, where the inner nodes are represented by circular linked lists (this kind of structure is common in computational phylogenetics). The circular links don&#8217;t work with ref-counting and the trees can be freely split/merged, so it&#8217;s kind of cumbersome to keep track of the separate trees for manual de-allocation. A manual mark/sweep GC was the most convenient solution. Apart from that, I&#8217;ve been quite happy without mandatory GC. Have not seen a memory-leak for a while&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4094">
+		<div id="div-comment-4094">
+		<div class="cmtinfo"><em> on <a href="#comment-4094" title="">2011-10-26 at 1:07 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7cd132a33dda5d9ee000f59082018763?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Martin Vejnár</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4094"></div><p>I was wandering the same thing. Is there perhaps a performance benefit in delaying memory releases so that multiple of them can be processed in batch?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-4092">
+		<div id="div-comment-4092">
+		<div class="cmtinfo"><em> on <a href="#comment-4092" title="">2011-10-26 at 1:02 am</a></em>  <cite><a href='http://terzeron.net/wp/?p=2968' rel='external nofollow' class='url'>조영일의 자리 매김 &middot; [번역] shared_ptr</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4092"></div><p>[&#8230;] Sutter가 GC에 대한 견해를 밝혔는데, 레퍼런스 카운팅은 표준을 통해 지원하고, Mark&amp;Sweep 방식은 [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-akrzemi1 odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4091">
+		<div id="div-comment-4091">
+		<div class="cmtinfo"><em> on <a href="#comment-4091" title="">2011-10-25 at 11:33 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c3baf4aa5bebf6d1407ed4e3b0981864?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://akrzemi1.wordpress.com' rel='external nofollow' class='url'>Andrzej Krzemieński</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4091"></div><p>Hi,<br />
+This is perhaps a good place to ask what anyone would use GC for. I understand that it is indispensable in Java because you cannot allocate objects on &#8220;the stack&#8221;. In contrast, C++ offers automatic life-time and memory management. </p>
+<p>What are the practical uses of GC in C++? What are the practical uses of shared_ptr?</p>
+<p>Regards,<br />
+&amp;rzej</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-4087">
+		<div id="div-comment-4087">
+		<div class="cmtinfo"><em> on <a href="#comment-4087" title="">2011-10-25 at 4:17 pm</a></em> <img alt='' src='https://i1.wp.com/a3.twimg.com/profile_images/1149118151/a9a508bc335bb1731e310d7f5d413319311c3e2d_full_normal.jpg?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/scalablecory' rel='external nofollow' class='url'>Cory Nelson (@scalablecory)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4087"></div><p>&#8220;OK, GC was invented half a century ago. When it is going to land in the C++ world?&#8221;</p>
+<p>Honest question: what uses have you seen for GC?</p>
+<p>Getting rid of the ABA tag in some lock-free algorithms is one, but there are other solutions with similar efficiency and flexibility.</p>
+<p>.NET has a lot of small heap allocations so compaction is pretty nice for maintaining low fragmentation (and possibly locality). The heap is touched far less often in C++, so I see compaction as less important here.</p>
+<p>Resource management in C++ has been easy for some time now. Easier than in C#, even. I can&#8217;t remember the last time I had a memory leak.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-4086">
+		<div id="div-comment-4086">
+		<div class="cmtinfo"><em> on <a href="#comment-4086" title="">2011-10-25 at 4:03 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/5b45540ae377ec54a071f313b7193a27?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://daveabrahams.com' rel='external nofollow' class='url'>David Abrahams</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_4086"></div><p>The greatest obstacle to integrating GC with C++ is the lack of a programming model for mixing GC with destructors.  Today, when I write a class with a destructor, I can, <em>as an implementation detail</em>, make it hold a file open, claim mutexes, or handle any other non-memory resource I want it to, so long as I clean those resources up in the destructor.  I can be assured that—so long as the user of my class plays by the rules—the destructor will always get called and those resources will be released.</p>
+<p>Now, in a world with GC, it&#8217;s <em>de-rigeur</em> to place objects into data structures and simply leak them, secure in the knowledge that they will be cleaned up as necessary.  The problem, if we start doing that, is that the destructors of objects managing non-memory resources are no longer called.  So what&#8217;s the programming model for using GC in C++?  If we still have to write code to destroy/delete objects, then the programming model isn&#8217;t changed, and there&#8217;s no benefit to users in standardizing GC.  Any vendor who wants to can add a GC for cleaning up leaked memory as a conforming extension.</p>
+<p>The alternative is to declare some classes as GC&#8217;d-only and some as non-GC&#8217;d, and disallow non-GC&#8217;d classes inside GC&#8217;d classes.  But that&#8217;s awful :-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2011/10/25/garbage-collection-synopsis-and-c/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-167b071c67d48ea95479b8e499806fc0">
+	</div>
+	<div class="grofile-hash-map-e0583eeae32733b398f3d48eb98c4cad">
+	</div>
+	<div class="grofile-hash-map-5b45540ae377ec54a071f313b7193a27">
+	</div>
+	<div class="grofile-hash-map-a9e3ff5113a72d581d7124640ccd3374">
+	</div>
+	<div class="grofile-hash-map-834ecf25ebbc609dd2dc4e0aaff099bb">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-d7aaf766b7091c5583ee189b116ecd6a">
+	</div>
+	<div class="grofile-hash-map-04f2e98c95beaa9e02c82a309c2cc58d">
+	</div>
+	<div class="grofile-hash-map-84274ef4a7b74bcf3eeab4c3a9df3078">
+	</div>
+	<div class="grofile-hash-map-e4c9652e58d33f02977db1ef0979e6d1">
+	</div>
+	<div class="grofile-hash-map-0d900c9053c4192fae92817cf57fe721">
+	</div>
+	<div class="grofile-hash-map-c102cedf3c930e6c4079f52d8d261b8d">
+	</div>
+	<div class="grofile-hash-map-6f64fce01ffa86130c3fae06b1fcadef">
+	</div>
+	<div class="grofile-hash-map-06154bf5d92bf692f3c02432510d053d">
+	</div>
+	<div class="grofile-hash-map-c4e926fdc0905d11899b69c6387f6ed7">
+	</div>
+	<div class="grofile-hash-map-2092b0ccc1d8b7f08a1f61d12c8aaa33">
+	</div>
+	<div class="grofile-hash-map-7cd132a33dda5d9ee000f59082018763">
+	</div>
+	<div class="grofile-hash-map-c3baf4aa5bebf6d1407ed4e3b0981864">
+	</div>
+	<div class="grofile-hash-map-4795389df24264397c398b3e4b479d60">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_4449={"id":468178,"unique_id":"wp-comment-4449","title":"I%20remain%20unconvinced%20that%20GC%20is%20a%20great%20sole%20solution%20for%20memory%20management.%20I%26%23039%3Bve%20rarely%20needed%20it%20except%20in%20certain%20complex%20object%20graphs.%20It%20only%20addresses%20one%20leak%20point%2C%20references%20can%20still%20...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4449","item_id":"_comm_4449"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4449 == 'undefined' ){PDRTJS_468178_comm_4449 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4449 );}}PDRTJS_settings_468178_comm_4426={"id":468178,"unique_id":"wp-comment-4426","title":"GC%20is%20for%20lazy%20programmers.%20C%2B%2B%20programmers%20dont%20need%20it....","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4426","item_id":"_comm_4426"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4426 == 'undefined' ){PDRTJS_468178_comm_4426 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4426 );}}PDRTJS_settings_468178_comm_4350={"id":468178,"unique_id":"wp-comment-4350","title":"It%20seems%20to%20me%20that%20you%26%23039%3Bd%20want%20to%20be%20able%20to%20classify%20certain%20types%20as%20only%20managing%20memory%2C%20so%20they%20can%20be%20used%20in%20GC%26%23039%3Bd%20or%20non-GC%26%23039%3Bd%20code%20%28with%20dtors%20skipped%29.%20%20Of%20course%20we%26%23039%3Bd%20need%20to%20be%20able%20to%20...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4350","item_id":"_comm_4350"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4350 == 'undefined' ){PDRTJS_468178_comm_4350 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4350 );}}PDRTJS_settings_468178_comm_4349={"id":468178,"unique_id":"wp-comment-4349","title":"If%20GC%20is%20ever%20added%20to%20the%20standard%20I%20strongly%20believe%20it%20should%20be%20limited%20only%20to%20the%20types%20with%20trivial%20destructors.%20There%20should%20be%20no%20change%20in%20the%20current%20syntax%20or%20new%20keywords%20or%20new%20type...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4349","item_id":"_comm_4349"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4349 == 'undefined' ){PDRTJS_468178_comm_4349 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4349 );}}PDRTJS_settings_468178_comm_4249={"id":468178,"unique_id":"wp-comment-4249","title":"I%20designed%20a%20GC%20library%20for%20C%2B%2B.%20%20It%26%23039%3Bs%20not%20quite%20automatic%2C%20but%20it%20has%20a%20simple%20command%20for%20quickly%20going%20through%20and%20picking%20up%20unused%20memory%20references.%20%20The%20command%20could%20be%20timed%2C%20put%20into%20so...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4249","item_id":"_comm_4249"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4249 == 'undefined' ){PDRTJS_468178_comm_4249 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4249 );}}PDRTJS_settings_468178_comm_4161={"id":468178,"unique_id":"wp-comment-4161","title":"If%20these%20questions%20are%20just%20details%20then%20you%20and%20I%20are%20having%20different%20discussions.%20%20I%26%23039%3Bm%20trying%20to%20address%20the%20biggest%20challenge%20in%20achieving%20your%20goals%20%28with%20which%20I%20don%26%23039%3Bt%20take%20issue%29%3A%20coming%20u...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4161","item_id":"_comm_4161"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4161 == 'undefined' ){PDRTJS_468178_comm_4161 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4161 );}}PDRTJS_settings_468178_comm_4159={"id":468178,"unique_id":"wp-comment-4159","title":"Whatever%20gc_new%20or%20make_gc%20etc.%20returns%20would%20be%20GC%26%23039%3Bd.%20It%26%23039%3Bs%20a%20separate%20design%20decision%20whether%20it%20would%20be%20better%20to%20call%20that%20thing%20a%20%2A%20or%20some%20other%20pointer%20type%20like%20gc_ptr%20or%20something%20%28just%20...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4159","item_id":"_comm_4159"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4159 == 'undefined' ){PDRTJS_468178_comm_4159 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4159 );}}PDRTJS_settings_468178_comm_4156={"id":468178,"unique_id":"wp-comment-4156","title":"Sorry%2C%20but%20that%20doesn%26%23039%3Bt%20answer%20the%20question.%20%20Let%20me%20rephrase.%20%20If%20I%20take%20a%20raw%20pointer%20or%20reference%20to%20an%20object%20allocated%20with%20gc_new%2C%20is%20the%20existence%20of%20that%20pointer%20enough%20to%20keep%20the%20object...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4156","item_id":"_comm_4156"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4156 == 'undefined' ){PDRTJS_468178_comm_4156 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4156 );}}PDRTJS_settings_468178_comm_4155={"id":468178,"unique_id":"wp-comment-4155","title":"%26lt%3Bblockquote%26gt%3BYou%20still%20havent%20said%20whether%20all%20pointers%20or%20only%20special%20pointers%20participate%20in%20refcounting.%26lt%3B%2Fblockquote%26gt%3BMy%20interest%20is%20in%20cleaning%20up%20cycles%20of%20shared_ptrs%2C%20and%20objects%20allocated%20...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4155","item_id":"_comm_4155"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4155 == 'undefined' ){PDRTJS_468178_comm_4155 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4155 );}}PDRTJS_settings_468178_comm_4154={"id":468178,"unique_id":"wp-comment-4154","title":"%26lt%3Bp%26gt%3BHere%20are%20my%20answers%20to%20your%20main%20questions.%20I%20think%20Bjarne%20would%20give%20similar%20answers%3B%20hes%20long%20been%20a%20proponent%20of%20optional%20GC%20%28%232%29%20for%20ISO%20C%2B%2B.%26lt%3B%2Fp%26gt%3B%26lt%3Bp%26gt%3BBriefly%3A%26lt%3B%2Fp%26gt%3B%26lt%3Bblockquote%26gt%3B%20%20%26lt%3Bp%26gt%3BAdding%20a%20ne...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4154","item_id":"_comm_4154"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4154 == 'undefined' ){PDRTJS_468178_comm_4154 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4154 );}}PDRTJS_settings_468178_comm_4147={"id":468178,"unique_id":"wp-comment-4147","title":"%26%23091%3B...%26%23093%3B%20are%20plenty%20of%20people%20who%20criticize%20C%2B%2B%20for%20not%20having%20a%20standard%20garbage%20collector.%20Herb%20Sutter%20explains%20why%20C%2B%2B%20doesn%26%23039%3Bt%20support%20automatic%20mark-compact%20garbage%20collection%20but%20does%20have...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4147","item_id":"_comm_4147"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4147 == 'undefined' ){PDRTJS_468178_comm_4147 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4147 );}}PDRTJS_settings_468178_comm_4136={"id":468178,"unique_id":"wp-comment-4136","title":"Adding%20a%20new%20feature%20to%20a%20language%20should%20be%20based%20on%20good%20reasoning%2C%20such%20as%3Aa%29%20How%20likely%20will%20the%20feature%20be%20abused%20more%20than%20used%20well%3Fb%29%20How%20often%20is%20the%20feature%20needed%20at%20all%3Fc%29%20What%20cost%20o...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4136","item_id":"_comm_4136"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4136 == 'undefined' ){PDRTJS_468178_comm_4136 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4136 );}}PDRTJS_settings_468178_comm_4133={"id":468178,"unique_id":"wp-comment-4133","title":"I%26%23039%3Bve%20written%20a%20%26lt%3Ba%20href%3D%26quot%3Bhttps%3A%2F%2Fgithub.com%2FKometes%2FHoneycomb%2Fblob%2Fmaster%2FHoneycomb%2FSrc%2FCommon%2FInc%2FThread%2FConcur%2FList.h%26quot%3B%20rel%3D%26quot%3Bnofollow%26quot%3B%26gt%3Block-free%20doubly%20linked%20list%26lt%3B%2Fa%26gt%3B%20using%20portable%20C%2B%2B11%20style%20...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4133","item_id":"_comm_4133"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4133 == 'undefined' ){PDRTJS_468178_comm_4133 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4133 );}}PDRTJS_settings_468178_comm_4126={"id":468178,"unique_id":"wp-comment-4126","title":"Final%20judgement%20reserved%20of%20course%2C%20but%20I%26%23039%3Bve%20spent%20a%20lot%20of%20time%20thinking%20about%20this%20problem%20and%20haven%26%23039%3Bt%20seen%20or%20found%20anything%20that%20solves%20it%20yet%2C%20so%20forgive%20me%20if%20I%26%23039%3Bm%20skeptical.%26lt%3Bblockquote%26gt%3BIf%20t...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4126","item_id":"_comm_4126"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4126 == 'undefined' ){PDRTJS_468178_comm_4126 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4126 );}}PDRTJS_settings_468178_comm_4120={"id":468178,"unique_id":"wp-comment-4120","title":"All%20I%20ask%20is%20that%20you%20reserve%20your%20judgment%20until%20hearing%20out%20a%20complete%20proposal.%20%3A%29Briefly%20answering%20your%20questions%3AOrdered%20destructors%20must%20always%20get%20called%20deterministically%20%28only%29%2C%20as%20today...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4120","item_id":"_comm_4120"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4120 == 'undefined' ){PDRTJS_468178_comm_4120 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4120 );}}PDRTJS_settings_468178_comm_4119={"id":468178,"unique_id":"wp-comment-4119","title":"Jones%20and%20Lins%20is%20indeed%20great%20but%20it%26%23039%3Bs%20a%20decade%20and%20a%20half%20old.%20%20Jones%20just%20published%20an%20updated%20version%20with%20two%20different%20co-authors%2C%20Hosking%20and%20Moss%2C%20The%20Garbage%20Collection%20Handbook%2C%20%26lt%3Ba%20href...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4119","item_id":"_comm_4119"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4119 == 'undefined' ){PDRTJS_468178_comm_4119 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4119 );}}PDRTJS_settings_468178_comm_4116={"id":468178,"unique_id":"wp-comment-4116","title":"GC%20type%202%20and%203%20would%20be%20a%20bad%20addition%20to%20the%20language.%20If%20those%20are%20needed%20for%20a%20%2Aparticular%2A%20type%20of%20application%2C%20then%20they%20sould%20be%20provided%20as%20libraries.%20Most%20kind%20of%20applications%20only%20need%20...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4116","item_id":"_comm_4116"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4116 == 'undefined' ){PDRTJS_468178_comm_4116 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4116 );}}PDRTJS_settings_468178_comm_4115={"id":468178,"unique_id":"wp-comment-4115","title":"Some%20important%20details%20missing%20here%3A%20do%20regular%20C%2B%2B%20pointers%20refcount%2C%20or%20just%20some%20special%20GC%2Fsmart%20pointer%20%28I%20presume%20the%20latter%29%3F%20%20Do%20you%20plan%20to%20call%20destructors%20during%20cycle%20reclamation%20%28I%20p...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4115","item_id":"_comm_4115"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4115 == 'undefined' ){PDRTJS_468178_comm_4115 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4115 );}}PDRTJS_settings_468178_comm_4114={"id":468178,"unique_id":"wp-comment-4114","title":"and%20Apple%20added%20and%20promoted%20GC%20to%20Objective-C%20only%20to%20kind%20of%20back%20down.%20now%20not%20so%20promoted%20and%20iOS%20does%20not%20support%20it.%20besides%20ref%20counting%20is%20not%20very%20hard%20to%20do%20and%20works%20just%20fine.%20atleast...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4114","item_id":"_comm_4114"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4114 == 'undefined' ){PDRTJS_468178_comm_4114 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4114 );}}PDRTJS_settings_468178_comm_4112={"id":468178,"unique_id":"wp-comment-4112","title":"See%20other%20comments%2C%20but%20briefly%3A%20cleaning%20up%20cycles%20of%20shared_ptrs%2C%20which%20you%20can%20often%20design%20away%20but%20sometimes%20naturally%20arise%3B%20and%20lock-free%20coding%20to%20solve%20the%20ABA%20problem%20and%20other%20issues%2C%20...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4112","item_id":"_comm_4112"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4112 == 'undefined' ){PDRTJS_468178_comm_4112 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4112 );}}PDRTJS_settings_468178_comm_4111={"id":468178,"unique_id":"wp-comment-4111","title":"That%26%23039%3Bs%20not%20the%20only%20alternative.%20Destructors%20and%20finalizers%20are%20different%20and%20complementary%20%28and%20you%20virtually%20always%20want%20the%20former%2C%20as%20mentioned%20in%20other%20comments%20below%29.Reference%20counting%20%28%231...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4111","item_id":"_comm_4111"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4111 == 'undefined' ){PDRTJS_468178_comm_4111 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4111 );}}PDRTJS_settings_468178_comm_4110={"id":468178,"unique_id":"wp-comment-4110","title":"For%20example%2C%20see%20%26lt%3Ba%20href%3D%26quot%3Bhttp%3A%2F%2Fwww.bluebytesoftware.com%2Fblog%2FPermaLink.aspx%3Fguid%3D88e62cdf-5919-4ac7-bc33-20c06ae539ae%26quot%3B%20rel%3D%26quot%3Bnofollow%26quot%3B%26gt%3Bthis%202005%20chapter%20from%20the%20.NET%20Design%20Guidelines%26lt%3B%2Fa%26gt%3B%2C%20espe...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4110","item_id":"_comm_4110"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4110 == 'undefined' ){PDRTJS_468178_comm_4110 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4110 );}}PDRTJS_settings_468178_comm_4103={"id":468178,"unique_id":"wp-comment-4103","title":"Ask%20any%20GC%20expert%20and%20they%26%23039%3Bll%20tell%20you%20that%20confusing%20finalizers%20with%20destructors%20is%20a%20fatal%20error.%20%20They%26%23039%3Bre%20really%20distinct%20beasts%2C%20in%20so%20many%20ways%3A%20finalizers%20have%20no%20ordering%20constraints%2C%20no%20g...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4103","item_id":"_comm_4103"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4103 == 'undefined' ){PDRTJS_468178_comm_4103 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4103 );}}PDRTJS_settings_468178_comm_4102={"id":468178,"unique_id":"wp-comment-4102","title":"%40Martin%20Vejnr%3A%20That%20is%20one%20argument%20that%26%23039%3Bs%20been%20made.%20%20Last%20I%20heard%2C%20it%20helps%20in%20lock-free%20programming%20because%20nobody%20knows%20how%20to%20do%20deallocation%20efficiently%20without%20stopping%20the%20world....","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4102","item_id":"_comm_4102"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4102 == 'undefined' ){PDRTJS_468178_comm_4102 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4102 );}}PDRTJS_settings_468178_comm_4101={"id":468178,"unique_id":"wp-comment-4101","title":"Or%20you%20could%20have%20special%20destructors%20for%20releasing%20memory%2C%20and%20then%20you%20would%20know%20if%20its%20a%20GC%20type%20or%20non-GC%20type%20by%20checking%20if%20it%20has%20a%20non%20trivial%20destructor.%20If%20GC%20is%20disabled%28I%20assume%20if%20i...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4101","item_id":"_comm_4101"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4101 == 'undefined' ){PDRTJS_468178_comm_4101 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4101 );}}PDRTJS_settings_468178_comm_4100={"id":468178,"unique_id":"wp-comment-4100","title":"Garbage%20collected%20object%20can%20still%20have%20a%20sort%20of%20destructors%2C%20traditionally%20called%20%26quot%3Bfinalizer%26quot%3Bs%2C%20which%20could%20close%20files%2C%20etc%2C%20i.e.%20release%20non-memory%20resources.%20Finalizers%20have%20their%20own%20set%20of...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4100","item_id":"_comm_4100"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4100 == 'undefined' ){PDRTJS_468178_comm_4100 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4100 );}}PDRTJS_settings_468178_comm_4099={"id":468178,"unique_id":"wp-comment-4099","title":"I%20don%26%23039%3Bt%20want%20to%20come%20across%20as%20stubborn%20or%20stuck%20in%20my%20ways%2C%20but%20I%20really%20do%20not%20want%20to%20see%20a%20built%20in%20GC%20as%20a%20part%20of%20the%20C%2B%2B%20standard.I%20think%20memory%20can%20be%20managed%20easily%20if%20you%20are%20willing%20to...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4099","item_id":"_comm_4099"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4099 == 'undefined' ){PDRTJS_468178_comm_4099 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4099 );}}PDRTJS_settings_468178_comm_4098={"id":468178,"unique_id":"wp-comment-4098","title":"Reference%20counting%20covers%20a%20lot%2C%2C%20if%20not%20most%20of%20cases.%20It%20requires%20careful%20planning%20not%20to%20introduce%20cycles%20via%20subclasses%2C%20but%20it%20is%20quite%20ubiquitous%20in%20the%20C%2B%2B%20world%20nowadays%2C%20and%20therefore%20GC...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4098","item_id":"_comm_4098"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4098 == 'undefined' ){PDRTJS_468178_comm_4098 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4098 );}}PDRTJS_settings_468178_comm_4096={"id":468178,"unique_id":"wp-comment-4096","title":"%26quot%3Bwhat%20anyone%20would%20use%20GC%20for%26quot%3BI%26%23039%3Bve%20come%20across%20one%20case%20where%20GC%20actually%20makes%20things%20easier%3A%20a%20data-structure%20for%20storing%20un-rooted%20trees%2C%20where%20the%20inner%20nodes%20are%20represented%20by%20circular%20link...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4096","item_id":"_comm_4096"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4096 == 'undefined' ){PDRTJS_468178_comm_4096 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4096 );}}PDRTJS_settings_468178_comm_4094={"id":468178,"unique_id":"wp-comment-4094","title":"I%20was%20wandering%20the%20same%20thing.%20Is%20there%20perhaps%20a%20performance%20benefit%20in%20delaying%20memory%20releases%20so%20that%20multiple%20of%20them%20can%20be%20processed%20in%20batch%3F...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4094","item_id":"_comm_4094"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4094 == 'undefined' ){PDRTJS_468178_comm_4094 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4094 );}}PDRTJS_settings_468178_comm_4092={"id":468178,"unique_id":"wp-comment-4092","title":"%26%23091%3B...%26%23093%3B%20Sutter%20GC%20%20%20%2C%20%20%20%20%20%2C%20Mark%26amp%3BSweep%20%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4092","item_id":"_comm_4092"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4092 == 'undefined' ){PDRTJS_468178_comm_4092 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4092 );}}PDRTJS_settings_468178_comm_4091={"id":468178,"unique_id":"wp-comment-4091","title":"Hi%2CThis%20is%20perhaps%20a%20good%20place%20to%20ask%20what%20anyone%20would%20use%20GC%20for.%20I%20understand%20that%20it%20is%20indispensable%20in%20Java%20because%20you%20cannot%20allocate%20objects%20on%20%26quot%3Bthe%20stack%26quot%3B.%20In%20contrast%2C%20C%2B%2B%20offers%20auto...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4091","item_id":"_comm_4091"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4091 == 'undefined' ){PDRTJS_468178_comm_4091 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4091 );}}PDRTJS_settings_468178_comm_4087={"id":468178,"unique_id":"wp-comment-4087","title":"%26quot%3BOK%2C%20GC%20was%20invented%20half%20a%20century%20ago.%20When%20it%20is%20going%20to%20land%20in%20the%20C%2B%2B%20world%3F%26quot%3BHonest%20question%3A%20what%20uses%20have%20you%20seen%20for%20GC%3FGetting%20rid%20of%20the%20ABA%20tag%20in%20some%20lock-free%20algorithms%20is%20one%2C...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4087","item_id":"_comm_4087"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4087 == 'undefined' ){PDRTJS_468178_comm_4087 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4087 );}}PDRTJS_settings_468178_comm_4086={"id":468178,"unique_id":"wp-comment-4086","title":"The%20greatest%20obstacle%20to%20integrating%20GC%20with%20C%2B%2B%20is%20the%20lack%20of%20a%20programming%20model%20for%20mixing%20GC%20with%20destructors.%20%20Today%2C%20when%20I%20write%20a%20class%20with%20a%20destructor%2C%20I%20can%2C%20%26lt%3Bem%26gt%3Bas%20an%20implementation...","permalink":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/#comment-4086","item_id":"_comm_4086"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_4086 == 'undefined' ){PDRTJS_468178_comm_4086 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_4086 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2011%2F10%2F25%2Fgarbage-collection-synopsis-and-c%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2011\/10\/25\/garbage-collection-synopsis-and-c\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2011%2F10%2F25%2Fgarbage-collection-synopsis-and-c%2F","postID":"752","shortlink":"https:\/\/wp.me\/peb5Y-c8","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/752","statsLink":"https:\/\/wordpress.com\/stats\/post\/752\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2011%2F10%2F25%2Fgarbage-collection-synopsis-and-c%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'752','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sQlVFMlEtR1Rrd1FdY2hyVXFoUHxWOFQ3OTcuNTZsQV9ob0czQ2d1bW9WT2NkdHFlU2dHVmJRTGtMTG0lPURZNFE/bDBLbmcvPVpuLzAsaDFqfEdbRU5MMT05Vz9VJi5rY2JWUGNDczhUSDBLRTVUZ0NNLC4yTi9dOTVLK0tHNk4vN1hXMndpbUZLcGdheG5XLmFxOThOP0VXaGc0U1BQZFgvNVpTcixyLlczRHFwXTUtVX5lUXVtdnxHJjdITCw/aTYwTGplXQ=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '752' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

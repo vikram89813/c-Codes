@@ -1,0 +1,827 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>GotW #95 Solution: Thread Safety and Synchronization | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965502&amp;back=https%3A%2F%2Fherbsutter.com%2F2014%2F01%2F13%2Fgotw-95-solution-thread-safety-and-synchronization%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; GotW #95 Solution: Thread Safety and&nbsp;Synchronization Comments Feed" href="https://herbsutter.com/2014/01/13/gotw-95-solution-thread-safety-and-synchronization/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='GotW #95: Thread Safety and&nbsp;Synchronization' href='https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/' />
+<link rel='next' title='GotW #96: Oversharing' href='https://herbsutter.com/2014/01/14/gotw-96-oversharing/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2014/01/13/gotw-95-solution-thread-safety-and-synchronization/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-CT' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2014%2F01%2F13%2Fgotw-95-solution-thread-safety-and-synchronization%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2014%2F01%2F13%2Fgotw-95-solution-thread-safety-and-synchronization%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #95 Solution: Thread Safety and Synchronization" />
+<meta property="og:url" content="https://herbsutter.com/2014/01/13/gotw-95-solution-thread-safety-and-synchronization/" />
+<meta property="og:description" content="This GotW was written to answer a set of related frequently asked questions. So here&#8217;s a mini-FAQ on &#8220;thread safety and synchronization in a nutshell,&#8221; and the points we&#8217;ll …" />
+<meta property="article:published_time" content="2014-01-13T19:00:16+00:00" />
+<meta property="article:modified_time" content="2014-01-16T17:29:44+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965502" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #95 Solution: Thread Safety and&nbsp;Synchronization" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="This GotW was written to answer a set of related frequently asked questions. So here&#039;s a mini-FAQ on &quot;thread safety and synchronization in a nutshell,&quot; and the points we&#039;ll cover apply to thread safety and synchronization in pretty much any mainstream language.  Problem JG Questions 1. What is a race condition, and how serious is&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2014/01/13/gotw-95-solution-thread-safety-and-synchronization/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-2411 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2014/01/06/gotw-95-thread-safety-and-synchronization/" rel="prev">GotW #95: Thread Safety and&nbsp;Synchronization</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2014/01/14/gotw-96-oversharing/" rel="next">GotW #96: Oversharing</a> &raquo;</div>
+			</div>
+			
+			<div class="post-2411 post type-post status-publish format-standard hentry category-gotw" id="post-2411">
+				<div class="posttitle">
+					<h2>GotW #95 Solution: Thread Safety and&nbsp;Synchronization</h2>
+					<p class="post-info">2014-01-13 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p><span style="color:#5a5a5a;"><em>This GotW was written to answer a set of related frequently asked questions. So here&#8217;s a mini-FAQ on &#8220;thread safety and synchronization in a nutshell,&#8221; and the points we&#8217;ll cover apply to thread safety and synchronization in pretty much any mainstream language.<br />
+</em></span></p>
+<p>
+ </p>
+<h1>Problem<br />
+</h1>
+<h2>JG Questions<br />
+</h2>
+<p>1. What is a race condition, and how serious is it?
+</p>
+<p>2. What is a correctly synchronized program? How do you achieve it? Be specific.
+</p>
+<p>
+ </p>
+<h2>Guru Questions<br />
+</h2>
+<p>3. Consider the following code, where <span style="color:#2e74b5;">some_obj</span> is a shared variable visible to multiple threads.
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// thread 1 (performs no additional synchronization)<br />code_that_reads_from( some_obj );  // passes some_obj by const &amp;<br /><br />// thread 2 (performs no additional synchronization)<br />code_that_modifies( some_obj );    // passes some_obj by non-const &amp;
+</code></pre>
+</p>
+<p>If threads 1 and 2 can run concurrently, is this code correctly synchronized if the type of <span style="color:#2e74b5;">some_obj</span> is:
+</p>
+<p style="margin-left:36pt;">(a) <span style="color:#2e74b5;">int</span>?
+</p>
+<p style="margin-left:36pt;">(b) <span style="color:#2e74b5;">string</span>?
+</p>
+<p style="margin-left:36pt;">(c) <span style="color:#2e74b5;">vector&lt;map&lt;int,string&gt;&gt;</span>?
+</p>
+<p style="margin-left:36pt;">(d) <span style="color:#2e74b5;">shared_ptr&lt;widget&gt;</span>?
+</p>
+<p style="margin-left:36pt;">(e) <span style="color:#2e74b5;">mutex</span>?
+</p>
+<p style="margin-left:36pt;">(f) <span style="color:#2e74b5;">condition_variable</span>?
+</p>
+<p style="margin-left:36pt;">(g) <span style="color:#2e74b5;">atomic&lt;unsigned&gt;</span>?<span style="color:#2e74b5;"><br />
+		</span></p>
+<p>Hint: This is actually a two-part question, not a seven-part question. There are only two unique answers, each of which covers a subset of the cases.
+</p>
+<p>4. <em>External synchronization</em> means that the code that uses/owns a given shared object is responsible for performing synchronization on that object. Answer the following questions related to external synchronization:
+</p>
+<p style="margin-left:36pt;">(a) What is the normal external synchronization responsibility of code that owns and uses a given shared variable?
+</p>
+<p style="margin-left:36pt;">(b) What is the &#8220;basic thread safety guarantee&#8221; that all types must obey to enable calling code to perform normal external synchronization?
+</p>
+<p style="margin-left:36pt;">(c) What partial internal synchronization can still be required within the shared variable&#8217;s implementation?
+</p>
+<p>5. <em>Full internal synchronization</em> (a.k.a. &#8220;synchronized types&#8221; or &#8220;thread-safe types&#8221;) means that a shared object performs all necessary synchronization internally within that object, so that calling code does not need to perform any external synchronization. What types should be fully internally synchronized, and why?
+</p>
+<p>
+ </p>
+<h1>Solution<br />
+</h1>
+<h2>Preface<br />
+</h2>
+<p>The discussion in this GotW applies not only to C++ but also to any mainstream language, except mainly that certain races have defined behavior in C# and Java. But the definition of what variables need to be synchronized, the tools we use to synchronize them, and the distinction between external and internal synchronization and when you use each one, are the same in all mainstream languages. If you&#8217;re a C# or Java programmer, everything here applies equally to you, with some minor renaming such as to rename C++ <span style="color:#2e74b5;">atomic</span> to C#/Java <span style="color:#2e74b5;">volatile</span>, although some concepts are harder to express in C#/Java (such as identifying the read-only methods on an otherwise mutable shared object; there are <span style="color:#2e74b5;">readonly</span> fields and &#8220;read-only&#8221; properties that have <span style="color:#2e74b5;">get</span> but not <span style="color:#2e74b5;">set</span>, but they express a subset of what you can express using C++ <span style="color:#2e74b5;">const</span> on member functions).
+</p>
+<p>Note: C++ <span style="color:#2e74b5;">volatile</span> variables (which have no analog in languages like C# and Java) are always beyond the scope of this and any other article about the memory model and synchronization. That&#8217;s because C++ <span style="color:#2e74b5;">volatile</span> variables aren&#8217;t about threads or communication at all and don&#8217;t interact with those things. Rather, a C++ <span style="color:#2e74b5;">volatile</span> variable should be viewed as portal into a different universe beyond the language — a memory location that by definition does not obey the language&#8217;s memory model because that memory location is accessed by hardware (e.g., written to by a daughter card), have more than one address, or is otherwise &#8220;strange&#8221; and beyond the language. So C++ <span style="color:#2e74b5;">volatile</span> variables are universally an exception to every guideline about synchronization because are always inherently &#8220;racy&#8221; and unsynchronizable using the normal tools  (mutexes, atomics, etc.) and more generally exist outside all normal of the language and compiler including that they generally cannot be optimized by the compiler (because the compiler isn&#8217;t allowed to know their semantics; a <span style="color:#2e74b5;">volatile int vi;</span> may not behave anything like a normal <span style="color:#2e74b5;">int</span>, and you can&#8217;t even assume that code like <span style="color:#2e74b5;">vi = 5; int read_back = vi;</span> is guaranteed to result in <span style="color:#2e74b5;">read_back == 5</span>, or that code like <span style="color:#2e74b5;">int i = vi; int j = vi;</span> that reads <span style="color:#2e74b5;">vi</span> twice will result in <span style="color:#2e74b5;">i == j</span> which will not be true if <span style="color:#2e74b5;">vi</span> is a hardware counter for example). For more discussion, see my article <a href="http://www.drdobbs.com/parallel/volatile-vs-volatile/212701484">&#8220;volatile vs. volatile.&#8221;</a>
+	</p>
+<p>
+ </p>
+<h2>1. What is a race condition, and how serious is it?<br />
+</h2>
+<p>A <em>race condition</em> occurs when two threads access the same shared variable concurrently, and at least one is a non-<span style="color:#2e74b5;">const</span> operation (writer). Concurrent <span style="color:#2e74b5;">const</span> operations are valid, and do not race with each other.
+</p>
+<p>Consecutive nonzero-length bitfields count as a single variable for the purpose of defining what a race condition is.
+</p>
+<p>Terminology note: Some people use &#8220;race&#8221; in a different sense, where in a program with no actual race conditions (as defined above) still operations on different threads could interleave in different orders in different executions of a correctly-synchronized program depending on how fast threads happen to execute relative to each other. That&#8217;s not a race condition in the sense we mean here—a better term for that might be &#8220;timing-dependent code.&#8221;
+</p>
+<p>If a race condition occurs, your program has <em>undefined behavior</em>. C++ does not recognize any so-called &#8220;benign races&#8221;—and in languages that have recognized some races as &#8220;benign&#8221; the community has gradually learned over time that many of them actually, well, aren&#8217;t.
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> Reads (<strong>const</strong> operations) on a shared object are safe to run concurrently with each other without synchronization.
+</p>
+</blockquote>
+<p>
+ </p>
+<h2>2. What is a correctly synchronized program? How do you achieve it? Be specific.<br />
+</h2>
+<p>A correctly synchronized program is one that contains no race conditions. You achieve it by making sure that, for every shared variable, every thread that performs a write (non-<span style="color:#2e74b5;">const</span> operation) on that variable is synchronized so that no other reads or writes of that variable on other threads can run concurrently with that write.
+</p>
+<p>The shared variable usually protected by:
+</p>
+<ul>
+<li>(commonly) using a <span style="color:#2e74b5;">mutex</span> or equivalent;
+</li>
+<li>(very rarely) by making it <span style="color:#2e74b5;">atomic</span> if that&#8217;s appropriate, such as in low-lock code; or
+</li>
+<li>(very rarely) for certain types by performing the synchronization internally, as we will see below.
+</li>
+</ul>
+<p>
+ </p>
+<h2>3. Consider the following code… If threads 1 and 2 can run concurrently, is this code correctly synchronized if the type of some_obj is: (a) int? (b) string? (c) vector&lt;map&lt;int,string&gt;&gt;? (d) shared_ptr&lt;widget&gt;?<br />
+</h2>
+<p>No. The code has one thread reading (via <span style="color:#2e74b5;">const</span> operations) from <span style="color:#2e74b5;">some_obj</span>, and a second thread writing to the same variable. If those threads can execute at the same time, that&#8217;s a race and a direct non-stop ticket to undefined behavior land.
+</p>
+<p>The answer is to synchronize access to the variable, for example using a <span style="color:#2e74b5;">mutex</span>:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// thread 1<br />{<br />    lock_guard hold(mut_some_obj);     // acquire lock<br />    code_that_reads_from( some_obj );  // passes some_obj by const &amp;<br />}<br /><br />// thread 2<br />{<br />    lock_guard hold(mut_some_obj);     // acquire lock<br />    code_that_modifies( some_obj );    // passes some_obj by non-const &amp;<br />}
+</code></pre>
+</p>
+<p>Virtually all types, including <span style="color:#2e74b5;">shared_ptr</span> and <span style="color:#2e74b5;">vector</span> and other types, are just as thread-safe as <span style="color:#2e74b5;">int</span>; they&#8217;re not special for concurrency purposes. It doesn&#8217;t matter whether <span style="color:#2e74b5;">some_obj</span> is an <span style="color:#2e74b5;">int</span>, a <span style="color:#2e74b5;">string</span>, a container, or a smart pointer… concurrent reads (<span style="color:#2e74b5;">const</span> operations) are safe without synchronization, but the shared object is writeable, then the code that owns the object has to synchronize access to it.
+</p>
+<p>But when I said this is true for &#8220;virtually all types,&#8221; I meant all types except for types that are not fully internally synchronized, which brings us to the types that, by design, <em>are</em> special for concurrency purposes…
+</p>
+<p>
+ </p>
+<h2>… If threads 1 and 2 can run concurrently, is this code correctly synchronized if the type of g+shared is: (e) mutex? (f) condition_variable? (g) atomic&lt;unsigned&gt;?<br />
+</h2>
+<p>Yes. For these types, the code is okay, because these types already perform full internal synchronization and so they are safe to access without external synchronization.
+</p>
+<p>In fact, these types had better be safe to use without external synchronization, because they&#8217;re synchronization primitives you need to use as tools to synchronize other variables! And its turns out that that&#8217;s no accident…
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> A type should only be fully internally synchronized if and only if its purpose is to provide  inter-thread communication (e.g., a message queue) or synchronization (e.g., a mutex).
+</p>
+</blockquote>
+<p>
+ </p>
+<h2>4. <em>External synchronization</em> means that the code that uses/owns a given shared object is responsible for performing synchronization on that object. Answer the following questions related to external synchronization:<br />
+</h2>
+<h3>(a) What is the normal external synchronization responsibility of code that owns and uses a given shared variable?<br />
+</h3>
+<p>The normal synchronization duty of care is simply this: The code that knows about and owns a writeable shared variable has to synchronize access to it. It will typically do that using a <span style="color:#2e74b5;">mutex</span> or similar (~99.9% of the time), or by making it <span style="color:#2e74b5;">atomic</span> if that&#8217;s possible and appropriate (~0.1% of the time).
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> The code that knows about and owns a writeable shared variable is responsible for synchronizing access to it.
+</p>
+</blockquote>
+<p>
+ </p>
+<h3>(b) What is the &#8220;basic thread safety guarantee&#8221; that all types must obey to enable calling code to perform normal external synchronization?<br />
+</h3>
+<p>To make it possible for the code that uses a shared variable to do the above, two basic things must be true.
+</p>
+<p>First, concurrent operations on different objects must be safe. For example, let&#8217;s say we have two <span style="color:#2e74b5;">X</span> objects <span style="color:#2e74b5;">x1</span> and <span style="color:#2e74b5;">x2</span>, each of which is only used by one thread. Then consider this situation:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Case A: Using distinct objects<br /><br />// thread 1 (performs no additional synchronization)<br />x1.something();                   // do something with x1<br /><br />// thread 2 (performs no additional synchronization)<br />x2 = something_else;              // do something else with x2
+</code></pre>
+</p>
+<p>This must always be considered correctly synchronized. Remember, we stated that <span style="color:#2e74b5;">x1</span> and <span style="color:#2e74b5;">x2</span> are distinct objects, and cannot be aliases for the same object or similar hijinks.
+</p>
+<p>Second, concurrent <span style="color:#2e74b5;">const</span> operations that are just reading from the same variable <span style="color:#2e74b5;">x</span> must be safe:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Case B: const access to the same object<br /><br />// thread 1 (performs no additional synchronization)<br />x.something_const();              // read from x (const operation)<br /><br />// thread 2 (performs no additional synchronization)<br />x.something_else_const();         // read from x (const operation)
+</code></pre>
+</p>
+<p>This code too must be considered correctly synchronized, and had better work without external synchronization. It&#8217;s not a race, because the two threads are both performing <span style="color:#2e74b5;">const</span> accesses and reading from the shared object.
+</p>
+<p>This brings us to the case where there might be a combination of internal and external synchronization required…
+</p>
+<p>
+ </p>
+<h3>(c) What partial internal synchronization can still be required within the shared variable&#8217;s implementation?<br />
+</h3>
+<p>In some classes, objects that from the outside appear to be distinct but still may share state under the covers, without the calling code being able to tell that two apparently distinct objects are connected under the covers. Note that this not an exception to the previous guideline—it&#8217;s the same guideline!
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> It is always true that the code that knows about and owns a writeable shared variable is responsible for synchronizing access to it. If the writeable shared state is hidden inside the implementation of some class, then it&#8217;s simply that class&#8217; internals that are the &#8216;owning code&#8217; that has to synchronize access to (just) the shared state that only it knows about.
+</p>
+</blockquote>
+<p>A classic case of &#8220;under-the-covers shared state&#8221; is reference counting, and the two poster-child examples are <span style="color:#2e74b5;">std::shared_ptr</span> and copy-on-write. Let&#8217;s use <span style="color:#2e74b5;">shared_ptr</span> as our main example.
+</p>
+<p>A reference-counted smart pointer like <span style="color:#2e74b5;">shared_ptr</span> keeps a reference count under the covers. Let&#8217;s say we have two distinct <span style="color:#2e74b5;">shared_ptr</span> objects <span style="color:#2e74b5;">sp1</span> and <span style="color:#2e74b5;">sp2</span>, each of which is used by only one thread. Then consider this situation:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Case A: Using distinct objects<br /><br />// thread 1 (performs no additional synchronization)<br />auto x = sp1;                      // read from sp1 (writes the count!) <br /><br />// thread 2 (performs no additional synchronization)<br />sp2 = something_else;              // write to sp2 (writes the count!)
+</code></pre>
+</p>
+<p>This code must be considered correctly synchronized, and had better work as shown without any external synchronization. Okay, fine …
+</p>
+<p>… but what if <span style="color:#2e74b5;">sp1</span> and <span style="color:#2e74b5;">sp2</span> are pointing to the same object and so share a reference count? If so, <em>that reference count is a writeable shared object</em>, and so it must be synchronized to avoid a race—but it is in general impossible for the calling code to do the right synchronization, because it is not even aware of the sharing! The code we just saw above doesn&#8217;t see the count, doesn&#8217;t know the count variable&#8217;s name, and doesn&#8217;t in general know which pointers share counts.
+</p>
+<p>Similarly, consider two threads just reading from the same variable <span style="color:#2e74b5;">sp</span>:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Case B: const access to the same object<br /><br />// thread 1 (performs no additional synchronization)<br />auto sp3 = sp;                     // read from sp (writes the count!)<br /><br />// thread 2 (performs no additional synchronization)<br />auto sp4 = sp;                     // read from sp (writes the count!)
+</code></pre>
+</p>
+<p>This code too must be considered correctly synchronized, and had better work without external synchronization. It&#8217;s not a race, because the two threads are both performing <span style="color:#2e74b5;">const</span> accesses and reading from the shared object. But under the covers, reading from <span style="color:#2e74b5;">sp</span> to copy it increments the reference count, and so again <em>that reference count is a writeable shared object</em>, and so it must be synchronized to avoid a race—and again it is in general impossible for the calling code to do the right synchronization, because it is not even aware of the sharing.
+</p>
+<p>So to deal with these cases, the code that knows about the shared reference count, namely the <span style="color:#2e74b5;">shared_ptr</span> implementation, has to synchronize access to the reference count. For reference counting, this is typically done by making the reference count a <span style="color:#2e74b5;">mutable atomic</span> variable. (See also GotW #6a and #6b.)
+</p>
+<p>For completeness, yes, of course external synchronization is still required as usual if the calling code shared a given visible <span style="color:#2e74b5;">shared_ptr</span> object and makes that same shared<span style="color:#2e74b5;">_ptr</span> object writable across threads:
+</p>
+<p style="background:#ffffcc;margin-left:14pt;">
+<pre><code>// Case C: External synchronization still required as usual<br />//         for non-const access to same visible shared object<br /><br />// thread 1<br />{<br />    lock_guard hold(mut_sp);           // acquire lock<br />    auto sp3 = sp;                     // read from sp<br />}<br /><br />// thread 2<br />{<br />    lock_guard hold(mut_sp);           // acquire lock<br />    sp = something_else;               // modify sp<br />}
+</code></pre>
+</p>
+<p>So it&#8217;s not like <span style="color:#2e74b5;">shared_ptr</span> is a fully internally synchronized type; if the caller is sharing an object of that type, the caller must synchronize access to it like it would do for other types, as noted in Question 3(d).
+</p>
+<p>So what&#8217;s the purpose of the internal synchronization? It&#8217;s only to do necessary synchronization on the parts that the internals know are shared <em>and that the internals own</em>, but that the caller can&#8217;t synchronize because he doesn&#8217;t know about the sharing and shouldn&#8217;t need to because the caller doesn&#8217;t own them, the internals do. So in the internal implementation of the type we do just enough internal synchronization to get back to the level where the caller can assume his usual duty of care and in the usual ways correctly synchronize any objects that might actually be shared.
+</p>
+<p>The same applies to other uses of reference counting, such as copy-on-write strategies. It also applies generally to any other internal sharing going on under the covers between objects that appear distinct and independent to the calling code.
+</p>
+<blockquote>
+<p><strong>Guideline:</strong> If you design a class where two objects may invisibly share state under the covers, it is your class&#8217; responsibility to internally synchronize access to that <strong>mutable</strong> shared state (only) that it owns and that only it can see, because the calling code can&#8217;t. If you opt for under-the-covers-sharing strategies like copy-on-write, be aware of the duty you&#8217;re taking on for yourself and code with care.
+</p>
+</blockquote>
+<p>For why such internal shared state should be <strong>mutable</strong>, see GotW #6a and #6b.
+</p>
+<p>
+ </p>
+<h2>5. <em>… </em>What types should be fully internally synchronized, and why?<br />
+</h2>
+<p>There is exactly one category of types which should be fully internally synchronized, so that any object of that type is always safe to use concurrently without external synchronization: Inter-thread synchronization and communication primitives themselves. This includes standard types like mutexes and atomics, but also inter-thread communication and synchronization types you might write yourself such as a message queue (communicating messages from one thread to another), Producer/Consumer active objects (again passing data from one concurrent entity to another), or a thread-safe counter (communicating counter increments and decrements among multiple threads).
+</p>
+<p>If you&#8217;re wondering if there might be other kinds of types that should be internally synchronized,  consider: The only type for which it would make sense to always internally synchronize every operation is a type where you know <em>every object</em> is going to be both (a) writeable and (b) shared across threads… and that means that the type is by definition designed to be used for inter-thread communication and/or synchronization.
+</p>
+<p>
+ </p>
+<h2>Acknowledgments<br />
+</h2>
+<p>Thanks in particular to the following for their feedback to improve this article: Daniel Hardman, Casey, Alb, Marcel Wid, ixache.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a> | 											24 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">24 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-15006">
+		<div id="div-comment-15006">
+		<div class="cmtinfo"><em> on <a href="#comment-15006" title="">2014-02-12 at 5:05 pm</a></em> <img alt='' src='https://i1.wp.com/pbs.twimg.com/profile_images/1269088977/618_normal.jpg?resize=48%2C48' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://twitter.com/KornnerStudios' rel='external nofollow' class='url'>Kornner Studios (@KornnerStudios)</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_15006"></div><p>On the subject of C# and &#8216;const&#8217; methods, there is the Code Contracts PureAttribute: <a href="http://msdn.microsoft.com/en-us/library/system.diagnostics.contracts.pureattribute%28v=vs.110%29.aspx" rel="nofollow">http://msdn.microsoft.com/en-us/library/system.diagnostics.contracts.pureattribute%28v=vs.110%29.aspx</a></p>
+<p>It&#8217;s a required attribute for any method/type that is to be used in other Code Contract facilities, where the programmer claims &#8220;no visible state changes are performed by the executed systems&#8221;. &#8220;Claims&#8221; because such non-state-changing behavior isn&#8217;t enforced or verified by any current tools (assuming you even have a Code Contracts provider installed), I figured it&#8217;s an interesting foot note at least, since the subject was touched on</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14200">
+		<div id="div-comment-14200">
+		<div class="cmtinfo"><em> on <a href="#comment-14200" title="">2014-01-24 at 6:34 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/491452b8f88358120e2d0efb94ada2f9?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Dan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14200"></div><p>can anyone give a reproducible code example for int getting trashed in race, if all threads use this variable as int type?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-bartoszmilewski even thread-even depth-1 highlander-comment" id="comment-14175">
+		<div id="div-comment-14175">
+		<div class="cmtinfo"><em> on <a href="#comment-14175" title="">2014-01-21 at 11:15 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c018f213204496b4bbf481e7c8e6c15c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.relisoft.com' rel='external nofollow' class='url'>Bartosz Milewski</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14175"></div><p>@xingzou: It&#8217;s very unfortunate that Java and C++ gave the word volatile completely different meanings. In Java, volatile would indeed protect you from a race, in C++ it would do no such thing. Think of Java volatile == C++ atomic. Think of C++ volatile as a way of accessing memory mapped IO.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14171">
+		<div id="div-comment-14171">
+		<div class="cmtinfo"><em> on <a href="#comment-14171" title="">2014-01-20 at 7:01 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1e38308230a4be228501f90ede4ad61a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/xiongzou' rel='external nofollow' class='url'>xiongzou</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14171"></div><p>Thanks a lot for your clarifications. It does help a lot! </p>
+<p>To go further on the question, if we declare the int volatile, will a &#8220;volatile int&#8221; free from race condition? Assume the compiler and CPU supports volatile. </p>
+<p>Thanks &amp; regards</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-14168">
+		<div id="div-comment-14168">
+		<div class="cmtinfo"><em> on <a href="#comment-14168" title="">2014-01-20 at 11:19 am</a></em>  <cite><a href='http://musingstudio.com/2014/01/20/herb-sutter-gotw95-thread-safety-and-synchronisation/' rel='external nofollow' class='url'>Herb Sutter GotW95: Thread Safety and Synchronisation | musingstudio</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14168"></div><p>[&#8230;] article on thread safety and synchronisation from Herb [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-bartoszmilewski odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14167">
+		<div id="div-comment-14167">
+		<div class="cmtinfo"><em> on <a href="#comment-14167" title="">2014-01-20 at 10:28 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c018f213204496b4bbf481e7c8e6c15c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.relisoft.com' rel='external nofollow' class='url'>Bartosz Milewski</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14167"></div><p>@xiongzou: Atomic operations also guarantee ordering: all threads see changes to atomic variables in the same order (it&#8217;s called sequential consistency and is only guaranteed for strong atomics). A simple example of a race is when a thread modifies one shared variable &#8220;x&#8221; and then sets a shared flag &#8220;done.&#8221; You want other threads to see those writes in the same order, because if they see &#8220;done&#8221; before the modification to &#8220;x&#8221;, they will work with stale data. This is *not* guaranteed if the flag is not atomic. The compiler is free to reorder writes to different variables, and the processor is free to hold some writes in local buffers before committing them to global memory. So atomic variables are not only about atomicity but also about visibility.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-14166">
+		<div id="div-comment-14166">
+		<div class="cmtinfo"><em> on <a href="#comment-14166" title="">2014-01-20 at 10:05 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14166"></div><p>@xiongzou: No, ints (and even chars) can get trashed in a race. Synchronization is not only about atomicity, it’s also about ordering and disabling some optimizations. If you want a standalone mutable shared int that is safe to use concurrently from multiple threads, it must be at least an atomic or part of data protected by a mutex. Otherwise, in a data race even an int can get trashed, such as by an optimizer that thinks only its thread is using the int and performs normal legal single-threaded optimizations, such as injecting speculative writes which in a race could cause other threads to see &#8220;impossible&#8221; values.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14162">
+		<div id="div-comment-14162">
+		<div class="cmtinfo"><em> on <a href="#comment-14162" title="">2014-01-19 at 10:11 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1e38308230a4be228501f90ede4ad61a?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/xiongzou' rel='external nofollow' class='url'>xiongzou</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14162"></div><p>I am a bit confused, in most modern CPUs, atomic operation is guranteed on a word size memory with read and write operations. int is a word size in most operating systems, which should be safe from race condition in your example, right? Not sure I mis-understand anything here? Thanks</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14148">
+		<div id="div-comment-14148">
+		<div class="cmtinfo"><em> on <a href="#comment-14148" title="">2014-01-17 at 9:15 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/f1a0559d260c859bfe44607a982f3003?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/pgroke' rel='external nofollow' class='url'>Paul Groke</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14148"></div><p>Hi Herb, what do you mean by &#8220;concurrent const operations that are just reading from the same variable x must be safe&#8221;? That all const operations that are logically a clean &#8220;read&#8221; must be safe? I&#8217;m not sure that that&#8217;s a good definition.<br />
+On the one hand, it&#8217;s more complicated than it has to be. After all, what kind of const operations can (or should) be there that are not logically a clean &#8220;read&#8221;? So wouldn&#8217;t it be better to just say all const operations?<br />
+On the other hand it forbids stuff like lazy evaluation.<br />
+So for me this is somewhere in between &#8220;restrictive, but so simple that anyone can understand it and apply it correctly without having to think too much&#8221; and &#8220;a little complicated but allows us to do cool stuff that we otherwise couldn&#8217;t&#8221;.<br />
+So maybe the best thing would be to just document which methods are thread-safe and which are not.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14143">
+		<div id="div-comment-14143">
+		<div class="cmtinfo"><em> on <a href="#comment-14143" title="">2014-01-16 at 9:27 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14143"></div><p>@ixache: Aha, s/to so/to do/. Fixed, thanks.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14142">
+		<div id="div-comment-14142">
+		<div class="cmtinfo"><em> on <a href="#comment-14142" title="">2014-01-16 at 7:04 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/392656ee396d26ad9045cf5cff5bf2e4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>ixache</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14142"></div><p>Herb, you wrote: &#8220;To make it possible for the code that uses a shared variable to so the above, two basic things must be true.&#8221;</p>
+<p>Is&#8217;nt there a lacking somewhere in that sentence ?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14139">
+		<div id="div-comment-14139">
+		<div class="cmtinfo"><em> on <a href="#comment-14139" title="">2014-01-15 at 5:43 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14139"></div><p>@mcmcc: I see where you&#8217;re coming from. In this case I did them in this order because &#8220;problem, then solution&#8221; seems to work better in general. In this case, it seemed like presenting &#8220;reduce sharing&#8221; would lead to incomplete answers (or &#8220;why?&#8221; questions) without being able to refer back to &#8220;data races and how bad they are&#8221; so I presented that first so I could refer to it. I&#8217;ll think about this and see if reversing the order makes sense for when these appear in book form.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14134">
+		<div id="div-comment-14134">
+		<div class="cmtinfo"><em> on <a href="#comment-14134" title="">2014-01-15 at 4:19 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/69f49a6f6d12844e9043c6916efe70d5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Marcel Wid</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14134"></div><p>@Herb: You added the word &#8220;concurrently&#8221; to the definition of race condition (aka data race). I&#8217;m afraid, but as the definition now stands, it is as wrong as it was before. &#8220;Concurrent access&#8221; doesn&#8217;t necessarily introduce a data race (at least if you use the term &#8220;concurrent access&#8221; as in the spec). Here is a quote from §20.7.2.5/1:</p>
+<p>&#8220;Concurrent access to a shared_ptr object from multiple threads does not introduce a data race if the access is done exclusively via the functions in this section and the instance is passed as their first argument.&#8221;</p>
+<p>I know that it is almost impossible to give a definition of &#8220;data race&#8221; in one line. Here is a suggestion:</p>
+<p>&#8220;A race condition occurs when two different threads access the same shared variable and at least one of them is a store (write) and they may be executed at the same time (they may interleave).&#8221;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-bartoszmilewski odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14129">
+		<div id="div-comment-14129">
+		<div class="cmtinfo"><em> on <a href="#comment-14129" title="">2014-01-14 at 3:30 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c018f213204496b4bbf481e7c8e6c15c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.relisoft.com' rel='external nofollow' class='url'>Bartosz Milewski</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14129"></div><p>I think I&#8217;m confused because ownership may have specific meaning in the context of concurrency. People came up with ownership schemes to describe synchronization. I studied these things when we were designing D (here&#8217;s a blog I wrote back then: <a href="http://bartoszmilewski.com/2009/06/02/race-free-multithreading-ownership/" rel="nofollow">http://bartoszmilewski.com/2009/06/02/race-free-multithreading-ownership/</a> ). The &#8220;owner&#8221; in these schemes is the object responsible for locking. When you are talking about objects that might be connected under the covers, that would be a violation of ownership (and an invitation to deadlock). I think I would stick to &#8220;uses&#8221; or &#8220;has access to&#8221; rather than &#8220;owns&#8221; when talking about code.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14123">
+		<div id="div-comment-14123">
+		<div class="cmtinfo"><em> on <a href="#comment-14123" title="">2014-01-14 at 12:55 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/8bcbc5519492da9cafc3a8162c830427?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mcmcc</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14123"></div><p>&gt; @mcmcc: Yes, but that’s beyond the scope of this particular GotW. Wait for it… :)</p>
+<p>Perhaps what I&#8217;m noting here is that the GotW&#8217;s are coming the wrong order.  The &#8220;Oversharing&#8221; GotW should come first because that (I presume ;) suggests the ideal solution.   This GotW starts with &#8220;Well, here you are sharing stuff &#8211; how do you avoid problems&#8221; without discussing how/why you ended up in that situation in the first place.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14119">
+		<div id="div-comment-14119">
+		<div class="cmtinfo"><em> on <a href="#comment-14119" title="">2014-01-14 at 11:19 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/69f49a6f6d12844e9043c6916efe70d5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Marcel Wid</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14119"></div><p>&#8220;A race condition occurs when two threads access the same shared variable, and at least one is a non-const operation (writer).&#8221;<br />
+&#8220;If a race condition occurs, your program has undefined behavior.&#8221;</p>
+<p>I interpret these two statements that you mean the term &#8220;data race&#8221; in the terminology of the standard.</p>
+<p>If this definition were right, then it would be impossible to write a data race free program. Because by your definition a properly synchronized access to a shared variable would also result in a data race and hence in undefined behavior. I think, the definition from the standard is quite readable:</p>
+<p>&#8220;Two expression evaluations conflict if one of them modifies a memory location and the other one accesses or modifies the same memory location.&#8221;<br />
+&#8220;The execution of a program contains a data race if it contains two conflicting actions in different threads,<br />
+at least one of which is not atomic, and neither happens before the other.&#8221;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-14116">
+		<div id="div-comment-14116">
+		<div class="cmtinfo"><em> on <a href="#comment-14116" title="">2014-01-14 at 9:24 am</a></em>  <cite><a href='http://guillaumebelz.wordpress.com/2014/01/14/guru-of-the-week-95-thread-safety-and-synchronization/' rel='external nofollow' class='url'>Guru of the Week 95 : Thread Safety and Synchronization | C++, Qt, OpenGL, CUDA</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14116"></div><p>[&#8230;] GotW #95 Solution: Thread Safety and Synchronization. [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14114">
+		<div id="div-comment-14114">
+		<div class="cmtinfo"><em> on <a href="#comment-14114" title="">2014-01-14 at 8:48 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14114"></div><p>@Bartosz: I often said &#8220;owns or uses&#8221; to try to make it clear we&#8217;re talking about the code that creates/manipulates/manages/destroys the variable. If &#8220;owns&#8221; and &#8220;uses/owns&#8221; are unclear I&#8217;d be happy to consider suggestions &#8212; what would be better?</p>
+<p>@mcmcc: Yes, but that&#8217;s beyond the scope of this particular GotW. Wait for it&#8230; :)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14111">
+		<div id="div-comment-14111">
+		<div class="cmtinfo"><em> on <a href="#comment-14111" title="">2014-01-14 at 3:01 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/3a9efa7d90d40eaf07ce78f710948eb9?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alb</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14111"></div><p>Even just reading a const variable can raise a race condition in the particular case when you access a controler register. Even if the variable is (both volatile and) const qualified.</p>
+<p>I am wondering if I did not more often face race condition in the &#8216;extended&#8217; sense (interleaves problems) rather than the reader/writer concurrent scheme. The race condition has just been so much explained that most of time I see code with variable access protected (even with a &#8216;disable/enable-all-interrupts&#8217; hammer) but without analysis of the entire design ands its hidden &#8216;logical&#8217; dependency.<br />
+Nevertheless using the appropriate synchronisation construct is not trivial and thanks for giving us such wise and discerning advice.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14109">
+		<div id="div-comment-14109">
+		<div class="cmtinfo"><em> on <a href="#comment-14109" title="">2014-01-13 at 2:15 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/8bcbc5519492da9cafc3a8162c830427?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mcmcc</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14109"></div><p>Guideline #0:  Prefer to not share data at all.  </p>
+<p>Its surprising how often this idea fails to occur to people&#8230;</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-bartoszmilewski even thread-even depth-1 highlander-comment" id="comment-14108">
+		<div id="div-comment-14108">
+		<div class="cmtinfo"><em> on <a href="#comment-14108" title="">2014-01-13 at 1:58 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c018f213204496b4bbf481e7c8e6c15c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.relisoft.com' rel='external nofollow' class='url'>Bartosz Milewski</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14108"></div><p>Herb, you keep using the word &#8220;own&#8221; without explaining it. When dealing with resource management, owning means being responsible for final disposal, and that&#8217;s not what you mean here, do you?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14107">
+		<div id="div-comment-14107">
+		<div class="cmtinfo"><em> on <a href="#comment-14107" title="">2014-01-13 at 12:18 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14107"></div><p>@Daniel: I&#8217;ve added the words &#8220;with each other&#8221; &#8212; better?</p>
+<p>@Casey: Good eyes, second &#8220;not&#8221; removed, thanks!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-14106">
+		<div id="div-comment-14106">
+		<div class="cmtinfo"><em> on <a href="#comment-14106" title="">2014-01-13 at 11:26 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/d6c7f4772c32ca36a4d4835ceea1816c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/cartec69' rel='external nofollow' class='url'>Casey</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14106"></div><p>&#8220;So it’s not like shared_ptr is not a fully internally synchronized type&#8221; Yes, it is exactly &#8220;like shared_ptr is not a fully internally synchronized type.&#8221; I think you doubled up on &#8220;not&#8221; in this clause.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-dhh11289 odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-14105">
+		<div id="div-comment-14105">
+		<div class="cmtinfo"><em> on <a href="#comment-14105" title="">2014-01-13 at 11:23 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/076fe81b1b4b9a7dbd65c064ca235d79?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://about.me/daniel.hardman' rel='external nofollow' class='url'>Daniel Hardman</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_14105"></div><p>I am uncomfortable with the wording of your first guideline, because it&#8217;s stated without a caveat. Reads (const operations) are safe IFF no writes are happening concurrently&#8211;but you state it as if reads can always be considered safe, without condition. This is also a reason why I don&#8217;t like the summary you gave about the meaning of &#8220;const&#8221; and &#8220;mutable&#8221; in one of your recent talks.</p>
+<p>It seems to me that a clearer way to explain it would be: reads do not, in and of themselves, introduce any threading problems. Therefore, if reads are the only operations happening, you have thread safety. However, if writes are also happening, then the reads (not just the writes) also become unsafe. *Thread safety is not a characteristic of an individual operation; it is a characteristic of an overall usage pattern.* Thus, &#8220;read&#8221; or &#8220;const&#8221; does not mean &#8220;thread-safe&#8221;&#8211;it means &#8220;introducing no threading problems, but still vulnerable to vicitimization by them&#8221;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2014/01/13/gotw-95-solution-thread-safety-and-synchronization/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-b2aa912717f4cf0067bc657165937865">
+	</div>
+	<div class="grofile-hash-map-491452b8f88358120e2d0efb94ada2f9">
+	</div>
+	<div class="grofile-hash-map-c018f213204496b4bbf481e7c8e6c15c">
+	</div>
+	<div class="grofile-hash-map-1e38308230a4be228501f90ede4ad61a">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-f1a0559d260c859bfe44607a982f3003">
+	</div>
+	<div class="grofile-hash-map-392656ee396d26ad9045cf5cff5bf2e4">
+	</div>
+	<div class="grofile-hash-map-69f49a6f6d12844e9043c6916efe70d5">
+	</div>
+	<div class="grofile-hash-map-8bcbc5519492da9cafc3a8162c830427">
+	</div>
+	<div class="grofile-hash-map-3a9efa7d90d40eaf07ce78f710948eb9">
+	</div>
+	<div class="grofile-hash-map-d6c7f4772c32ca36a4d4835ceea1816c">
+	</div>
+	<div class="grofile-hash-map-076fe81b1b4b9a7dbd65c064ca235d79">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_15006={"id":468178,"unique_id":"wp-comment-15006","title":"On%20the%20subject%20of%20C%23%20and%20%26%23039%3Bconst%26%23039%3B%20methods%2C%20there%20is%20the%20Code%20Contracts%20PureAttribute%3A%20http%3A%2F%2Fmsdn.microsoft.com%2Fen-us%2Flibrary%2Fsystem.diagnostics.contracts.pureattribute%2528v%3Dvs.110%2529.aspxIt%26%23039%3Bs%20a%20re...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-15006","item_id":"_comm_15006"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_15006 == 'undefined' ){PDRTJS_468178_comm_15006 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_15006 );}}PDRTJS_settings_468178_comm_14200={"id":468178,"unique_id":"wp-comment-14200","title":"can%20anyone%20give%20a%20reproducible%20code%20example%20for%20int%20getting%20trashed%20in%20race%2C%20if%20all%20threads%20use%20this%20variable%20as%20int%20type%3F...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14200","item_id":"_comm_14200"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14200 == 'undefined' ){PDRTJS_468178_comm_14200 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14200 );}}PDRTJS_settings_468178_comm_14175={"id":468178,"unique_id":"wp-comment-14175","title":"%40xingzou%3A%20It%26%23039%3Bs%20very%20unfortunate%20that%20Java%20and%20C%2B%2B%20gave%20the%20word%20volatile%20completely%20different%20meanings.%20In%20Java%2C%20volatile%20would%20indeed%20protect%20you%20from%20a%20race%2C%20in%20C%2B%2B%20it%20would%20do%20no%20such%20thing.%20T...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14175","item_id":"_comm_14175"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14175 == 'undefined' ){PDRTJS_468178_comm_14175 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14175 );}}PDRTJS_settings_468178_comm_14171={"id":468178,"unique_id":"wp-comment-14171","title":"Thanks%20a%20lot%20for%20your%20clarifications.%20It%20does%20help%20a%20lot%21%20To%20go%20further%20on%20the%20question%2C%20if%20we%20declare%20the%20int%20volatile%2C%20will%20a%20%26quot%3Bvolatile%20int%26quot%3B%20free%20from%20race%20condition%3F%20Assume%20the%20compiler%20and%20CP...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14171","item_id":"_comm_14171"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14171 == 'undefined' ){PDRTJS_468178_comm_14171 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14171 );}}PDRTJS_settings_468178_comm_14168={"id":468178,"unique_id":"wp-comment-14168","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20article%20on%20thread%20safety%20and%20synchronisation%20from%20Herb%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14168","item_id":"_comm_14168"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14168 == 'undefined' ){PDRTJS_468178_comm_14168 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14168 );}}PDRTJS_settings_468178_comm_14167={"id":468178,"unique_id":"wp-comment-14167","title":"%40xiongzou%3A%20Atomic%20operations%20also%20guarantee%20ordering%3A%20all%20threads%20see%20changes%20to%20atomic%20variables%20in%20the%20same%20order%20%28it%26%23039%3Bs%20called%20sequential%20consistency%20and%20is%20only%20guaranteed%20for%20strong%20atomics%29....","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14167","item_id":"_comm_14167"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14167 == 'undefined' ){PDRTJS_468178_comm_14167 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14167 );}}PDRTJS_settings_468178_comm_14166={"id":468178,"unique_id":"wp-comment-14166","title":"%40xiongzou%3A%20No%2C%20ints%20%28and%20even%20chars%29%20can%20get%20trashed%20in%20a%20race.%20Synchronization%20is%20not%20only%20about%20atomicity%2C%20its%20also%20about%20ordering%20and%20disabling%20some%20optimizations.%20If%20you%20want%20a%20standalone%20mut...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14166","item_id":"_comm_14166"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14166 == 'undefined' ){PDRTJS_468178_comm_14166 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14166 );}}PDRTJS_settings_468178_comm_14162={"id":468178,"unique_id":"wp-comment-14162","title":"I%20am%20a%20bit%20confused%2C%20in%20most%20modern%20CPUs%2C%20atomic%20operation%20is%20guranteed%20on%20a%20word%20size%20memory%20with%20read%20and%20write%20operations.%20int%20is%20a%20word%20size%20in%20most%20operating%20systems%2C%20which%20should%20be%20safe%20fr...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14162","item_id":"_comm_14162"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14162 == 'undefined' ){PDRTJS_468178_comm_14162 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14162 );}}PDRTJS_settings_468178_comm_14148={"id":468178,"unique_id":"wp-comment-14148","title":"Hi%20Herb%2C%20what%20do%20you%20mean%20by%20%26quot%3Bconcurrent%20const%20operations%20that%20are%20just%20reading%20from%20the%20same%20variable%20x%20must%20be%20safe%26quot%3B%3F%20That%20all%20const%20operations%20that%20are%20logically%20a%20clean%20%26quot%3Bread%26quot%3B%20must%20be%20safe%3F%20I...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14148","item_id":"_comm_14148"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14148 == 'undefined' ){PDRTJS_468178_comm_14148 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14148 );}}PDRTJS_settings_468178_comm_14143={"id":468178,"unique_id":"wp-comment-14143","title":"%40ixache%3A%20Aha%2C%20s%2Fto%20so%2Fto%20do%2F.%20Fixed%2C%20thanks....","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14143","item_id":"_comm_14143"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14143 == 'undefined' ){PDRTJS_468178_comm_14143 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14143 );}}PDRTJS_settings_468178_comm_14142={"id":468178,"unique_id":"wp-comment-14142","title":"Herb%2C%20you%20wrote%3A%20%26quot%3BTo%20make%20it%20possible%20for%20the%20code%20that%20uses%20a%20shared%20variable%20to%20so%20the%20above%2C%20two%20basic%20things%20must%20be%20true.%26quot%3BIs%26%23039%3Bnt%20there%20a%20lacking%20somewhere%20in%20that%20sentence%20%3F...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14142","item_id":"_comm_14142"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14142 == 'undefined' ){PDRTJS_468178_comm_14142 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14142 );}}PDRTJS_settings_468178_comm_14139={"id":468178,"unique_id":"wp-comment-14139","title":"%40mcmcc%3A%20I%20see%20where%20you%26%23039%3Bre%20coming%20from.%20In%20this%20case%20I%20did%20them%20in%20this%20order%20because%20%26quot%3Bproblem%2C%20then%20solution%26quot%3B%20seems%20to%20work%20better%20in%20general.%20In%20this%20case%2C%20it%20seemed%20like%20presenting%20%26quot%3Breduce%20sha...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14139","item_id":"_comm_14139"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14139 == 'undefined' ){PDRTJS_468178_comm_14139 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14139 );}}PDRTJS_settings_468178_comm_14134={"id":468178,"unique_id":"wp-comment-14134","title":"%40Herb%3A%20You%20added%20the%20word%20%26quot%3Bconcurrently%26quot%3B%20to%20the%20definition%20of%20race%20condition%20%28aka%20data%20race%29.%20I%26%23039%3Bm%20afraid%2C%20but%20as%20the%20definition%20now%20stands%2C%20it%20is%20as%20wrong%20as%20it%20was%20before.%20%26quot%3BConcurrent%20access%26quot%3B%20do...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14134","item_id":"_comm_14134"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14134 == 'undefined' ){PDRTJS_468178_comm_14134 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14134 );}}PDRTJS_settings_468178_comm_14129={"id":468178,"unique_id":"wp-comment-14129","title":"I%20think%20I%26%23039%3Bm%20confused%20because%20ownership%20may%20have%20specific%20meaning%20in%20the%20context%20of%20concurrency.%20People%20came%20up%20with%20ownership%20schemes%20to%20describe%20synchronization.%20I%20studied%20these%20things%20when%20we%20w...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14129","item_id":"_comm_14129"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14129 == 'undefined' ){PDRTJS_468178_comm_14129 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14129 );}}PDRTJS_settings_468178_comm_14123={"id":468178,"unique_id":"wp-comment-14123","title":"%26gt%3B%20%40mcmcc%3A%20Yes%2C%20but%20thats%20beyond%20the%20scope%20of%20this%20particular%20GotW.%20Wait%20for%20it%20%3A%29Perhaps%20what%20I%26%23039%3Bm%20noting%20here%20is%20that%20the%20GotW%26%23039%3Bs%20are%20coming%20the%20wrong%20order.%20%20The%20%26quot%3BOversharing%26quot%3B%20GotW%20should%20come...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14123","item_id":"_comm_14123"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14123 == 'undefined' ){PDRTJS_468178_comm_14123 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14123 );}}PDRTJS_settings_468178_comm_14119={"id":468178,"unique_id":"wp-comment-14119","title":"%26quot%3BA%20race%20condition%20occurs%20when%20two%20threads%20access%20the%20same%20shared%20variable%2C%20and%20at%20least%20one%20is%20a%20non-const%20operation%20%28writer%29.%26quot%3B%26quot%3BIf%20a%20race%20condition%20occurs%2C%20your%20program%20has%20undefined%20behavior.%26quot%3BI%20...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14119","item_id":"_comm_14119"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14119 == 'undefined' ){PDRTJS_468178_comm_14119 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14119 );}}PDRTJS_settings_468178_comm_14116={"id":468178,"unique_id":"wp-comment-14116","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20GotW%20%2395%20Solution%3A%20Thread%20Safety%20and%20Synchronization.%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14116","item_id":"_comm_14116"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14116 == 'undefined' ){PDRTJS_468178_comm_14116 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14116 );}}PDRTJS_settings_468178_comm_14114={"id":468178,"unique_id":"wp-comment-14114","title":"%40Bartosz%3A%20I%20often%20said%20%26quot%3Bowns%20or%20uses%26quot%3B%20to%20try%20to%20make%20it%20clear%20we%26%23039%3Bre%20talking%20about%20the%20code%20that%20creates%2Fmanipulates%2Fmanages%2Fdestroys%20the%20variable.%20If%20%26quot%3Bowns%26quot%3B%20and%20%26quot%3Buses%2Fowns%26quot%3B%20are%20unclear%20I%26%23039%3Bd%20be%20hap...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14114","item_id":"_comm_14114"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14114 == 'undefined' ){PDRTJS_468178_comm_14114 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14114 );}}PDRTJS_settings_468178_comm_14111={"id":468178,"unique_id":"wp-comment-14111","title":"Even%20just%20reading%20a%20const%20variable%20can%20raise%20a%20race%20condition%20in%20the%20particular%20case%20when%20you%20access%20a%20controler%20register.%20Even%20if%20the%20variable%20is%20%28both%20volatile%20and%29%20const%20qualified.I%20am%20wonderi...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14111","item_id":"_comm_14111"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14111 == 'undefined' ){PDRTJS_468178_comm_14111 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14111 );}}PDRTJS_settings_468178_comm_14109={"id":468178,"unique_id":"wp-comment-14109","title":"Guideline%20%230%3A%20%20Prefer%20to%20not%20share%20data%20at%20all.%20%20Its%20surprising%20how%20often%20this%20idea%20fails%20to%20occur%20to%20people......","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14109","item_id":"_comm_14109"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14109 == 'undefined' ){PDRTJS_468178_comm_14109 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14109 );}}PDRTJS_settings_468178_comm_14108={"id":468178,"unique_id":"wp-comment-14108","title":"Herb%2C%20you%20keep%20using%20the%20word%20%26quot%3Bown%26quot%3B%20without%20explaining%20it.%20When%20dealing%20with%20resource%20management%2C%20owning%20means%20being%20responsible%20for%20final%20disposal%2C%20and%20that%26%23039%3Bs%20not%20what%20you%20mean%20here%2C%20do%20you%3F...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14108","item_id":"_comm_14108"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14108 == 'undefined' ){PDRTJS_468178_comm_14108 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14108 );}}PDRTJS_settings_468178_comm_14107={"id":468178,"unique_id":"wp-comment-14107","title":"%40Daniel%3A%20I%26%23039%3Bve%20added%20the%20words%20%26quot%3Bwith%20each%20other%26quot%3B%20--%20better%3F%40Casey%3A%20Good%20eyes%2C%20second%20%26quot%3Bnot%26quot%3B%20removed%2C%20thanks%21...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14107","item_id":"_comm_14107"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14107 == 'undefined' ){PDRTJS_468178_comm_14107 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14107 );}}PDRTJS_settings_468178_comm_14106={"id":468178,"unique_id":"wp-comment-14106","title":"%26quot%3BSo%20its%20not%20like%20shared_ptr%20is%20not%20a%20fully%20internally%20synchronized%20type%26quot%3B%20Yes%2C%20it%20is%20exactly%20%26quot%3Blike%20shared_ptr%20is%20not%20a%20fully%20internally%20synchronized%20type.%26quot%3B%20I%20think%20you%20doubled%20up%20on%20%26quot%3Bnot%26quot%3B%20in%20this%20...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14106","item_id":"_comm_14106"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14106 == 'undefined' ){PDRTJS_468178_comm_14106 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14106 );}}PDRTJS_settings_468178_comm_14105={"id":468178,"unique_id":"wp-comment-14105","title":"I%20am%20uncomfortable%20with%20the%20wording%20of%20your%20first%20guideline%2C%20because%20it%26%23039%3Bs%20stated%20without%20a%20caveat.%20Reads%20%28const%20operations%29%20are%20safe%20IFF%20no%20writes%20are%20happening%20concurrently--but%20you%20state%20it%20as%20...","permalink":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/#comment-14105","item_id":"_comm_14105"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_14105 == 'undefined' ){PDRTJS_468178_comm_14105 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_14105 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2014%2F01%2F13%2Fgotw-95-solution-thread-safety-and-synchronization%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2014\/01\/13\/gotw-95-solution-thread-safety-and-synchronization\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2014%2F01%2F13%2Fgotw-95-solution-thread-safety-and-synchronization%2F","postID":"2411","shortlink":"https:\/\/wp.me\/peb5Y-CT","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/2411","statsLink":"https:\/\/wordpress.com\/stats\/post\/2411\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2014%2F01%2F13%2Fgotw-95-solution-thread-safety-and-synchronization%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'2411','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sfFBpLXB0U3J1elBvZCZiTkEzXXlsLi1PU25PbltLcyZONi1Lay1ia3RtU0ZEcmxjdDdab2FqP3lnNTdjWUJBJW9+MythaEZ2SG9naWl+fHhYbzFTJlVDVm13LF16UnU3VHlTVnNmPU44bVMzVDZ3fndDSS50XTZYUS0yOC1nemZ5ZHlkRkIwbmNmflpJRXM5Z2hrbU4saFVUQ0RQJl89PSVheEVSdC5aLC5wUX5VP29JZGZWQmdjYWErOWlZb2ZyRC5lZS0m'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '2411' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

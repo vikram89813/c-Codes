@@ -1,0 +1,733 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Hungarian Notation Is Clearly (Good|Bad) | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542966392&amp;back=https%3A%2F%2Fherbsutter.com%2F2008%2F07%2F15%2Fhungarian-notation-is-clearly-goodbad%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Hungarian Notation Is Clearly&nbsp;(Good|Bad) Comments Feed" href="https://herbsutter.com/2008/07/15/hungarian-notation-is-clearly-goodbad/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Trip Report: June 2008 ISO C++ Standards&nbsp;Meeting' href='https://herbsutter.com/2008/07/04/trip-report-june-2008-iso-c-standards-meeting/' />
+<link rel='next' title='Kindling' href='https://herbsutter.com/2008/07/16/kindling/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2008/07/15/hungarian-notation-is-clearly-goodbad/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-1C' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2008%2F07%2F15%2Fhungarian-notation-is-clearly-goodbad%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2008%2F07%2F15%2Fhungarian-notation-is-clearly-goodbad%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Hungarian Notation Is Clearly (Good|Bad)" />
+<meta property="og:url" content="https://herbsutter.com/2008/07/15/hungarian-notation-is-clearly-goodbad/" />
+<meta property="og:description" content="A commenter asked: thread_local X tlsX; ?? Herb, I hope you aren’t backtracking on Hungarian Notation now that you work for Microsoft. Say it aint so… It ain&#8217;t so. Besides, Microsoft&#8217;s …" />
+<meta property="article:published_time" content="2008-07-15T19:50:26+00:00" />
+<meta property="article:modified_time" content="2008-07-15T19:51:50+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542966392" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Hungarian Notation Is Clearly&nbsp;(Good|Bad)" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="A commenter asked: thread_local X tlsX; ?? Herb, I hope you aren’t backtracking on Hungarian Notation now that you work for Microsoft. Say it aint so… It ain&#039;t so. Besides, Microsoft&#039;s Framework Developer&#039;s Guide prominently intones: &quot;Do not use Hungarian notation.&quot; Warts like &quot;tls&quot; and &quot;i&quot; are about lifetime and usage, not type. Here &quot;tls&quot;&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2008/07/15/hungarian-notation-is-clearly-goodbad/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-100 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2008/07/04/trip-report-june-2008-iso-c-standards-meeting/" rel="prev">Trip Report: June 2008 ISO C++ Standards&nbsp;Meeting</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2008/07/16/kindling/" rel="next">Kindling</a> &raquo;</div>
+			</div>
+			
+			<div class="post-100 post type-post status-publish format-standard hentry category-c category-software-development" id="post-100">
+				<div class="posttitle">
+					<h2>Hungarian Notation Is Clearly&nbsp;(Good|Bad)</h2>
+					<p class="post-info">2008-07-15 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>A commenter asked:</p>
+<blockquote>
+<p>thread_local X tlsX; ?? </p>
+<p>Herb, I hope you aren’t backtracking on Hungarian Notation now that you work for Microsoft. Say it aint so…</p>
+</blockquote>
+<p>It ain&#8217;t so. Besides, Microsoft&#8217;s Framework Developer&#8217;s Guide prominently intones: <a href="http://msdn.microsoft.com/en-us/library/ms229045.aspx">&#8220;Do not use Hungarian notation.&#8221;</a></p>
+<p>Warts like &#8220;tls&#8221; and &#8220;i&#8221; are about <a href="http://en.wikipedia.org/wiki/Object_lifetime">lifetime</a> and usage, not <a href="http://en.wikipedia.org/wiki/Data_type">type</a>. Here &#8220;tls&#8221; denotes that each thread gets its own copy of the value that is constructed and destroyed once per thread that uses it (lifetime) and doesn&#8217;t need to be synchronized using mutexes (usage). As another example of usage warts, I&#8217;ll also use &#8220;i&#8221; for a variable that&#8217;s used as an index or for iteration &#8212; and given that the &#8220;i&#8221; convention goes back to before BASIC, we shouldn&#8217;t try to pin the Hungarian tail on that donkey.</p>
+<p>Having said that, though, many people have variously decried and defended different forms of Hungarian, and you may notice a pattern&#8230; they&#8217;re mostly:</p>
+<ul>
+<li><a href="http://lxr.linux.no/linux/Documentation/CodingStyle">decrying</a> <a href="http://www.research.att.com/~bs/bs_faq2.html#Hungarian">Systems</a>&nbsp;<a href="http://www.codinghorror.com/blog/archives/000023.html">Hungarian</a>, the wildly popularized version which focuses on encoding the type, and </li>
+<li><a href="http://www.joelonsoftware.com/articles/Wrong.html">defending</a>&nbsp;<a href="http://safari.oreilly.com/0735619670/ch11lev1sec5">Applications</a> <a href="http://www.joelonsoftware.com/articles/FogBugzIII.html">Hungarian</a>, the originally described version which focuses on encoding the usage.</li>
+</ul>
+<p>Today, &#8220;Hungarian&#8221; nearly always means <a href="http://en.wikipedia.org/wiki/Hungarian_notation"><strong>Systems Hungarian</strong></a>. The main trouble with Systems Hungarian comes from trying to embed information about a variable&#8217;s <a href="http://en.wikipedia.org/wiki/Data_type"><strong>type</strong></a><strong> </strong>into the variable&#8217;s name by prepending an encoded wart like the venerable sz, pach, ul, and their ilk. Although potentially helpful in a weakly-typed language like C, that&#8217;s known to be brittle and the prefixes tend to turn into lies as variable types morph during maintenance. The warting systems also don&#8217;t extend well to user-defined types and templates.</p>
+<p>I&#8217;ve railed against the limitations and perils of Hungarian with Andrei Alexandrescu in our book <a href="http://safari.awprofessional.com/0321113586"><em>C++ Coding Standards</em></a>, where I made sure it was stated right up front as part of &#8220;Item 0: Don&#8217;t sweat the small stuff (or, Know what not to standardize)&#8221;:</p>
+<blockquote>
+<p><i>Example 3: Hungarian notation.</i> Notations that incorporate type information in variable names have mixed utility in type-unsafe languages (notably C), are possible but have no benefits (only drawbacks) in object-oriented languages, and are impossible in generic programming. Therefore, no C++ coding standard should require Hungarian notation, though a C++ coding standard might legitimately choose to ban it. </p>
+</blockquote>
+<p>and with Jim Hyslop in our article <a href="http://www.ddj.com/cpp/184403804">&#8220;Hungarian wartHogs&#8221;</a>:</p>
+<blockquote>
+<p>&#8220;&#8230; the compiler already knows much more than you do about an object&#8217;s type. Changing the variable&#8217;s name to embed type information adds little value and is in fact brittle. And if there ever was reason to use some Hungarian notation in C-style languages, which is debatable, there certainly remains no value when using type-safe languages.&#8221;</p>
+</blockquote>
+<p>There&#8217;s an amusing real-world note later in that article. I&#8217;ll pick up where the Guru is saying:</p>
+<blockquote>
+<p>&#8220;I recall only one time when Hungarian notation was useful on a project. &#8230; One of the programmers on the project was named Paul,&#8221; the Guru explained. &#8220;Several months into the project, while still struggling to grow a ponytail and build his report-writing module, he pointed out that Hungarian notation had helped him find a sense of identity, for he now knew what he was&#8230;&#8221; She paused.  </p>
+<p>I blinked. It took me about ten seconds, and then I shut my eyes and grimaced painfully. &#8220;Pointer to array of <b>unsigned long</b>,&#8221; I groaned.  </p>
+<p>She smiled, enjoying my pain. &#8220;True story,&#8221; she said.</p>
+</blockquote>
+<p>It is indeed a true story. I worked with him in 1993. The joke was bad then, too, but at least using Hungarian was more defensible because the project&#8217;s code was written in C. I found it handy at the time, but now that I work in more strongly typed languages I find the type-embedding version of Hungarian more actively harmful than actually useful.</p>
+<p>You might call me a Hungarian emigrant, now living happily as an <a href="http://en.wikipedia.org/wiki/Expatriate">expat</a> out in eastern C++ near the Isle of Managed Languages.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/software-development/" rel="category tag">Software Development</a> | 											28 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">28 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment even thread-even depth-1 highlander-comment" id="comment-2127">
+		<div id="div-comment-2127">
+		<div class="cmtinfo"><em> on <a href="#comment-2127" title="">2010-06-11 at 4:14 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c38a1875adad8c9a2df370bb7103ad31?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Joe</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2127"></div><p>The problem with this argument is that, as with comments, when you are maintaining code you did not write, especially &#8220;horribly coded, non-standardized&#8221; code &#8211; relying on the NAME of the variable to tell you its type is akin to buying a rolex from someone off the street in Vegas&#8230;</p>
+<p>Ultimately, for hungarian notation (of any type) to be useful requires a great deal of discipline and agreement on the programming team &#8211; after 15 years as a professional developer, I have yet to find a team larger than 2 that can pull it off.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2125">
+		<div id="div-comment-2125">
+		<div class="cmtinfo"><em> on <a href="#comment-2125" title="">2010-06-10 at 10:09 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/36b49594c50ddae74e04c238ed98c5fb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Zack</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2125"></div><p>Once again all you are doing is repeating your self with &#8220;reading&#8221; the code. So you are telling me hungarian notation keeps you from having to find out the origins of the variable? I bet most of the time you go to definition to find out what the variable is or mouse over that variable. </p>
+<p>I am going to kill this argument because you have not provided an example outside of reading and plenty of others have provided examples where it causes the code to be brittle.</p>
+<p>Welcome to the land of managed code, we don&#8217;t care that you worked with C, its time to grow into the languages you are working with.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-2124">
+		<div id="div-comment-2124">
+		<div class="cmtinfo"><em> on <a href="#comment-2124" title="">2010-06-10 at 9:49 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1fa8025b5f71aefe4848b3a1001e8ead?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mikron</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2124"></div><p>like I just said, &#8220;when looking at the document as a whole&#8221; having to mouse over every variable to understand what it is capable of, what properties it has, etc&#8230; wastes time.  </p>
+<p>For those of us that are only able to keep track of part of the different variable types on a page at a time, this process of checking types becomes very time consuming.</p>
+<p>I come from a C coding back ground (not C++).  It made sense to use Hungarian and its ilk to keep track of these things, not just because &#8220;go to definition&#8221;, coding standards limiting the amount of code that gets put in a class, and intellisense didn&#8217;t exist.  When first approaching code for maintenance, it&#8217;s nice to not have to go through the definitions for all of the variables of a class.  That takes a lot of time.  If I have a convention that displays that information for me in a way that makes sense, it tends to be a bit of a time saver.</p>
+<p>(as stated above) &#8220;I’m not saying that Hungarian is the be all end&#8221;  At the end of the day, readability is the only thing that matters to a coder when talking about variable names.  Just like when some people prefer 2+2=4, some other wierdos (most developers) wouldn&#8217;t cringe at 4=2+2 at all.  It&#8217;s about readability and making sure that people can understand the code as quickly as possible.  If you have a way to do that, use it.  I think most people understand Hungarian and can gain some utility out of it.  I&#8217;ll use that.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2123">
+		<div id="div-comment-2123">
+		<div class="cmtinfo"><em> on <a href="#comment-2123" title="">2010-06-10 at 9:36 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/36b49594c50ddae74e04c238ed98c5fb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Zack</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2123"></div><p>&#8220;You&#8221; means whomever wrote it. </p>
+<p>So mouse over is not acceptable in today&#8217;s ide&#8217;s for those reviewing code? If it takes you 30-60 mins to find out what a variable is/does then you as the reviewer should find something more suitable as a career.</p>
+<p>Please provide a situation that &#8220;makes sense&#8221; to where hungarian notation is useful in today&#8217;s coding environment? Reading it is not a proper example. I can find what a variable is/does in less than 10 seconds with an find tool, which btw any good editor has and most have a go to definition.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-2122">
+		<div id="div-comment-2122">
+		<div class="cmtinfo"><em> on <a href="#comment-2122" title="">2010-06-10 at 9:30 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/1fa8025b5f71aefe4848b3a1001e8ead?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mikron</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2122"></div><p>&#8220;If you are naming variables “MyVar” then you shouldn’t be designing at all.&#8221;</p>
+<p>You understand that he&#8217;s not designing the code, right?  He&#8217;s working on it and having to deal with nonsense names.  Hungarian isn&#8217;t the nonsense part of the name.  Hungarian notation should NOT be considered a replacement for variable names that make sense.  </p>
+<p>When looking at the code as a whole, Hungarian notation can make a world of difference in keeping you from having to mouse over a particular variable when looking at the document as a whole.  I&#8217;m not saying that Hungarian is the be all end all, but there are many situations in which it makes sense.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-2121">
+		<div id="div-comment-2121">
+		<div class="cmtinfo"><em> on <a href="#comment-2121" title="">2010-06-10 at 8:48 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/36b49594c50ddae74e04c238ed98c5fb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Zack</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_2121"></div><p>Kind of an old topic but I did want to comment on Mark&#8217;s post.<br />
+&#8220;If you can tell me what information “MyVar” holds without having to waste 30 – 60 minutes sifting through a 5,000 line document then i bow at your feet good sir.&#8221;</p>
+<p>If you are naming variables &#8220;MyVar&#8221; then you shouldn&#8217;t be designing at all.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1483">
+		<div id="div-comment-1483">
+		<div class="cmtinfo"><em> on <a href="#comment-1483" title="">2009-09-25 at 5:32 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/0c0a1f54ab0a0911fd931ae5e19a5903?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Brent</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1483"></div><p>So, in short, don&#8217;t use &#8220;Systems Hungarian&#8221; because the C++ compiler is type safe.</p>
+<p>But what about trying to distinguish a Windows code-page string, a UTF-8 string, a UCS2 string, and a UTF-16 string?  Imagine how useful it would be to do this:</p>
+<p>//utf-8: each char takes 1 to 4 bytes of space.<br />
+std::string str8LastName;<br />
+//Windows code page.<br />
+std::string strLastName;<br />
+//utf-16: each char is 2 to 4 bytes.<br />
+std::wstring str6LastName;<br />
+//UCS2: all chars exactly 2 bytes in size.<br />
+std::wstring str2LastName; </p>
+<p>And Unicode aside, the compiler also does not know whether or not a char* is null-terminated.  In short, it doesn&#8217;t take long to compile a list of noticeably valuable &#8220;App Hungarian&#8221; to recommend and follow.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1234">
+		<div id="div-comment-1234">
+		<div class="cmtinfo"><em> on <a href="#comment-1234" title="">2009-05-16 at 6:26 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/c4146ff0f05509ea00d5587c34fb1dba?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Nishant</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1234"></div><p>Exactly!! Everyone who is against the hungarian notation write their code and disappear coz they can sift through their code after 6 months. Then people like us have the misfortune of maintaining their code while they blog about how the IDE knows more about their variables then themselves. </p>
+<p>Please try to work on an engineering software with ints/doubles/floats/longs flying around in a 100 line function and then try to figure out why the result is off by the third decimal place after all the unit conversions take place. Dont tell me you should not be doing this and that coz i didnt. I just need to fix the problem and get out of the mess as fast as i can.</p>
+<p>Also the human brain can only remember 7 things at a time unlike the compiler so if you have a dozen variables flying around in a function doing magical things be prepared to keep right clicking and &#8220;Go to definition&#8221; a few hundred times.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1225">
+		<div id="div-comment-1225">
+		<div class="cmtinfo"><em> on <a href="#comment-1225" title="">2009-05-13 at 5:46 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/fe7de87c988c2eb5eaa218ee3d7bb25c?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://ddd' rel='external nofollow' class='url'>Mark</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1225"></div><p>Well said rH.</p>
+<p>I invite any of you to come work on a horribly coded, non-standardized application which I have been maintaining daily for the past 2 and a half years. If you can tell me what information &#8220;MyVar&#8221; holds without having to waste 30 &#8211; 60 minutes sifting through a 5,000 line document then i bow at your feet good sir. Yes, you can ctrl+f to search it&#8217;s meaning, I grant you that, but if that variable is used more than a few times it consumes more time than is necessary when shorthand could have given you a rather large clue within half a second. It&#8217;s especially horrible when a variable is ambiguously used several times in one document for multiple purposes.</p>
+<p>Despite the horrible general naming convention of &#8220;MyVar&#8221;, it will still assist me immensly if the variable were simply prepended with &#8220;s&#8221;. At least then I would know it&#8217;s a string type, or that it&#8217;s supposed to be anyhow.</p>
+<p>For the record, I&#8217;ll also state that Hungarian is meant to hold semantic information about the type, thereby indicating the variable&#8217;s purpose &#8211; it is not meant to set in stone that this is what it will be used for &#8211; only an indication &#8211; the fact that you are changing variable type during your app and not reflecting such changes within your writing style is entirely inconsequential to the point, and entirely your own fault :)</p>
+<p>Use it, don&#8217;t use it &#8211; it makes no difference to me unless I happen to read your code.. then i&#8217;ll probably strangle you for wasting my time unless you employ some other method which prevents me from having to search every line of your document for the meaning of &#8220;CheeseAndCrackers&#8221;.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-1179">
+		<div id="div-comment-1179">
+		<div class="cmtinfo"><em> on <a href="#comment-1179" title="">2009-04-23 at 10:29 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/128272397aeeeba1bac36023147f16aa?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://softwaredevel.wikispaces.com/' rel='external nofollow' class='url'>rH</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1179"></div><p>“… the compiler already knows much more than you do about an object’s type. [&#8230;]&#8221;</p>
+<p>Come on guys.. We all know that the notation is not for the compiler. For the compiler it&#8217;s totally irrelevant how you call your variables.<br />
+These notations are for the developers and maintainers of the code. Consider the following example:<br />
+if (somevar) { dosomething();}<br />
+and compare it with the following examples:<br />
+if (bSomeVar) {dosomething();}<br />
+if (pSomeVar) { dosomething();}</p>
+<p>The main advantage of the Hungarian notation is that in these cases (and potentionally in other cases as well) will makes the code significantly more readable.</p>
+<p>I personally use a simplified version of the Hungarian notation, b for boolean, p for pointers, s for strings (why would you use the extra z if nowadays nobody uses the pascal format?) and n for any integer type (again, why to distinguish between them?). And that&#8217;s it.</p>
+<p>I have seen people heavily arguing against the Hungarian notation although they use prefixes like &#8216;is&#8217; (e.g.: isActive). The b prefix clearly expresses the same thing and it&#8217;s half as long ;)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-1039">
+		<div id="div-comment-1039">
+		<div class="cmtinfo"><em> on <a href="#comment-1039" title="">2009-01-16 at 10:25 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/eda7510414bcf09e9423ecfa4f543a23?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mark</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_1039"></div><p>As for arguments that Hungarian notation helps when reading code, if you can&#8217;t see that house-&gt;Build means that house is a pointer to an object then you should not be allowed to edit that code.  From my expierence, developers should spend more time worrying about giving their variables more appriopriate names than encoding type information in to the variable name as this is what truly helps when reading code.<br />
+Your functions/methods should do one thing and do that one thing well and be typically small.  Therefore, the only far away variable declarations will be those that are member variables in the header file so it will be clear that that&#8217;s not a local variable declaration.  And, the editor helps in this case as you can right click and go to definition.  Also, you&#8217;ve got class view.  (Assuming that you are using VC++ ide of course).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-956">
+		<div id="div-comment-956">
+		<div class="cmtinfo"><em> on <a href="#comment-956" title="">2008-12-21 at 4:15 pm</a></em>  <cite><a href='http://kapustein.com/blog/?p=976' rel='external nofollow' class='url'>The Cave &raquo; Blog Archive &raquo; Hungarian Notation</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_956"></div><p>[&#8230;] Aha! The good reason to use Hungarian Notation: [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-782">
+		<div id="div-comment-782">
+		<div class="cmtinfo"><em> on <a href="#comment-782" title="">2008-08-14 at 1:51 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/6fa890acbd56ac39523bc93ffa174145?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Yigal</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_782"></div><p>about the m_name notation:<br />
+I find it extremely silly to re-implement the wheel this way.<br />
+If the class is too big to easily see that some variable is a member variable, than you can always use the built in notation of: this.var or this-&gt;var (depends on language, of course). </p>
+<p>about IDEs:<br />
+IDEs are not just useful for writing code. A proper IDE actually parses your code and understands it (using an AST to represent your code).<br />
+such a tool can help you read code not only by highlighting it (regular text editors can do that too) but also with showing you tool tips with the documentation, allowing you to click an identifier and go to its definition, showing you a variable&#8217;s type in a popup, etc&#8230;<br />
+If you use such a tool than it sure worth the additional startup delay to get all the convenience.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-780">
+		<div id="div-comment-780">
+		<div class="cmtinfo"><em> on <a href="#comment-780" title="">2008-08-13 at 5:56 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/85884c090fd13e0cef4b31f20cbf31eb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>JGullen</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_780"></div><p>BTW, Regarding my first post, it appears multiple occurrences of the word &#8220;type&#8221; enclosed by less than and greater than signs got deleted, thereby rendering my post meaningless.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-779">
+		<div id="div-comment-779">
+		<div class="cmtinfo"><em> on <a href="#comment-779" title="">2008-08-13 at 5:54 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/85884c090fd13e0cef4b31f20cbf31eb?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>JGullen</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_779"></div><p>Class *members*:<br />
+     mName;    // any member (minimum)<br />
+  * mpName;  // any ptr (minimum)</p>
+<p>  static    msName;    // any static member (minimum)<br />
+  static * mspName;  // any static ptr (minimum)</p>
+<p>Function, method *arguments*:<br />
+     aName;    // any arg (minimum)<br />
+  * apName;  // any ptr arg (minimum)<br />
+  &amp; arName;  // any ref arg (minimum)<br />
+  const    akName;    // any const arg<br />
+  const * akpName;  // any const ptr arg<br />
+  const &amp; akrName;  // any const ref arg</p>
+<p>Local *variables*:  a, ab, abc..Name, pName, vName, vpName<br />
+(&#8220;a, ab&#8221; mean any one or two lowercase letters.<br />
+  &#8220;abc..[Name]&#8221; means all lc or camelback not conflicting with<br />
+  function args and class data members)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-778">
+		<div id="div-comment-778">
+		<div class="cmtinfo"><em> on <a href="#comment-778" title="">2008-08-13 at 1:48 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/12e0695d6b0c1d35ae5a01eede145ec9?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.codeblocks.org' rel='external nofollow' class='url'>killerbot</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_778"></div><p>I personally *used* Hungarian back in the days, coming from C, in C++. But my experience is, it makes the code less readable (bBool, szString; pszString, and so on) and for a fact after time they start to lie. Yes, when you change the type, the developer has to check all uses, but there will be developers who will fall back on the baddest programming tool existing (copy/replace [All]), that much for careful change.<br />
+None of us is such a copy/paste programmer, right, but we all know some who are &#8230;</p>
+<p>As far as the m_.. is concerned, this is for indicating the scope, not the type. Member variable is different from local variable, etc..<br />
+So it is a different thing, it is not  Hungarian notation.<br />
+As for the JAVA remark someone made above, m_ also applies there, because you can also have local(stack) variables (and yes, the &#8216;p&#8217; will not happen).</p>
+<p>One suggestion for the remark of &#8216;the declaration of the variable can be far away from it&#8217;s point of usage : In an agile manner you try to have very small functions/methods (a few lines), and in C++ you always declare you variable at the point of the first usage [C : back in the days you had to declare at the start of the function/block], as such in a small function the declaration will never be far away. As for member variables, yes it is in another file. But even then the class is probably not too big (it&#8217;s state) and things can be found quickly, otherwise it might well be possible extra abstractions are possible and the class is doing way to much work.</p>
+<p>Oh yes : I don&#8217;t use Hungarian notation anymore ;-)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback even thread-even depth-1 highlander-comment" id="comment-777">
+		<div id="div-comment-777">
+		<div class="cmtinfo"><em> on <a href="#comment-777" title="">2008-08-12 at 12:41 pm</a></em>  <cite><a href='http://inside.echobit.net/dreijer/archives/2008/08/12/reflections-on-hungarian-notation/' rel='external nofollow' class='url'>Inside Echobit &raquo; Blog Archive &raquo; Reflections on Hungarian notation</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_777"></div><p>[&#8230;] few days ago I stumbled upon Herb Sutter&#8217;s latest remarks on his personal preference and some of the comments to his post sparked my interest. For instance, I find the following [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-743">
+		<div id="div-comment-743">
+		<div class="cmtinfo"><em> on <a href="#comment-743" title="">2008-07-31 at 1:53 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/a8b8f4e86e6078bb4d63bca6fbe340a5?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>drkybelk</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_743"></div><p>In response to Alex: I use m_&#8230; and m_p&#8230; to indicate a member variable/pointer  and p&#8230; to indicate a global or parmeter pointer. It makes reading and understanding the code easier I find, because it gives a clue about the lifetime of an object and it&#8217;s scope. Java doesn&#8217;t need the m_&#8230; because everything is a member of a class and no p.. because there are no pointers. I work on a large project that traditionally used MS&#8217;s hungarian notation and I can bear witness that it can be very confusing if a variable used to be a m_rsData (RoguewaveString) and has subsequently been changed to a Pointer to and object without its name having been altered.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-705">
+		<div id="div-comment-705">
+		<div class="cmtinfo"><em> on <a href="#comment-705" title="">2008-07-22 at 12:07 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/954daae393fe61af814537ada45d6167?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Alex</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_705"></div><p>People who love Hungarian, let me ask you something.  Have you tried programming without it?  Have you used any managed languages like C# or Java.  Have you used Hungarian in those languages?  No?  Why?</p>
+<p>If you think C++ type system is less strict than in C# or Java than you&#8217;ve been programming in C rather than C++.  And I understand your affection for Hungarian.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-686">
+		<div id="div-comment-686">
+		<div class="cmtinfo"><em> on <a href="#comment-686" title="">2008-07-16 at 7:40 pm</a></em> <img alt='' src='https://2.gravatar.com/avatar/54f2236f302514cde64ce9e6c3c8b573?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>John</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_686"></div><p>&#8220;the compiler already knows much more than you do about an object’s type&#8221;. Irrelevant. Variable names are for the code reader, not just the compiler. &#8220;Changing the variable’s name to embed type information adds little value and is in fact brittle.&#8221; It&#8217;s only brittle if you change the type often. How often do you change a variable&#8217;s type, and how much does it cost to do a find/replace?</p>
+<p>Most people read code more often than they write it. The IDE is not always available (and it&#8217;s certainly not quick, if we&#8217;re talking about Visual Studio). The variable declaration is often far away from its usage. Having the type embedded in the name saves people from having to dig around for the declaration.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-684">
+		<div id="div-comment-684">
+		<div class="cmtinfo"><em> on <a href="#comment-684" title="">2008-07-16 at 5:57 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/1f64f9b0a9296bafcc7d3bb0012cffe4?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>ActionMan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_684"></div><p>Long live Apps Hungarian!</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-682">
+		<div id="div-comment-682">
+		<div class="cmtinfo"><em> on <a href="#comment-682" title="">2008-07-16 at 11:50 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/3c0aac2191718ef0309dbc034d9b9961?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>David Heffernan</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_682"></div><p>The point is that the IDE will tell you stuff when you are writing, but not when you are reading.  Since code is read more than written, it&#8217;s just much clear to use pData or DataPtr or whatever.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-681">
+		<div id="div-comment-681">
+		<div class="cmtinfo"><em> on <a href="#comment-681" title="">2008-07-16 at 11:02 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/282620cc7c00b3db010394603f37f1c6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>paulm</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_681"></div><p>mlcr and Peirz, I also generally use pData notation for pointers in C/C++. I find it helps both the writer and reader. There&#8217;s a significant difference between &#8220;if (size == 0)&#8221; and &#8220;if (pSize == 0)&#8221;, for example.</p>
+<p>It also doesn&#8217;t suffer as many of the downsides of other prefixes. If a property changes from being a pointer, the use of the property changes in most cases and needs to be updated. It&#8217;s actually useful in this case as it helps ensure each use is considered.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-680">
+		<div id="div-comment-680">
+		<div class="cmtinfo"><em> on <a href="#comment-680" title="">2008-07-16 at 4:50 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/357a20e8c56e69d6f9734d23ef9517e8?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://bpeers.com/blog' rel='external nofollow' class='url'>Peirz</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_680"></div><p>mlcr, why would that help?  If you type -&gt; instead of . the compiler will tell you, most stuff just won&#8217;t compile if you use a pointer as a reference/value or vice versa.  It&#8217;s not about being logical, it&#8217;s about not adding info that doesn&#8217;t contribute anything but might get out of sync, ending up as a liability instead.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-679">
+		<div id="div-comment-679">
+		<div class="cmtinfo"><em> on <a href="#comment-679" title="">2008-07-16 at 2:50 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/112f1791f7180189690e854a1f0ed642?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>mlcr</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_679"></div><p>In general I use the pData notation for pointers, and this seems very logic to me. Noone else writes this, too?</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-673">
+		<div id="div-comment-673">
+		<div class="cmtinfo"><em> on <a href="#comment-673" title="">2008-07-15 at 11:13 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/93666108350c7bc501fc956e6dffa65f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Dylan Harris</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_673"></div><p>Given your argument, is this a good place to request the type trait is_thread_local be added to N2659, presuming N2659 appears in C++0x? A partially specialised mutex template using that type trait could select best mutex use.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-672">
+		<div id="div-comment-672">
+		<div class="cmtinfo"><em> on <a href="#comment-672" title="">2008-07-15 at 6:50 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/9d83046a4e59b7c8e6a3ce809be5e7c6?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Renjith</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_672"></div><p>There may be another reason to use Hungarian notation. If you are writing MFC code which is already hungarian, you need to use some convention which looks consistent with the library code. This does not hold true for STL like libraries as we are users of the STL code most of the time rather than extenders.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-671">
+		<div id="div-comment-671">
+		<div class="cmtinfo"><em> on <a href="#comment-671" title="">2008-07-15 at 2:25 pm</a></em> <img alt='' src='https://1.gravatar.com/avatar/7d0950b267093e6c2048dfd95db34a1b?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>KJK::Hyperion</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_671"></div><p>It&#8217;s hard to beat the conciseness of Hungarian for tagging &#8220;size&#8221; variables &#8211; &#8220;cch&#8221; for a count of characters, &#8220;cb&#8221; for a count of bytes, &#8220;cc&#8221; for a count of array elements. In general, Hungarian is only really useful for value types/POD, where polymorphism is extremely unlikely and ambiguity in semantics almost always inevitable</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2008/07/15/hungarian-notation-is-clearly-goodbad/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-c38a1875adad8c9a2df370bb7103ad31">
+	</div>
+	<div class="grofile-hash-map-36b49594c50ddae74e04c238ed98c5fb">
+	</div>
+	<div class="grofile-hash-map-1fa8025b5f71aefe4848b3a1001e8ead">
+	</div>
+	<div class="grofile-hash-map-0c0a1f54ab0a0911fd931ae5e19a5903">
+	</div>
+	<div class="grofile-hash-map-c4146ff0f05509ea00d5587c34fb1dba">
+	</div>
+	<div class="grofile-hash-map-fe7de87c988c2eb5eaa218ee3d7bb25c">
+	</div>
+	<div class="grofile-hash-map-128272397aeeeba1bac36023147f16aa">
+	</div>
+	<div class="grofile-hash-map-eda7510414bcf09e9423ecfa4f543a23">
+	</div>
+	<div class="grofile-hash-map-6fa890acbd56ac39523bc93ffa174145">
+	</div>
+	<div class="grofile-hash-map-85884c090fd13e0cef4b31f20cbf31eb">
+	</div>
+	<div class="grofile-hash-map-12e0695d6b0c1d35ae5a01eede145ec9">
+	</div>
+	<div class="grofile-hash-map-a8b8f4e86e6078bb4d63bca6fbe340a5">
+	</div>
+	<div class="grofile-hash-map-954daae393fe61af814537ada45d6167">
+	</div>
+	<div class="grofile-hash-map-54f2236f302514cde64ce9e6c3c8b573">
+	</div>
+	<div class="grofile-hash-map-1f64f9b0a9296bafcc7d3bb0012cffe4">
+	</div>
+	<div class="grofile-hash-map-3c0aac2191718ef0309dbc034d9b9961">
+	</div>
+	<div class="grofile-hash-map-282620cc7c00b3db010394603f37f1c6">
+	</div>
+	<div class="grofile-hash-map-357a20e8c56e69d6f9734d23ef9517e8">
+	</div>
+	<div class="grofile-hash-map-112f1791f7180189690e854a1f0ed642">
+	</div>
+	<div class="grofile-hash-map-93666108350c7bc501fc956e6dffa65f">
+	</div>
+	<div class="grofile-hash-map-9d83046a4e59b7c8e6a3ce809be5e7c6">
+	</div>
+	<div class="grofile-hash-map-7d0950b267093e6c2048dfd95db34a1b">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_2127={"id":468178,"unique_id":"wp-comment-2127","title":"The%20problem%20with%20this%20argument%20is%20that%2C%20as%20with%20comments%2C%20when%20you%20are%20maintaining%20code%20you%20did%20not%20write%2C%20especially%20%26quot%3Bhorribly%20coded%2C%20non-standardized%26quot%3B%20code%20-%20relying%20on%20the%20NAME%20of%20the%20variable...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-2127","item_id":"_comm_2127"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2127 == 'undefined' ){PDRTJS_468178_comm_2127 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2127 );}}PDRTJS_settings_468178_comm_2125={"id":468178,"unique_id":"wp-comment-2125","title":"Once%20again%20all%20you%20are%20doing%20is%20repeating%20your%20self%20with%20%26quot%3Breading%26quot%3B%20the%20code.%20So%20you%20are%20telling%20me%20hungarian%20notation%20keeps%20you%20from%20having%20to%20find%20out%20the%20origins%20of%20the%20variable%3F%20I%20bet%20most%20of%20...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-2125","item_id":"_comm_2125"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2125 == 'undefined' ){PDRTJS_468178_comm_2125 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2125 );}}PDRTJS_settings_468178_comm_2124={"id":468178,"unique_id":"wp-comment-2124","title":"like%20I%20just%20said%2C%20%26quot%3Bwhen%20looking%20at%20the%20document%20as%20a%20whole%26quot%3B%20having%20to%20mouse%20over%20every%20variable%20to%20understand%20what%20it%20is%20capable%20of%2C%20what%20properties%20it%20has%2C%20etc...%20wastes%20time.%20%20For%20those%20of%20us%20t...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-2124","item_id":"_comm_2124"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2124 == 'undefined' ){PDRTJS_468178_comm_2124 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2124 );}}PDRTJS_settings_468178_comm_2123={"id":468178,"unique_id":"wp-comment-2123","title":"%26quot%3BYou%26quot%3B%20means%20whomever%20wrote%20it.%20So%20mouse%20over%20is%20not%20acceptable%20in%20today%26%23039%3Bs%20ide%26%23039%3Bs%20for%20those%20reviewing%20code%3F%20If%20it%20takes%20you%2030-60%20mins%20to%20find%20out%20what%20a%20variable%20is%2Fdoes%20then%20you%20as%20the%20reviewer%20s...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-2123","item_id":"_comm_2123"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2123 == 'undefined' ){PDRTJS_468178_comm_2123 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2123 );}}PDRTJS_settings_468178_comm_2122={"id":468178,"unique_id":"wp-comment-2122","title":"%26quot%3BIf%20you%20are%20naming%20variables%20MyVar%20then%20you%20shouldnt%20be%20designing%20at%20all.%26quot%3BYou%20understand%20that%20he%26%23039%3Bs%20not%20designing%20the%20code%2C%20right%3F%20%20He%26%23039%3Bs%20working%20on%20it%20and%20having%20to%20deal%20with%20nonsense%20names.%20%20Hung...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-2122","item_id":"_comm_2122"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2122 == 'undefined' ){PDRTJS_468178_comm_2122 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2122 );}}PDRTJS_settings_468178_comm_2121={"id":468178,"unique_id":"wp-comment-2121","title":"Kind%20of%20an%20old%20topic%20but%20I%20did%20want%20to%20comment%20on%20Mark%26%23039%3Bs%20post.%26quot%3BIf%20you%20can%20tell%20me%20what%20information%20MyVar%20holds%20without%20having%20to%20waste%2030%20%2060%20minutes%20sifting%20through%20a%205%2C000%20line%20document%20then%20i%20...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-2121","item_id":"_comm_2121"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_2121 == 'undefined' ){PDRTJS_468178_comm_2121 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_2121 );}}PDRTJS_settings_468178_comm_1483={"id":468178,"unique_id":"wp-comment-1483","title":"So%2C%20in%20short%2C%20don%26%23039%3Bt%20use%20%26quot%3BSystems%20Hungarian%26quot%3B%20because%20the%20C%2B%2B%20compiler%20is%20type%20safe.But%20what%20about%20trying%20to%20distinguish%20a%20Windows%20code-page%20string%2C%20a%20UTF-8%20string%2C%20a%20UCS2%20string%2C%20and%20a%20UTF-16%20stri...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-1483","item_id":"_comm_1483"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1483 == 'undefined' ){PDRTJS_468178_comm_1483 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1483 );}}PDRTJS_settings_468178_comm_1234={"id":468178,"unique_id":"wp-comment-1234","title":"Exactly%21%21%20Everyone%20who%20is%20against%20the%20hungarian%20notation%20write%20their%20code%20and%20disappear%20coz%20they%20can%20sift%20through%20their%20code%20after%206%20months.%20Then%20people%20like%20us%20have%20the%20misfortune%20of%20maintaining...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-1234","item_id":"_comm_1234"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1234 == 'undefined' ){PDRTJS_468178_comm_1234 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1234 );}}PDRTJS_settings_468178_comm_1225={"id":468178,"unique_id":"wp-comment-1225","title":"Well%20said%20rH.I%20invite%20any%20of%20you%20to%20come%20work%20on%20a%20horribly%20coded%2C%20non-standardized%20application%20which%20I%20have%20been%20maintaining%20daily%20for%20the%20past%202%20and%20a%20half%20years.%20If%20you%20can%20tell%20me%20what%20inform...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-1225","item_id":"_comm_1225"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1225 == 'undefined' ){PDRTJS_468178_comm_1225 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1225 );}}PDRTJS_settings_468178_comm_1179={"id":468178,"unique_id":"wp-comment-1179","title":"the%20compiler%20already%20knows%20much%20more%20than%20you%20do%20about%20an%20objects%20type.%20%26%23091%3B...%26%23093%3B%26quot%3BCome%20on%20guys..%20We%20all%20know%20that%20the%20notation%20is%20not%20for%20the%20compiler.%20For%20the%20compiler%20it%26%23039%3Bs%20totally%20irrelevant%20how%20y...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-1179","item_id":"_comm_1179"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1179 == 'undefined' ){PDRTJS_468178_comm_1179 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1179 );}}PDRTJS_settings_468178_comm_1039={"id":468178,"unique_id":"wp-comment-1039","title":"As%20for%20arguments%20that%20Hungarian%20notation%20helps%20when%20reading%20code%2C%20if%20you%20can%26%23039%3Bt%20see%20that%20house-%26gt%3BBuild%20means%20that%20house%20is%20a%20pointer%20to%20an%20object%20then%20you%20should%20not%20be%20allowed%20to%20edit%20that%20code...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-1039","item_id":"_comm_1039"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_1039 == 'undefined' ){PDRTJS_468178_comm_1039 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_1039 );}}PDRTJS_settings_468178_comm_956={"id":468178,"unique_id":"wp-comment-956","title":"%26%23091%3B...%26%23093%3B%20Aha%21%20The%20good%20reason%20to%20use%20Hungarian%20Notation%3A%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-956","item_id":"_comm_956"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_956 == 'undefined' ){PDRTJS_468178_comm_956 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_956 );}}PDRTJS_settings_468178_comm_782={"id":468178,"unique_id":"wp-comment-782","title":"about%20the%20m_name%20notation%3AI%20find%20it%20extremely%20silly%20to%20re-implement%20the%20wheel%20this%20way.%20If%20the%20class%20is%20too%20big%20to%20easily%20see%20that%20some%20variable%20is%20a%20member%20variable%2C%20than%20you%20can%20always%20use%20the%20...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-782","item_id":"_comm_782"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_782 == 'undefined' ){PDRTJS_468178_comm_782 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_782 );}}PDRTJS_settings_468178_comm_780={"id":468178,"unique_id":"wp-comment-780","title":"BTW%2C%20Regarding%20my%20first%20post%2C%20it%20appears%20multiple%20occurrences%20of%20the%20word%20%26quot%3Btype%26quot%3B%20enclosed%20by%20less%20than%20and%20greater%20than%20signs%20got%20deleted%2C%20thereby%20rendering%20my%20post%20meaningless....","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-780","item_id":"_comm_780"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_780 == 'undefined' ){PDRTJS_468178_comm_780 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_780 );}}PDRTJS_settings_468178_comm_779={"id":468178,"unique_id":"wp-comment-779","title":"Class%20%2Amembers%2A%3A%20%20%20%20%20mName%3B%20%20%20%20%2F%2F%20any%20member%20%28minimum%29%20%20%2A%20mpName%3B%20%20%2F%2F%20any%20ptr%20%28minimum%29%20%20static%20%20%20%20msName%3B%20%20%20%20%2F%2F%20any%20static%20member%20%28minimum%29%20%20static%20%2A%20mspName%3B%20%20%2F%2F%20any%20static%20ptr%20%28minimum%29Functio...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-779","item_id":"_comm_779"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_779 == 'undefined' ){PDRTJS_468178_comm_779 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_779 );}}PDRTJS_settings_468178_comm_778={"id":468178,"unique_id":"wp-comment-778","title":"I%20personally%20%2Aused%2A%20Hungarian%20back%20in%20the%20days%2C%20coming%20from%20C%2C%20in%20C%2B%2B.%20But%20my%20experience%20is%2C%20it%20makes%20the%20code%20less%20readable%20%28bBool%2C%20szString%3B%20pszString%2C%20and%20so%20on%29%20and%20for%20a%20fact%20after%20time%20they...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-778","item_id":"_comm_778"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_778 == 'undefined' ){PDRTJS_468178_comm_778 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_778 );}}PDRTJS_settings_468178_comm_777={"id":468178,"unique_id":"wp-comment-777","title":"%26%23091%3B...%26%23093%3B%20few%20days%20ago%20I%20stumbled%20upon%20Herb%20Sutter%26%238217%3Bs%20latest%20remarks%20on%20his%20personal%20preference%20and%20some%20of%20the%20comments%20to%20his%20post%20sparked%20my%20interest.%20For%20instance%2C%20I%20find%20the%20following%20%26%23091%3B...%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-777","item_id":"_comm_777"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_777 == 'undefined' ){PDRTJS_468178_comm_777 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_777 );}}PDRTJS_settings_468178_comm_743={"id":468178,"unique_id":"wp-comment-743","title":"In%20response%20to%20Alex%3A%20I%20use%20m_...%20and%20m_p...%20to%20indicate%20a%20member%20variable%2Fpointer%20%20and%20p...%20to%20indicate%20a%20global%20or%20parmeter%20pointer.%20It%20makes%20reading%20and%20understanding%20the%20code%20easier%20I%20find%2C%20be...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-743","item_id":"_comm_743"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_743 == 'undefined' ){PDRTJS_468178_comm_743 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_743 );}}PDRTJS_settings_468178_comm_705={"id":468178,"unique_id":"wp-comment-705","title":"People%20who%20love%20Hungarian%2C%20let%20me%20ask%20you%20something.%20%20Have%20you%20tried%20programming%20without%20it%3F%20%20Have%20you%20used%20any%20managed%20languages%20like%20C%23%20or%20Java.%20%20Have%20you%20used%20Hungarian%20in%20those%20languages%3F%20%20No...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-705","item_id":"_comm_705"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_705 == 'undefined' ){PDRTJS_468178_comm_705 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_705 );}}PDRTJS_settings_468178_comm_686={"id":468178,"unique_id":"wp-comment-686","title":"%26quot%3Bthe%20compiler%20already%20knows%20much%20more%20than%20you%20do%20about%20an%20objects%20type%26quot%3B.%20Irrelevant.%20Variable%20names%20are%20for%20the%20code%20reader%2C%20not%20just%20the%20compiler.%20%26quot%3BChanging%20the%20variables%20name%20to%20embed%20type%20inf...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-686","item_id":"_comm_686"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_686 == 'undefined' ){PDRTJS_468178_comm_686 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_686 );}}PDRTJS_settings_468178_comm_684={"id":468178,"unique_id":"wp-comment-684","title":"Long%20live%20Apps%20Hungarian%21...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-684","item_id":"_comm_684"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_684 == 'undefined' ){PDRTJS_468178_comm_684 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_684 );}}PDRTJS_settings_468178_comm_682={"id":468178,"unique_id":"wp-comment-682","title":"The%20point%20is%20that%20the%20IDE%20will%20tell%20you%20stuff%20when%20you%20are%20writing%2C%20but%20not%20when%20you%20are%20reading.%20%20Since%20code%20is%20read%20more%20than%20written%2C%20it%26%23039%3Bs%20just%20much%20clear%20to%20use%20pData%20or%20DataPtr%20or%20whatever....","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-682","item_id":"_comm_682"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_682 == 'undefined' ){PDRTJS_468178_comm_682 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_682 );}}PDRTJS_settings_468178_comm_681={"id":468178,"unique_id":"wp-comment-681","title":"mlcr%20and%20Peirz%2C%20I%20also%20generally%20use%20pData%20notation%20for%20pointers%20in%20C%2FC%2B%2B.%20I%20find%20it%20helps%20both%20the%20writer%20and%20reader.%20There%26%23039%3Bs%20a%20significant%20difference%20between%20%26quot%3Bif%20%28size%20%3D%3D%200%29%26quot%3B%20and%20%26quot%3Bif%20%28pSize%20%3D%3D%20...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-681","item_id":"_comm_681"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_681 == 'undefined' ){PDRTJS_468178_comm_681 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_681 );}}PDRTJS_settings_468178_comm_680={"id":468178,"unique_id":"wp-comment-680","title":"mlcr%2C%20why%20would%20that%20help%3F%20%20If%20you%20type%20-%26gt%3B%20instead%20of%20.%20the%20compiler%20will%20tell%20you%2C%20most%20stuff%20just%20won%26%23039%3Bt%20compile%20if%20you%20use%20a%20pointer%20as%20a%20reference%2Fvalue%20or%20vice%20versa.%20%20It%26%23039%3Bs%20not%20about%20being...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-680","item_id":"_comm_680"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_680 == 'undefined' ){PDRTJS_468178_comm_680 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_680 );}}PDRTJS_settings_468178_comm_679={"id":468178,"unique_id":"wp-comment-679","title":"In%20general%20I%20use%20the%20pData%20notation%20for%20pointers%2C%20and%20this%20seems%20very%20logic%20to%20me.%20Noone%20else%20writes%20this%2C%20too%3F...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-679","item_id":"_comm_679"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_679 == 'undefined' ){PDRTJS_468178_comm_679 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_679 );}}PDRTJS_settings_468178_comm_673={"id":468178,"unique_id":"wp-comment-673","title":"Given%20your%20argument%2C%20is%20this%20a%20good%20place%20to%20request%20the%20type%20trait%20is_thread_local%20be%20added%20to%20N2659%2C%20presuming%20N2659%20appears%20in%20C%2B%2B0x%3F%20A%20partially%20specialised%20mutex%20template%20using%20that%20type%20tra...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-673","item_id":"_comm_673"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_673 == 'undefined' ){PDRTJS_468178_comm_673 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_673 );}}PDRTJS_settings_468178_comm_672={"id":468178,"unique_id":"wp-comment-672","title":"There%20may%20be%20another%20reason%20to%20use%20Hungarian%20notation.%20If%20you%20are%20writing%20MFC%20code%20which%20is%20already%20hungarian%2C%20you%20need%20to%20use%20some%20convention%20which%20looks%20consistent%20with%20the%20library%20code.%20This%20d...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-672","item_id":"_comm_672"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_672 == 'undefined' ){PDRTJS_468178_comm_672 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_672 );}}PDRTJS_settings_468178_comm_671={"id":468178,"unique_id":"wp-comment-671","title":"It%26%23039%3Bs%20hard%20to%20beat%20the%20conciseness%20of%20Hungarian%20for%20tagging%20%26quot%3Bsize%26quot%3B%20variables%20-%20%26quot%3Bcch%26quot%3B%20for%20a%20count%20of%20characters%2C%20%26quot%3Bcb%26quot%3B%20for%20a%20count%20of%20bytes%2C%20%26quot%3Bcc%26quot%3B%20for%20a%20count%20of%20array%20elements.%20In%20general%2C%20Hungarian...","permalink":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/#comment-671","item_id":"_comm_671"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_671 == 'undefined' ){PDRTJS_468178_comm_671 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_671 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2008%2F07%2F15%2Fhungarian-notation-is-clearly-goodbad%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2008\/07\/15\/hungarian-notation-is-clearly-goodbad\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2008%2F07%2F15%2Fhungarian-notation-is-clearly-goodbad%2F","postID":"100","shortlink":"https:\/\/wp.me\/peb5Y-1C","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/100","statsLink":"https:\/\/wordpress.com\/stats\/post\/100\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2008%2F07%2F15%2Fhungarian-notation-is-clearly-goodbad%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'100','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNDZOdTJWSXY4eHZWRXg0Umw4al9dZlFCN1pwSkxVeHEyTXpbUld0Wm05LmcxV3lIXXQmUyZpPXgsa11+ay1qM3Z8XzR5RWMrNi9ILXI4M1hFUnE9SHpmJmZddFVsX1k2ZXlpY3Qmdj0rLjhHWVktSEl2dzUlYlpWc3V5N19DJWRUaXo1PWZRLWp6V3RZJUZlV09OVDN5ZGFhZll3XUZlPzErRS92OD0lSEUsb3lQWnVTUjZ0Vi5Ec0sxMVpZQTZoUHJSVUJpYQ=='}]);
+_stq.push([ 'clickTrackerInit', '3379246', '100' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>
+<!--
+	generated in 0.133 seconds
+	87029 bytes batcached for 300 seconds
+-->

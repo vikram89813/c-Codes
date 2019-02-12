@@ -1,0 +1,554 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Videos: Panel, and C++ Concurrency | Sutter’s Mill</title>
+<link rel="pingback" href="https://herbsutter.com/xmlrpc.php" />
+<script type="text/javascript">
+  WebFontConfig = {"typekit":{"id":"eyo0tqd"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = 'https://s0.wp.com/wp-content/plugins/custom-fonts/js/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style id="jetpack-custom-fonts-css">.wf-active #header h1{font-size:2.12em;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active body{font-size:89.7%;font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation{font-family:"ff-basic-gothic-web-pro-1","ff-basic-gothic-web-pro-2",sans-serif}.wf-active #navigation ul li.search{font-size:1.06em}.wf-active #navigation ul li.search input#searchsubmit{font-size:1.06em}.wf-active #content .post-info, .wf-active #content .postmetadata{font-size:1.06em}.wf-active #sidebar{font-size:1.06em}.wf-active #footer p.right{font-size:1.06em}.wf-active .commentnum{font-size:1.77em}.wf-active .commentlist li .cmtinfo{font-size:1.18em}.wf-active .commentlist li .cmtinfo em{font-size:1.06em}.wf-active #respond label{font-size:11.8px}.wf-active #respond .required{font-size:11.8px}.wf-active #respond .subscribe-label{font-size:14.2px}.wf-active #respond .comment-notes{font-size:13px}.wf-active .wp-caption p.wp-caption-text{font-size:13px}.wf-active #content h1, .wf-active h2, .wf-active h3, .wf-active h4, .wf-active h5, .wf-active h6{font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal;font-weight:400}.wf-active #header h2{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active #content h3{font-size:1.65em;font-weight:400;font-style:normal}.wf-active #content h4{font-size:1.3em;font-style:normal;font-weight:400}.wf-active #content h5{font-size:1.18em;font-style:normal;font-weight:400}.wf-active #content .post h2{font-size:1.65em;font-weight:400;font-style:normal}.wf-active li.sidebox h2{font-weight:400;font-size:1.89em;font-style:normal}.wf-active .post h4{font-size:1.18em;font-weight:400;font-family:"ff-dagny-web-pro-1","ff-dagny-web-pro-2",sans-serif;font-style:normal}.wf-active .post h4 em{font-style:normal;font-weight:400}</style>
+		<script src='https://r-login.wordpress.com/remote-login.php?action=js&amp;host=herbsutter.com&amp;id=3379246&amp;t=1542965753&amp;back=https%3A%2F%2Fherbsutter.com%2F2013%2F01%2F15%2Fvideos-panel-and-c-concurrency%2F' type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//herbsutter.wordpress.com' />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Feed" href="https://herbsutter.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Comments Feed" href="https://herbsutter.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Sutter’s Mill &raquo; Videos: Panel, and C++&nbsp;Concurrency Comments Feed" href="https://herbsutter.com/2013/01/15/videos-panel-and-c-concurrency/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1532082729h&ver=4.9.8"}};
+			!function(a,b,c){function d(a,b){var c=String.fromCharCode;l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,a),0,0);var d=k.toDataURL();l.clearRect(0,0,k.width,k.height),l.fillText(c.apply(this,b),0,0);var e=k.toDataURL();return d===e}function e(a){var b;if(!l||!l.fillText)return!1;switch(l.textBaseline="top",l.font="600 32px Arial",a){case"flag":return!(b=d([55356,56826,55356,56819],[55356,56826,8203,55356,56819]))&&(b=d([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]),!b);case"emoji":return b=d([55358,56760,9792,65039],[55358,56760,8203,9792,65039]),!b}return!1}function f(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var g,h,i,j,k=b.createElement("canvas"),l=k.getContext&&k.getContext("2d");for(j=Array("flag","emoji"),c.supports={everything:!0,everythingExceptFlag:!0},i=0;i<j.length;i++)c.supports[j[i]]=e(j[i]),c.supports.everything=c.supports.everything&&c.supports[j[i]],"flag"!==j[i]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[j[i]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(h=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",h,!1),a.addEventListener("load",h,!1)):(a.attachEvent("onload",h),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),g=c.source||{},g.concatemoji?f(g.concatemoji):g.wpemoji&&g.twemoji&&(f(g.twemoji),f(g.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='all-css-0-1' href='https://s2.wp.com/_static/??-eJyNkN1uwjAMhV9onsUG69W0Z0laE0zzp8QR6tvjUlUCwSpuonOS81knxkuGPkWhKBgaZN8cx4qeR6p4JsmmH+HmPvtaP/B1nOORI8uEcqKgYG4WA1eZfErjFtinQnofspE5EWhgQ15nRNnCQv5ZqVmetORmv0vWNFibC9UKegZuAZayT9wKuabWUnEwt0Tb2A9ofbotxBZTJpx/SE8DXi3hn+h9Rx4cSUVJGXKqqt5GaurZeGCNPJoFZoxJlsdVbE11lEB/aYRTfDBw9IbLFlpI9+NUOtTUnZ2hv/C7O+y/uu9uf+jOV8Xg7sY=?cssminify=yes' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-1-1' href='https://s2.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h&cssminify=yes' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-2-1' href='https://s0.wp.com/_static/??/wp-content/mu-plugins/actionbar/actionbar.css,/wp-content/themes/h4/global.css?m=1516985148j&cssminify=yes' type='text/css' media='all' />
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://herbsutter.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Java vulnerabilities' href='https://herbsutter.com/2013/01/15/java-vulnerabilities/' />
+<link rel='next' title='atomic Weapons: The C++ Memory Model and Modern&nbsp;Hardware' href='https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/' />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://herbsutter.com/2013/01/15/videos-panel-and-c-concurrency/" />
+<link rel='shortlink' href='https://wp.me/peb5Y-rx' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F01%2F15%2Fvideos-panel-and-c-concurrency%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fherbsutter.com%2F2013%2F01%2F15%2Fvideos-panel-and-c-concurrency%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Videos: Panel, and C++ Concurrency" />
+<meta property="og:url" content="https://herbsutter.com/2013/01/15/videos-panel-and-c-concurrency/" />
+<meta property="og:description" content="I’m about two weeks late posting this, but two more C++ and Beyond 2012 videos are now available online. The first is my concurrency talk: C++ and Beyond 2012: C++ Concurrency (Herb Sutter) I’ve sp…" />
+<meta property="article:published_time" content="2013-01-16T00:20:29+00:00" />
+<meta property="article:modified_time" content="2013-01-16T07:56:15+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://herbsutter.files.wordpress.com/2013/01/image1.png" />
+<meta property="og:image:width" content="400" />
+<meta property="og:image:height" content="224" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="Videos: Panel, and C++&nbsp;Concurrency" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="icon" type="image/x-icon" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=32" sizes="16x16" />
+<link rel="apple-touch-icon-precomposed" href="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=114" />
+<link rel='openid.server' href='https://herbsutter.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://herbsutter.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://herbsutter.com/osd.xml" title="Sutter’s Mill" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<script type="text/javascript" id="webfont-output">
+  
+  WebFontConfig = {"typekit":{"id":"cjs1oxc"}};
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+	})();
+</script><style type="text/css">
+.widget_twitter li {
+	word-wrap: break-word;
+}
+</style>
+<meta name="application-name" content="Sutter’s Mill" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="Herb Sutter on software development" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://herbsutter.com/feed/;icon-uri=https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="I’m about two weeks late posting this, but two more C++ and Beyond 2012 videos are now available online. The first is my concurrency talk: C++ and Beyond 2012: C++ Concurrency (Herb Sutter) I’ve spoken and written on these topics before. Here’s what’s different about this talk: Brand new: This material goes beyond what I’ve&hellip;" />
+<style type="text/css">
+			#header h1 a,
+		#header h2 {
+			color: #265E15 !important;
+		}
+				#headerimage {
+			background: url('https://herbsutter.files.wordpress.com/2011/10/cropped-blog-header.jpg') no-repeat;
+			height: 200px;
+		}
+	</style>
+<link rel="amphtml" href="https://herbsutter.com/2013/01/15/videos-panel-and-c-concurrency/amp/"><style type="text/css" id="syntaxhighlighteranchor"></style>
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s2.wp.com/?custom-css=1&#038;csblog=eb5Y&#038;cscache=6&#038;csrev=60" />
+		</head>
+<body id="section-index" class="post-template-default single single-post postid-1707 single-format-standard mp6 customizer-styles-applied highlander-enabled highlander-light">
+
+
+<div id="navigation" class="clearfix">
+		<div class="menu">
+		<ul>
+			<li ><a href="https://herbsutter.com/" title="Home">Home</a></li>
+			<li class="page_item page-item-912"><a href="https://herbsutter.com/welcome-to-the-jungle/">Welcome to the&nbsp;Jungle</a></li>
+<li class="page_item page-item-864 page_item_has_children"><a href="https://herbsutter.com/gotw/">GotW</a></li>
+<li class="page_item page-item-761"><a href="https://herbsutter.com/elements-of-modern-c-style/">Elements of Modern C++&nbsp;Style</a></li>
+<li class="page_item page-item-2 page_item_has_children"><a href="https://herbsutter.com/about/">About</a></li>
+									<li class="search"><form method="get" id="searchform" action="https://herbsutter.com"><input type="text" class="textbox" value="" name="s" id="s" /><input type="submit" id="searchsubmit" value="Search" /></form></li>
+					</ul>
+	</div>
+</div><!-- end id:navigation -->
+
+<div id="container">
+
+<div id="header">
+<h1><a href="https://herbsutter.com/" title="Sutter’s Mill">Sutter’s Mill</a></h1>
+<h2>Herb Sutter on software development</h2>
+</div><!-- end id:header -->
+
+
+	
+		<div id="feedarea">
+	<dl>
+		<dt><strong>Feeds:</strong></dt>
+
+			<dd><a href="https://herbsutter.com/feed/">Posts</a></dd>
+	
+			<dd><a href="https://herbsutter.com/comments/feed/">Comments</a></dd>
+		</dl>
+	</div><!-- end id:feedarea -->
+	
+	<div id="headerimage">
+</div><!-- end id:headerimage -->
+
+<div id="content">
+<div id="content-main">
+
+		
+									<div class="postnav">
+				<div class="alignleft">&laquo; <a href="https://herbsutter.com/2013/01/15/java-vulnerabilities/" rel="prev">Java vulnerabilities</a></div>
+				<div class="alignright"><a href="https://herbsutter.com/2013/02/11/atomic-weapons-the-c-memory-model-and-modern-hardware/" rel="next">atomic Weapons: The C++ Memory Model and Modern&nbsp;Hardware</a> &raquo;</div>
+			</div>
+			
+			<div class="post-1707 post type-post status-publish format-standard hentry category-c category-talks-events" id="post-1707">
+				<div class="posttitle">
+					<h2>Videos: Panel, and C++&nbsp;Concurrency</h2>
+					<p class="post-info">2013-01-15 by <a href="https://herbsutter.com/author/herbsutter/" title="Posts by Herb Sutter">Herb Sutter</a>  </p>
+				</div>
+
+				<div class="entry">
+					<p>I’m about two weeks late posting this, but two more <em><a href="http://cppandbeyond.com/">C++ and Beyond 2012</a></em> videos are now available online.</p>
+<p>The first is my concurrency talk:</p>
+<blockquote>
+<h5><a href="http://channel9.msdn.com/Shows/Going+Deep/C-and-Beyond-2012-Herb-Sutter-Concurrency-and-Parallelism"><img style="background-image:none;float:right;padding-top:0;padding-left:0;display:inline;padding-right:0;border:0;" alt="" src="https://i0.wp.com/isocpp.org/files/img/cb12-sutter-concurrency.png" width="400" height="259" align="right" border="0" /></a><a href="http://channel9.msdn.com/Shows/Going+Deep/C-and-Beyond-2012-Herb-Sutter-Concurrency-and-Parallelism">C++ and Beyond 2012: C++ Concurrency</a> (Herb Sutter)</h5>
+<p>I’ve spoken and written on these topics before. Here’s what’s different about this talk:</p>
+<ul>
+<li><strong>Brand new:</strong> This material goes beyond what I’ve written and taught about before in my Effective Concurrency articles and courses.</li>
+<li><strong>Cutting-edge current:</strong> It covers the best-practices state of the art techniques and shipping tools, and what parts of that are standardized in C++11 already (the answer to that one may surprise you!) and what’s en route to near-term standardization and why, with coverage of the latest discussions.</li>
+<li><strong>Blocking vs. non-blocking:</strong> What’s the difference between blocking and non-blocking styles, why on earth would you care, which kinds does C++11 support, and how are we looking at rounding it out in C++1y?</li>
+</ul>
+<p>The answers all matter to you – even the ones not yet in the C++ standard – because they are real, available in shipping products, and affect how you design your software today.</p></blockquote>
+<p>The second is one of the panels:</p>
+<blockquote>
+<h5><a href="http://channel9.msdn.com/posts/C-and-Beyond-2012-Panel-Convincing-your-Colleagues"><img style="background-image:none;float:right;padding-top:0;padding-left:0;margin:0 0 10px 10px;display:inline;padding-right:0;border:0;" title="image" alt="image" src="https://herbsutter.files.wordpress.com/2013/01/image1.png?w=400&#038;h=224" width="400" height="224" align="right" border="0" /></a><a href="http://channel9.msdn.com/posts/C-and-Beyond-2012-Panel-Convincing-your-Colleagues">C++ and Beyond 2012: Panel – Convincing your Colleagues</a></h5>
+<p>From C++ and Beyond 2012, Andrei, Herb and Scott present Convincing Your Colleagues &#8211; an interactive panel.</p>
+<p>Abstract:</p>
+<p>You can’t do a better job if you don’t change what you’re doing, but change is hard.  It’s especially hard when what needs to change is your colleagues’ approach to software development. Moving your team forward often requires persuading your peers to change their behavior, sometimes to do something they’re not doing, other times to stop doing something they’ve become accustomed to.  Whether the issue is to embrace or avoid C++ language features, to adopt new development tools or abandon old ones, to increase use of or scale back on overuse of design patterns, to adhere to coding standards, or any of the plethora of other matters that affect software creation, moving things forward typically requires getting your colleagues to buy into the change you’re proposing.  But how can you do that?</p>
+<p>In this panel session, Andrei, Herb, and Scott share how they go about convincing their colleagues to change and take questions from the audience.</p></blockquote>
+<p>Truth be told, the panel ranged widely and probably most of the time was on other topics!</p>
+<p>I hope you find them useful.</p>
+									</div>
+
+				<p class="postmetadata">
+					Posted in <a href="https://herbsutter.com/category/c/" rel="category tag">C++</a>, <a href="https://herbsutter.com/category/talks-events/" rel="category tag">Talks &amp; Events</a> | 											12 Comments									</p>
+				
+<!-- You can start editing here. -->
+
+<h3 id="comments">12 Responses</h3>
+
+	<ol class="commentlist">
+			<li class="comment byuser comment-author-aclassifier even thread-even depth-1 highlander-comment" id="comment-12471">
+		<div id="div-comment-12471">
+		<div class="cmtinfo"><em> on <a href="#comment-12471" title="">2013-09-11 at 10:57 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/70b6462275d4e4390405bbe550a66919?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.teigfam.net/oyvind/home/' rel='external nofollow' class='url'>aclassifier</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12471"></div><p>Some months ago this talk inspired me to write a blog note, &#8220;Pike &amp; Sutter: Concurrency vs. Concurrency&#8221;, see <a href="http://www.teigfam.net/oyvind/home/technology/072-pike-sutter-concurrency-vs-concurrency" rel="nofollow">http://www.teigfam.net/oyvind/home/technology/072-pike-sutter-concurrency-vs-concurrency</a></p>
+<p>(Herb Sutter, you have already posted comments in my blog note, so you are aware of it. But I would of course like to attract new readers!-) I have written a naïve follow-up called &#8220;Block play for blockers&#8221;. I am now reading myself up with a goal to try do a note on event-loop concurrency vs. CSP-type concurrency/parallelism with channels.)</p>
+<p>Oyvind Teig, Trondheim, Norway</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="pingback odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-12372">
+		<div id="div-comment-12372">
+		<div class="cmtinfo"><em> on <a href="#comment-12372" title="">2013-09-04 at 12:21 am</a></em>  <cite><a href='http://en.dorinlazar.ro/cpp-videos/' rel='external nofollow' class='url'>C++ videos | en.dorinlazar.ro</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_12372"></div><p>[&#8230;] While looking over some older links, I found these gems on Herb Sutter&#8217;s blog, from C++ and beyond. [&#8230;]</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-8343">
+		<div id="div-comment-8343">
+		<div class="cmtinfo"><em> on <a href="#comment-8343" title="">2013-01-24 at 5:02 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/64abcdfeac5d480fd1f58a7901ad26ee?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Mike Marcin</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_8343"></div><p>The talk was great.</p>
+<p>Is a thread per concurrent object the right pattern?</p>
+<p>I thought we were supposed to be moving away from directly dealing with threads and towards something more like submitting tasks to run on a thread pool which runs as many threads as is optimal on the executing system and no more.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-8256">
+		<div id="div-comment-8256">
+		<div class="cmtinfo"><em> on <a href="#comment-8256" title="">2013-01-21 at 4:39 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_8256"></div><p>@Fernando: I just remembered the other reason why .then(x).then(y) is useful &#8212; yes you could write it as .then(x+y) but that burns/occupies a thread, whereas .then(x).then(y) does not. I&#8217;ll go back and update the previous note to include that.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-davidofirvine even thread-even depth-1 highlander-comment" id="comment-8185">
+		<div id="div-comment-8185">
+		<div class="cmtinfo"><em> on <a href="#comment-8185" title="">2013-01-19 at 1:34 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/185bc1a9b6a36d8f065bdb9a1de74f90?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>davidofirvine</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_8185"></div><p>@Herb: The .then() template you show would compile as you say, but does not appear like it would work as it’s relying on shared futures by the looks of it, I have a SO question on it here <a href="http://stackoverflow.com/questions/14200678/c11-async-continuations-or-attempt-at-then-semantics" rel="nofollow">http://stackoverflow.com/questions/14200678/c11-async-continuations-or-attempt-at-then-semantics</a> If you have other ideas in this regard them brilliant as .then or then() would be a great pattern till the standard provides these implementations (never mind await which would really alter the landscape of many codebases)</p>
+<p>On the wrapper class there is a nice gotcha for non msvc compilers in this SO question as well <a href="http://stackoverflow.com/questions/14188535/clang-access-modifier-order-and-decltype" rel="nofollow">http://stackoverflow.com/questions/14188535/clang-access-modifier-order-and-decltype</a> Looks like msvc is non-conformant here as well as with the future blocking discussed earlier.</p>
+<p>I think it would be good to have working examples of some of the code in a couple of compilers as msvc seems to not be to concerned with template errors (missing typenames etc.) at compile time, so a ‘compiling’ template example, particularly one not instantiated is limited in value (in some compilers).</p>
+<p>It would be extremely helpful if you had non conforming implementations of std:: clearly available in a public forum or web page and perhaps even a warning that can be switched of to let devs know they were implementing non cross platform behaviour or similar as this is a key part of the standard as far as I believe (cross platform compliance).</p>
+<p>Great talk (as ever) though and mixed with the const/mutable it’s fantastic to get people thinking c++11 proper and not just using auto and lambdas, there is a lot more and this is great. Cheers again.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-8137">
+		<div id="div-comment-8137">
+		<div class="cmtinfo"><em> on <a href="#comment-8137" title="">2013-01-18 at 1:01 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/29911d6523ebecfc7da7dd5a5a7554f1?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Adam H</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_8137"></div><blockquote><p><i>[ &#8230; ] doofuses</i></p></blockquote>
+<p>Gotta love the English language! And I agree with you, that the bug is in the standard.</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor even thread-even depth-1 highlander-comment" id="comment-8132">
+		<div id="div-comment-8132">
+		<div class="cmtinfo"><em> on <a href="#comment-8132" title="">2013-01-17 at 3:21 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_8132"></div><p>@Fernando: You asked why not just write w.then(x+y+z) instead of w.then(x).then(y).then(z). Two reasons: 1. Writing w.then(x+y+z) burns/occupies a thread while waiting for y and z, while w.then(x).then(y).then(z) does not. 2. An important key is composability: The different .then() calls may be in different code, such as one function doing w.then(x) and returning the future, the separately authored caller tacking on .then(y) and storing it on the heap for multiple threads to observe, and then a helper thread authored by still someone else tacking on .then(z).</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-herbsutter bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-8131">
+		<div id="div-comment-8131">
+		<div class="cmtinfo"><em> on <a href="#comment-8131" title="">2013-01-17 at 3:15 pm</a></em> <img alt='' src='https://0.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://www.herbsutter.com' rel='external nofollow' class='url'>Herb Sutter</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_8131"></div><p>@Adam H: Right, VS 2012 is knowingly (temporarily) non-conforming on the ~future blocking issue in part because we knew this question is being actively reviewed in the committee and we feel the status quo is harmful to our customers. Of course, if the committee&#8217;s decision is to stay with the C++11 rules we&#8217;ll change our implementation to conform and have to do more to educate customers about the issue.</p>
+<p>If the view that this should be fixed prevails in the committee, we&#8217;ll look like geniuses for getting it &#8220;right&#8221; sooner, otherwise we&#8217;ll conform and look like doofuses for shipping with another bug we had to go back and fix.</p>
+<p>(We don&#8217;t do this often! Usually the right thing to do is just conform to the standard, perceived bugs and all. But this bug is bad and under discussion at the last two SG1 meetings&#8230;)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-8115">
+		<div id="div-comment-8115">
+		<div class="cmtinfo"><em> on <a href="#comment-8115" title="">2013-01-17 at 8:07 am</a></em> <img alt='' src='https://0.gravatar.com/avatar/9d6bdc111e7ee91b5163b47988871cba?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Matze</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_8115"></div><p>Thanks for making these available, Herb! I enjoyed both talks very much. Always interesting listening your words (and of course Andrei&#8217;s and Scott&#8217;s :D)</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-8100">
+		<div id="div-comment-8100">
+		<div class="cmtinfo"><em> on <a href="#comment-8100" title="">2013-01-17 at 5:22 am</a></em> <img alt='' src='https://2.gravatar.com/avatar/29911d6523ebecfc7da7dd5a5a7554f1?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Adam H</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_8100"></div><p>Hi, and thanks for making C++ an even more awesome language, and thanks a lot for your work in <i>enabling</i> further improvements!</p>
+<p>Sorry for this OT question, but I did not know where else to post it&#8230;<br />
+In September 2012 you posted a paper discussing the problems in the present standard, with a blocking <b>~future()</b>. In my experiments I have found that it does no block! (VS 2012 &#8211; update 1)<br />
+Has the standard already been revised? Nice, but I would&#8217;ve thought that the standard was already carved into stone? Shed some light, anyone?</p>
+<p>For those of you who wonder what on Earth I am talking about, here&#8217;s what:</p>
+<p>void DoWork( const std::wstring&amp; s, unsigned int wait )<br />
+{<br />
+	std::wcout &lt;&lt; s &lt;&lt; L&quot; Begin:&quot; &lt;&lt; std::endl;<br />
+	std::this_thread::sleep_for( std::chrono::milliseconds ( wait ) );<br />
+	std::wcout &lt;&lt; s &lt;&lt; L&quot; Done.&quot; &lt;&lt; std::endl;<br />
+}</p>
+<p>void SimpleAsyncTest()<br />
+{<br />
+<b>	// Test Herb Sutter&#8217;s blocking ~future<br />
+	// <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3451.pdf" rel="nofollow">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3451.pdf</a></b><br />
+	std::async( std::launch::async, [](){ DoWork( L&#8221;Slow Work&#8221;, 400 ); } );<br />
+	std::async( std::launch::async, [](){ DoWork( L&#8221;Fast Work&#8221;, 200 ); } );<br />
+}</p>
+<p>// &#8220;Slow work&#8221; completes last, as intuitively expected, but contrary to paper above</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="comment-8045">
+		<div id="div-comment-8045">
+		<div class="cmtinfo"><em> on <a href="#comment-8045" title="">2013-01-16 at 3:50 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/7ff60bd79632cdb98a2eb2fda9f895d2?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite><a href='http://gravatar.com/zhnmju123' rel='external nofollow' class='url'>Zenju</a></cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_8045"></div><p>The concurrency talks are great! But there is one single unanswered question in the air:</p>
+<p>What about race-conditions?</p>
+<p>In C++ there is no compile-time help to notify when I&#8217;m using a non-thread-safe function. This proliferation of new concurrency abstractions increases the probability of accidentally calling such a function. I have no idea how this works in C++/CX, but seemingly nobody is giving a thought about race-conditions in any of these talks.</p>
+<p>Am I missing something? Is concurrency now simple and the problem with race conditions has been solved in the meantime? :D</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-8039">
+		<div id="div-comment-8039">
+		<div class="cmtinfo"><em> on <a href="#comment-8039" title="">2013-01-16 at 12:53 am</a></em> <img alt='' src='https://1.gravatar.com/avatar/45eb253e73a0c9ec7042d218fca8a96f?s=48&#038;d=identicon&#038;r=G' class='avatar avatar-48' height='48' width='48' /> <cite>Fernando</cite></div>
+						<div class="pd-rating" id="pd_rating_holder_468178_comm_8039"></div><p>(Re-posting the channel9 question here for context)</p>
+<p>@HerbSutter: Thanks for sharing another great presentation.</p>
+<p>I have one question that has been bothering me since the first time I read your enthusiasm about &#8220;future.then&#8221;:<br />
+i.e. consider async(task1preparation)<br />
+.then(task2continuation)<br />
+.then(task3cleanup)<br />
+.then(task4notifyUI)</p>
+<p>isn&#8217;t that the same as async([]() -&gt; void {task1preparation(); task2continuation(); task3cleanup(); task4notifyUI();}); ?</p>
+<p>What would be the benefit of using future.then as proposed?</p>
+<p>I&#8217;d see more benefit if instead of a chain of actions, I could get a tree than depending on the result of the first task (or exception) and could have custom continuations. Also It would be useful (not sure if that is already proposed) to specify that a given continuation task should run in the current thread or in a specific thread (i.e. UI thread).</p>
+<p>Thanks in advance for your clarification</p>
+<p>Fernando</p>
+			<br style="clear: both" />
+		</div>
+</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+		<div class="alignleft"></div>
+		<div class="alignright"></div>
+	</div>
+	<br />
+
+  	<p class="nocomments">Comments are closed.</p>
+  <div class="post-content">
+<p>
+</p>
+</div>
+
+			</div>
+
+		
+		<p align="center"></p>
+
+	</div><!-- end id:content-main -->
+<div id="sidebar">
+<ul>
+<li class="sidebox"><h2><label for="subscribe-field">Follow by email</label></h2>
+				<form action="https://subscribe.wordpress.com" method="post" accept-charset="utf-8" id="subscribe-blog">
+																	<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"/></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe"/>
+						<input type="hidden" name="blog_id" value="3379246"/>
+						<input type="hidden" name="source" value="https://herbsutter.com/2013/01/15/videos-panel-and-c-concurrency/"/>
+						<input type="hidden" name="sub-type" value="widget"/>
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-3" />
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="4590924cc6" />						<input type="submit" value="Subscribe" />
+					</p>
+				</form>
+			
+</li><li class="sidebox"><h2><a href='http://twitter.com/herbsutter'>Tweets</a></h2><ul class='tweets'></ul><a href="http://twitter.com/herbsutter"  class='twitter-follow-button' data-show-count='false' data-link-color='#265e15' data-text-color='#333333'>Follow @herbsutter</a></li><li class="sidebox"><h2>Popular</h2><ul>				<li>
+										<a href="https://herbsutter.com/2018/11/13/trip-report-fall-iso-c-standards-meeting-san-diego/" class="bump-view" data-bump-view="tp">
+						Trip report: Fall ISO C++ standards meeting (San Diego)					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/gotw/" class="bump-view" data-bump-view="tp">
+						GotW					</a>
+										</li>
+								<li>
+										<a href="https://herbsutter.com/2018/09/20/lifetime-profile-v1-0-posted/" class="bump-view" data-bump-view="tp">
+						Lifetime profile v1.0 posted					</a>
+										</li>
+				</ul></li><li class="sidebox"><h2>Categories</h2>		<ul>
+				<li class="cat-item cat-item-291"><a href="https://herbsutter.com/category/apple/" >Apple</a>
+</li>
+	<li class="cat-item cat-item-49277"><a href="https://herbsutter.com/category/c-net/" >C# / .NET</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://herbsutter.com/category/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-69816"><a href="https://herbsutter.com/category/cloud/" >Cloud</a>
+</li>
+	<li class="cat-item cat-item-214618"><a href="https://herbsutter.com/category/concurrency/" >Concurrency</a>
+</li>
+	<li class="cat-item cat-item-8259773"><a href="https://herbsutter.com/category/effective-concurrency/" >Effective Concurrency</a>
+</li>
+	<li class="cat-item cat-item-3696745"><a href="https://herbsutter.com/category/friday-thoughts/" >Friday Thoughts</a>
+</li>
+	<li class="cat-item cat-item-3867746"><a href="https://herbsutter.com/category/c/gotw/" >GotW</a>
+</li>
+	<li class="cat-item cat-item-79"><a href="https://herbsutter.com/category/hardware/" >Hardware</a>
+</li>
+	<li class="cat-item cat-item-1017"><a href="https://herbsutter.com/category/java/" >Java</a>
+</li>
+	<li class="cat-item cat-item-637"><a href="https://herbsutter.com/category/microsoft/" >Microsoft</a>
+</li>
+	<li class="cat-item cat-item-420845"><a href="https://herbsutter.com/category/opinion-editorial/" >Opinion &amp; Editorial</a>
+</li>
+	<li class="cat-item cat-item-1633077"><a href="https://herbsutter.com/category/reader-qa/" >Reader Q&amp;A</a>
+</li>
+	<li class="cat-item cat-item-2301"><a href="https://herbsutter.com/category/software-development/" >Software Development</a>
+</li>
+	<li class="cat-item cat-item-393523"><a href="https://herbsutter.com/category/talks-events/" >Talks &amp; Events</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://herbsutter.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-151"><a href="https://herbsutter.com/category/web/" >Web</a>
+</li>
+		</ul>
+			</li></ul>
+</div><!-- end id:sidebar -->
+</div><!-- end id:content -->
+</div><!-- end id:container -->
+<div id="footer">
+	<div id="colophon">
+		<p><a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a></p>
+		<p>WPThemes.</p>
+		<br class="clear" />
+	</div><!-- end #colophon-->
+</div><!-- end #footer-->
+<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201847y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-70b6462275d4e4390405bbe550a66919">
+	</div>
+	<div class="grofile-hash-map-64abcdfeac5d480fd1f58a7901ad26ee">
+	</div>
+	<div class="grofile-hash-map-c0ba56bfd231f8f04feb057728975181">
+	</div>
+	<div class="grofile-hash-map-185bc1a9b6a36d8f065bdb9a1de74f90">
+	</div>
+	<div class="grofile-hash-map-29911d6523ebecfc7da7dd5a5a7554f1">
+	</div>
+	<div class="grofile-hash-map-9d6bdc111e7ee91b5163b47988871cba">
+	</div>
+	<div class="grofile-hash-map-7ff60bd79632cdb98a2eb2fda9f895d2">
+	</div>
+	<div class="grofile-hash-map-45eb253e73a0c9ec7042d218fca8a96f">
+	</div>
+	</div>
+<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--
+PDRTJS_settings_468178_comm_12471={"id":468178,"unique_id":"wp-comment-12471","title":"Some%20months%20ago%20this%20talk%20inspired%20me%20to%20write%20a%20blog%20note%2C%20%26quot%3BPike%20%26amp%3B%20Sutter%3A%20Concurrency%20vs.%20Concurrency%26quot%3B%2C%20see%20http%3A%2F%2Fwww.teigfam.net%2Foyvind%2Fhome%2Ftechnology%2F072-pike-sutter-concurrency-vs-conc...","permalink":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/#comment-12471","item_id":"_comm_12471"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12471 == 'undefined' ){PDRTJS_468178_comm_12471 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12471 );}}PDRTJS_settings_468178_comm_12372={"id":468178,"unique_id":"wp-comment-12372","title":"%26%23091%3B%26%238230%3B%26%23093%3B%20While%20looking%20over%20some%20older%20links%2C%20I%20found%20these%20gems%20on%20Herb%20Sutter%26%238217%3Bs%20blog%2C%20from%20C%2B%2B%20and%20beyond.%20%26%23091%3B%26%238230%3B%26%23093%3B...","permalink":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/#comment-12372","item_id":"_comm_12372"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_12372 == 'undefined' ){PDRTJS_468178_comm_12372 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_12372 );}}PDRTJS_settings_468178_comm_8343={"id":468178,"unique_id":"wp-comment-8343","title":"The%20talk%20was%20great.Is%20a%20thread%20per%20concurrent%20object%20the%20right%20pattern%3FI%20thought%20we%20were%20supposed%20to%20be%20moving%20away%20from%20directly%20dealing%20with%20threads%20and%20towards%20something%20more%20like%20submitting%20t...","permalink":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/#comment-8343","item_id":"_comm_8343"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_8343 == 'undefined' ){PDRTJS_468178_comm_8343 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_8343 );}}PDRTJS_settings_468178_comm_8256={"id":468178,"unique_id":"wp-comment-8256","title":"%40Fernando%3A%20I%20just%20remembered%20the%20other%20reason%20why%20.then%28x%29.then%28y%29%20is%20useful%20--%20yes%20you%20could%20write%20it%20as%20.then%28x%2By%29%20but%20that%20burns%2Foccupies%20a%20thread%2C%20whereas%20.then%28x%29.then%28y%29%20does%20not.%20I%26%23039%3Bll%20go%20b...","permalink":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/#comment-8256","item_id":"_comm_8256"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_8256 == 'undefined' ){PDRTJS_468178_comm_8256 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_8256 );}}PDRTJS_settings_468178_comm_8185={"id":468178,"unique_id":"wp-comment-8185","title":"%40Herb%3A%20The%20.then%28%29%20template%20you%20show%20would%20compile%20as%20you%20say%2C%20but%20does%20not%20appear%20like%20it%20would%20work%20as%20its%20relying%20on%20shared%20futures%20by%20the%20looks%20of%20it%2C%20I%20have%20a%20SO%20question%20on%20it%20here%20http%3A%2F%2Fs...","permalink":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/#comment-8185","item_id":"_comm_8185"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_8185 == 'undefined' ){PDRTJS_468178_comm_8185 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_8185 );}}PDRTJS_settings_468178_comm_8137={"id":468178,"unique_id":"wp-comment-8137","title":"%26lt%3Bblockquote%26gt%3B%26lt%3Bi%26gt%3B%26%23091%3B%20...%20%26%23093%3B%20doofuses%26lt%3B%2Fi%26gt%3B%26lt%3B%2Fblockquote%26gt%3BGotta%20love%20the%20English%20language%21%20And%20I%20agree%20with%20you%2C%20that%20the%20bug%20is%20in%20the%20standard....","permalink":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/#comment-8137","item_id":"_comm_8137"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_8137 == 'undefined' ){PDRTJS_468178_comm_8137 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_8137 );}}PDRTJS_settings_468178_comm_8132={"id":468178,"unique_id":"wp-comment-8132","title":"%40Fernando%3A%20You%20asked%20why%20not%20just%20write%20w.then%28x%2By%2Bz%29%20instead%20of%20w.then%28x%29.then%28y%29.then%28z%29.%20Two%20reasons%3A%201.%20Writing%20w.then%28x%2By%2Bz%29%20burns%2Foccupies%20a%20thread%20while%20waiting%20for%20y%20and%20z%2C%20while%20w.then%28x...","permalink":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/#comment-8132","item_id":"_comm_8132"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_8132 == 'undefined' ){PDRTJS_468178_comm_8132 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_8132 );}}PDRTJS_settings_468178_comm_8131={"id":468178,"unique_id":"wp-comment-8131","title":"%40Adam%20H%3A%20Right%2C%20VS%202012%20is%20knowingly%20%28temporarily%29%20non-conforming%20on%20the%20~future%20blocking%20issue%20in%20part%20because%20we%20knew%20this%20question%20is%20being%20actively%20reviewed%20in%20the%20committee%20and%20we%20feel%20the%20s...","permalink":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/#comment-8131","item_id":"_comm_8131"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_8131 == 'undefined' ){PDRTJS_468178_comm_8131 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_8131 );}}PDRTJS_settings_468178_comm_8115={"id":468178,"unique_id":"wp-comment-8115","title":"Thanks%20for%20making%20these%20available%2C%20Herb%21%20I%20enjoyed%20both%20talks%20very%20much.%20Always%20interesting%20listening%20your%20words%20%28and%20of%20course%20Andrei%26%23039%3Bs%20and%20Scott%26%23039%3Bs%20%3AD%29...","permalink":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/#comment-8115","item_id":"_comm_8115"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_8115 == 'undefined' ){PDRTJS_468178_comm_8115 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_8115 );}}PDRTJS_settings_468178_comm_8100={"id":468178,"unique_id":"wp-comment-8100","title":"Hi%2C%20and%20thanks%20for%20making%20C%2B%2B%20an%20even%20more%20awesome%20language%2C%20and%20thanks%20a%20lot%20for%20your%20work%20in%20%26lt%3Bi%26gt%3Benabling%26lt%3B%2Fi%26gt%3B%20further%20improvements%21Sorry%20for%20this%20OT%20question%2C%20but%20I%20did%20not%20know%20where%20else%20to%20po...","permalink":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/#comment-8100","item_id":"_comm_8100"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_8100 == 'undefined' ){PDRTJS_468178_comm_8100 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_8100 );}}PDRTJS_settings_468178_comm_8045={"id":468178,"unique_id":"wp-comment-8045","title":"The%20concurrency%20talks%20are%20great%21%20But%20there%20is%20one%20single%20unanswered%20question%20in%20the%20air%3AWhat%20about%20race-conditions%3FIn%20C%2B%2B%20there%20is%20no%20compile-time%20help%20to%20notify%20when%20I%26%23039%3Bm%20using%20a%20non-thread-safe%20...","permalink":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/#comment-8045","item_id":"_comm_8045"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_8045 == 'undefined' ){PDRTJS_468178_comm_8045 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_8045 );}}PDRTJS_settings_468178_comm_8039={"id":468178,"unique_id":"wp-comment-8039","title":"%28Re-posting%20the%20channel9%20question%20here%20for%20context%29%40HerbSutter%3A%20Thanks%20for%20sharing%20another%20great%20presentation.I%20have%20one%20question%20that%20has%20been%20bothering%20me%20since%20the%20first%20time%20I%20read%20your%20enthu...","permalink":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/#comment-8039","item_id":"_comm_8039"}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_468178_comm_8039 == 'undefined' ){PDRTJS_468178_comm_8039 = new PDRTJS_RATING( PDRTJS_settings_468178_comm_8039 );}}
+//--><!]]></script><script type='text/javascript' charset='UTF-8' src='https://polldaddy.com/js/rating/rating.js'></script><script type='text/javascript' src='https://platform.twitter.com/widgets.js?ver=20111117'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"3379246","siteName":"Sutter\u2019s Mill","siteURL":"https:\/\/herbsutter.com","icon":"<img alt='' src='https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=50&d=https%3A%2F%2Fs2.wp.com%2Fi%2Flogo%2Fwpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/mistylook","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F01%2F15%2Fvideos-panel-and-c-concurrency%2F","themeURL":"","xhrURL":"https:\/\/herbsutter.com\/wp-admin\/admin-ajax.php","nonce":"8fb9818ae2","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"4590924cc6\" \/>","referer":"https:\/\/herbsutter.com\/2013\/01\/15\/videos-panel-and-c-concurrency\/","canFollow":"1","feedID":"171936","statusMessage":"","customizeLink":"https:\/\/herbsutter.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fherbsutter.wordpress.com%2F2013%2F01%2F15%2Fvideos-panel-and-c-concurrency%2F","postID":"1707","shortlink":"https:\/\/wp.me\/peb5Y-rx","canEditPost":"","editLink":"https:\/\/wordpress.com\/post\/herbsutter.com\/1707","statsLink":"https:\/\/wordpress.com\/stats\/post\/1707\/herbsutter.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: MistyLook","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in Reader","viewReadPost":"View post in Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 19,532 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/herbsutter.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fherbsutter.com%2F2013%2F01%2F15%2Fvideos-panel-and-c-concurrency%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s0.wp.com/_static/??-eJyVjcEOgjAQRH/IuoIYT8Zvqe2GLrQLdlvAv7ceJEYTEg+bTGbe7MA8KjNwQk7QCVicyOC47DvZwUcUshp9bokFPPUocM+Y0Wm2HuM3/CblwUkvjlrnyyWMv87GjraBWN10hKCloEWpYcIYyZb91fvzQ4ra9LJVMokGfpVWVehruFSnujo0x+Zcd0+y+3Rn'></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'3379246','blog_tz':'-8','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'3379246','v':'wpcom','tz':'-8','user_id':'0','post':'1707','subd':'herbsutter'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29+Smw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8/MkNtblkvY1d1TjBELytHc0k/MXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sLnxdWkYuKz1XUnVaX0lsJmh3L2xxcHNhKzVFcDhfWklkZkImNjl5OFdzKy5CNHlwT1QvQmduQ2xKY1Z0Ty02ck02W2lPd1k5Vy9KUSszWDZSdiYvP0d8XVprOERHYllRL0laLS93d2xMRDd3WnJmZnhYbGVQbzMxaW00NkJFVTJDMV9OYy00cFl3aHZLLjlvTzMldmI2JUNzP11hP3klW3dILG4mZWc5TGVPc3JkSURLWDN2K2pnLnAtaTcuTjB5SGZqY0x8'}]);
+_stq.push([ 'clickTrackerInit', '3379246', '1707' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script></body>
+</html>

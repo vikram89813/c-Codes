@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: Reader Q&#038;A: How can I prevent a type from being instantiated on the stack?	</title>
+	<atom:link href="https://herbsutter.com/2014/05/03/reader-qa-how-can-i-prevent-a-type-from-being-instantiated-on-the-stack/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2014/05/03/reader-qa-how-can-i-prevent-a-type-from-being-instantiated-on-the-stack/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Victor				</title>
+				<link>https://herbsutter.com/2014/05/03/reader-qa-how-can-i-prevent-a-type-from-being-instantiated-on-the-stack/#comment-21646</link>
+		<dc:creator><![CDATA[Victor]]></dc:creator>
+		<pubDate>Tue, 17 Jun 2014 14:22:39 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2481#comment-21646</guid>
+					<description><![CDATA[My idea is a wrapper around. Is there any issues?
+[code]
+template &#060;typename Wrapped&#062; class HeapOnly 
+{
+public:
+	typedef std::unique_ptr&#060;Wrapped&#062; TPtr;
+	typedef const std::unique_ptr&#060;Wrapped&#062; TConstPtr;
+	
+private:
+    TPtr m_wrapped;
+
+public:
+
+    operator TPtr&#038;      ()       { return m_wrapped; }
+    operator TConstPtr&#038; () const { return m_wrapped; }
+
+    HeapOnly(/* sorry, but I&#039;m unfamiliar with variable templates so far...*/) 
+        : m_wrapped( std::make_unique&#060;Wrapped&#062;(/*...*/) )
+    {}
+};
+
+class A {
+private:
+    A() {} // private ctors
+
+	// ...
+public:
+    // ... others 
+    friend class HeapOnly&#060;A&#062;;
+};
+
+void f()
+{
+     HeapOnly&#060;A&#062; compilationOk;
+     A compilationError;
+}
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>My idea is a wrapper around. Is there any issues?</p>
+<pre class="brush: plain; title: ; notranslate">
+template &lt;typename Wrapped&gt; class HeapOnly 
+{
+public:
+	typedef std::unique_ptr&lt;Wrapped&gt; TPtr;
+	typedef const std::unique_ptr&lt;Wrapped&gt; TConstPtr;
+	
+private:
+    TPtr m_wrapped;
+
+public:
+
+    operator TPtr&amp;      ()       { return m_wrapped; }
+    operator TConstPtr&amp; () const { return m_wrapped; }
+
+    HeapOnly(/* sorry, but I'm unfamiliar with variable templates so far...*/) 
+        : m_wrapped( std::make_unique&lt;Wrapped&gt;(/*...*/) )
+    {}
+};
+
+class A {
+private:
+    A() {} // private ctors
+
+	// ...
+public:
+    // ... others 
+    friend class HeapOnly&lt;A&gt;;
+};
+
+void f()
+{
+     HeapOnly&lt;A&gt; compilationOk;
+     A compilationError;
+}
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Teddy				</title>
+				<link>https://herbsutter.com/2014/05/03/reader-qa-how-can-i-prevent-a-type-from-being-instantiated-on-the-stack/#comment-21165</link>
+		<dc:creator><![CDATA[Teddy]]></dc:creator>
+		<pubDate>Thu, 05 Jun 2014 03:43:48 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2481#comment-21165</guid>
+					<description><![CDATA[@Grout: Deriving from &lt;code&gt;enable_shared_from_this&lt;/code&gt; doesn&#039;t actually block compilation of code that instantiates the object on the stack. Nor does it block compilation of &lt;code&gt;new Foo()&lt;/code&gt;. I have found the &lt;code&gt;PrivateConstructorTag&lt;/code&gt; to be the best way to ensure that a class that inherits from &lt;code&gt;enable_shared_from_this&lt;/code&gt; is only constructed with &lt;code&gt;make_shared()&lt;/code&gt;.]]></description>
+		<content:encoded><![CDATA[<p>@Grout: Deriving from <code>enable_shared_from_this</code> doesn&#8217;t actually block compilation of code that instantiates the object on the stack. Nor does it block compilation of <code>new Foo()</code>. I have found the <code>PrivateConstructorTag</code> to be the best way to ensure that a class that inherits from <code>enable_shared_from_this</code> is only constructed with <code>make_shared()</code>.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Grout				</title>
+				<link>https://herbsutter.com/2014/05/03/reader-qa-how-can-i-prevent-a-type-from-being-instantiated-on-the-stack/#comment-19789</link>
+		<dc:creator><![CDATA[Grout]]></dc:creator>
+		<pubDate>Fri, 09 May 2014 22:51:02 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2481#comment-19789</guid>
+					<description><![CDATA[If [code]make_shared()[/code] is the plan anyway, then deriving from [code]std::enable_shared_from_this&#060;&#062;[/code] may be adequate.  No?]]></description>
+		<content:encoded><![CDATA[<p>If </p>
+<pre class="brush: plain; title: ; notranslate">make_shared()</pre>
+<p> is the plan anyway, then deriving from </p>
+<pre class="brush: plain; title: ; notranslate">std::enable_shared_from_this&lt;&gt;</pre>
+<p> may be adequate.  No?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Norbert Riedlin				</title>
+				<link>https://herbsutter.com/2014/05/03/reader-qa-how-can-i-prevent-a-type-from-being-instantiated-on-the-stack/#comment-19499</link>
+		<dc:creator><![CDATA[Norbert Riedlin]]></dc:creator>
+		<pubDate>Mon, 05 May 2014 06:55:22 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2481#comment-19499</guid>
+					<description><![CDATA[Hi. Does &lt;code&gt;std::make_unique&lt;/code&gt; have the same problems with the private constructor pattern as &lt;code&gt;std::make_sharedcode&#062; have? I.e. that it is not portably possible to make &lt;code&gt;std::make_shared&lt;/code&gt; a friend of &lt;code&gt;X&lt;/code&gt; in the example. What is the preferred way to solve this problem? Is the use of the &lt;code&gt;PrivateConstructorTag&lt;/code&gt; the only way?]]></description>
+		<content:encoded><![CDATA[<p>Hi. Does <code>std::make_unique</code> have the same problems with the private constructor pattern as <code>std::make_sharedcode&gt; have? I.e. that it is not portably possible to make </code><code>std::make_shared</code> a friend of <code>X</code> in the example. What is the preferred way to solve this problem? Is the use of the <code>PrivateConstructorTag</code> the only way?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Zenju				</title>
+				<link>https://herbsutter.com/2014/05/03/reader-qa-how-can-i-prevent-a-type-from-being-instantiated-on-the-stack/#comment-19476</link>
+		<dc:creator><![CDATA[Zenju]]></dc:creator>
+		<pubDate>Sun, 04 May 2014 18:41:07 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2481#comment-19476</guid>
+					<description><![CDATA[Correction:
+[code]
+	X(..., PrivateConstructionTag);
+public:
+[/code]
+
+should be
+[code]
+public:
+	X(..., PrivateConstructionTag);
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>Correction:</p>
+<pre class="brush: plain; title: ; notranslate">
+	X(..., PrivateConstructionTag);
+public:
+</pre>
+<p>should be</p>
+<pre class="brush: plain; title: ; notranslate">
+public:
+	X(..., PrivateConstructionTag);
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Zenju				</title>
+				<link>https://herbsutter.com/2014/05/03/reader-qa-how-can-i-prevent-a-type-from-being-instantiated-on-the-stack/#comment-19474</link>
+		<dc:creator><![CDATA[Zenju]]></dc:creator>
+		<pubDate>Sun, 04 May 2014 18:31:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2481#comment-19474</guid>
+					<description><![CDATA[@Good point, thanks. Fixed.
+
+But this also gives up on the perf and memory layout advantages of std::make_shared... In library code this could be premature pessimisation. What about:
+
+class X 
+{
+    //make all ctors private
+	
+	struct PrivateConstructionTag {};
+
+public:
+    static auto make( /*…*/ ) { return std::make_shared( /*...*/ PrivateConstructionTag()); }
+};
+
+I&#039;m using this pattern in my library code. Is this the best solution?]]></description>
+		<content:encoded><![CDATA[<p>@Good point, thanks. Fixed.</p>
+<p>But this also gives up on the perf and memory layout advantages of std::make_shared&#8230; In library code this could be premature pessimisation. What about:</p>
+<p>class X<br />
+{<br />
+    //make all ctors private</p>
+<p>	struct PrivateConstructionTag {};</p>
+<p>public:<br />
+    static auto make( /*…*/ ) { return std::make_shared( /*&#8230;*/ PrivateConstructionTag()); }<br />
+};</p>
+<p>I&#8217;m using this pattern in my library code. Is this the best solution?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2014/05/03/reader-qa-how-can-i-prevent-a-type-from-being-instantiated-on-the-stack/#comment-19457</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Sun, 04 May 2014 12:31:47 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2481#comment-19457</guid>
+					<description><![CDATA[@mttpd: The protected destructor solution also works, but it&#039;s a C++98 idiom that&#039;s now inferior because it requires using a custom &#039;deleter&#039; function that is possible, but less natural and idiomatic in modern C++, to use together with unique_ptr and shared_ptr.
+
+@Petter: Good point, thanks. Fixed.]]></description>
+		<content:encoded><![CDATA[<p>@mttpd: The protected destructor solution also works, but it&#8217;s a C++98 idiom that&#8217;s now inferior because it requires using a custom &#8216;deleter&#8217; function that is possible, but less natural and idiomatic in modern C++, to use together with unique_ptr and shared_ptr.</p>
+<p>@Petter: Good point, thanks. Fixed.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Petter				</title>
+				<link>https://herbsutter.com/2014/05/03/reader-qa-how-can-i-prevent-a-type-from-being-instantiated-on-the-stack/#comment-19454</link>
+		<dc:creator><![CDATA[Petter]]></dc:creator>
+		<pubDate>Sun, 04 May 2014 11:46:44 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2481#comment-19454</guid>
+					<description><![CDATA[But std::make_unique also requires access to the constructor, right? X::make could create the unique_ptr manually instead.]]></description>
+		<content:encoded><![CDATA[<p>But std::make_unique also requires access to the constructor, right? X::make could create the unique_ptr manually instead.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mttpd				</title>
+				<link>https://herbsutter.com/2014/05/03/reader-qa-how-can-i-prevent-a-type-from-being-instantiated-on-the-stack/#comment-19447</link>
+		<dc:creator><![CDATA[mttpd]]></dc:creator>
+		<pubDate>Sun, 04 May 2014 10:15:09 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=2481#comment-19447</guid>
+					<description><![CDATA[How about the protected destructor solution?
+For instance, as suggested here:
+http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Requiring_or_Prohibiting_Heap-based_Objects]]></description>
+		<content:encoded><![CDATA[<p>How about the protected destructor solution?<br />
+For instance, as suggested here:<br />
+<a href="http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Requiring_or_Prohibiting_Heap-based_Objects" rel="nofollow">http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Requiring_or_Prohibiting_Heap-based_Objects</a></p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

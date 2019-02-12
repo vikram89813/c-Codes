@@ -1,0 +1,520 @@
+<!doctype html>
+<html amp lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+	
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #89 Solution: Smart Pointers" />
+<meta property="og:url" content="https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/" />
+<meta property="og:description" content="NOTE: Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn&#8217;t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is…" />
+<meta property="article:published_time" content="2013-05-29T18:49:21+00:00" />
+<meta property="article:modified_time" content="2013-05-30T21:39:27+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://herbsutter.files.wordpress.com/2013/05/053013_2139_gotw89solut2.png" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #89 Solution: Smart Pointers" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+	<title>GotW #89 Solution: Smart Pointers &#8211; Sutter’s Mill</title>
+		<link rel="canonical" href="https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/" />
+	<script src="https://cdn.ampproject.org/v0.js" async></script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic">	<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+		<script type="application/ld+json">{"@context":"http:\/\/schema.org","@type":"BlogPosting","mainEntityOfPage":"https:\/\/herbsutter.com\/2013\/05\/29\/gotw-89-solution-smart-pointers\/","publisher":{"@type":"Organization","name":"Sutter\u2019s Mill","logo":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=60&d=https%3A%2F%2Fs0.wp.com%2Fi%2Ffavicons%2Fapple-touch-icon-60x60.png","width":60,"height":60}},"headline":"GotW #89 Solution: Smart Pointers","datePublished":"2013-05-29T10:49:21+00:00","dateModified":"2013-05-30T13:39:27+00:00","author":{"@type":"Person","name":"Herb Sutter"},"image":{"@type":"ImageObject","url":"https:\/\/herbsutter.files.wordpress.com\/2013\/05\/052913_1849_gotw89solut1.png","width":384,"height":228}}</script>
+	<meta name="generator" content="AMP Plugin v0.6.2" />	<style amp-custom>
+		/* Generic WP styling */
+
+.alignright {
+	float: right;
+}
+
+.alignleft {
+	float: left;
+}
+
+.aligncenter {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.amp-wp-enforced-sizes {
+	/** Our sizes fallback is 100vw, and we have a padding on the container; the max-width here prevents the element from overflowing. **/
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+.amp-wp-unknown-size img {
+	/** Worst case scenario when we can't figure out dimensions for an image. **/
+	/** Force the image into a box of fixed dimensions and use object-fit to scale. **/
+	object-fit: contain;
+}
+
+/* Template Styles */
+
+.amp-wp-content,
+.amp-wp-title-bar div {
+		margin: 0 auto;
+	max-width: 500px;
+	}
+
+html {
+	background: #0a89c0;
+}
+
+body {
+	background: #fff;
+	color: #353535;
+	font-family: 'Merriweather', 'Times New Roman', Times, Serif;
+	font-weight: 300;
+	line-height: 1.75em;
+}
+
+p,
+ol,
+ul,
+figure {
+	margin: 0 0 1em;
+	padding: 0;
+}
+
+a,
+a:visited {
+	color: #0a89c0;
+}
+
+a:hover,
+a:active,
+a:focus {
+	color: #353535;
+}
+
+/* Quotes */
+
+blockquote {
+	color: #353535;
+	background: rgba(127,127,127,.125);
+	border-left: 2px solid #0a89c0;
+	margin: 8px 0 24px 0;
+	padding: 16px;
+}
+
+blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+/* UI Fonts */
+
+.amp-wp-meta,
+.amp-wp-header div,
+.amp-wp-title,
+.wp-caption-text,
+.amp-wp-tax-category,
+.amp-wp-tax-tag,
+.amp-wp-comments-link,
+.amp-wp-footer p,
+.back-to-top {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen-Sans", "Ubuntu", "Cantarell", "Helvetica Neue", sans-serif;
+}
+
+/* Header */
+
+.amp-wp-header {
+	background-color: #0a89c0;
+}
+
+.amp-wp-header div {
+	color: #fff;
+	font-size: 1em;
+	font-weight: 400;
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: .875em 16px;
+	position: relative;
+}
+
+.amp-wp-header a {
+	color: #fff;
+	text-decoration: none;
+}
+
+/* Site Icon */
+
+.amp-wp-header .amp-wp-site-icon {
+	/** site icon is 32px **/
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 50%;
+	position: absolute;
+	right: 18px;
+	top: 10px;
+}
+
+/* Article */
+
+.amp-wp-article {
+	color: #353535;
+	font-weight: 400;
+	margin: 1.5em auto;
+	max-width: 840px;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+}
+
+/* Article Header */
+
+.amp-wp-article-header {
+	align-items: center;
+	align-content: stretch;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin: 1.5em 16px 0;
+}
+
+.amp-wp-title {
+	color: #353535;
+	display: block;
+	flex: 1 0 100%;
+	font-weight: 900;
+	margin: 0 0 .625em;
+	width: 100%;
+}
+
+/* Article Meta */
+
+.amp-wp-meta {
+	color: #696969;
+	display: inline-block;
+	flex: 2 1 50%;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0 0 1.5em;
+	padding: 0;
+}
+
+.amp-wp-article-header .amp-wp-meta:last-of-type {
+	text-align: right;
+}
+
+.amp-wp-article-header .amp-wp-meta:first-of-type {
+	text-align: left;
+}
+
+.amp-wp-byline amp-img,
+.amp-wp-byline .amp-wp-author {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.amp-wp-byline amp-img {
+	border: 1px solid #0a89c0;
+	border-radius: 50%;
+	position: relative;
+	margin-right: 6px;
+}
+
+.amp-wp-posted-on {
+	text-align: right;
+}
+
+/* Featured image */
+
+.amp-wp-article-featured-image {
+	margin: 0 0 1em;
+}
+.amp-wp-article-featured-image amp-img {
+	margin: 0 auto;
+}
+.amp-wp-article-featured-image.wp-caption .wp-caption-text {
+	margin: 0 18px;
+}
+
+/* Article Content */
+
+.amp-wp-article-content {
+	margin: 0 16px;
+}
+
+.amp-wp-article-content ul,
+.amp-wp-article-content ol {
+	margin-left: 1em;
+}
+
+.amp-wp-article-content amp-img {
+	margin: 0 auto;
+}
+
+.amp-wp-article-content amp-img.alignright {
+	margin: 0 0 1em 16px;
+}
+
+.amp-wp-article-content amp-img.alignleft {
+	margin: 0 16px 1em 0;
+}
+
+/* Captions */
+
+.wp-caption {
+	padding: 0;
+}
+
+.wp-caption.alignleft {
+	margin-right: 16px;
+}
+
+.wp-caption.alignright {
+	margin-left: 16px;
+}
+
+.wp-caption .wp-caption-text {
+	border-bottom: 1px solid #c2c2c2;
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0;
+	padding: .66em 10px .75em;
+}
+
+/* AMP Media */
+
+amp-carousel {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+amp-iframe,
+amp-youtube,
+amp-instagram,
+amp-vine {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+
+.amp-wp-article-content amp-carousel amp-img {
+	border: none;
+}
+
+amp-carousel > amp-img > img {
+	object-fit: contain;
+}
+
+.amp-wp-iframe-placeholder {
+	background: #c2c2c2 url( https://s2.wp.com/wp-content/plugins/amp/assets/images/placeholder-icon.png ) no-repeat center 40%;
+	background-size: 48px 48px;
+	min-height: 48px;
+}
+
+/* Article Footer Meta */
+
+.amp-wp-article-footer .amp-wp-meta {
+	display: block;
+}
+
+.amp-wp-tax-category,
+.amp-wp-tax-tag {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 1.5em 16px;
+}
+
+.amp-wp-comments-link {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	text-align: center;
+	margin: 2.25em 0 1.5em;
+}
+
+.amp-wp-comments-link a {
+	border-style: solid;
+	border-color: #c2c2c2;
+	border-width: 1px 1px 2px;
+	border-radius: 4px;
+	background-color: transparent;
+	color: #0a89c0;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 18px;
+	margin: 0 auto;
+	max-width: 200px;
+	padding: 11px 16px;
+	text-decoration: none;
+	width: 50%;
+	-webkit-transition: background-color 0.2s ease;
+			transition: background-color 0.2s ease;
+}
+
+/* AMP Footer */
+
+.amp-wp-footer {
+	border-top: 1px solid #c2c2c2;
+	margin: calc(1.5em - 1px) 0 0;
+}
+
+.amp-wp-footer div {
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: 1.25em 16px 1.25em;
+	position: relative;
+}
+
+.amp-wp-footer h2 {
+	font-size: 1em;
+	line-height: 1.375em;
+	margin: 0 0 .5em;
+}
+
+.amp-wp-footer p {
+	color: #696969;
+	font-size: .8em;
+	line-height: 1.5em;
+	margin: 0 85px 0 0;
+}
+
+.amp-wp-footer a {
+	text-decoration: none;
+}
+
+.back-to-top {
+	bottom: 1.275em;
+	font-size: .8em;
+	font-weight: 600;
+	line-height: 2em;
+	position: absolute;
+	right: 16px;
+}
+		/* Inline styles */
+.amp-wp-inline-e118b89cb574341583297a20935ac54c{color:#2e74b5;}.amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe{background:#ffffcc;margin-left:14pt;}.amp-wp-inline-a6ec8840dd8107f0c4f9cbd7d00cece0{text-align:center;}.amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b{color:#5a5a5a;}	</style>
+</head>
+
+<body class="">
+
+<header id="top" class="amp-wp-header">
+	<div>
+		<a href="https://herbsutter.com">
+									<span class="amp-site-title">
+				Sutter’s Mill			</span>
+		</a>
+	</div>
+</header>
+
+<article class="amp-wp-article">
+	<header class="amp-wp-article-header">
+		<h1 class="amp-wp-title">GotW #89 Solution: Smart Pointers</h1>
+			<div class="amp-wp-meta amp-wp-byline">
+					<amp-img src="https://secure.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=24&#038;d=identicon&#038;r=g" width="24" height="24" layout="fixed"></amp-img>
+				<span class="amp-wp-author author vcard">Herb Sutter</span>
+	</div>
+<div class="amp-wp-meta amp-wp-posted-on">
+	<time datetime="2013-05-29T10:49:21+00:00">
+		5 years ago	</time>
+</div>
+	</header>
+
+	
+	<div class="amp-wp-article-content">
+		<blockquote>
+<p><strong>NOTE:</strong> Last year, I posted three new GotWs numbered #103-105. I decided leaving a gap in the numbers wasn’t best after all, so I am renumbering them to #89-91 to continue the sequence. Here is the updated version of what was GotW #103.
+</p>
+</blockquote><p>
+ </p><p><span class="amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b"><em>There’s a lot to love about standard smart pointers in general, and unique_ptr in particular.<br/></em></span></p><p>
+ </p><h1>Problem<br/></h1><h2>JG Question<br/></h2><p>1. When should you use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> vs. <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span>? List as many considerations as you can.
+</p><h2>Guru Question<br/></h2><p>2. Why should you almost always use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span> to create an object to be owned by <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>s? Explain.
+</p><p>3. Why should you almost always use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_unique</span> to create an object to be initially owned by a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span>? Explain.
+</p><p>4. What’s the deal with <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto_ptr</span>?
+</p><p>
+ </p><h1>Solution<br/></h1><h2>1. When should you use shared_ptr vs. unique_ptr?<br/></h2><p>When in doubt, prefer <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span> by default, and you can always later move-convert to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> if you need it. If you do know from the start you need shared ownership, however, go directly to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> via <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span> (see #2 below).
+</p><p>There are three major reasons to say “when in doubt, prefer <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span>.”
+</p><p>First, use the simplest semantics that are sufficient<em>:</em> Choose the right smart pointer to most directly express your intent, and what you need (now). If you are creating a new object and don’t know that you’ll eventually need shared ownership, use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span> which expresses unique ownership. You can still put it in a container (e.g., <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector&lt;unique_ptr&lt;widget&gt;&gt;</span>) and do most other things you want to do with a raw pointer, only safely. If you later need shared ownership, you can always move-convert the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span> to a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>.
+</p><p>Second, a  <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span> is more efficient than a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>. A <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span> doesn’t need to maintain reference count information and a control block under the covers, and is designed to be just about as cheap to move and use as a raw pointer. When you don’t ask for more than you need, you don’t incur overheads you won’t use.
+</p><p>Third, starting with <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span> is more flexible and keeps your options open. If you start with a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span>, you can always later convert to a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> via move, or to another custom smart pointer (or even to a raw pointer) via <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">.get()</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">.release()</span>.
+</p><blockquote>
+<p><strong>Guideline:</strong> Prefer to use the standard smart pointers, <strong>unique_ptr</strong> by default and <strong>shared_ptr</strong> if sharing is needed. They are the common types that all C++ libraries can understand. Use other smart pointer types only if necessary for interoperability with other libraries, or when necessary for custom behavior you can’t achieve with deleters and allocators on the standard pointers.
+</p>
+</blockquote><h2>2. Why should you almost always use make_shared to create an object to be owned by shared_ptrs? Explain.<br/></h2><p>Note: If you need to create an object using a custom allocator, which is rare, you can use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">allocate_shared</span>. Note that even though its name is slightly different, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">allocate_shared</span> should be viewed as “just the flavor of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span> that lets you specify an allocator,” so I’m mainly going to talk about them both as <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span> here and not distinguish much between them.
+</p><p>There are two main cases where you can’t use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span> (or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">allocate_shared</span>) to create an object that you know will be owned by <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>s: (a) if you need a custom deleter, such as because of using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>s to manage a non-memory resource or an object allocated in a nonstandard memory area, you can’t use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span> because it doesn’t support specifying a deleter; and (b) if you are adopting a raw pointer to an object being handed to you from other (usually legacy) code, you would construct a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> from that raw pointer directly.
+</p><blockquote>
+<p><strong>Guideline:</strong> Use <strong>make_shared</strong> (or, if you need a custom allocator, <strong>allocate_shared</strong>) to create an object you know will be owned by <strong>shared_ptr</strong>s, unless you need a custom deleter or are adopting a raw pointer from elsewhere.
+</p>
+</blockquote><p>So, why use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span> (or, if you need a custom allocator, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">allocate_shared</span>) whenever you can, which is nearly always? There are two main reasons: simplicity, and efficiency.
+</p><p>First, with <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span> the code is simpler. Write for clarity and correctness first.
+</p><p>Second, using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span> is more efficient. The <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> implementation has to maintain housekeeping information in a control block shared by all <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>s and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">weak_ptr</span>s referring to a given object. In particular, that housekeeping information has to include not just one but two reference counts:
+</p><ul><li>A “strong reference” count to track the number of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span>s currently keeping the object alive. The shared object is destroyed (and possibly deallocated) when the last strong reference goes away.
+</li>
+<li>A “weak reference” count to track the number of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">weak_ptr</span>s currently observing the object. The shared housekeeping control block is destroyed and deallocated (and the shared object is deallocated if it was not already) when the last weak reference goes away.
+</li>
+</ul><p>If you allocate the object separately via a raw <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new</span> expression, then pass it to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">a shared_ptr</span>, the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> implementation has no alternative but to allocate the control block separately, as shown in Example 2(a) and Figure 2(a).
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// Example 2(a): Separate allocation<br/>auto sp1 = shared_ptr&lt;widget&gt;{ new widget{} };<br/>auto sp2 = sp1;
+</code></pre><p class="amp-wp-inline-a6ec8840dd8107f0c4f9cbd7d00cece0"><amp-img src="https://herbsutter.files.wordpress.com/2013/05/053013_2139_gotw89solut1.png?w=500" alt="" width="384" height="228" sizes="(min-width: 384px) 384px, 100vw" class="amp-wp-enforced-sizes"></amp-img></p><p class="amp-wp-inline-a6ec8840dd8107f0c4f9cbd7d00cece0">Figure 2(a): Approximate memory layout for Example 2(a).
+</p><p>We’d like to avoid doing two separate allocations here. If you use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span> to allocate the object and the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr</span> all in one go, then the implementation can fold them together in a single allocation, as shown in Example 2(b) and Figure 2(b).
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>// Example 2(b): Single allocation<br/>auto sp1 = make_shared&lt;widget&gt;();<br/>auto sp2 = sp1;
+</code></pre><p class="amp-wp-inline-a6ec8840dd8107f0c4f9cbd7d00cece0"><amp-img src="https://herbsutter.files.wordpress.com/2013/05/053013_2139_gotw89solut2.png?w=500" alt="" width="384" height="136" sizes="(min-width: 384px) 384px, 100vw" class="amp-wp-enforced-sizes"></amp-img></p><p class="amp-wp-inline-a6ec8840dd8107f0c4f9cbd7d00cece0">Figure 2(b): Approximate memory layout for Example 2(b).
+</p><p>Note that combining the allocations has two major advantages:
+</p><ul><li>It reduces allocation overhead, including memory fragmentation. First, the most obvious way it does this is by reducing the number of allocation requests, which are typically more expensive operations. This also helps reduce contention on allocators (some allocators don’t scale well). Second, using only one chunk of memory instead of two reduces the per-allocation overhead. Whenever you ask for a chunk of memory, the system must give you at least that many bytes, and often gives you a few more because of using fixed-size pools or tacking on housekeeping information per allocation. So by using a single chunk of memory, we tend to reduce the total extra overhead. Finally, we also naturally reduce the number of “dead” extra in-between gaps that cause fragmentation.
+</li>
+<li>It improves locality. The reference counts are frequently used with the object, and for small objects are likely to be on the same cache line, which improves cache performance (as long as there isn’t some thread copying the smart pointer in a tight loop; don’t do that).
+</li>
+</ul><p>As always, when you can express more of what you’re trying to achieve as a single function call, you’re giving the system a better chance to figure out a way to do the job more efficiently. This is just as true when inserting 100 elements into a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector</span> using a single range-insert call to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">v.insert( first, last )</span> instead of 100 calls to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">v.insert( value )</span> as it is when using a single call to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span> instead of separate calls to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new widget()</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">shared_ptr( widget* )</span>.
+</p><p>There are two more advantages: Using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span> avoids explicit <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new</span> and avoids an exception safety issue. Both of these also apply to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_unique</span>, so we’ll cover them under #3.
+</p><h2>3. Why should you almost always use make_unique to create an object to be initially owned by a unique_ptr? Explain.<br/></h2><p>As with <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span>, there are two main cases where you can’t use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_unique</span> to create an object that you know will be owned (at least initially) by a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span>: if you need a custom deleter, or if you are adopting a raw pointer.
+</p><p>Otherwise, which is nearly always, prefer <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_unique</span>.
+</p><blockquote>
+<p><strong>Guideline:</strong> Use <strong>make_unique</strong> to create an object that isn’t shared (at least not yet), unless you need a custom deleter or are adopting a raw pointer from elsewhere.
+</p>
+</blockquote><p>Besides symmetry with <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_shared</span>, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_unique</span> offers at least two other advantages. First, you should prefer use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_unique&lt;T&gt;()</span>  instead of the more-verbose <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr&lt;T&gt;{ new T{} }</span> because you should avoid explicit <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new</span> in general:
+</p><blockquote>
+<p><strong>Guideline:</strong> Don’t use explicit <strong>new</strong>, <strong>delete</strong>, and owning <strong>*</strong> pointers, except in rare cases encapsulated inside the implementation of a low-level data structure.
+</p>
+</blockquote><p>Second, it avoids some known exception safety issues with naked <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new</span>. Here’s an example:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>void sink( unique_ptr&lt;widget&gt;, unique_ptr&lt;gadget&gt; );<br/><br/>sink( unique_ptr&lt;widget&gt;{new widget{}},<br/>      unique_ptr&lt;gadget&gt;{new gadget{}} ); // Q1: do you see the problem?
+</code></pre><p>Briefly, if you allocate and construct the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new widget</span> first, then get an exception while allocating or constructing the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new gadget</span>, the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span> is leaked. You might think: “Well, I could just change <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new widget{}</span> to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_unique&lt;widget&gt;()</span> and this problem would go away, right?” To wit:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>sink( make_unique&lt;widget&gt;(),<br/>      unique_ptr&lt;gadget&gt;{new gadget{}} );         // Q2: is this better?
+</code></pre><p>The answer is no, because C++ leaves the order of evaluation of function arguments unspecified and so either the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new widget</span> or the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new gadget</span> could be performed first. If the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">new gadget</span> is allocated and constructed first, then the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_unique&lt;widget&gt;</span> throws, we have the same problem.
+</p><p>But while just changing one of the arguments to use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_unique</span> doesn’t close the hole, changing them both to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_unique</span> really does completely eliminate the problem:
+</p><p class="amp-wp-inline-fecf5a659d98c4adc4aafde3be4a8abe">
+</p><pre><code>sink( make_unique&lt;widget&gt;(), make_unique&lt;gadget&gt;() );  // exception-safe
+</code></pre><p>This exception safety issue is covered in more detail in GotW #56.
+</p><blockquote>
+<p><strong>Guideline:</strong> To allocate an object, prefer to write <strong>make_unique</strong> by default, and write <strong>make_shared</strong> when you know the object’s lifetime is going to be managed by using <strong>shared_ptr</strong>s.
+</p>
+</blockquote><h2>4. What’s the deal with auto_ptr?<br/></h2><p><span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto_ptr</span> is most charitably characterized as a valiant attempt to create a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span> before C++ had move semantics. <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto_ptr</span> is now deprecated, and should not be used in new code.
+</p><p>If you have <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto_ptr</span> in an existing code base, when you get a chance try doing a global search-and-replace of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto_ptr</span> to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unique_ptr</span>; the vast majority of uses will work the same, and it might expose (as a compile-time error) or fix (silently) a bug or two you didn’t know you had.
+</p><h2>Acknowledgments<br/></h2><p>Thanks in particular to the following for their feedback to improve this article: celeborn2bealive, Andy Prowl, Chris Vine, Marek.</p>	</div>
+
+	<footer class="amp-wp-article-footer">
+			<div class="amp-wp-meta amp-wp-tax-category">
+		Categories: <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a>	</div>
+
+		<div class="amp-wp-meta amp-wp-comments-link">
+		<a href="https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/#comments">
+			View Comments		</a>
+	</div>
+	</footer>
+</article>
+
+<footer class="amp-wp-footer">
+	<div>
+		<h2>Sutter’s Mill</h2>
+		<p>
+			<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a>
+		</p>
+		<a href="#top" class="back-to-top">Back to top</a>
+	</div>
+</footer>
+
+
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;host=herbsutter.com&#038;ref=DOCUMENT_REFERRER&#038;amp=1&#038;blog=3379246&#038;v=wpcom&#038;tz=-8&#038;user_id=0&#038;post=2035&#038;subd=herbsutter"></amp-pixel>
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;v=wpcom-no-pv&#038;crypt=UE40eW5QN0p8M2Y%2FRE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29%2BSmw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8%2FMkNtblkvY1d1TjBELytHc0k%2FMXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNE9OUXNRelNyMk1TVz1%2BMUlmblhEPSs5UURXWWZSNFgzc0syWDVwb3ZTdTV6Y04uaU9JQkMvOCx3JTk0ZlR1OE16R2Y%2FdUZ2QUQ1N0F%2BcVNpaSZEZndfZnwvW2RVMHdJQnJGZA%3D%3D"></amp-pixel>
+	
+</body>
+</html>

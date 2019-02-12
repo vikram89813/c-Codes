@@ -1,0 +1,1121 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+	
+	>
+<channel>
+	<title>
+	Comments on: GotW #4 Solution: Class Mechanics	</title>
+	<atom:link href="https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/feed/" rel="self" type="application/rss+xml" />
+	<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/</link>
+	<description>Herb Sutter on software development</description>
+	<lastBuildDate>
+	Mon, 19 Nov 2018 23:08:15 +0000	</lastBuildDate>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>http://wordpress.com/</generator>
+			<item>
+				<title>
+				By: Zenju				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10539</link>
+		<dc:creator><![CDATA[Zenju]]></dc:creator>
+		<pubDate>Tue, 28 May 2013 10:17:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10539</guid>
+					<description><![CDATA[@Luca Risolia:
+I you want to consider all r/l-value cases you would need to implement all four
+T operator+(const T&#038; a, const T&#038; b)
+T operator+(T&#038;&#038; a, const T&#038; b)
+T operator+(const T&#038; a, T&#038;&#038; b)
+T operator+(T&#038;&#038; a, T&#038;&#038; b)
+
+This&#039;s overkill, so it&#039;s probably a good idea to concentrate on the most-used form, which is the temporary in the first argument for chains of operator +. For other classes, e.g. strings, this is all that&#039;s ever needed, since operator + is not symmetric.]]></description>
+		<content:encoded><![CDATA[<p>@Luca Risolia:<br />
+I you want to consider all r/l-value cases you would need to implement all four<br />
+T operator+(const T&amp; a, const T&amp; b)<br />
+T operator+(T&amp;&amp; a, const T&amp; b)<br />
+T operator+(const T&amp; a, T&amp;&amp; b)<br />
+T operator+(T&amp;&amp; a, T&amp;&amp; b)</p>
+<p>This&#8217;s overkill, so it&#8217;s probably a good idea to concentrate on the most-used form, which is the temporary in the first argument for chains of operator +. For other classes, e.g. strings, this is all that&#8217;s ever needed, since operator + is not symmetric.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Luca Risolia				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10526</link>
+		<dc:creator><![CDATA[Luca Risolia]]></dc:creator>
+		<pubDate>Tue, 28 May 2013 03:09:03 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10526</guid>
+					<description><![CDATA[@Zenju
+[code]
+complex a;
+auto r = operator+(a, complex{});
+[/code]
+a is a lvalue while the second argument is a temporary, which means operator+(const complex&#038;, complex&#038;&#038;) will be called. You can easily have more convoluted expressions in which the same overload might be called. Associativity rules do not change the result for a complex type. Do I miss anything?]]></description>
+		<content:encoded><![CDATA[<p>@Zenju</p>
+<pre class="brush: plain; title: ; notranslate">
+complex a;
+auto r = operator+(a, complex{});
+</pre>
+<p>a is a lvalue while the second argument is a temporary, which means operator+(const complex&amp;, complex&amp;&amp;) will be called. You can easily have more convoluted expressions in which the same overload might be called. Associativity rules do not change the result for a complex type. Do I miss anything?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Zenju				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10521</link>
+		<dc:creator><![CDATA[Zenju]]></dc:creator>
+		<pubDate>Tue, 28 May 2013 00:03:09 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10521</guid>
+					<description><![CDATA[@Luca Risolia: operator + has left-to-right associativity, so the first parameter will have to deal with temporaries, not the second.]]></description>
+		<content:encoded><![CDATA[<p>@Luca Risolia: operator + has left-to-right associativity, so the first parameter will have to deal with temporaries, not the second.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Zenju				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10520</link>
+		<dc:creator><![CDATA[Zenju]]></dc:creator>
+		<pubDate>Tue, 28 May 2013 00:00:52 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10520</guid>
+					<description><![CDATA[&#062; Guideline: Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments. 
+
+While talking about optimizations, it should be mentioned that passing one parameter by value in order to &quot;unify&quot; l/r-value parameters is not the most efficient solution:
+In case the first parameter is a temporary, there is a move-construction that could otherwise be avoided had the function been specified as:
+
+T operator+(T&#038;&#038; a, const T&#038; b )
+
+So for maximum efficiency it is best to have these two overloads instead:
+T operator+(const T&#038; a, const T&#038; b) and
+T operator+(T&#038;&#038; a, const T&#038; b)
+
+This might seem nit-picky, but in general move-construction is not free! For example I know a string class which always has an associated control structure(alloc-count, size, ect.). Due to implementation details, the destructor cannot simply call &quot;operator delete&quot;, but requires a valid control structure.
+Therefore even the move-constructor must create a dummy constrol structure, which boils down to a memory allocation, i.e. a system-call!]]></description>
+		<content:encoded><![CDATA[<p>&gt; Guideline: Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments. </p>
+<p>While talking about optimizations, it should be mentioned that passing one parameter by value in order to &#8220;unify&#8221; l/r-value parameters is not the most efficient solution:<br />
+In case the first parameter is a temporary, there is a move-construction that could otherwise be avoided had the function been specified as:</p>
+<p>T operator+(T&amp;&amp; a, const T&amp; b )</p>
+<p>So for maximum efficiency it is best to have these two overloads instead:<br />
+T operator+(const T&amp; a, const T&amp; b) and<br />
+T operator+(T&amp;&amp; a, const T&amp; b)</p>
+<p>This might seem nit-picky, but in general move-construction is not free! For example I know a string class which always has an associated control structure(alloc-count, size, ect.). Due to implementation details, the destructor cannot simply call &#8220;operator delete&#8221;, but requires a valid control structure.<br />
+Therefore even the move-constructor must create a dummy constrol structure, which boils down to a memory allocation, i.e. a system-call!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Luca Risolia				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10432</link>
+		<dc:creator><![CDATA[Luca Risolia]]></dc:creator>
+		<pubDate>Sat, 25 May 2013 15:12:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10432</guid>
+					<description><![CDATA[@Herb, I apologize if this has been already suggested by others, but what about recommending the following version of [code]operator+()[/code] other than the one you propose in the final version of the complex class:
+
+[code]
+complex operator+( const complex&#038; lhs, complex&#038;&#038; rhs ) {
+    rhs += lhs;
+    return rhs;
+}
+[/code]
+
+Compared to the original solution, this way an extra-copy can be avoided when a temporary object is passed as argument to rhs and the const ref lhs is bound to an lvalue.]]></description>
+		<content:encoded><![CDATA[<p>@Herb, I apologize if this has been already suggested by others, but what about recommending the following version of </p>
+<pre class="brush: plain; title: ; notranslate">operator+()</pre>
+<p> other than the one you propose in the final version of the complex class:</p>
+<pre class="brush: plain; title: ; notranslate">
+complex operator+( const complex&amp; lhs, complex&amp;&amp; rhs ) {
+    rhs += lhs;
+    return rhs;
+}
+</pre>
+<p>Compared to the original solution, this way an extra-copy can be avoided when a temporary object is passed as argument to rhs and the const ref lhs is bound to an lvalue.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: decourse				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10387</link>
+		<dc:creator><![CDATA[decourse]]></dc:creator>
+		<pubDate>Fri, 24 May 2013 03:26:17 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10387</guid>
+					<description><![CDATA[Thanks for that answer, Herb.
+
+I was searching for an example where the difference between the two different forms of parameter passing may matter, and the only example I could think of is where the class must satisfy some imposed API. Inheriting from an abstract base class is the most obvious example; I haven&#039;t put any thought to whether or not a concept could do it.
+
+Hiding the implementation detail by removing the call-by-value is EXACTLY the same thing as hiding the implementation by introducing a layer of abstraction or indirection (e.g. inheriting from an ABC, or implementing the class using a pimpl). That&#039;s the bit I was missing.]]></description>
+		<content:encoded><![CDATA[<p>Thanks for that answer, Herb.</p>
+<p>I was searching for an example where the difference between the two different forms of parameter passing may matter, and the only example I could think of is where the class must satisfy some imposed API. Inheriting from an abstract base class is the most obvious example; I haven&#8217;t put any thought to whether or not a concept could do it.</p>
+<p>Hiding the implementation detail by removing the call-by-value is EXACTLY the same thing as hiding the implementation by introducing a layer of abstraction or indirection (e.g. inheriting from an ABC, or implementing the class using a pimpl). That&#8217;s the bit I was missing.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10379</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Thu, 23 May 2013 22:45:27 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10379</guid>
+					<description><![CDATA[@decourse: f( int ) and f( const int&#038; ) tell the caller the same thing: He provides an int as the first argument, and his int won&#039;t be modified. You ask, why is that in the signature where the caller can see the implementation detail (and must recompile if it changes), even though it doesn&#039;t affect him?
+
+So now consider: [code]class widget { /*...*/ private: int x; }; [/code] Guru question: Why is x in the class definition where the caller can see that implementation detail (and must recompile if it changes), even though he can&#039;t use it?
+
+The two questions are the same. The reason it is necessary to surface this difference in the function signature, even though the caller of the function can&#039;t be affected by it and doesn&#039;t care, is the same reason why we have to make private class members visible in the class definition, even though the caller of the class can&#039;t use them and doesn&#039;t care: Link compatibility requires the compiler knows the calling convention incl. parameter passing and the full layout of all objects used as a value. Even though the caller cannot use such &quot;private&quot; information, it must always be available to the compiler on both sides. The fact that the compiler always knows this is also one of the reasons C++ is a naturally highly optimizable language.]]></description>
+		<content:encoded><![CDATA[<p>@decourse: f( int ) and f( const int&amp; ) tell the caller the same thing: He provides an int as the first argument, and his int won&#8217;t be modified. You ask, why is that in the signature where the caller can see the implementation detail (and must recompile if it changes), even though it doesn&#8217;t affect him?</p>
+<p>So now consider: </p>
+<pre class="brush: plain; title: ; notranslate">class widget { /*...*/ private: int x; }; </pre>
+<p> Guru question: Why is x in the class definition where the caller can see that implementation detail (and must recompile if it changes), even though he can&#8217;t use it?</p>
+<p>The two questions are the same. The reason it is necessary to surface this difference in the function signature, even though the caller of the function can&#8217;t be affected by it and doesn&#8217;t care, is the same reason why we have to make private class members visible in the class definition, even though the caller of the class can&#8217;t use them and doesn&#8217;t care: Link compatibility requires the compiler knows the calling convention incl. parameter passing and the full layout of all objects used as a value. Even though the caller cannot use such &#8220;private&#8221; information, it must always be available to the compiler on both sides. The fact that the compiler always knows this is also one of the reasons C++ is a naturally highly optimizable language.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: decourse				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10343</link>
+		<dc:creator><![CDATA[decourse]]></dc:creator>
+		<pubDate>Thu, 23 May 2013 03:17:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10343</guid>
+					<description><![CDATA[@Herb, I guess what I&#039;m after here is some advice as to what passing an object by value actually &lt;i&gt;means&lt;/i&gt;.
+
+We all know by now the difference between passing a smart pointer and passing a raw pointer. In each case, choosing one over the other signals a clear intention about the interface. I the signature asks for a smart pointer, for example, it &quot;means&quot; that the function wants to manage the lifetime of the passed object, but if it asks for a raw pointer, that &quot;means&quot; it doesn&#039;t. It&#039;s a similar story with lvalue references and rvalue references. Moreover, these differences are part of the interface.
+
+I don&#039;t really know what it means when a function asks a caller to pass an object by value. But whatever it means, it&#039;s not really part of the interface, but part of the implementation.
+
+I don&#039;t like that. It smells wrong.]]></description>
+		<content:encoded><![CDATA[<p>@Herb, I guess what I&#8217;m after here is some advice as to what passing an object by value actually <i>means</i>.</p>
+<p>We all know by now the difference between passing a smart pointer and passing a raw pointer. In each case, choosing one over the other signals a clear intention about the interface. I the signature asks for a smart pointer, for example, it &#8220;means&#8221; that the function wants to manage the lifetime of the passed object, but if it asks for a raw pointer, that &#8220;means&#8221; it doesn&#8217;t. It&#8217;s a similar story with lvalue references and rvalue references. Moreover, these differences are part of the interface.</p>
+<p>I don&#8217;t really know what it means when a function asks a caller to pass an object by value. But whatever it means, it&#8217;s not really part of the interface, but part of the implementation.</p>
+<p>I don&#8217;t like that. It smells wrong.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10315</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Wed, 22 May 2013 18:53:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10315</guid>
+					<description><![CDATA[@Matthew: Yes, there will eventually be another GotW on parameter passing that will cover these kinds of things.]]></description>
+		<content:encoded><![CDATA[<p>@Matthew: Yes, there will eventually be another GotW on parameter passing that will cover these kinds of things.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Matthew Fioravante				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10308</link>
+		<dc:creator><![CDATA[Matthew Fioravante]]></dc:creator>
+		<pubDate>Wed, 22 May 2013 14:07:35 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10308</guid>
+					<description><![CDATA[@Herb:
+Trying to code based on whether or not the optimizer can do RVO on named temporaries or only unnamed return values is a distraction I agree. 
+
+When it comes to value types however, there are no move semantics so the optimization game we&#039;re trying to play here is copy ellision in either one of the parameters or the return value. The problem is that with passing one of the parameters by value is that the optimization only works if the caller happens to use an rvalue for that parameter (5 + x) vs (x + 5). 
+
+For something like operator+(), we always use the return value so copy ellision can always be taken advantage of if its done on the return side vs on the parameter side. This could matter for a math library such a 3d linear algebra library for a game engine where you are doing a lot of 4x4 matrix multiplies. Theres also the minor issue that the copy for passing by value is done at every call site and possibly bloats the code if the function is called often.
+
+Also when passing by value, which argument should be a reference and which a value?
+[code]
+T operator+(const T&#038; a, T b);
+T operator+(T a, const T&#038; b);
+[/code]
+Should we pick a convention and suggest everyone follow it? Much like preferring ++i to i++ with iterators? I often find myself writing x + 5, than I do 5 + x.
+
+If your type has move semantics then the most correct way to do it is with a bunch of ugly overloads.
+This is probably another GOTW, but I&#039;d really like to know if there is any guidance for how to reduce the ammount of code here:
+
+[code]
+T operator+(const T&#038; a, const T&#038; b);
+T operator+(const T&#038; a, T&#038;&#038; b);
+T operator+(T&#038;&#038; a, const T&#038; b);
+T operator+(T&#038;&#038; a, T&#038;&#038; b);
+[/code]
+
+Perhaps the following:
+[code]
+T operator+(const T&#038; a, const T&#038; b) {
+T c = a; //this one must do a copy
+c += b;
+return c;
+}
+T operator+(const T&#038; a, T&#038;&#038; b) {
+T c = std::move(b); //great, we can move
+c += a;
+return c;
+}
+T operator+(T&#038;&#038; a, const T&#038; b) {
+return b + std::move(a); //calls lv + rv
+}
+T operator+(T&#038;&#038; a, T&#038;&#038; b) {
+return a + std::move(b); //calls lv + rv
+}
+[/code]
+
+Or this? (Does this even work like the above in all cases?)
+[code]
+T operator+(T a, const T&#038; b)  {
+return a += b; //lv + lv or rv + lv
+}
+T operator+(const T&#038; a, T&#038;&#038; b) {
+return std::move(b) + a; //calls rv + lv
+}
+T operator+(T&#038;&#038; a, T&#038;&#038; b) {
+return std::move(a) + b; //calls rv + lv
+}
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>@Herb:<br />
+Trying to code based on whether or not the optimizer can do RVO on named temporaries or only unnamed return values is a distraction I agree. </p>
+<p>When it comes to value types however, there are no move semantics so the optimization game we&#8217;re trying to play here is copy ellision in either one of the parameters or the return value. The problem is that with passing one of the parameters by value is that the optimization only works if the caller happens to use an rvalue for that parameter (5 + x) vs (x + 5). </p>
+<p>For something like operator+(), we always use the return value so copy ellision can always be taken advantage of if its done on the return side vs on the parameter side. This could matter for a math library such a 3d linear algebra library for a game engine where you are doing a lot of 4&#215;4 matrix multiplies. Theres also the minor issue that the copy for passing by value is done at every call site and possibly bloats the code if the function is called often.</p>
+<p>Also when passing by value, which argument should be a reference and which a value?</p>
+<pre class="brush: plain; title: ; notranslate">
+T operator+(const T&amp; a, T b);
+T operator+(T a, const T&amp; b);
+</pre>
+<p>Should we pick a convention and suggest everyone follow it? Much like preferring ++i to i++ with iterators? I often find myself writing x + 5, than I do 5 + x.</p>
+<p>If your type has move semantics then the most correct way to do it is with a bunch of ugly overloads.<br />
+This is probably another GOTW, but I&#8217;d really like to know if there is any guidance for how to reduce the ammount of code here:</p>
+<pre class="brush: plain; title: ; notranslate">
+T operator+(const T&amp; a, const T&amp; b);
+T operator+(const T&amp; a, T&amp;&amp; b);
+T operator+(T&amp;&amp; a, const T&amp; b);
+T operator+(T&amp;&amp; a, T&amp;&amp; b);
+</pre>
+<p>Perhaps the following:</p>
+<pre class="brush: plain; title: ; notranslate">
+T operator+(const T&amp; a, const T&amp; b) {
+T c = a; //this one must do a copy
+c += b;
+return c;
+}
+T operator+(const T&amp; a, T&amp;&amp; b) {
+T c = std::move(b); //great, we can move
+c += a;
+return c;
+}
+T operator+(T&amp;&amp; a, const T&amp; b) {
+return b + std::move(a); //calls lv + rv
+}
+T operator+(T&amp;&amp; a, T&amp;&amp; b) {
+return a + std::move(b); //calls lv + rv
+}
+</pre>
+<p>Or this? (Does this even work like the above in all cases?)</p>
+<pre class="brush: plain; title: ; notranslate">
+T operator+(T a, const T&amp; b)  {
+return a += b; //lv + lv or rv + lv
+}
+T operator+(const T&amp; a, T&amp;&amp; b) {
+return std::move(b) + a; //calls rv + lv
+}
+T operator+(T&amp;&amp; a, T&amp;&amp; b) {
+return std::move(a) + b; //calls rv + lv
+}
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Daryle Walker				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10297</link>
+		<dc:creator><![CDATA[Daryle Walker]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 21:29:58 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10297</guid>
+					<description><![CDATA[@Herb Sutter (2013-5-21T10:59): I&#039;ve heard about transcendental functions being implemented with the help of internal constant tables.  Constexpr can help there.  A response by Róbert Dávid described something similar.  The constexpr is also a just-in-case some programmer changes complex to a class template, like the &quot;value_type&quot; alias added.  (Like if we want &quot;int&quot; versions.  There&#039;s no reason for complex to be limited to floating-point; anything besides division, &quot;abs,&quot; and the transcendentals works just fine with integer arithmetic.)
+
+What the haters don&#039;t see is that &quot;superfluous&quot; code isn&#039;t over-engineering basic stuff, but adding the finishing details.  They&#039;re refinements.  Middle programmers have to worry about those details and do a pass beyond make-it-work so they don&#039;t pass inefficiencies down the line.
+
+Maybe you can do a GotW on constexpr someday.
+
+@Róbert Dávid (2013-5-21T12:22): Yes, it could be considered overkill, but complex range-for support may come in handy for generic code.  The tuple support is another example.]]></description>
+		<content:encoded><![CDATA[<p>@Herb Sutter (2013-5-21T10:59): I&#8217;ve heard about transcendental functions being implemented with the help of internal constant tables.  Constexpr can help there.  A response by Róbert Dávid described something similar.  The constexpr is also a just-in-case some programmer changes complex to a class template, like the &#8220;value_type&#8221; alias added.  (Like if we want &#8220;int&#8221; versions.  There&#8217;s no reason for complex to be limited to floating-point; anything besides division, &#8220;abs,&#8221; and the transcendentals works just fine with integer arithmetic.)</p>
+<p>What the haters don&#8217;t see is that &#8220;superfluous&#8221; code isn&#8217;t over-engineering basic stuff, but adding the finishing details.  They&#8217;re refinements.  Middle programmers have to worry about those details and do a pass beyond make-it-work so they don&#8217;t pass inefficiencies down the line.</p>
+<p>Maybe you can do a GotW on constexpr someday.</p>
+<p>@Róbert Dávid (2013-5-21T12:22): Yes, it could be considered overkill, but complex range-for support may come in handy for generic code.  The tuple support is another example.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: nosenseetal				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10294</link>
+		<dc:creator><![CDATA[nosenseetal]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 20:37:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10294</guid>
+					<description><![CDATA[can somebody explain what Herb meant with this: &quot; That makes the class annoying to use at all.&quot;]]></description>
+		<content:encoded><![CDATA[<p>can somebody explain what Herb meant with this: &#8221; That makes the class annoying to use at all.&#8221;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Róbert Dávid				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10293</link>
+		<dc:creator><![CDATA[Róbert Dávid]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 20:22:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10293</guid>
+					<description><![CDATA[@Daryle Walker: I&#039;m not sure it is a good idea to use range-for on a.. single.. complex value.
+
+@Herb Sutter: Compile-time float values is something I would kill for while implementing code from mathematicians, containing code that is essentially possible to do compile time - but it is not feasible to just code the &#039;result&#039; into the code, as the constant changing every iteration. To oversimplify, something like &quot;return input*2*sqrt(3)&quot; at first, &quot;return input*3*sqrt(3)&quot; in the second version, &quot;return input*3*sqrt(5)&quot; in the third (mixed with changes of &#039;non-compile-time&#039; logic as well). And this happened in three companies so far, so I have a sense that this isn&#039;t really uncommon. Generally, I would like to push as much computation to compile time as possible - constexpr can do miracles, even with its current, limited version. (constexpr dgemm, anyone?)]]></description>
+		<content:encoded><![CDATA[<p>@Daryle Walker: I&#8217;m not sure it is a good idea to use range-for on a.. single.. complex value.</p>
+<p>@Herb Sutter: Compile-time float values is something I would kill for while implementing code from mathematicians, containing code that is essentially possible to do compile time &#8211; but it is not feasible to just code the &#8216;result&#8217; into the code, as the constant changing every iteration. To oversimplify, something like &#8220;return input*2*sqrt(3)&#8221; at first, &#8220;return input*3*sqrt(3)&#8221; in the second version, &#8220;return input*3*sqrt(5)&#8221; in the third (mixed with changes of &#8216;non-compile-time&#8217; logic as well). And this happened in three companies so far, so I have a sense that this isn&#8217;t really uncommon. Generally, I would like to push as much computation to compile time as possible &#8211; constexpr can do miracles, even with its current, limited version. (constexpr dgemm, anyone?)</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michael Marcin				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10292</link>
+		<dc:creator><![CDATA[Michael Marcin]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 19:50:28 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10292</guid>
+					<description><![CDATA[Sorry that was obviously supposed to be:
+[code]T operator+( const T&#038; lhs, const X&#038; rhs ) {
+    T rv = lhs;
+    rv += rhs;
+    return rv;
+}[/code]]]></description>
+		<content:encoded><![CDATA[<p>Sorry that was obviously supposed to be:</p>
+<pre class="brush: plain; title: ; notranslate">T operator+( const T&amp; lhs, const X&amp; rhs ) {
+    T rv = lhs;
+    rv += rhs;
+    return rv;
+}</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Michael Marcin				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10291</link>
+		<dc:creator><![CDATA[Michael Marcin]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 19:48:50 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10291</guid>
+					<description><![CDATA[While pass by value for things like operator is good in theory. I&#039;m not sure how good it is in practice. There was recently talk about this related to the boost operators library.
+
+Compare
+[code]T operator+( T lhs, const X&#038; rhs ) {
+	lhs += rhs;
+    return lhs;
+}[/code]
+http://ideone.com/q1ETx3
+
+[code]T operator+( const T&#038; lhs, const X&#038; rhs ) {
+	T rv = lhs;
+	rv += lhs;
+    return rv;
+}[/code]
+http://ideone.com/wutk1x]]></description>
+		<content:encoded><![CDATA[<p>While pass by value for things like operator is good in theory. I&#8217;m not sure how good it is in practice. There was recently talk about this related to the boost operators library.</p>
+<p>Compare</p>
+<pre class="brush: plain; title: ; notranslate">T operator+( T lhs, const X&amp; rhs ) {
+	lhs += rhs;
+    return lhs;
+}</pre>
+<p><a href="http://ideone.com/q1ETx3" rel="nofollow">http://ideone.com/q1ETx3</a></p>
+<pre class="brush: plain; title: ; notranslate">T operator+( const T&amp; lhs, const X&amp; rhs ) {
+	T rv = lhs;
+	rv += lhs;
+    return rv;
+}</pre>
+<p><a href="http://ideone.com/wutk1x" rel="nofollow">http://ideone.com/wutk1x</a></p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10290</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 18:59:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10290</guid>
+					<description><![CDATA[@Daryle: I actually did consider whether to talk about making this constexpr, and I deliberately decided not to (and almost mentioned in this in the summary alongside why I didn&#039;t talk about final). Two reasons:
+
+(1) I can&#039;t think of any use cases for a compile-time complex number (or any floating point value for that matter); it&#039;s not like we&#039;re going to initialize arrays with them or set enumerator values with them or instantiate templates with them, right? I could be wrong here -- does anyone know of a valid constexpr use for a floating point number?
+
+(2) Doing it would make this simple class more complicated, as I think you&#039;ve demonstrated. :) And the extra work is for no real advantage if I&#039;m right about (1), and with the disadvantage of providing incorrect fodder for people looking for disinformational examples to claim how hard simple stuff is in C++, when it really isn&#039;t (at least not in this case).
+
+I think we should be teaching how simple it really is to write high-quality C++ code, not how complex C++ code can be made by people who revel in complexity (which we&#039;re all guilty of from time to time of course). This example really is simple and doesn&#039;t need constexpr, so I didn&#039;t even mention constexpr. If I&#039;m wrong about that, I&#039;d really be happy to know -- what are the use cases for making complex constexpr-aware? On the other hand, if I&#039;m right about that but the question is a FAQ, maybe I should add this kind of note about constexpr in the Summary along with why I didn&#039;t mention or recommend saying final either.]]></description>
+		<content:encoded><![CDATA[<p>@Daryle: I actually did consider whether to talk about making this constexpr, and I deliberately decided not to (and almost mentioned in this in the summary alongside why I didn&#8217;t talk about final). Two reasons:</p>
+<p>(1) I can&#8217;t think of any use cases for a compile-time complex number (or any floating point value for that matter); it&#8217;s not like we&#8217;re going to initialize arrays with them or set enumerator values with them or instantiate templates with them, right? I could be wrong here &#8212; does anyone know of a valid constexpr use for a floating point number?</p>
+<p>(2) Doing it would make this simple class more complicated, as I think you&#8217;ve demonstrated. :) And the extra work is for no real advantage if I&#8217;m right about (1), and with the disadvantage of providing incorrect fodder for people looking for disinformational examples to claim how hard simple stuff is in C++, when it really isn&#8217;t (at least not in this case).</p>
+<p>I think we should be teaching how simple it really is to write high-quality C++ code, not how complex C++ code can be made by people who revel in complexity (which we&#8217;re all guilty of from time to time of course). This example really is simple and doesn&#8217;t need constexpr, so I didn&#8217;t even mention constexpr. If I&#8217;m wrong about that, I&#8217;d really be happy to know &#8212; what are the use cases for making complex constexpr-aware? On the other hand, if I&#8217;m right about that but the question is a FAQ, maybe I should add this kind of note about constexpr in the Summary along with why I didn&#8217;t mention or recommend saying final either.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10289</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 18:46:13 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10289</guid>
+					<description><![CDATA[@decourse: It&#039;s not an abstraction leak because it doesn&#039;t affect the caller&#039;s argument. It&#039;s an implementation detail that happens to be visible but isn&#039;t a &quot;leak&quot; inasmuch as it has no effect on the calling code.
+
+@Marshall and Matt: Even in the 1990s, my impression was that talking about writing your code in order to try to enable (N)RVO was overdone; optimizers have been good at this for a long time, some did better with a named temporary and others with an unnamed return value, and debates about whether a named local variable or reusing a parameter or creating a temporary would help the optimizer the most were generally a distraction. In general I think we really do want to teach people to: (a) write code for clarity first (overthinking (N)RVO is usually asking for premature optimization), and (b) pass an input value parameter by value if you&#039;re going to copy from it anyway, because it really does help when passed rvalues. The community seems to be converging on that this is the right advice.
+
+@hm: Thanks, that &quot;explicit&quot; was a leftover from the original 1997-vintage version that no longer applies since I&#039;ve updated the advice (and don&#039;t even talk about explicit conversions any more in the current version). Removed.
+
+@Dave Harris: Thanks, &quot;for&quot; was missing. Added.]]></description>
+		<content:encoded><![CDATA[<p>@decourse: It&#8217;s not an abstraction leak because it doesn&#8217;t affect the caller&#8217;s argument. It&#8217;s an implementation detail that happens to be visible but isn&#8217;t a &#8220;leak&#8221; inasmuch as it has no effect on the calling code.</p>
+<p>@Marshall and Matt: Even in the 1990s, my impression was that talking about writing your code in order to try to enable (N)RVO was overdone; optimizers have been good at this for a long time, some did better with a named temporary and others with an unnamed return value, and debates about whether a named local variable or reusing a parameter or creating a temporary would help the optimizer the most were generally a distraction. In general I think we really do want to teach people to: (a) write code for clarity first (overthinking (N)RVO is usually asking for premature optimization), and (b) pass an input value parameter by value if you&#8217;re going to copy from it anyway, because it really does help when passed rvalues. The community seems to be converging on that this is the right advice.</p>
+<p>@hm: Thanks, that &#8220;explicit&#8221; was a leftover from the original 1997-vintage version that no longer applies since I&#8217;ve updated the advice (and don&#8217;t even talk about explicit conversions any more in the current version). Removed.</p>
+<p>@Dave Harris: Thanks, &#8220;for&#8221; was missing. Added.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter GotW 4: Class Mechanics &#124; musingstudio				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10287</link>
+		<dc:creator><![CDATA[Herb Sutter GotW 4: Class Mechanics &#124; musingstudio]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 17:24:54 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10287</guid>
+					<description><![CDATA[[&#8230;] Herb Sutter&#8217;s GotW 4 on class mechanics is a treasure trove of best practice. It includes handy examples and canonical signatures for operator&#060;&#060;, operator+ and the pre/post-increment operators. [&#8230;]]]></description>
+		<content:encoded><![CDATA[<p>[&#8230;] Herb Sutter&#8217;s GotW 4 on class mechanics is a treasure trove of best practice. It includes handy examples and canonical signatures for operator&lt;&lt;, operator+ and the pre/post-increment operators. [&#8230;]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Dave Harris				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10285</link>
+		<dc:creator><![CDATA[Dave Harris]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 16:04:27 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10285</guid>
+					<description><![CDATA[Point 8, &quot;Ignoring the sake of argument&quot;, looks like an editing error. I think you mean, &quot;Ignoring the argument&quot; and were thinking of &quot;For the sake of argument&quot;. Not important, but probably should be fixed if those words might make it into print.]]></description>
+		<content:encoded><![CDATA[<p>Point 8, &#8220;Ignoring the sake of argument&#8221;, looks like an editing error. I think you mean, &#8220;Ignoring the argument&#8221; and were thinking of &#8220;For the sake of argument&#8221;. Not important, but probably should be fixed if those words might make it into print.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Daryle Walker				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10283</link>
+		<dc:creator><![CDATA[Daryle Walker]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 13:36:51 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10283</guid>
+					<description><![CDATA[Why did I change the component implementation from two value_type objects to an array of two objects?
+
+1. Why not?  Especially since C++11 allows arrays to be put in the member-initialization list
+2. It&#039;d only be a problem if the member(s) were directly exposed, but we&#039;re hiding them.  Your implementation for the accessors can change to match how the data is stored.
+3. The components are guaranteed to be packed, so since the class is also standard-layout, we can reinterpret between a complex and an array-of-two-doubles for some kinds of C-level fun.  (We can&#039;t do array-of-complex and array-of-twice-the-doubles reinterpretations unless we can guarantee no rear padding somehow.)
+4. We can do this:
+
+[code]
+class complex {
+public:
+    //...
+    friend constexpr
+    auto  begin( complex const &#038;c ) noexcept -&#062; value_type const *
+    { return &#038;c_[0]; }
+
+    friend constexpr
+    auto  end( complex const &#038;c ) noexcept -&#062; value_type const *
+    { return begin(c) + 2; }
+
+    // Do the non-const versions, maybe with const_cast...
+
+    friend
+    void  swap( complex &#038;a, complex &#038;b ) noexcept(???)
+    { std::swap(a.c_, b.c_); }
+
+    //...
+};
+[/code]
+
+And now it will automatically work with range-for!  (The swap isn&#039;t there for any reason but to show the new routine in the standard for built-in arrays.)  Heck, we can add tuple support:
+
+[code]
+class complex {
+public:
+    //...
+    template &#060; std::size_t I &#062;
+    friend
+    auto  get( complex const &#038;c ) noexcept -&#062; value_type const &#038;
+    {
+        static_assert( I &#060; 2u, &#034;Index out of bounds&#034; );
+        return c.c_[ I ];
+    }
+
+    template &#060; std::size_t I &#062;
+    friend
+    auto  get( complex &#038;c ) noexcept -&#062; value_type &#038;
+    { return const_cast&#060;value_type &#038;&#062;(get&#060;I&#062;( const_cast&#060;complex const &#038;&#062;(c) )); }
+
+    template &#060; std::size_t I &#062;
+    friend
+    auto  get( complex &#038;&#038;c ) noexcept -&#062; value_type &#038;&#038;
+    { return std::forward&#060;value_type&#062;(get&#060;I&#062;( c )); }
+    //...
+};
+
+//...
+
+namespace std {
+
+    struct tuple_size&#060;my::complex&#062;
+        : integral_constant&#060; size_t, 2u &#062;
+    { };
+
+    template &#060; size_t I &#062;
+    struct tuple_element&#060; I, my::complex &#062;
+    {
+        static_assert( I &#060; 2u, &#034;Index too large&#034; );
+        using type = my::complex::value_type;
+    };
+
+}
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>Why did I change the component implementation from two value_type objects to an array of two objects?</p>
+<p>1. Why not?  Especially since C++11 allows arrays to be put in the member-initialization list<br />
+2. It&#8217;d only be a problem if the member(s) were directly exposed, but we&#8217;re hiding them.  Your implementation for the accessors can change to match how the data is stored.<br />
+3. The components are guaranteed to be packed, so since the class is also standard-layout, we can reinterpret between a complex and an array-of-two-doubles for some kinds of C-level fun.  (We can&#8217;t do array-of-complex and array-of-twice-the-doubles reinterpretations unless we can guarantee no rear padding somehow.)<br />
+4. We can do this:</p>
+<pre class="brush: plain; title: ; notranslate">
+class complex {
+public:
+    //...
+    friend constexpr
+    auto  begin( complex const &amp;c ) noexcept -&gt; value_type const *
+    { return &amp;c_[0]; }
+
+    friend constexpr
+    auto  end( complex const &amp;c ) noexcept -&gt; value_type const *
+    { return begin(c) + 2; }
+
+    // Do the non-const versions, maybe with const_cast...
+
+    friend
+    void  swap( complex &amp;a, complex &amp;b ) noexcept(???)
+    { std::swap(a.c_, b.c_); }
+
+    //...
+};
+</pre>
+<p>And now it will automatically work with range-for!  (The swap isn&#8217;t there for any reason but to show the new routine in the standard for built-in arrays.)  Heck, we can add tuple support:</p>
+<pre class="brush: plain; title: ; notranslate">
+class complex {
+public:
+    //...
+    template &lt; std::size_t I &gt;
+    friend
+    auto  get( complex const &amp;c ) noexcept -&gt; value_type const &amp;
+    {
+        static_assert( I &lt; 2u, &quot;Index out of bounds&quot; );
+        return c.c_[ I ];
+    }
+
+    template &lt; std::size_t I &gt;
+    friend
+    auto  get( complex &amp;c ) noexcept -&gt; value_type &amp;
+    { return const_cast&lt;value_type &amp;&gt;(get&lt;I&gt;( const_cast&lt;complex const &amp;&gt;(c) )); }
+
+    template &lt; std::size_t I &gt;
+    friend
+    auto  get( complex &amp;&amp;c ) noexcept -&gt; value_type &amp;&amp;
+    { return std::forward&lt;value_type&gt;(get&lt;I&gt;( c )); }
+    //...
+};
+
+//...
+
+namespace std {
+
+    struct tuple_size&lt;my::complex&gt;
+        : integral_constant&lt; size_t, 2u &gt;
+    { };
+
+    template &lt; size_t I &gt;
+    struct tuple_element&lt; I, my::complex &gt;
+    {
+        static_assert( I &lt; 2u, &quot;Index too large&quot; );
+        using type = my::complex::value_type;
+    };
+
+}
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marshall Clow				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10281</link>
+		<dc:creator><![CDATA[Marshall Clow]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 13:10:14 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10281</guid>
+					<description><![CDATA[&#062;&#062; You don’t need to create a temporary in the return statement for RVO, at least not on modern versions of gcc.
+
+I&#039;ll take your word for it - but there are other compilers in the world besides gcc.
+
+Besides, the more I look at that code, the more I like it - it says very clearly what the routine does: &quot;Return a new complex object whose value is the sum of the two parameters &#039;a&#039; and &#039;b&#039;&quot;]]></description>
+		<content:encoded><![CDATA[<p>&gt;&gt; You don’t need to create a temporary in the return statement for RVO, at least not on modern versions of gcc.</p>
+<p>I&#8217;ll take your word for it &#8211; but there are other compilers in the world besides gcc.</p>
+<p>Besides, the more I look at that code, the more I like it &#8211; it says very clearly what the routine does: &#8220;Return a new complex object whose value is the sum of the two parameters &#8216;a&#8217; and &#8216;b'&#8221;</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Daryle Walker				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10280</link>
+		<dc:creator><![CDATA[Daryle Walker]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 13:09:25 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10280</guid>
+					<description><![CDATA[Besides having the arguments in the wrong order, and returning void, the output routine has another problem.  Not only is taking (and returning) references to streams is suggested, it&#039;s required!  Streams are explicitly not copyable.  (This was uncertain in C++03, but made definitive in C++11.)
+
+The stream classes are now templates, making them unsuitable with stuff marked virtual.  You would either have to ignore any version of streams besides char, or set up a complex network that works around the virtual/template boundary.
+
+I disagree with a &quot;print&quot; function for another reason.  It&#039;s duplicitous; it does the EXACT SAME thing as the stream operator.  Why would you ever need both?  Can you think of a situation that you would need &quot;print&quot; instead of the operator?  Users might get confused, think that there&#039;s some subtle difference, but there wouldn&#039;t be one.  You don&#039;t need &quot;print&quot; for access; the stream operators should work on publicly accessible data, resorting to friend access if there&#039;s not enough getters.  The output streamer should print enough public information that the input streamer can read it back and create/construct an equivalent copy.
+
+[code]
+class complex {
+public:
+    //...
+    template &#060; typename Ch, class Tr &#062;
+    friend
+    basic_ostream&#060;Ch, Tr&#062; &#038;
+    operator &#060;&#060;( basic_ostream&#060;Ch, Tr&#062; &#038;o, complex const &#038;c )
+    { return o &#060;&#060; &#039;(&#039; &#060;&#060; c.c_[0] &#060;&#060; &#039;,&#039; &#060;&#060; c.c_[1] &#060;&#060; &#039;)&#039;; }
+    //...
+};
+[/code]
+
+You shouldn&#039;t actually implement the output-streamer this way; the width modifier would apply only to the first section (the &quot;(&quot;) and spew everything else to the stream as-is.  Like std::complex, stream the five sections to a string then print the string.]]></description>
+		<content:encoded><![CDATA[<p>Besides having the arguments in the wrong order, and returning void, the output routine has another problem.  Not only is taking (and returning) references to streams is suggested, it&#8217;s required!  Streams are explicitly not copyable.  (This was uncertain in C++03, but made definitive in C++11.)</p>
+<p>The stream classes are now templates, making them unsuitable with stuff marked virtual.  You would either have to ignore any version of streams besides char, or set up a complex network that works around the virtual/template boundary.</p>
+<p>I disagree with a &#8220;print&#8221; function for another reason.  It&#8217;s duplicitous; it does the EXACT SAME thing as the stream operator.  Why would you ever need both?  Can you think of a situation that you would need &#8220;print&#8221; instead of the operator?  Users might get confused, think that there&#8217;s some subtle difference, but there wouldn&#8217;t be one.  You don&#8217;t need &#8220;print&#8221; for access; the stream operators should work on publicly accessible data, resorting to friend access if there&#8217;s not enough getters.  The output streamer should print enough public information that the input streamer can read it back and create/construct an equivalent copy.</p>
+<pre class="brush: plain; title: ; notranslate">
+class complex {
+public:
+    //...
+    template &lt; typename Ch, class Tr &gt;
+    friend
+    basic_ostream&lt;Ch, Tr&gt; &amp;
+    operator &lt;&lt;( basic_ostream&lt;Ch, Tr&gt; &amp;o, complex const &amp;c )
+    { return o &lt;&lt; '(' &lt;&lt; c.c_[0] &lt;&lt; ',' &lt;&lt; c.c_[1] &lt;&lt; ')'; }
+    //...
+};
+</pre>
+<p>You shouldn&#8217;t actually implement the output-streamer this way; the width modifier would apply only to the first section (the &#8220;(&#8220;) and spew everything else to the stream as-is.  Like std::complex, stream the five sections to a string then print the string.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Matthew Fioravante				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10279</link>
+		<dc:creator><![CDATA[Matthew Fioravante]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 13:03:18 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10279</guid>
+					<description><![CDATA[@Marshsall:
+You don&#039;t need to create a temporary in the return statement for RVO, at least not on modern versions of gcc. Creating a temporary on the stack and returning it later works just fine.]]></description>
+		<content:encoded><![CDATA[<p>@Marshsall:<br />
+You don&#8217;t need to create a temporary in the return statement for RVO, at least not on modern versions of gcc. Creating a temporary on the stack and returning it later works just fine.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Daryle Walker				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10278</link>
+		<dc:creator><![CDATA[Daryle Walker]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 12:38:02 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10278</guid>
+					<description><![CDATA[In my previous post, note that the component-wise constructor is not explicit.  That is intentional.  Explicit constructors are for configuration parameters, while implicit ones are for equivalency (either conversion and/or component-wise).  It&#039;s like std::vector: the size-setting constructor is explicit, while the iterator-pair and initialization-list ones aren&#039;t.  In C++03, the decision for making constructors explicit only mattered for ones with a single-argument mode; now it&#039;s for all constructors.  We moved that model to multivalued initialization, whether by std::initialization_list, variadic arguments, or regular constructors with several arguments.
+
+Another way to look at it is that complex numbers are a natural upgrade for real numbers, so having a non-explicit converting constructor makes sense.
+
+I have a separately-defined default constructor, marked &quot;default.&quot;  I could have incorporated it into the component-wise/converting constructor, but I wanted distinct semantics.  When the value_type is trivial (and since it&#039;s double, it is), this constructor upgrades the class from trivially-copyable to trivial.  This lets default-set, but not value-initialized, complex objects have random garbage bits.  This is a GOOD thing.  The real and imaginary components are independent; there&#039;s no invariant on either for the class or each other.  Letting complex be a trivial type means it can play around with C-level routines.
+
+The complex class is also standard-layout.  This allows other kinds of C-level play.  Since I changed the components from being separate members to a two-element array, I can exploit the same complex  array-of-2 reinterpretations the standard wants for std::complex.  (The standard expects the reinterpetation to work for an array-of-complex  array-of-twice-the-reals, but I can&#039;t do that unless there&#039;s no trailing padding.  That can only be done if the compiler supports a Pragma forcing the lack of padding.)
+
+The complex class is POD since it&#039;s both trivial and standard-layout.
+
+The default constructor can&#039;t be constexpr since it&#039;s set to be trivial.  A constexpr constructor has to be code-full for use in constant expressions, but the point of a trivial constructor is that it&#039;s code-less!]]></description>
+		<content:encoded><![CDATA[<p>In my previous post, note that the component-wise constructor is not explicit.  That is intentional.  Explicit constructors are for configuration parameters, while implicit ones are for equivalency (either conversion and/or component-wise).  It&#8217;s like std::vector: the size-setting constructor is explicit, while the iterator-pair and initialization-list ones aren&#8217;t.  In C++03, the decision for making constructors explicit only mattered for ones with a single-argument mode; now it&#8217;s for all constructors.  We moved that model to multivalued initialization, whether by std::initialization_list, variadic arguments, or regular constructors with several arguments.</p>
+<p>Another way to look at it is that complex numbers are a natural upgrade for real numbers, so having a non-explicit converting constructor makes sense.</p>
+<p>I have a separately-defined default constructor, marked &#8220;default.&#8221;  I could have incorporated it into the component-wise/converting constructor, but I wanted distinct semantics.  When the value_type is trivial (and since it&#8217;s double, it is), this constructor upgrades the class from trivially-copyable to trivial.  This lets default-set, but not value-initialized, complex objects have random garbage bits.  This is a GOOD thing.  The real and imaginary components are independent; there&#8217;s no invariant on either for the class or each other.  Letting complex be a trivial type means it can play around with C-level routines.</p>
+<p>The complex class is also standard-layout.  This allows other kinds of C-level play.  Since I changed the components from being separate members to a two-element array, I can exploit the same complex  array-of-2 reinterpretations the standard wants for std::complex.  (The standard expects the reinterpetation to work for an array-of-complex  array-of-twice-the-reals, but I can&#8217;t do that unless there&#8217;s no trailing padding.  That can only be done if the compiler supports a Pragma forcing the lack of padding.)</p>
+<p>The complex class is POD since it&#8217;s both trivial and standard-layout.</p>
+<p>The default constructor can&#8217;t be constexpr since it&#8217;s set to be trivial.  A constexpr constructor has to be code-full for use in constant expressions, but the point of a trivial constructor is that it&#8217;s code-less!</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Daryle Walker				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10277</link>
+		<dc:creator><![CDATA[Daryle Walker]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 11:29:38 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10277</guid>
+					<description><![CDATA[Your code doesn&#039;t take constexpr into account, which changes quite a few things.
+
+[code]
+class complex {
+public:
+    // Only have to change the component type in one spot
+    using value_type = double;
+
+    // Constructors
+    complex() = default;
+    constexpr
+    complex( value_type const &#038;r, value_type const &#038;i = value_type{} )
+        : c_{ r, i }
+    { }
+
+    //...
+private:
+    // Member data
+    value_type  c_[ 2 ];
+};
+[/code]
+
+First, you need a constexpr-marked constructor, and the component-wise one will do quite nicely.  Fortunately, you can initialize arrays in the member-initialization part now.
+
+The advice to implement OP in terms of OP= is somewhat bad now due to constexpr.  Implementing a non-mutating function in terms of a mutating one disqualifies the former from being constexpr (since the latter can&#039;t).  You either have to reverse the dependencies or write them independently:
+
+[code]
+class complex {
+public:
+    //...
+    complex &#038;  operator +=( complex const &#038;a ) {
+        c_[ 0 ] += a.c_[ 0 ];
+        c_[ 1 ] += a.c_[ 1 ];
+        return *this;
+    }
+
+    // Has to be a friend if you don&#039;t have component-level getters
+    friend constexpr
+    complex  operator +( complex const &#038;l, complex const &#038;r )
+    { return {l.c_[0] + r.c_[0], l.c_[1] + r.c_[1]}; }
+    //...
+};
+[/code]
+
+I was going to go the reversed-dependency route, but I had a epiphany about the &quot;independent&quot; route.  The two operators look unconnected, but notice that each one is implemented in terms of the corresponding element-level operator.  If the element-level operators are connected, then the current ones will be indirectly connected.  So the old advice is like a hobgoblin&#039;s foolish consistency (or something).
+
+[I&#039;ll have some more posts, assuming this code.]]]></description>
+		<content:encoded><![CDATA[<p>Your code doesn&#8217;t take constexpr into account, which changes quite a few things.</p>
+<pre class="brush: plain; title: ; notranslate">
+class complex {
+public:
+    // Only have to change the component type in one spot
+    using value_type = double;
+
+    // Constructors
+    complex() = default;
+    constexpr
+    complex( value_type const &amp;r, value_type const &amp;i = value_type{} )
+        : c_{ r, i }
+    { }
+
+    //...
+private:
+    // Member data
+    value_type  c_[ 2 ];
+};
+</pre>
+<p>First, you need a constexpr-marked constructor, and the component-wise one will do quite nicely.  Fortunately, you can initialize arrays in the member-initialization part now.</p>
+<p>The advice to implement OP in terms of OP= is somewhat bad now due to constexpr.  Implementing a non-mutating function in terms of a mutating one disqualifies the former from being constexpr (since the latter can&#8217;t).  You either have to reverse the dependencies or write them independently:</p>
+<pre class="brush: plain; title: ; notranslate">
+class complex {
+public:
+    //...
+    complex &amp;  operator +=( complex const &amp;a ) {
+        c_[ 0 ] += a.c_[ 0 ];
+        c_[ 1 ] += a.c_[ 1 ];
+        return *this;
+    }
+
+    // Has to be a friend if you don't have component-level getters
+    friend constexpr
+    complex  operator +( complex const &amp;l, complex const &amp;r )
+    { return {l.c_[0] + r.c_[0], l.c_[1] + r.c_[1]}; }
+    //...
+};
+</pre>
+<p>I was going to go the reversed-dependency route, but I had a epiphany about the &#8220;independent&#8221; route.  The two operators look unconnected, but notice that each one is implemented in terms of the corresponding element-level operator.  If the element-level operators are connected, then the current ones will be indirectly connected.  So the old advice is like a hobgoblin&#8217;s foolish consistency (or something).</p>
+<p>[I&#8217;ll have some more posts, assuming this code.]</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: hm				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10273</link>
+		<dc:creator><![CDATA[hm]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 06:21:10 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10273</guid>
+					<description><![CDATA[You did not explain why to make the ctor explicit (but you did it explicit in the summary code).]]></description>
+		<content:encoded><![CDATA[<p>You did not explain why to make the ctor explicit (but you did it explicit in the summary code).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: decourse				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10271</link>
+		<dc:creator><![CDATA[decourse]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 04:00:37 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10271</guid>
+					<description><![CDATA[&lt;blockquote&gt;Guideline: Prefer passing a read-only parameter by const&#038; if you are only going to read from it (not make a copy of it).
+
+Guideline: Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments.&lt;/blockquote&gt;
+Can someone explain to me why this is not an undesirable abstraction leak?
+
+I think it&#039;s defensible in this case, especially since operator+ is trivial. In the general case, I think it&#039;s bad advice to leak information about the way a function is implemented into its interface.]]></description>
+		<content:encoded><![CDATA[<blockquote><p>Guideline: Prefer passing a read-only parameter by const&amp; if you are only going to read from it (not make a copy of it).</p>
+<p>Guideline: Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments.</p></blockquote>
+<p>Can someone explain to me why this is not an undesirable abstraction leak?</p>
+<p>I think it&#8217;s defensible in this case, especially since operator+ is trivial. In the general case, I think it&#8217;s bad advice to leak information about the way a function is implemented into its interface.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marshall				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10270</link>
+		<dc:creator><![CDATA[Marshall]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 03:55:33 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10270</guid>
+					<description><![CDATA[To enable RVO, I would be tempted to write this:
+[code]
+T operator+(const T&#038; a, const T&#038; b) {
+  return T { a.r + b.r, a.i + b.i};
+}
+[/code]]]></description>
+		<content:encoded><![CDATA[<p>To enable RVO, I would be tempted to write this:</p>
+<pre class="brush: plain; title: ; notranslate">
+T operator+(const T&amp; a, const T&amp; b) {
+  return T { a.r + b.r, a.i + b.i};
+}
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Matt Fioravante				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10269</link>
+		<dc:creator><![CDATA[Matt Fioravante]]></dc:creator>
+		<pubDate>Tue, 21 May 2013 03:45:11 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10269</guid>
+					<description><![CDATA[[code]
+T operator+( T a, const T&#038; b ) {
+    a += b;
+    return a;
+}
+[/code]
+[quote]Guideline: Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments.[/quote]
+
+In some cases it may actually be better to pass both arguments by reference so that the compiler can take advantage of return value optimization. For simple value types like complex, a 3d vector, or a 4x4 matrix (where the data is an array the class, not dynamically allocated), this is better because there are no move semantics to take advantage of.
+[code]
+T operator+(const T&#038; a, const T&#038; b) {
+  T c = a;
+  c+=a;
+  return c;
+}
+Also you can&#039;t be fancy and try to do this:
+[code]
+return c+=a;
+[/code]
+Now the return value is a reference from operator+=() instead of the temporary you created and the compiler may no longer be able to do RVO.]]></description>
+		<content:encoded><![CDATA[<pre class="brush: plain; title: ; notranslate">
+T operator+( T a, const T&amp; b ) {
+    a += b;
+    return a;
+}
+</pre>
+<p>[quote]Guideline: Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments.[/quote]</p>
+<p>In some cases it may actually be better to pass both arguments by reference so that the compiler can take advantage of return value optimization. For simple value types like complex, a 3d vector, or a 4&#215;4 matrix (where the data is an array the class, not dynamically allocated), this is better because there are no move semantics to take advantage of.</p>
+<pre class="brush: plain; title: ; notranslate">
+T operator+(const T&amp; a, const T&amp; b) {
+  T c = a;
+  c+=a;
+  return c;
+}
+Also you can't be fancy and try to do this:
+[code]
+return c+=a;
+</pre>
+<p>Now the return value is a reference from operator+=() instead of the temporary you created and the compiler may no longer be able to do RVO.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Chris				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10265</link>
+		<dc:creator><![CDATA[Chris]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 21:43:12 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10265</guid>
+					<description><![CDATA[Thank you so much for this article. I see so many who make some of these common errors every day, particularly making operators member functions and not taking the first parameter by value in cases like operator+. If they just discovered this article, they would be much better off. 
+
+Anyway, I believe you have a small typo:
+&quot;For example, if you provide operator++ you would normally also provide operator–.&quot;
+
+These two don&#039;t always match (think: bidirectional iterator, think harder: forward iterator). You can argue that those aren&#039;t the general case, but I would probably go with + and - (even specifying unary or binary if you want).]]></description>
+		<content:encoded><![CDATA[<p>Thank you so much for this article. I see so many who make some of these common errors every day, particularly making operators member functions and not taking the first parameter by value in cases like operator+. If they just discovered this article, they would be much better off. </p>
+<p>Anyway, I believe you have a small typo:<br />
+&#8220;For example, if you provide operator++ you would normally also provide operator–.&#8221;</p>
+<p>These two don&#8217;t always match (think: bidirectional iterator, think harder: forward iterator). You can argue that those aren&#8217;t the general case, but I would probably go with + and &#8211; (even specifying unary or binary if you want).</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10259</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 20:02:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10259</guid>
+					<description><![CDATA[@litb1: Good point, that&#039;s worth mentioning. Added.]]></description>
+		<content:encoded><![CDATA[<p>@litb1: Good point, that&#8217;s worth mentioning. Added.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: litb1				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10261</link>
+		<dc:creator><![CDATA[litb1]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 19:58:59 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10261</guid>
+					<description><![CDATA[I wonder whether there is any way to avoid the redundancy in the default argument for imag and the inclass initializer for it (when defaulting the default constructor).  One alternative is constructor delegation 
+
+[code]complex ():complex (1.0f) {}[/code]]]></description>
+		<content:encoded><![CDATA[<p>I wonder whether there is any way to avoid the redundancy in the default argument for imag and the inclass initializer for it (when defaulting the default constructor).  One alternative is constructor delegation </p>
+<pre class="brush: plain; title: ; notranslate">complex ():complex (1.0f) {}</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10260</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 19:44:40 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10260</guid>
+					<description><![CDATA[@Marshall: Re const, it doesn&#039;t quite mean that -- wait for GotW #6a. Re aliasing (other parameters): Yes, that&#039;s another advantage of pass-by-value. Re move from rvalues, yes, that&#039;s part of what I added in the text I added in response to Olaf&#039;s comment.]]></description>
+		<content:encoded><![CDATA[<p>@Marshall: Re const, it doesn&#8217;t quite mean that &#8212; wait for GotW #6a. Re aliasing (other parameters): Yes, that&#8217;s another advantage of pass-by-value. Re move from rvalues, yes, that&#8217;s part of what I added in the text I added in response to Olaf&#8217;s comment.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: litb1				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10258</link>
+		<dc:creator><![CDATA[litb1]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 19:38:57 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10258</guid>
+					<description><![CDATA[You mention that as an alternative the following can be used
+
+    complex () = default;
+
+Wouldn&#039;t this leave the two non-class data members uninitialized (as they are default initialized)?]]></description>
+		<content:encoded><![CDATA[<p>You mention that as an alternative the following can be used</p>
+<p>    complex () = default;</p>
+<p>Wouldn&#8217;t this leave the two non-class data members uninitialized (as they are default initialized)?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Herb Sutter				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10257</link>
+		<dc:creator><![CDATA[Herb Sutter]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 19:38:46 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10257</guid>
+					<description><![CDATA[@Olaf: Thanks. I agree, this is a good place to mention the new C++11 guidance to pass by value if you&#039;re going to make a copy of the parameter anyway. Updated, including not just there but also in the canonical operator+ with a new paragraph and guideline there, so that now we have both of these guidelines in the text:
+
+Guideline: Prefer passing a read-only parameter by const&#038; if you are only going to read from it (not make a copy of it).
+
+Guideline: Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments.
+
+I&#039;ve also updated the wording of the first of these guidelines in GotW #2 to match this wording.
+
+Note that the new paragraph alludes to my intention to write a new GotW about parameter passing... &quot;how to pass parameters&quot; deserves a GotW all its own, because the C++11 answer is simultaneously different, considerably simpler in the mainstream, and considerably more complex when you want to take full control, than the C++98 answer.]]></description>
+		<content:encoded><![CDATA[<p>@Olaf: Thanks. I agree, this is a good place to mention the new C++11 guidance to pass by value if you&#8217;re going to make a copy of the parameter anyway. Updated, including not just there but also in the canonical operator+ with a new paragraph and guideline there, so that now we have both of these guidelines in the text:</p>
+<p>Guideline: Prefer passing a read-only parameter by const&amp; if you are only going to read from it (not make a copy of it).</p>
+<p>Guideline: Prefer passing a read-only parameter by value if you’re going to make a copy of the parameter anyway, because it enables move from rvalue arguments.</p>
+<p>I&#8217;ve also updated the wording of the first of these guidelines in GotW #2 to match this wording.</p>
+<p>Note that the new paragraph alludes to my intention to write a new GotW about parameter passing&#8230; &#8220;how to pass parameters&#8221; deserves a GotW all its own, because the C++11 answer is simultaneously different, considerably simpler in the mainstream, and considerably more complex when you want to take full control, than the C++98 answer.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: mttpd				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10255</link>
+		<dc:creator><![CDATA[mttpd]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 19:09:34 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10255</guid>
+					<description><![CDATA[(a) Regarding #2 (and given the above comment by Marshall, specifically the aliasing part) -- I&#039;m still wondering, wouldn&#039;t pass-by-value be a better fit here, per N3445? 
+http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3445.html
+
+Specifically:
+&quot;We can change our habits to pass trivially copyable classes of sixteen bytes or less by value. With this approach, complex numbers would primarily be passed by value, not by reference as they are in the class template complex (26.4 Complex numbers [complex.numbers]). This approach avoids aliasing issues, enables removing some indirect references when accessing parameters, but may introduce copying on older platforms.&quot;
+
+I&#039;m guessing this may have something to do with the latter part, stating that the &quot;net performance change is unclear.&quot; However, isn&#039;t this case similarly unclear for pass-by-value for our specific class (given its size and the presumed use for numerical computing, where aliasing might have an important impact on performance)?
+
+I&#039;m kind of interested in this issue personally and somewhat playing the Devil&#039;s advocate here, since so far I&#039;ve been mostly using pass-by-const-reference for all (strictly-)larger-than-scalar types, just want to make sure I&#039;m not missing a potentially important edge case by not expanding this to &quot;small classes&quot; (as in N3445).
+
+(b) Regarding prohibiting inheritance from value types being an overkill -- perhaps, but isn&#039;t it precisely addressing the &quot;easy to use correctly, hard to use incorrectly&quot; point?
+I&#039;m thinking in terms of the Standard Library containers here (perhaps that&#039;s too much of an association, correct me if I&#039;m wrong) -- is it *ever* justified to inherit from one of those?]]></description>
+		<content:encoded><![CDATA[<p>(a) Regarding #2 (and given the above comment by Marshall, specifically the aliasing part) &#8212; I&#8217;m still wondering, wouldn&#8217;t pass-by-value be a better fit here, per N3445?<br />
+<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3445.html" rel="nofollow">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3445.html</a></p>
+<p>Specifically:<br />
+&#8220;We can change our habits to pass trivially copyable classes of sixteen bytes or less by value. With this approach, complex numbers would primarily be passed by value, not by reference as they are in the class template complex (26.4 Complex numbers [complex.numbers]). This approach avoids aliasing issues, enables removing some indirect references when accessing parameters, but may introduce copying on older platforms.&#8221;</p>
+<p>I&#8217;m guessing this may have something to do with the latter part, stating that the &#8220;net performance change is unclear.&#8221; However, isn&#8217;t this case similarly unclear for pass-by-value for our specific class (given its size and the presumed use for numerical computing, where aliasing might have an important impact on performance)?</p>
+<p>I&#8217;m kind of interested in this issue personally and somewhat playing the Devil&#8217;s advocate here, since so far I&#8217;ve been mostly using pass-by-const-reference for all (strictly-)larger-than-scalar types, just want to make sure I&#8217;m not missing a potentially important edge case by not expanding this to &#8220;small classes&#8221; (as in N3445).</p>
+<p>(b) Regarding prohibiting inheritance from value types being an overkill &#8212; perhaps, but isn&#8217;t it precisely addressing the &#8220;easy to use correctly, hard to use incorrectly&#8221; point?<br />
+I&#8217;m thinking in terms of the Standard Library containers here (perhaps that&#8217;s too much of an association, correct me if I&#8217;m wrong) &#8212; is it *ever* justified to inherit from one of those?</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Marshall				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10253</link>
+		<dc:creator><![CDATA[Marshall]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 18:47:00 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10253</guid>
+					<description><![CDATA[&#062;&#062; Guideline: Prefer passing read-only parameters by const&#038; instead of by value.
+
+There&#039;s a subtlety here, new in C++11.
+
+* What we&#039;re used to saying is that &quot;passing by const &#038;&quot; means the value will never change.
+
+* What we have now is that &quot;passing by const &#038;&quot; means that the callee will not change the value. Other threads of execution may do so - at any time.
+
+This can lead to lost optimization opportunities, because the compiler cannot be sure that &quot;other.i&quot; (say) will not change during the execution of operator+. [ I&#039;m speaking generally here, b/c in this case I don&#039;t think it matters. ]
+
+If you pass by value, then the compiler can (a) know that this value is unique (i.e, no other pointers or references alias it), and (b) use move semantics when appropriate.]]></description>
+		<content:encoded><![CDATA[<p>&gt;&gt; Guideline: Prefer passing read-only parameters by const&amp; instead of by value.</p>
+<p>There&#8217;s a subtlety here, new in C++11.</p>
+<p>* What we&#8217;re used to saying is that &#8220;passing by const &amp;&#8221; means the value will never change.</p>
+<p>* What we have now is that &#8220;passing by const &amp;&#8221; means that the callee will not change the value. Other threads of execution may do so &#8211; at any time.</p>
+<p>This can lead to lost optimization opportunities, because the compiler cannot be sure that &#8220;other.i&#8221; (say) will not change during the execution of operator+. [ I&#8217;m speaking generally here, b/c in this case I don&#8217;t think it matters. ]</p>
+<p>If you pass by value, then the compiler can (a) know that this value is unique (i.e, no other pointers or references alias it), and (b) use move semantics when appropriate.</p>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: Olaf van der Spek				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10252</link>
+		<dc:creator><![CDATA[Olaf van der Spek]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 18:46:48 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10252</guid>
+					<description><![CDATA[[code]
+complex operator+( const complex&#038; lhs, const complex&#038; rhs ) {
+[/code]
+What about this?
+[code]
+complex operator+( complex lhs, const complex&#038; rhs ) {
+    lhs += rhs;
+    return lhs;
+}
+[/code]]]></description>
+		<content:encoded><![CDATA[<pre class="brush: plain; title: ; notranslate">
+complex operator+( const complex&amp; lhs, const complex&amp; rhs ) {
+</pre>
+<p>What about this?</p>
+<pre class="brush: plain; title: ; notranslate">
+complex operator+( complex lhs, const complex&amp; rhs ) {
+    lhs += rhs;
+    return lhs;
+}
+</pre>
+]]></content:encoded>
+					</item>
+						<item>
+				<title>
+				By: jlehrer				</title>
+				<link>https://herbsutter.com/2013/05/20/gotw-4-class-mechanics/#comment-10251</link>
+		<dc:creator><![CDATA[jlehrer]]></dc:creator>
+		<pubDate>Mon, 20 May 2013 18:45:05 +0000</pubDate>
+		<guid isPermaLink="false">http://herbsutter.com/?p=1957#comment-10251</guid>
+					<description><![CDATA[In #5 I think you meant &quot;the other reason to prefer non-members&quot; not &quot;the other reason to prefer members&quot;.]]></description>
+		<content:encoded><![CDATA[<p>In #5 I think you meant &#8220;the other reason to prefer non-members&#8221; not &#8220;the other reason to prefer members&#8221;.</p>
+]]></content:encoded>
+					</item>
+			</channel>
+</rss>

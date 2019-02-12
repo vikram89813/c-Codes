@@ -1,0 +1,575 @@
+<!doctype html>
+<html amp lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+	
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="GotW #93 Solution: Auto Variables, Part 2" />
+<meta property="og:url" content="https://herbsutter.com/2013/06/13/gotw-93-solution-auto-variables-part-2/" />
+<meta property="og:description" content="Why prefer declaring variables using auto? Let us count some of the reasons why… Problem JG Question 1. In the following code, what actual or potential pitfalls exist in each labeled piece of code?…" />
+<meta property="article:published_time" content="2013-06-14T00:10:19+00:00" />
+<meta property="article:modified_time" content="2014-01-06T15:03:30+00:00" />
+<meta property="og:site_name" content="Sutter’s Mill" />
+<meta property="og:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=200&amp;ts=1542965368" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@wordpressdotcom" />
+<meta name="twitter:text:title" content="GotW #93 Solution: Auto Variables, Part 2" />
+<meta name="twitter:image" content="https://secure.gravatar.com/blavatar/4554b8d24c7f200dc5e2e1b18db1893f?s=240" />
+<meta name="twitter:card" content="summary" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+
+<!-- End Jetpack Open Graph Tags -->
+	<title>GotW #93 Solution: Auto Variables, Part 2 &#8211; Sutter’s Mill</title>
+		<link rel="canonical" href="https://herbsutter.com/2013/06/13/gotw-93-solution-auto-variables-part-2/" />
+	<script src="https://cdn.ampproject.org/v0.js" async></script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic">	<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+		<script type="application/ld+json">{"@context":"http:\/\/schema.org","@type":"BlogPosting","mainEntityOfPage":"https:\/\/herbsutter.com\/2013\/06\/13\/gotw-93-solution-auto-variables-part-2\/","publisher":{"@type":"Organization","name":"Sutter\u2019s Mill","logo":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=60&d=https%3A%2F%2Fs0.wp.com%2Fi%2Ffavicons%2Fapple-touch-icon-60x60.png","width":60,"height":60}},"headline":"GotW #93 Solution: Auto Variables, Part 2","datePublished":"2013-06-13T16:10:19+00:00","dateModified":"2014-01-06T07:03:30+00:00","author":{"@type":"Person","name":"Herb Sutter"},"image":{"@type":"ImageObject","url":"https:\/\/secure.gravatar.com\/blavatar\/4554b8d24c7f200dc5e2e1b18db1893f?s=200","width":200,"height":200}}</script>
+	<meta name="generator" content="AMP Plugin v0.6.2" />	<style amp-custom>
+		/* Generic WP styling */
+
+.alignright {
+	float: right;
+}
+
+.alignleft {
+	float: left;
+}
+
+.aligncenter {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.amp-wp-enforced-sizes {
+	/** Our sizes fallback is 100vw, and we have a padding on the container; the max-width here prevents the element from overflowing. **/
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+.amp-wp-unknown-size img {
+	/** Worst case scenario when we can't figure out dimensions for an image. **/
+	/** Force the image into a box of fixed dimensions and use object-fit to scale. **/
+	object-fit: contain;
+}
+
+/* Template Styles */
+
+.amp-wp-content,
+.amp-wp-title-bar div {
+		margin: 0 auto;
+	max-width: 500px;
+	}
+
+html {
+	background: #0a89c0;
+}
+
+body {
+	background: #fff;
+	color: #353535;
+	font-family: 'Merriweather', 'Times New Roman', Times, Serif;
+	font-weight: 300;
+	line-height: 1.75em;
+}
+
+p,
+ol,
+ul,
+figure {
+	margin: 0 0 1em;
+	padding: 0;
+}
+
+a,
+a:visited {
+	color: #0a89c0;
+}
+
+a:hover,
+a:active,
+a:focus {
+	color: #353535;
+}
+
+/* Quotes */
+
+blockquote {
+	color: #353535;
+	background: rgba(127,127,127,.125);
+	border-left: 2px solid #0a89c0;
+	margin: 8px 0 24px 0;
+	padding: 16px;
+}
+
+blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+/* UI Fonts */
+
+.amp-wp-meta,
+.amp-wp-header div,
+.amp-wp-title,
+.wp-caption-text,
+.amp-wp-tax-category,
+.amp-wp-tax-tag,
+.amp-wp-comments-link,
+.amp-wp-footer p,
+.back-to-top {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen-Sans", "Ubuntu", "Cantarell", "Helvetica Neue", sans-serif;
+}
+
+/* Header */
+
+.amp-wp-header {
+	background-color: #0a89c0;
+}
+
+.amp-wp-header div {
+	color: #fff;
+	font-size: 1em;
+	font-weight: 400;
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: .875em 16px;
+	position: relative;
+}
+
+.amp-wp-header a {
+	color: #fff;
+	text-decoration: none;
+}
+
+/* Site Icon */
+
+.amp-wp-header .amp-wp-site-icon {
+	/** site icon is 32px **/
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 50%;
+	position: absolute;
+	right: 18px;
+	top: 10px;
+}
+
+/* Article */
+
+.amp-wp-article {
+	color: #353535;
+	font-weight: 400;
+	margin: 1.5em auto;
+	max-width: 840px;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+}
+
+/* Article Header */
+
+.amp-wp-article-header {
+	align-items: center;
+	align-content: stretch;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin: 1.5em 16px 0;
+}
+
+.amp-wp-title {
+	color: #353535;
+	display: block;
+	flex: 1 0 100%;
+	font-weight: 900;
+	margin: 0 0 .625em;
+	width: 100%;
+}
+
+/* Article Meta */
+
+.amp-wp-meta {
+	color: #696969;
+	display: inline-block;
+	flex: 2 1 50%;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0 0 1.5em;
+	padding: 0;
+}
+
+.amp-wp-article-header .amp-wp-meta:last-of-type {
+	text-align: right;
+}
+
+.amp-wp-article-header .amp-wp-meta:first-of-type {
+	text-align: left;
+}
+
+.amp-wp-byline amp-img,
+.amp-wp-byline .amp-wp-author {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.amp-wp-byline amp-img {
+	border: 1px solid #0a89c0;
+	border-radius: 50%;
+	position: relative;
+	margin-right: 6px;
+}
+
+.amp-wp-posted-on {
+	text-align: right;
+}
+
+/* Featured image */
+
+.amp-wp-article-featured-image {
+	margin: 0 0 1em;
+}
+.amp-wp-article-featured-image amp-img {
+	margin: 0 auto;
+}
+.amp-wp-article-featured-image.wp-caption .wp-caption-text {
+	margin: 0 18px;
+}
+
+/* Article Content */
+
+.amp-wp-article-content {
+	margin: 0 16px;
+}
+
+.amp-wp-article-content ul,
+.amp-wp-article-content ol {
+	margin-left: 1em;
+}
+
+.amp-wp-article-content amp-img {
+	margin: 0 auto;
+}
+
+.amp-wp-article-content amp-img.alignright {
+	margin: 0 0 1em 16px;
+}
+
+.amp-wp-article-content amp-img.alignleft {
+	margin: 0 16px 1em 0;
+}
+
+/* Captions */
+
+.wp-caption {
+	padding: 0;
+}
+
+.wp-caption.alignleft {
+	margin-right: 16px;
+}
+
+.wp-caption.alignright {
+	margin-left: 16px;
+}
+
+.wp-caption .wp-caption-text {
+	border-bottom: 1px solid #c2c2c2;
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 0;
+	padding: .66em 10px .75em;
+}
+
+/* AMP Media */
+
+amp-carousel {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+amp-iframe,
+amp-youtube,
+amp-instagram,
+amp-vine {
+	background: #c2c2c2;
+	margin: 0 -16px 1.5em;
+}
+
+.amp-wp-article-content amp-carousel amp-img {
+	border: none;
+}
+
+amp-carousel > amp-img > img {
+	object-fit: contain;
+}
+
+.amp-wp-iframe-placeholder {
+	background: #c2c2c2 url( https://s2.wp.com/wp-content/plugins/amp/assets/images/placeholder-icon.png ) no-repeat center 40%;
+	background-size: 48px 48px;
+	min-height: 48px;
+}
+
+/* Article Footer Meta */
+
+.amp-wp-article-footer .amp-wp-meta {
+	display: block;
+}
+
+.amp-wp-tax-category,
+.amp-wp-tax-tag {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	margin: 1.5em 16px;
+}
+
+.amp-wp-comments-link {
+	color: #696969;
+	font-size: .875em;
+	line-height: 1.5em;
+	text-align: center;
+	margin: 2.25em 0 1.5em;
+}
+
+.amp-wp-comments-link a {
+	border-style: solid;
+	border-color: #c2c2c2;
+	border-width: 1px 1px 2px;
+	border-radius: 4px;
+	background-color: transparent;
+	color: #0a89c0;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 18px;
+	margin: 0 auto;
+	max-width: 200px;
+	padding: 11px 16px;
+	text-decoration: none;
+	width: 50%;
+	-webkit-transition: background-color 0.2s ease;
+			transition: background-color 0.2s ease;
+}
+
+/* AMP Footer */
+
+.amp-wp-footer {
+	border-top: 1px solid #c2c2c2;
+	margin: calc(1.5em - 1px) 0 0;
+}
+
+.amp-wp-footer div {
+	margin: 0 auto;
+	max-width: calc(840px - 32px);
+	padding: 1.25em 16px 1.25em;
+	position: relative;
+}
+
+.amp-wp-footer h2 {
+	font-size: 1em;
+	line-height: 1.375em;
+	margin: 0 0 .5em;
+}
+
+.amp-wp-footer p {
+	color: #696969;
+	font-size: .8em;
+	line-height: 1.5em;
+	margin: 0 85px 0 0;
+}
+
+.amp-wp-footer a {
+	text-decoration: none;
+}
+
+.back-to-top {
+	bottom: 1.275em;
+	font-size: .8em;
+	font-weight: 600;
+	line-height: 2em;
+	position: absolute;
+	right: 16px;
+}
+		/* Inline styles */
+.amp-wp-inline-e118b89cb574341583297a20935ac54c{color:#2e74b5;}.amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce{background-color:yellow;}.amp-wp-inline-cb08775e0ae4e830b87359c9f78462e6{color:#c00000;}.amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b{color:#5a5a5a;}	</style>
+</head>
+
+<body class="">
+
+<header id="top" class="amp-wp-header">
+	<div>
+		<a href="https://herbsutter.com">
+									<span class="amp-site-title">
+				Sutter’s Mill			</span>
+		</a>
+	</div>
+</header>
+
+<article class="amp-wp-article">
+	<header class="amp-wp-article-header">
+		<h1 class="amp-wp-title">GotW #93 Solution: Auto Variables, Part 2</h1>
+			<div class="amp-wp-meta amp-wp-byline">
+					<amp-img src="https://secure.gravatar.com/avatar/c0ba56bfd231f8f04feb057728975181?s=24&#038;d=identicon&#038;r=g" width="24" height="24" layout="fixed"></amp-img>
+				<span class="amp-wp-author author vcard">Herb Sutter</span>
+	</div>
+<div class="amp-wp-meta amp-wp-posted-on">
+	<time datetime="2013-06-13T16:10:19+00:00">
+		5 years ago	</time>
+</div>
+	</header>
+
+	
+	<div class="amp-wp-article-content">
+		<p><span class="amp-wp-inline-67e1925c715f5c48af6b92757f5a6f7b"><em>Why prefer declaring variables using auto? Let us count some of the reasons why…<br/></em></span></p><h1>Problem</h1><h2>JG Question</h2><p>1. In the following code, what actual or potential pitfalls exist in each labeled piece of code? Which of these pitfalls would using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> variable declarations fix, and why or why not?</p><pre><code>// (a)&#13;
+void traverser( const vector&lt;int&gt;&amp; v ) {&#13;
+    for( vector&lt;int&gt;::iterator i = begin(v); i != end(v); i += 2 )&#13;
+        // ...&#13;
+}&#13;
+&#13;
+// (b)&#13;
+vector&lt;int&gt; v1(5);&#13;
+vector&lt;int&gt; v2 = 5;&#13;
+&#13;
+// (c)&#13;
+gadget get_gadget();&#13;
+// ...&#13;
+widget w = get_gadget();&#13;
+&#13;
+// (d)&#13;
+function&lt;void(vector&lt;int&gt;)&gt; get_size&#13;
+    = [](const vector&lt;int&gt;&amp; x) { return x.size(); };&#13;
+</code></pre><h2>Guru Question</h2><p>2. Same question, subtler examples: In the following code, what actual or potential pitfalls exist in each labeled piece of code? Which of these pitfalls would using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> variable declarations fix, and why or why not?</p><pre><code>// (a)&#13;
+widget w;&#13;
+&#13;
+// (b)&#13;
+vector&lt;string&gt; v;&#13;
+int size = v.size();&#13;
+&#13;
+// (c) x and y are of some built-in integral type&#13;
+int total = x + y;&#13;
+&#13;
+// (d) x and y are of some built-in integral type&#13;
+int diff = x - y;&#13;
+if(diff &lt; 0) { /*...*/ }&#13;
+&#13;
+// (e)&#13;
+int i = f(1,2,3) * 42.0;&#13;
+</code></pre><h1>Solution</h1><p>As you worked through these cases, perhaps you noticed a pattern: The cases are mostly very different, but what they have in common is that they illustrate reason after reason motivating why (and how) to use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> to declare variables. Let’s dig in and see.</p><h2>1. In the following code, what actual or potential pitfalls exist, which would using auto variable declarations fix, and why or why not?</h2><h3>(a) will not compile</h3><pre><code>// (a)&#13;
+void traverser( const vector&lt;int&gt;&amp; v ) {&#13;
+    for( vector&lt;int&gt;::iterator i = begin(v); i != end(v); i += 2 )&#13;
+        // ...&#13;
+}&#13;
+</code></pre><p>With (a), the most important pitfall is that the code doesn’t compile. Because <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">v</span> is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>, you need a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const_iterator</span>. The old-school way to fix this is to write <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const_iterator</span>:</p><pre><code>vector&lt;int&gt;::const_iterator i = begin(v)     // ok + requires thinking&#13;
+</code></pre><p>However, that requires thinking to remember, “ah, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">v</span> is a reference to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>, I better remember to write <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const_</span> in front of its iterator type… and take it off again if I ever change <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">v</span> to be a reference to non-<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span>… and also change the “<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector</span>” part of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">i</span>‘s type if <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">v</span> is some other container type…”</p><p>Not that thinking is a bad thing, mind you, but this is really just a tax on your time when the simplest and clearest thing to write is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span>:</p><pre><code><span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> i = begin(v)                           // ok, best&#13;
+</code></pre><p>Using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> is not only correct and clear and simpler, but it stays correct if we change the type of the parameter to be non-<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">const</span> or pass some other type of container, such as if we make <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">traverser</span> into a template in the future.</p><blockquote><p><strong>Guideline:</strong> Prefer to declare local variables using <strong>auto x = expr;</strong> when you don’t need to explicitly commit to a type. It is simpler, guarantees that you will use the correct type, and guarantees that the type stays correct under maintenance.</p></blockquote><p>Although our focus is on the variable declaration, there’s another independent bug in the code: The <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">+= 2</span> increment can zoom you off the end of the container. When writing a strided loop, check your iterator increment against end on each increment (best to write it once as a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">checked_next(i,end)</span> helper that does it for you), or use an indexed loop something like <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">for( auto i = 0L; i &lt; v.size(); i += 2 )</span> which is more natural to write correctly.</p><h3>(b) and (c) rely on implicit conversions</h3><pre><code>// (b)&#13;
+vector&lt;int&gt; v1(5);     // 1&#13;
+vector&lt;int&gt; v2 = 5;    // 2&#13;
+</code></pre><p>Line 1 performs an explicit conversion and so can call <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector</span>‘s <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">explicit</span> constructor that takes an initial size.</p><p>Line 2 doesn’t compile because its syntax won’t call an <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">explicit</span> constructor. As we saw in GotW #1, it really means “convert <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">5</span> to a temporary <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector&lt;int&gt;</span>, then move-construct <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">v2</span> from that,” so line 2 only works for types where the conversion is not <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">explicit</span>.</p><p>Some people view the asymmetry between 1 and 2 as a pitfall, at least conceptually, for several reasons: First, the syntaxes are not quite the same and so learning when to use each can seem like finicky detail. Second, some people like line 2’s syntax better but have to switch to line 1 to get access to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">explicit</span> constructors. Finally, with this syntax, it’s easy to forget the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">(5)</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">= 5</span> initializer, and then we’re into case 2(a), which we’ll get to in a moment.</p><p>If we use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span>, we have a single syntax that is always obviously explicit:</p><pre><code><span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> v2 = vector&lt;int&gt;(5);&#13;
+</code></pre><p>Next, case (c) is similar to (b):</p><pre><code>// (c)&#13;
+gadget get_gadget();&#13;
+// ...&#13;
+widget w = get_gadget();&#13;
+</code></pre><p>This works, assuming that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">gadget</span> is implicitly convertible to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span>, but creates a temporary object. That’s a potential performance pitfall, as the creation of the temporary object is not at all obvious from reading the call site alone in a code review. If we can use a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">gadget</span> just as well as a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span> in this calling code and so don’t explicitly need to commit to the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span> type, we could write the following which guarantees there is no implicit conversion because <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> always deduces the basic type exactly:</p><pre><code>// better, if you don't need an explicit type&#13;
+<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> w = get_gadget();&#13;
+</code></pre><blockquote><p><strong>Guideline:</strong> Prefer to declare local variables using <strong>auto x = expr;</strong> when you don’t need to explicitly commit to a type. It is efficient by default and guarantees that no implicit conversions or temporary objects will occur.</p></blockquote><p>By the way, if you’ve been wondering whether that “<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">=</span>” in <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto x = expr;</span> causes a temporary object plus a move or copy, wonder no longer: No, it constructs <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x</span> directly. (See GotW #1.)</p><p>Now, what if we said <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span> here because we know about the conversion and really do want to deal with a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span>? Then writing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> is still more self-documenting:</p><pre><code>// better, if you do need to commit to an explicit type&#13;
+<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> w = <span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">widget</span>{ get_gadget() };&#13;
+</code></pre><blockquote><p><strong>Guideline:</strong> Consider declaring local variables <strong>auto x = type{ expr };</strong> when you do want to explicitly commit to a type. It is self-documenting to show that the code is explicitly requesting a conversion.</p></blockquote><p>Note that this last version technically requires a move operation, but compilers are explicitly allowed to elide that and construct <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">w</span> directly—and compilers routinely do that, so there is no performance penalty in practice.</p><h3>(d) creates an indirection, and commits to a single type</h3><pre><code>// (d)&#13;
+function&lt;void(vector&lt;int&gt;)&gt; get_size&#13;
+    = [](const vector&lt;int&gt;&amp; x) { return x.size(); };&#13;
+</code></pre><p>Case (d) has two problems, and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> can help with both of them. (Bonus points if you noticed that a form of “auto” is actually already helping in a third way.)</p><p>First, the lambda object is converted to a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">function&lt;&gt;</span>. That can be appropriate when passing or returning the lambda to a function, but it costs an indirection because <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">function&lt;&gt;</span> has to erase the actual type and create a wrapper around its target to hold it and invoke it. In this case, we appear to be using the lambda locally, and so the correct default way to capture it is using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span>, which binds to the exact (compiler-generated and otherwise-unutterable-by-you) type of the lambda and so doesn’t incur an indirection:</p><pre><code>// partly improved&#13;
+<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> get_size = [](const vector&lt;int&gt;&amp; x) { return x.size(); };&#13;
+</code></pre><blockquote><p><strong>Guideline:</strong> Prefer to use <strong>auto name = </strong>to name a lambda function object. Use <strong>std::function&lt;/*…*/&gt; name =</strong> only when you need to rebind it to another target or pass it to another function that needs a <strong>std::function&lt;&gt;</strong>.</p></blockquote><p>Second, the lambda commits to a specific argument type—it only works with <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector&lt;int&gt;</span>, and not with <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector&lt;double&gt;</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">set&lt;string&gt;</span> or anything else that is also able to report a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">.size()</span>. The way to fix that is to write another <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span>:</p><pre><code>// best&#13;
+<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> get_size = [](const <span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span>&amp; x) { return x.size(); };&#13;
+&#13;
+// yes, you could use this "too cute" variation for slightly less typing&#13;
+//              [](auto&amp;&amp; x) { return x.size(); };&#13;
+// but you'll also get less const-enforcement and that isn't a good deal&#13;
+</code></pre><p>This still creates just a single object, but with a templated function call operator so that it can be invoked with different types of arguments, and so will work with any type of container that supports calling <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">.size()</span>…</p><blockquote><p><strong>Guideline:</strong> Prefer to use <strong>auto</strong> lambda parameter types. They are just as efficient as explicit parameter types, and allow you to call the same lambda with different argument types.</p></blockquote><p>… and did you notice the “third auto” that was there all along? Even in the original example, we’ve been implicitly using automatic type deduction in a third place by allowing the lambda to deduce its return type, and so now with the fully generic “best” version of the code that return type will always be exactly whatever <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">.size()</span> returns for whatever kind of object we’re calling <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">.size()</span> on, which can be different for different argument types. All in all, that’s pretty nifty.</p><blockquote><p><strong>Guideline:</strong> Prefer to use implicit return type deduction for lambda functions.</p></blockquote><h2>2. Same question, subtler examples: In the following code, what actual or potential pitfalls exist, which would using auto variable declarations fix, and why or why not?</h2><h3>(a) might leave the variable uninitialized.</h3><pre><code>// (a)&#13;
+widget w;&#13;
+</code></pre><p>This creates an object of type <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span>. However, we can’t tell just looking at this line whether it’s initialized or contains garbage values. As noted in GotW #1, if <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">widget</span> is a built-in type or aggregate type, its members won’t get initialized. Uninitialized variables should be avoided by default, and only used deliberately in cases where you really want to start with an uninitialized memory region for performance reasons—notably when you have a large object, such as an array, that is expensive to zero-initialize and is immediately going to be overwritten anyway, such as if it’s being used as an “out” parameter.</p><blockquote><p><strong>Guideline:</strong> Always initialize variables, except only when you can prove garbage values are okay, typically because you will immediately overwrite the contents.</p></blockquote><p>Would <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> help here? Indeed it would:</p><pre><code><span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> w = widget{};    // guaranteed to be initialized&#13;
+</code></pre><p>One of the key benefits of declaring a local variable using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> is that the “<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">=</span>” is required—there’s no way to declare the variable without setting an initial value. Further, this is explicit and clear just from reading the above variable declaration on its own during a code review, without having to go inquire in the type’s header about the exact details of the type and poll the neighborhood for character references who will swear it’s not now, and is even under maintenance never likely to become, an aggregate.</p><blockquote><p><strong>Guideline:</strong> Prefer to declare local variables using <strong>auto</strong>. It guarantees that you cannot accidentally leave the variable uninitialized.</p></blockquote><h3>(b) might perform a silent narrowing conversion.</h3><pre><code>// (b)&#13;
+vector&lt;string&gt; v;&#13;
+int size = v.size();&#13;
+</code></pre><p>This will compile, run, and sometimes lose information because it uses an implicit narrowing conversion. Not the safest route to a happy weekend when the bug report from the field comes in on Friday night—normally from a large and important customer, because the bug will be exercised only with larger data sizes.</p><p>Here’s why: The return type of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector&lt;string&gt;::size()</span> is <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector&lt;string&gt;::size_type</span>, but what’s that? It depends on your implementation, because the standard leaves it implementation-defined. But one thing I guarantee you is that “it ain’t no <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>“—for at least two reasons, which lead to at least two ways this can lose information by silent narrowing:</p><ul><li><em>Sign:</em><br/><span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">size_type</span> is required to be an unsigned integer value, so this code is asking to convert it to a signed value. That’s bad enough even if <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">sizeof(size_type) == sizeof(int)</span> and it throws away the high bit—and with it the upper half of the representable values—to make room for the sign bit. It’s worse than that if <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">sizeof(size_type) &gt; sizeof(int)</span>, which brings us to the second problem, because that’s actually likely…</li>
+<li><em>Size:</em><br/><span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">size_type</span> basically needs to be the same size as a pointer, since it may have to represent any offset in a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector&lt;char&gt;</span> that is larger than half the machine’s address space. In 64-bit code, 64-bit pointers mean 64-bit <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">size_type</span>s. However, if on the same system an <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span> is still 32 bits for compatibility (and this is common), then <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">size_type</span> is bigger than <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>, and converting to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span> throws away not just the high-order bit, but over half of the bits and the vast majority of the representable values.</li>
+</ul><p>Of course, you won’t notice on small <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">vector</span>s as long as <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">.size()</span> &lt; 2<sup>(CHAR_BITS*sizeof(int)-1)</sup>. That doesn’t mean it’s not a bug; it just means it’s a latent bug.</p><p>Does <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> help? Yes indeed:</p><pre><code><span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> size = v.size();    // exact type, guaranteed no narrowing&#13;
+</code></pre><blockquote><p><strong>Guideline:</strong> Prefer to declare local variables using <strong>auto</strong>. It guarantees that you get the exact type and cannot accidentally get narrowing conversions.</p></blockquote><h3>(c), (d), and (e) have potential narrowing and signedness issues.</h3><pre><code>// (c) x and y are of some built-in integral type&#13;
+int total = x + y;&#13;
+</code></pre><p>In case (c), we might also have a narrowing conversion. The simplest way to see this is that if either <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">y</span> is larger than <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>, which is what we’re trying to store the result into, then we’ve definitely got a silent narrowing conversion here, with the same issues as already described in (b). And even if <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">y</span> are <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>s today, if under maintenance the type of one later changes to something like <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">long</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">size_t</span>, the code silently becomes lossy—and possibly only on some platforms, if it changes to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">long</span> and that’s the same size as <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span> on some platforms you target but larger than <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span> on others.</p><p>Note that, even if you know the exact types of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">y</span>, you will get different types for <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x+y</span> on different platforms, particularly if one is signed and one is unsigned. If both <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">y</span> are signed, or both are unsigned, and one’s type has more bits than the other, that’s the type of the result. If one is signed and the other is unsigned then other rules kick in, and the size and signedness of the result can vary on different platforms depending on the relative actual sizes and the signedness of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">y</span> on that platform. (This is one of the consequences of C and C++ not standardizing the sizes of the built-in types; for example, we know a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">long</span> is guaranteed to be at least as big as an <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>, but we don’t know how many bits each is, and the answer varies by compiler and platform.)</p><p>Does <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> help here? Almost always “yes,” but in one case “yes with a little help you really want to reach for anyway.”</p><p>By default, write for correctness, clarity, and portability first: To avoid lossy narrowing conversions, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> is your portability pal and you should use it by default. Writing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> is much better than writing it out by hand as <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">std::common_type&lt; decltype(x), decltype(y) &gt;</span>.</p><pre><code><span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> total = x + y;    // exact type, guaranteed no narrowing&#13;
+</code></pre><blockquote><p><strong>Guideline:</strong> Prefer to declare local variables using <strong>auto</strong>. It guarantees that you get the exact type and so is the simplest way to portably spell the implementation-specific type of arithmetic operations on built-in types, which vary by platform, and ensure that you cannot accidentally get narrowing conversions when storing the result.</p></blockquote><p>However, what if in rare cases this code may be in a tight loop where performance matters, and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> may select a wider type than you know you need to store all possible values? For example, in some cases performing arithmetic using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">uint64_t</span> instead of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">uint32_t</span> could be twice as slow. If you first prove that this actually matters using hard profiler data, and then further prove by performing other validation that you won’t (or won’t care if you do) encounter results that would lose value by narrowing, then go ahead and commit to an explicit type—but prefer to do it using the following style:</p><pre><code>// rare cases: use auto + &lt;cstdint&gt; type&#13;
+<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> total = <span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">uint_fast64_t</span>{ x+y };  // total is an unsigned 64-bit value&#13;
+             // ^ see note [1]&#13;
+&#13;
+// or use auto + size-preserving signed/unsigned helper [2]&#13;
+<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> total = <span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">as_unsigned</span>( x+y );    // total is unsigned and size of x+y&#13;
+</code></pre><ul><li>Still use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> to naturally make this more self-documenting and make the code review easy, because <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> syntax makes it explicit that you’re performing a conversion.</li>
+<li>
+<div>Use a portable sized type name from the standard <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&lt;cstdint&gt;</span> header, because you almost certainly care about size and this makes the size portable.[1]</div>
+<blockquote><p><strong>Guideline:</strong> Prefer using the <strong>&lt;cstdint&gt;</strong> type aliases in code that cares about the size of your numeric variables. Avoid relying on what your current platform(s) happen to do.</p></blockquote>
+<blockquote><p><strong>Guideline:</strong> Consider declaring local variables <strong>auto x = type{ expr };</strong> when you do want to explicitly commit to a type. It is self-documenting to show that the code is explicitly requesting a conversion, and won’t allow an accidental implicit narrowing conversion. Only when you do want explicit narrowing, use <strong>( )</strong> instead of <strong>{ }</strong>.</p></blockquote>
+</li>
+</ul><p>Case (d) is similar:</p><pre><code>// (d) x and y are of some built-in integral type&#13;
+int diff = x - y;&#13;
+if(diff &lt; 0) { /*...*/ }&#13;
+</code></pre><p>This time, we’re doing a subtraction. No matter whether <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">y</span> are signed or not, putting the answer in a signed variable like this is the right thing to do—the result could be negative, after all.</p><p>However, we have two issues. The first, again, is that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span> may not be big enough to avoid truncating the result, so we might lose information if <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x – y</span> produces something larger than an <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span>. Using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> can help with that.</p><p>The second is that <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x – y</span> might give a strange answer, which isn’t the programmer’s fault but is something you want to remember about arithmetic in C and C++. Consider this code:</p><pre><code>unsigned long x    = 42;&#13;
+signed short  y    = 43;&#13;
+<span class="amp-wp-inline-cb08775e0ae4e830b87359c9f78462e6">auto          diff = x - y;   // one actual result: 18446744073709551615&#13;
+if(diff &lt; 0) { /*...*/ }      // um, oops – branch won't be taken&#13;
+</span></code></pre><p>“Wait, what?” you ask. On nearly all platforms, an <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unsigned long</span> is bigger than a <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">signed short</span>, and because of the promotion rules the type of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">s – u</span>, and therefore of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">result</span>, will be… <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unsigned long</span>. Which is, well, not very signed. So depending on the types of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">y</span>, and depending on your actual platform, it may be that the branch won’t be taken, which clearly isn’t the same as the original code.</p><blockquote><p><strong>Guideline:</strong> Combine signed and unsigned arithmetic carefully.</p></blockquote><p>Before you say, “then I always want signed!” remember that if you overflow then unsigned arithmetic wraps, which can be valid for your use, whereas signed arithmetic has undefined behavior, which is quite unlikely to be useful. Sometimes you really need signed, and sometimes you really need unsigned, even though often you won’t care.</p><p>From observing <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span>‘s effect in case (d), it might seem like <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> has helped one problem… but was it at the expense of creating another?</p><p>Yes, on the one hand, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> did indeed help us: Using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> ensured we could write portable and correct code where the result wasn’t needlessly narrowed. If we didn’t care about signedness, which is often true, that’s quite sufficient.</p><p>On the other hand, using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> might not preserve signedness in a computation like <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">x – y</span> that’s supposed to return something with a sign, or it might not preserve unsignedness when that’s desirable. But this isn’t so much an issue with <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> itself as that we have to be careful when combining signed and unsigned arithmetic, and by binding to an exact type <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> is exposing this issue with some code that might potentially be already nonportable, or have corner cases the developer wasn’t aware of when he wrote it.</p><p>So what’s a good answer? Consider using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> together with the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">as_signed</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">as_unsigned</span> conversion helper we saw before, which is used in lieu of a cast to a specific type; the helper is written out more fully in the endnotes. [2] Then we get the best of both worlds—we don’t commit to an explicit type, but we ensure the basic size and signedness in portable code that will work as intended on many different compilers and platforms.</p><blockquote><p><strong>Guideline:</strong> Prefer to use <strong>auto x = as_signed(integer_expr);</strong> or <strong>auto x = as_unsigned(integer_expr);</strong> to store the result of an integer computation that should be signed or unsigned. Using <strong>auto</strong> together with <strong>as_signed</strong> or <strong>as_unsigned</strong> makes code more portable: the variable will both be large enough and preserve the required signedness on all platforms. (Signed/unsigned conversions within <strong>integer_expr</strong> may still occur.)</p></blockquote><p>Finally, case (e) brings floating point into the picture:</p><pre><code>// (e)&#13;
+int i = f(1,2,3) * 42.0;&#13;
+</code></pre><p>Here we have our by-now-yawnworthy-typical narrowing—and an easy case because it isn’t even hiding, it’s saying <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">int</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">42.0</span> right there in the same breath, which is narrowing almost regardless of what type <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f</span> returns.</p><p>Does <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> help? Yes, in making our code self-documenting and more reviewable, as we noted before. If we follow the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto x = type{expr};</span> declaration style, we would be (happily) forced to write the conversion explicitly, and when we initially use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">{ }</span> we get an error that in fact it’s a narrowing conversion, which we acknowledge (again explicitly) by switching to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">( )</span>:</p><pre><code><span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> i = int( f(1,2,3) * 42.0 );&#13;
+</code></pre><p>This code is now free of implicit conversions, including implicit narrowing conversions. If our team’s coding style says to use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto x = expr;</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto x = type{expr};</span> wherever possible, then in a code review just seeing the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">( )</span> parens can immediately connote explicit narrowing; adding a comment doesn’t hurt either.</p><p>But for floating point calculations, can using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> by itself hurt? Consider this example, contributed by Andrei Alexandrescu:</p><pre><code>float f1 = /*...*/, f2 = /*...*/;&#13;
+&#13;
+<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span>   f3 = f1 + f2;   // correct, but on some compilers/platforms...&#13;
+<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">double</span> f4 = f1 + f2;   // ... this might keep more bits of precision&#13;
+</code></pre><p>As Alexandrescu notes: “Machines are free to do intermediate calculations in a larger precision than the target, and in many cases (and traditionally in C) calculations are done in double precision. So for <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f3</span> we have a sum done in double precision, which is then <em>truncated</em> down to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">float</span>. For <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f4</span>, the sum is preserved at full precision.”</p><p>Does this mean using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> creates a potential flaw here? Not really. In the language, the type of <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">f1 + f2</span> is still <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">float</span>, and the naked <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> maintains that exact type for us. However, if we do want to follow the pattern of switching to <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">double</span> early in a complex computation, we can and should say so:</p><pre><code>float f1 = /*...*/, f2 = /*...*/;&#13;
+&#13;
+<span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">auto</span> f5 = <span class="amp-wp-inline-19f7f3ed0686319173cc7809a4f48fce">double</span>{f1} + f2;&#13;
+</code></pre><h2>Summary</h2><p>We’ve seen a number of reasons to prefer to declare variables using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span>, optionally with an explicit type if you do want to commit to a specific type.</p><p>If you’re observed a pattern in this GotW’s Guidelines, you’ll already have a sense of what’s coming in GotW #94… a Special Edition on, you guessed it, <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> style.</p><h2>Notes</h2><p>[1] Another reason to prefer using the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">&lt;cstdint&gt;</span> typedef names is because, due to a quirk in the C++ language grammar, only a single-word type is allowed where <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">uint64_t</span> appears in this example. That’s fine nearly always because it’s all you need for class types and all <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">typedef</span> and <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">using</span> alias names and most built-in types, but you can’t directly name arrays or the multi-word built-in types like <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">unsigned int</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">long long</span> in that position; for the latter, use the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">uintNN_t</span>-style typedef names instead. The exact ones, such as <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">uint64_t</span>, are “optional” in the standard, but they are in the standard and expected to be widely implemented so I used them. The “least” and “fast” ones are required, so if you don’t have <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">uint64_t</span> you can use <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">uint_least64_t</span> or <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">uint_fast64_t</span>.</p><p>[2] The helpers preserve the size of the type while changing only the signedness. Thanks to Andrei Alexandrescu for this basic idea; any errors are mine, not his. The C++98 way is to provide a set of overloads for each type, but a modern version might look something like the following which uses the C++11 <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">std::make_signed</span>/<span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">make_unsigned</span> facilities.</p><pre><code>// C++11 version&#13;
+//&#13;
+template&lt;class T&gt;&#13;
+typename make_signed&lt;T&gt;::type as_signed(T t)&#13;
+    { return make_signed&lt;T&gt;::type(t); }&#13;
+&#13;
+template&lt;class T&gt;&#13;
+typename make_unsigned&lt;T&gt;::type as_unsigned(T t)&#13;
+    { return make_unsigned&lt;T&gt;::type(t); }&#13;
+</code></pre><p>Note that with C++14 this gets even sweeter, using <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">auto</span> return type deduction to eliminate <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">typename</span> and repetition, and the <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">_t</span> alias to replace <span class="amp-wp-inline-e118b89cb574341583297a20935ac54c">::type</span>:</p><pre><code>// C++14 version, option 1&#13;
+//&#13;
+template&lt;class T&gt; auto as_signed  (T t){ return make_signed_t  &lt;T&gt;(t); }&#13;
+template&lt;class T&gt; auto as_unsigned(T t){ return make_unsigned_t&lt;T&gt;(t); }&#13;
+</code></pre><p>or you can equivalently write these function templates as named lambdas:</p><pre><code>// C++14 version, option 2&#13;
+//&#13;
+auto as_signed   =[](auto x){ return make_signed_t  &lt;decltype(x)&gt;(x); };&#13;
+auto as_unsigned =[](auto x){ return make_unsigned_t&lt;decltype(x)&gt;(x); };&#13;
+</code></pre><p>Sweet, isn’t it? Once you have a compiler that supports these features, pick whichever suits your fancy.</p><h2>Acknowledgments</h2><p>Thanks in particular to Scott Meyers and Andrei Alexandrescu for their time and insights in reviewing and discussing drafts of this material. Thanks also to the following for their feedback to improve this article: mttpd, Jim Park, Yuri Khan, Arne, rhalbersma, Tom, Martin Ba, John, Frederic Dumont, Sebastian.</p>	</div>
+
+	<footer class="amp-wp-article-footer">
+			<div class="amp-wp-meta amp-wp-tax-category">
+		Categories: <a href="https://herbsutter.com/category/c/gotw/" rel="category tag">GotW</a>	</div>
+
+		<div class="amp-wp-meta amp-wp-comments-link">
+		<a href="https://herbsutter.com/2013/06/13/gotw-93-solution-auto-variables-part-2/#comments">
+			View Comments		</a>
+	</div>
+	</footer>
+</article>
+
+<footer class="amp-wp-footer">
+	<div>
+		<h2>Sutter’s Mill</h2>
+		<p>
+			<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a>
+		</p>
+		<a href="#top" class="back-to-top">Back to top</a>
+	</div>
+</footer>
+
+
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;host=herbsutter.com&#038;ref=DOCUMENT_REFERRER&#038;amp=1&#038;blog=3379246&#038;v=wpcom&#038;tz=-8&#038;user_id=0&#038;post=2145&#038;subd=herbsutter"></amp-pixel>
+	<amp-pixel src="https://pixel.wp.com/b.gif?rand=RANDOM&#038;v=wpcom-no-pv&#038;crypt=UE40eW5QN0p8M2Y%2FRE1TaVhzUzFMbjdWNHpwZGhTayxPSUFCMGNrd29%2BSmw0TDhnZmRTK0hlRi9QSGh6bi9GXVhBJWIlZlR5U1JMLU8%2FMkNtblkvY1d1TjBELytHc0k%2FMXdHUVQyK2IyUVA5SjU1bj9VX3ExLHYsREFpcnlfNHYtXV1HSUIsLkJrcnp0eS5sNGp0MlEtR1Rrd1FdY2hyVXFoUHxWOFQ3OTcuNTZsQV9ob0czQ2d1bW9WT2NkdHFlU2dHVmJRTGtMTG0lPURZNFE%2FbDBLbmcvPVpuLzAsfFQrbU5NcjhJd2xRaFh0dV1dSyZ6Mg%3D%3D"></amp-pixel>
+	
+</body>
+</html>
